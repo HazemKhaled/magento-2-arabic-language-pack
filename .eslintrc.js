@@ -3,14 +3,15 @@ module.exports = {
     "env": {
         "node": true,
         "commonjs": true,
-        "es6": true,
         "jquery": false,
+        "es6":true,
         "jest": true,
         "jasmine": true
     },
     "extends": "eslint:recommended",
     "parserOptions": {
-        "sourceType": "module"
+        "sourceType": "module",
+        "ecmaVersion": 8
     },
     "rules": {
         "indent": [
