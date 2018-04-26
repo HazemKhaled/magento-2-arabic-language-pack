@@ -28,12 +28,21 @@ module.exports = {
 	actions: {
 
 		/**
-		 * Say a 'Hello'
+		 * Get product by SKU
 		 *
 		 * @returns
 		 */
-		product() {
-			return "Hello Moleculer";
+		product(ctx) {
+			if (Object.keys(ctx.params).length > 0) {
+				console.log("Putin de ctx", ctx.params);
+				return `Welcome, ${ctx.params.name}`;
+			} else {
+				return {
+					"errorCode": 404,
+					"errorMessage": "SKU(s) out of stock.",
+					"data": {}
+				};
+			}
 		},
 
 		/**
@@ -41,14 +50,12 @@ module.exports = {
 		 *
 		 * @param {String} name - User name
 		 */
-		welcome: {
-			params: {
-				name: "string"
-			},
-			handler(ctx) {
-				return `Welcome, ${ctx.params.name}`;
-			}
-		}
+		products: {
+			auth: "required",
+			handler() {
+				return "Welcome, idiot";
+			}			
+		},
 	},
 
 	/**
