@@ -29,6 +29,9 @@ module.exports = {
 				// Current user
 				"GET /user": "users.me",
 				"PUT /user": "users.updateMyself",
+
+				// Product
+				"GET catalog/product/:sku": "catalog.product"
 			}
 		}],
 		// Serve assets from "public" folder
