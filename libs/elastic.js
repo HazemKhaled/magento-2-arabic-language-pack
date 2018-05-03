@@ -45,6 +45,47 @@ class ElasticLib {
 		}
 	}
 
+	async fetchInstanceProduct(indexName, type, hash, page) {
+		let from = 0;
+		let size = 1000;
+
+		if (page === undefined) {
+			from = 0;
+			size = 10;
+		} else {
+			from = page == 1 ? from : size * page;
+		}
+
+		try {
+			const result = await this.es.search({
+				index: indexName,
+				type: type,
+				from : from, 
+				size : size,
+				body: {
+					"query": {
+						"term": {
+							"instanceId": hash
+						}
+					}
+				}
+			});
+			
+			if (result.hits.total === 0) {
+				return {
+					status: "failed",
+					message: "There are no products at the moment.",
+				};
+			} else {
+				let products = result.hits.hits;
+				products = products.map((product) => product._source);
+				return products;
+			}
+		} catch (err) {
+			return new Error(err);
+		}
+	}
+
 	async fetch(indexName, type, page) {
 		let from = 0;
 		let size = 1000;
