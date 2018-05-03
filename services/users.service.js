@@ -23,13 +23,15 @@ module.exports = {
 		fields: ["_id", "username", "email", "bio", "image"],
 
 		/** Validator schema for entity */
-		entityValidator: {
+		/*entityValidator: {
 			username: { type: "string", min: 2, pattern: /^[a-zA-Z0-9]+$/ },
 			password: { type: "string", min: 6 },
+			consumer_key: {type: "string"},
+			consumer_secret: {type: "string"},
 			email: { type: "email" },
 			bio: { type: "string", optional: true },
 			image: { type: "string", optional: true },
-		}
+		}*/
 	},
 
 	/**
@@ -94,30 +96,58 @@ module.exports = {
 		login: {
 			params: {
 				user: { type: "object", props: {
-					email: { type: "email" },
-					password: { type: "string", min: 1 }
+					consumer_key: { type: "string" },
+					consumer_secret: { type: "string", min: 1 }
 				}}
 			},
 			handler(ctx) {
-				const { email, password } = ctx.params.user;
+				const { consumer_key, consumer_secret } = ctx.params;
 
 				return this.Promise.resolve()
-					.then(() => this.adapter.findOne({ email }))
-					.then(user => {
-						if (!user)
-							return this.Promise.reject(new MoleculerClientError("Email or password is invalid!", 422, "", [{ field: "email", message: "is not found"}]));
+					.then(async () => {
+						const KlayerLib = require("../libs/klayer");
+						const klayer = new KlayerLib();
 
-						return bcrypt.compare(password, user.password).then(res => {
-							if (!res)
-								return Promise.reject(new MoleculerClientError("Wrong password!", 422, "", [{ field: "email", message: "is not found"}]));
-							
-							// Transform user entity (remove password and all protected fields)
-							return this.transformDocuments(ctx, {}, user);
-						});
+						try {
+							let instance = await klayer.findInstance(consumer_key);
+							instance = instance[0];
+							if (!instance) {
+								return this.Promise.reject(new MoleculerClientError("consumer_key or consumer_secret is invalid!", 422, "", [{ field: "consumer_key", message: "is not found"}]));
+							} else {
+								return {
+									"_id": instance.webhook_hash,
+									"url": instance.url,
+									"status": instance.status,
+									"base_currency": instance.base_currency,
+								};
+							}
+						} catch(err) {
+							return this.Promise.reject(new MoleculerClientError(err));
+						}
 					})
 					.then(user => this.transformEntity(user, true, ctx.meta.token));
 			}
 		},
+		/*login: {
+			params: {
+				user: { type: "object", props: {
+					consumer_key: { type: "string" },
+					consumer_secret: { type: "string", min: 1 }
+				}}
+			},
+			handler(ctx) {
+				const { consumer_key, consumer_secret } = ctx.params.user;
+				console.log({ consumer_key, consumer_secret });
+				return this.Promise.resolve()
+					.then(() => {
+						return {
+							email: "ok@",
+							password: consumer_secret
+						};
+					})
+					.then(user => this.transformEntity(user, true, ctx.meta.token));
+			}
+		},*/
 
 		/**
 		 * Get user by JWT token (for API GW authentication)
@@ -145,173 +175,18 @@ module.exports = {
 					});
 
 				})
-					.then(decoded => {
-						if (decoded.id)
-							return this.getById(decoded.id);
+					.then(async (decoded) => {
+						const KlayerLib = require("../libs/klayer");
+						const klayer = new KlayerLib();
+						if (decoded.id) {
+							const instance = await klayer.findInstance(decoded.id);
+							if (instance[0].status === "confirmed") {
+								return true;
+							}
+						}
 					});
 			}
-		},
-
-		/**
-		 * Get current user entity.
-		 * Auth is required!
-		 * 
-		 * @actions
-		 * 
-		 * @returns {Object} User entity
-		 */
-		me: {
-			auth: "required",
-			cache: {
-				keys: ["#token"]
-			},
-			handler(ctx) {
-				return this.getById(ctx.meta.user._id)
-					.then(user => {
-						if (!user)
-							return this.Promise.reject(new MoleculerClientError("User not found!", 400));
-
-						return this.transformDocuments(ctx, {}, user);
-					})
-					.then(user => this.transformEntity(user, true, ctx.meta.token));
-			}
-		},
-
-		/**
-		 * Update current user entity.
-		 * Auth is required!
-		 * 
-		 * @actions
-		 * 
-		 * @param {Object} user - Modified fields
-		 * @returns {Object} User entity
-		 */
-		updateMyself: {
-			auth: "required",
-			params: {
-				user: { type: "object", props: {
-					username: { type: "string", min: 2, optional: true, pattern: /^[a-zA-Z0-9]+$/ },
-					password: { type: "string", min: 6, optional: true },
-					email: { type: "email", optional: true },
-					bio: { type: "string", optional: true },
-					image: { type: "string", optional: true },
-				}}
-			},
-			handler(ctx) {
-				const newData = ctx.params.user;
-				return this.Promise.resolve()
-					.then(() => {
-						if (newData.username)
-							return this.adapter.findOne({ username: newData.username })
-								.then(found => {
-									if (found && found._id.toString() !== ctx.meta.user._id.toString())
-										return Promise.reject(new MoleculerClientError("Username is exist!", 422, "", [{ field: "username", message: "is exist"}]));
-									
-								});
-					})
-					.then(() => {
-						if (newData.email)
-							return this.adapter.findOne({ email: newData.email })
-								.then(found => {
-									if (found && found._id.toString() !== ctx.meta.user._id.toString())
-										return Promise.reject(new MoleculerClientError("Email is exist!", 422, "", [{ field: "email", message: "is exist"}]));
-								});
-							
-					})
-					.then(() => {
-						newData.updatedAt = new Date();
-						const update = {
-							"$set": newData
-						};
-						return this.adapter.updateById(ctx.meta.user._id, update);
-					})
-					.then(doc => this.transformDocuments(ctx, {}, doc))
-					.then(user => this.transformEntity(user, true, ctx.meta.token))
-					.then(json => this.entityChanged("updated", json, ctx).then(() => json));
-
-			}
-		},
-
-		/**
-		 * Get a user profile.
-		 * 
-		 * @actions
-		 * 
-		 * @param {String} username - Username
-		 * @returns {Object} User entity
-		 */
-		profile: {
-			cache: {
-				keys: ["#token", "username"]
-			},
-			params: {
-				username: { type: "string" }
-			},
-			handler(ctx) {
-				return this.adapter.findOne({ username: ctx.params.username })
-					.then(user => {
-						if (!user)
-							return this.Promise.reject(new MoleculerClientError("User not found!", 404));
-
-						return this.transformDocuments(ctx, {}, user);
-					})
-					.then(user => this.transformProfile(ctx, user, ctx.meta.user));
-			}
-		},
-
-		/**
-		 * Follow a user
-		 * Auth is required!
-		 * 
-		 * @actions
-		 * 
-		 * @param {String} username - Followed username
-		 * @returns {Object} Current user entity
-		 */
-		follow: {
-			auth: "required",
-			params: {
-				username: { type: "string" }
-			},
-			handler(ctx) {
-				return this.adapter.findOne({ username: ctx.params.username })
-					.then(user => {
-						if (!user)
-							return this.Promise.reject(new MoleculerClientError("User not found!", 404));
-
-						return ctx.call("follows.add", { user: ctx.meta.user._id.toString(), follow: user._id.toString() })
-							.then(() => this.transformDocuments(ctx, {}, user));
-					})
-					.then(user => this.transformProfile(ctx, user, ctx.meta.user));
-			}
-		},	
-
-		/**
-		 * Unfollow a user
-		 * Auth is required!
-		 * 
-		 * @actions
-		 * 
-		 * @param {String} username - Unfollowed username
-		 * @returns {Object} Current user entity
-		 */
-		unfollow: {
-			auth: "required",
-			params: {
-				username: { type: "string" }
-			},
-			handler(ctx) {
-				return this.adapter.findOne({ username: ctx.params.username })
-					.then(user => {
-						if (!user)
-							return this.Promise.reject(new MoleculerClientError("User not found!", 404));
-
-						return ctx.call("follows.delete", { user: ctx.meta.user._id.toString(), follow: user._id.toString() })
-							.then(() => this.transformDocuments(ctx, {}, user));
-					})
-					.then(user => this.transformProfile(ctx, user, ctx.meta.user));
-			}
-		}		
+		},			
 	},
 
 	/**
