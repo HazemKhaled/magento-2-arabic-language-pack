@@ -46,7 +46,11 @@ module.exports = {
 				"PUT /user": "users.updateMyself",
 
 				// Product
-				"GET catalog/product/:sku": "catalog.product"
+				"GET /catalog/product/:sku": "catalog.product",
+				"GET /catalog/products": "catalog.products",
+
+				// Order
+				"POST /order/": "order.create"
 			}
 		}],
 		// Serve assets from "public" folder
