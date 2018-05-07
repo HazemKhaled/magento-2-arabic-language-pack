@@ -125,13 +125,12 @@ class ElasticLib {
     }
   }
 
-  async findProducts(indexName, type, instance, _page) {
+  async findProducts(indexName, type, instance, page) {
     const KlayerAPI = require('./klayer');
     const api = new KlayerAPI();
     const Loop = require('bluebird');
     const from = 0;
     const size = 1000;
-    const page = parseInt(_page);
     const instanceProducts = await this.findIP(
       'products-instances',
       'product',
