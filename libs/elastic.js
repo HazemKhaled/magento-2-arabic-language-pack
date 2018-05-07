@@ -75,7 +75,7 @@ class ElasticLib {
     const Loop = require('bluebird');
     const from = 0;
     const size = 1000;
-
+    page = parseInt(page);
     try {
       const search = await this.es.search({
         index: indexName,
@@ -91,51 +91,48 @@ class ElasticLib {
         }
       });
       const results = search.hits.hits;
-
-      const ids = [];
-      const products = await Loop.map(results, async product => {
+      const ids = await Loop.map(results, async product => {
         const source = product._source;
-        source._id = product._id;
-        ids.push(source.sku);
-        return source;
+        return source.sku;
       });
-      return [ids, products];
+      return ids;
     } catch (err) {
       console.log(err);
       return err;
     }
   }
 
-  async findProducts(indexName, type, instance, page) {
+  async findProducts(indexName, type, instance, _page) {
     const KlayerAPI = require('./klayer');
     const api = new KlayerAPI();
     const Loop = require('bluebird');
     const from = 0;
     const size = 1000;
+    const page = parseInt(_page);
     const instanceProducts = await this.findIP(
       'products-instances',
       'product',
       instance,
       page
     );
-
     try {
       const search = await this.es.search({
         index: indexName,
         type: type,
-        from: page === undefined ? 0 : page == 1 ? from : size * page,
+        from: page === undefined ? 0 : page === 1 ? from : size * page,
         size: page === undefined ? 10 : size,
         body: {
           query: {
             ids: {
               type: type,
-              values: instanceProducts[0]
+              values: instanceProducts
             }
           }
         }
       });
 
       const results = search.hits.hits;
+
       const rate = await api.currencyRate(instance.base_currency);
 
       const products = await Loop.map(results, async product => {
