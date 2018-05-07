@@ -57,6 +57,7 @@ module.exports = {
 		 */
 		products: {
 			auth: "required",
+			cache: true,
 			async handler(ctx) {
 				const es = require("../libs/elastic");
 				const esClient = new es();

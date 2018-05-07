@@ -161,54 +161,60 @@ class ElasticLib {
 
 	async formatVariations(variations, instance, rate) {
 		const Loop = require("bluebird");
-		variations = await Loop.map(variations, async variation => {
-			if (variation) {
-				return {
-					sku: variation.sku,
-					cost_price: variation.cost * rate,
-					sale_price: instance.salePriceOprator === 1 ? variation.sale * instance.salePrice * rate : (variation.sale * rate) + instance.salePrice,
-					market_price: instance.comparedAtPriceOprator === 1 ? variation.sale * instance.comparedAtPrice * rate : (variation.sale * rate) + instance.comparedAtPrice,
-					weight: variation.weight,
-					attributes: variation.attributes,
-				};
-			}
-		});
-		return variations;
+		if (variations) {
+			variations = await Loop.map(variations, async variation => {
+				if (variation) {
+					return {
+						sku: variation.sku,
+						cost_price: variation.cost * rate,
+						sale_price: instance.salePriceOprator === 1 ? variation.sale * instance.salePrice * rate : (variation.sale * rate) + instance.salePrice,
+						market_price: instance.comparedAtPriceOprator === 1 ? variation.sale * instance.comparedAtPrice * rate : (variation.sale * rate) + instance.comparedAtPrice,
+						weight: variation.weight,
+						attributes: await this.formatAttributes(variation.attributes),
+					};
+				}
+			});
+			return variations;
+		}		
 	}
 
 	async formatCategories(categories) {
 		const Loop = require("bluebird");
-		categories = await Loop.map(categories, async category => {
-			if (category) {
-				return {
-					id: category.odooId,
-					name: category.name_i18n
-				};
-			}
-		});
-		return categories;
+		if (categories) {
+			categories = await Loop.map(categories, async category => {
+				if (category) {
+					return {
+						id: category.odooId,
+						name: category.name_i18n
+					};
+				}
+			});
+			return categories;
+		}
 	}
 
 	async formatAttributes(attributes) {
 		const Loop = require("bluebird");
-		attributes = await Loop.map(attributes, async attribute => {
-			if (attribute) {
-				return {
-					id: attribute.id,
-					name: {
-						tr: attribute.name,
-						en: "",
-						ar: ""
-					},
-					option: {
-						tr: attribute.option,
-						en: "",
-						ar: ""
-					},
-				};
-			}
-		});
-		return attributes;
+		if (attributes) {
+			attributes = await Loop.map(attributes, async attribute => {
+				if (attribute) {
+					return {
+						id: attribute.id,
+						name: {
+							tr: attribute.name,
+							en: "",
+							ar: ""
+						},
+						option: {
+							tr: attribute.option,
+							en: "",
+							ar: ""
+						},
+					};
+				}
+			});
+			return attributes;
+		}
 	}
 }
 
