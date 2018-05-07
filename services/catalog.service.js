@@ -28,6 +28,10 @@ module.exports = {
     product: {
       auth: 'required',
       async handler(ctx) {
+        const KlayerLib = require('../libs/klayer');
+        const klayer = new KlayerLib();
+        let instance = await klayer.findInstance(ctx.meta.user);
+        instance = instance['0'];
         if (
           Object.keys(ctx.params).length > 0 &&
           ctx.params.hasOwnProperty('sku')
@@ -37,13 +41,14 @@ module.exports = {
           const product = await esClient.fetchProduct(
             'products',
             'Product',
-            ctx.params.sku
+            ctx.params.sku,
+            instance
           );
           return product;
         }
         return {
           errorCode: 404,
-          errorMessage: 'SKU(s) out of stock.',
+          errorMessage: 'SKU(s) not found or No SKU was requested',
           data: {}
         };
       }
