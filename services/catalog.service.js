@@ -75,9 +75,6 @@ module.exports = {
           ctx.params.hasOwnProperty('page') ? ctx.params.page : undefined
         );
         return {
-          meta: {
-            total: products.length
-          },
           data: products
         };
       }
