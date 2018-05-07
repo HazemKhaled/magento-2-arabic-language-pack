@@ -1,5 +1,3 @@
-
-
 module.exports = {
   namespace: '',
   nodeID: null,
@@ -9,6 +7,8 @@ module.exports = {
   logFormatter: 'default',
 
   serializer: 'JSON',
+
+  cacher: 'Redis',
 
   requestTimeout: 10 * 1000,
   requestRetry: 0,
@@ -38,25 +38,7 @@ module.exports = {
   statistics: false,
   internalActions: true,
 
-  hotReload: false,
+  hotReload: true,
 
-  replCommands: null,
-
-  // Register middlewares
-  middlewares: [],
-
-  // Called after broker created.
-  created(broker) {
-
-  },
-
-  // Called after broker starte.
-  started(broker) {
-
-  },
-
-  // Called after broker stopped.
-  stopped(broker) {
-
-  }
+  replCommands: null
 };
