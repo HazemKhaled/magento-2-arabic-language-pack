@@ -21,14 +21,14 @@ module.exports = {
 
     /** Validator schema for entity */
     // entityValidator: {
-    // 		username: { type: "string", min: 2, pattern: /^[a-zA-Z0-9]+$/ },
-    // 		password: { type: "string", min: 6 },
-    // 		consumer_key: {type: "string"},
-    // 		consumer_secret: {type: "string"},
-    // 		email: { type: "email" },
-    // 		bio: { type: "string", optional: true },
-    // 		image: { type: "string", optional: true },
-    // 	}
+    //   username: { type: 'string', min: 2, pattern: /^[a-zA-Z0-9]+$/ },
+    //   password: { type: 'string', min: 6 },
+    //   consumer_key: { type: 'string' },
+    //   consumer_secret: { type: 'string' },
+    //   email: { type: 'email' },
+    //   bio: { type: 'string', optional: true },
+    //   image: { type: 'string', optional: true }
+    // }
   },
 
   /**
@@ -75,7 +75,7 @@ module.exports = {
               }
               if (
                 consumer_key === instance.webhook_hash &&
-                  consumer_secret === instance.secret
+                consumer_secret === instance.secret
               ) {
                 return {
                   _id: instance.webhook_hash,
