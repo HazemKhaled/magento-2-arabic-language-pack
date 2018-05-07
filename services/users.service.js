@@ -48,13 +48,13 @@ module.exports = {
         user: {
           type: 'object',
           props: {
-            consumer_key: { type: 'string' },
-            consumer_secret: { type: 'string', min: 1 }
+            consumerKey: { type: 'string' },
+            consumerSecret: { type: 'string', min: 1 }
           }
         }
       },
       handler(ctx) {
-        const { consumer_key, consumer_secret } = ctx.params.user;
+        const { consumerKey, consumerSecret } = ctx.params.user;
 
         return this.Promise.resolve()
           .then(async () => {
@@ -66,16 +66,16 @@ module.exports = {
               if (!instance) {
                 return this.Promise.reject(
                   new MoleculerClientError(
-                    'consumer_key or consumer_secret is invalid!',
+                    'consumerKey or consumerSecret is invalid!',
                     422,
                     '',
-                    [{ field: 'consumer_key', message: 'is not found' }]
+                    [{ field: 'consumerKey', message: 'is not found' }]
                   )
                 );
               }
               if (
-                consumer_key === instance.webhook_hash &&
-                consumer_secret === instance.secret
+                consumerKey === instance.webhook_hash &&
+                consumerSecret === instance.secret
               ) {
                 return {
                   _id: instance.webhook_hash,
@@ -90,8 +90,8 @@ module.exports = {
                   422,
                   '',
                   [
-                    { field: 'consumer_key', message: 'is not valid' },
-                    { field: 'consumer_secret', message: 'is not valid' }
+                    { field: 'consumerKey', message: 'is not valid' },
+                    { field: 'consumerSecret', message: 'is not valid' }
                   ]
                 )
               );
