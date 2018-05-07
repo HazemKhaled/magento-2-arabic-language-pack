@@ -24,6 +24,7 @@
   "dependencies": {
     "bluebird": "^3.5.1",
     "elasticsearch": "^14.2.2",
+    "ioredis": "^3.2.2",
     "jsonwebtoken": "^8.2.1",
     "mkdirp": "^0.5.1",
     "moleculer": "^0.12.0",
@@ -40,6 +41,8 @@
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
     "rootDir": "./services",
-    "roots": ["../test"]
+    "roots": [
+      "../test"
+    ]
   }
 }
