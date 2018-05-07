@@ -1,5 +1,3 @@
-
-
 module.exports = {
   name: 'catalog',
 
@@ -64,7 +62,7 @@ module.exports = {
         const KlayerLib = require('../libs/klayer');
         const klayer = new KlayerLib();
         let instance = await klayer.findInstance(ctx.meta.user);
-        instance = instance[0];
+        instance = instance['0'];
         const products = await esClient.findProducts(
           'products',
           'Product',

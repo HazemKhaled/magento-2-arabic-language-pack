@@ -56,35 +56,39 @@ module.exports = {
      * @returns {Promise}
      */
     authorize(ctx, route, req) {
-      let token;
+      let reqToken;
       if (req.headers.authorization) {
         const type = req.headers.authorization.split(' ')[0];
-        if (type === 'Token' || type === 'Bearer') { token = req.headers.authorization.split(' ')[1]; }
+        if (type === 'Token' || type === 'Bearer') {
+          reqToken = req.headers.authorization.split(' ')['1'];
+        }
       }
 
-      return this.Promise.resolve(token)
+      return this.Promise.resolve(reqToken)
         .then(token => {
           if (token) {
             // Verify JWT token
-            return ctx
-              .call('users.resolveToken', { token })
-              .then(user => {
-                if (user) {
-                  this.logger.info('Authenticated via JWT: ', user.username);
-                  // Reduce user fields (it will be transferred to other nodes)
-                  ctx.meta.user = user.id;
-                  ctx.meta.token = token;
-                }
-                return user;
-              })
-              .catch(err =>
+            return (
+              ctx
+                .call('users.resolveToken', { token })
+                .then(user => {
+                  if (user) {
+                    this.logger.info('Authenticated via JWT: ', user.username);
+                    // Reduce user fields (it will be transferred to other nodes)
+                    ctx.meta.user = user.id;
+                    ctx.meta.token = token;
+                  }
+                  return user;
+                })
                 // Ignored because we continue processing if user is not exist
-                null
-              );
+                .catch(() => null)
+            );
           }
         })
         .then(user => {
-          if (req.$endpoint.action.auth == 'required' && !user) { return this.Promise.reject(new UnAuthorizedError()); }
+          if (req.$endpoint.action.auth === 'required' && !user) {
+            return this.Promise.reject(new UnAuthorizedError());
+          }
         });
     }
   }
