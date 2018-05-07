@@ -5,33 +5,90 @@ services:
   api:
     build:
       context: .
-    image: MicroES
+    image: conduit
     env_file: docker-compose.env
     environment:
       SERVICES: api
       PORT: 3000
+    links:
+      - redis
+    depends_on:
+      - redis
     labels:
-      - "traefik.enable=true"   
+      - "traefik.enable=true"
       - "traefik.backend=api"
       - "traefik.port=3000"
-      - "traefik.frontend.entryPoints=http"
+      - "traefik.frontend.entryPoints=http,https"
       - "traefik.frontend.rule=PathPrefix:/"
+    # deploy:
+    #   replicas: 2
 
-  greeter:
+  users:
     build:
       context: .
-    image: MicroES
+    image: conduit
     env_file: docker-compose.env
     environment:
-      SERVICES: greeter
+      SERVICES: users
+    links:
+      - redis
+    depends_on:
+      - redis
+    # deploy:
+    #   replicas: 2
 
+  catalog:
+    build:
+      context: .
+    image: conduit
+    env_file: docker-compose.env
+    environment:
+      SERVICES: catalog
+    links:
+      - redis
+    depends_on:
+      - redis
+    # deploy:
+    #   replicas: 2
+
+  catalog:
+    build:
+      context: .
+    image: conduit
+    env_file: docker-compose.env
+    environment:
+      SERVICES: catalog
+    links:
+      - redis
+    depends_on:
+      - redis
+    # deploy:
+    #   replicas: 2
+
+  order:
+    build:
+      context: .
+    image: conduit
+    env_file: docker-compose.env
+    environment:
+      SERVICES: order
+    links:
+      - redis
+    depends_on:
+      - redis
+    # deploy:
+    #   replicas: 2
+
+  redis:
+    image: redis:alpine
 
   traefik:
     image: traefik
     command: --web --docker --docker.domain=docker.localhost --logLevel=INFO --docker.exposedbydefault=false
     ports:
-      - "3000:80"
-      - "3001:8080"
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - /dev/null:/traefik.toml
+      - ./traefik.toml:/traefik.toml
