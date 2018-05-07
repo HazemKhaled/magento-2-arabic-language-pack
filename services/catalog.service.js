@@ -81,13 +81,18 @@ module.exports = {
     categories: {
       auth: 'required',
       async handler(ctx) {
-        const es = require('../libs/elastic');
-        const esClient = new es();
-        const categories = await esClient.fetch(
+        const Es = require('../libs/elastic');
+        const esClient = new Es();
+        const Loop = require('bluebird');
+        let categories = await esClient.fetch(
           'categories',
           'Category',
-          ctx.params.hasOwnProperty('page') ? ctx.params.page : undefined
+          1
         );
+        categories = await Loop.map(categories, category => ({
+          id: category.odooId,
+          name: category.name
+        }));
         return categories;
       }
     }
