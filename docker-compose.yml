@@ -51,20 +51,6 @@ services:
     # deploy:
     #   replicas: 2
 
-  catalog:
-    build:
-      context: .
-    image: conduit
-    env_file: docker-compose.env
-    environment:
-      SERVICES: catalog
-    links:
-      - redis
-    depends_on:
-      - redis
-    # deploy:
-    #   replicas: 2
-
   order:
     build:
       context: .
