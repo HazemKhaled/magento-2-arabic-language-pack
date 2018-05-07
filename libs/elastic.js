@@ -44,7 +44,9 @@ class ElasticLib {
     }
   }
 
-  async fetchProduct(indexName, type, sku) {
+  async fetchProduct(indexName, type, sku, instance) {
+    const KlayerAPI = require('./klayer');
+    const api = new KlayerAPI();
     try {
       const result = await this.es.search({
         index: indexName,
@@ -64,8 +66,23 @@ class ElasticLib {
           sku: sku
         };
       }
-      const product = result.hits.hits[0]._source;
-      return product;
+      const rate = await api.currencyRate(instance.base_currency);
+      const source = result.hits.hits[0]._source;
+      return {
+        sku: source.sku,
+        name: source.name,
+        description: source.description,
+        last_stock_check: source.last_stock_check,
+        supplier: source.seller_id,
+        images: source.images,
+        categories: await this.formatCategories(source.categories),
+        attributes: await this.formatAttributes(source.attributes),
+        variations: await this.formatVariations(
+          source.variations,
+          instance,
+          rate
+        )
+      };
     } catch (err) {
       return new Error(err);
     }
@@ -73,9 +90,15 @@ class ElasticLib {
 
   async findIP(indexName, type, instance, page) {
     const Loop = require('bluebird');
-    const from = 0;
+    let from = 0;
     const size = 1000;
-    page = parseInt(page);
+    let pages;
+    if (page === undefined) {
+      from = 0;
+      size = 1
+    } else {
+      pages = { from: page === 1 ? from : size * page, size: size };
+    }
     try {
       const search = await this.es.search({
         index: indexName,
@@ -145,7 +168,7 @@ class ElasticLib {
           supplier: source.seller_id,
           images: source.images,
           categories: await this.formatCategories(source.categories),
-          attributes: source.attributes,
+          attributes: await this.formatAttributes(source.attributes),
           variations: await this.formatVariations(
             source.variations,
             instance,
@@ -162,60 +185,66 @@ class ElasticLib {
 
   async formatVariations(variations, instance, rate) {
     const Loop = require('bluebird');
-    variations = await Loop.map(variations, async variation => {
-      if (variation) {
-        return {
-          sku: variation.sku,
-          cost_price: variation.cost * rate,
-          sale_price:
-            instance.salePriceOprator === 1
-              ? variation.sale * instance.salePrice * rate
-              : variation.sale * rate + instance.salePrice,
-          market_price:
-            instance.comparedAtPriceOprator === 1
-              ? variation.sale * instance.comparedAtPrice * rate
-              : variation.sale * rate + instance.comparedAtPrice,
-          weight: variation.weight,
-          attributes: variation.attributes
-        };
-      }
-    });
-    return variations;
+    if (variations) {
+      variations = await Loop.map(variations, async (variation) => {
+        if (variation) {
+          return {
+            sku: variation.sku,
+            cost_price: variation.cost * rate,
+            sale_price:
+              instance.salePriceOprator === 1
+                ? variation.sale * instance.salePrice * rate
+                : (variation.sale * rate) + instance.salePrice,
+            market_price:
+              instance.comparedAtPriceOprator === 1
+                ? variation.sale * instance.comparedAtPrice * rate
+                : (variation.sale * rate) + instance.comparedAtPrice,
+            weight: variation.weight,
+            attributes: await this.formatAttributes(variation.attributes),
+          };
+        }
+      });
+      return variations;
+    }
   }
 
   async formatCategories(categories) {
     const Loop = require('bluebird');
-    categories = await Loop.map(categories, async category => {
-      if (category) {
-        return {
-          id: category.odooId,
-          name: category.name_i18n
-        };
-      }
-    });
-    return categories;
+    if (categories) {
+      categories = await Loop.map(categories, async category => {
+        if (category) {
+          return {
+            id: category.odooId,
+            name: category.name_i18n
+          };
+        }
+      });
+      return categories;
+    }
   }
 
   async formatAttributes(attributes) {
     const Loop = require('bluebird');
-    attributes = await Loop.map(attributes, async attribute => {
-      if (attribute) {
-        return {
-          id: attribute.id,
-          name: {
-            tr: attribute.name,
-            en: '',
-            ar: ''
-          },
-          option: {
-            tr: attribute.option,
-            en: '',
-            ar: ''
-          }
-        };
-      }
-    });
-    return attributes;
+    if(attributes) {
+      attributes = await Loop.map(attributes, async attribute => {
+        if (attribute) {
+          return {
+            id: attribute.id,
+            name: {
+              tr: attribute.name,
+              en: '',
+              ar: ''
+            },
+            option: {
+              tr: attribute.option,
+              en: '',
+              ar: ''
+            }
+          };
+        }
+      });
+      return attributes;
+    }
   }
 }
 
