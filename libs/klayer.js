@@ -12,7 +12,7 @@ class KlayerLib {
 		try {
 			const instance = await this.request({
 				method: "get",
-				uri: this.getUrl('Instances?filter=' + JSON.stringify({ "where": { "webhook_hash": ck } })),
+				uri: this.getUrl("Instances?filter=" + JSON.stringify({ "where": { "webhook_hash": ck } })),
 				qs: {
 					access_token: this.access_token
 				},
