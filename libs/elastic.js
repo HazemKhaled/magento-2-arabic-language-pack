@@ -97,16 +97,14 @@ class ElasticLib {
 			});
 			const results = search.hits.hits;
 
-			let ids = [];
-			const products = await Loop.map(results, async (product) => {
+			const ids = await Loop.map(results, async (product) => {
 				let source = product._source;
-				source._id = product._id;
-				ids.push(source.sku);
-				return source;
+				return source.sku;
 			});
-			return [ids, products];
+
+			return ids;
 		} catch (err) {
-			console.log(err);
+			console.log("Instance Products", err);
 			return err;
 		}
 	}
@@ -129,7 +127,7 @@ class ElasticLib {
 					query: {
 						ids: {
 							type: type,
-							values: instanceProducts[0],
+							values: instanceProducts,
 						},                        
 					}
 				},
