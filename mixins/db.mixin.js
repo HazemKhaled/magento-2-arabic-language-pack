@@ -1,31 +1,33 @@
-"use strict";
 
-const path = require("path");
-const mkdir = require("mkdirp").sync;
 
-const DbService	= require("moleculer-db");
+const path = require('path');
+const mkdir = require('mkdirp').sync;
 
-//process.env.MONGO_URI = "mongodb://localhost/conduit";
+const DbService = require('moleculer-db');
 
-module.exports = function(collection) {
-	if (process.env.MONGO_URI) {
-		// Mongo adapter
-		const MongoAdapter = require("moleculer-db-adapter-mongo");
+// process.env.MONGO_URI = "mongodb://localhost/conduit";
 
-		return {
-			mixins: [DbService],
-			adapter: new MongoAdapter(process.env.MONGO_URI),
-			collection
-		};
-	}
+module.exports = function (collection) {
+  if (process.env.MONGO_URI) {
+    // Mongo adapter
+    const MongoAdapter = require('moleculer-db-adapter-mongo');
 
-	// --- NeDB fallback DB adapter
-	
-	// Create data folder
-	mkdir(path.resolve("./data"));
+    return {
+      mixins: [DbService],
+      adapter: new MongoAdapter(process.env.MONGO_URI),
+      collection
+    };
+  }
 
-	return {
-		mixins: [DbService],
-		adapter: new DbService.MemoryAdapter({ filename: `./data/${collection}.db` })
-	};
+  // --- NeDB fallback DB adapter
+
+  // Create data folder
+  mkdir(path.resolve('./data'));
+
+  return {
+    mixins: [DbService],
+    adapter: new DbService.MemoryAdapter({
+      filename: `./data/${collection}.db`
+    })
+  };
 };

@@ -1,10 +1,11 @@
 {
-  "name": "MicroES",
-  "version": "1.0.0",
-  "description": "My Moleculer microservices project",
+  "name": "microes",
+  "version": "0.1.0",
+  "description": "Knawat MarketPlace API layer",
   "scripts": {
     "dev": "moleculer-runner --repl --hot services",
     "start": "moleculer-runner",
+    "deps": "npm-check -u",
     "ci": "jest --watch",
     "test": "jest --coverage",
     "lint": "eslint services"
@@ -16,12 +17,16 @@
   "author": "",
   "devDependencies": {
     "eslint": "^4.18.2",
+    "eslint-config-airbnb": "^16.1.0",
+    "eslint-plugin-import": "^2.11.0",
     "jest": "^22.4.2",
     "jest-cli": "^22.4.2",
-    "moleculer-repl": "^0.4.0"
+    "moleculer-repl": "^0.4.0",
+    "npm-check": "^5.7.0"
   },
   "dependencies": {
     "bcrypt": "^2.0.1",
+    "bluebird": "^3.5.1",
     "elasticsearch": "^14.2.2",
     "jsonwebtoken": "^8.2.1",
     "mkdirp": "^0.5.1",

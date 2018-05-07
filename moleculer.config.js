@@ -1,62 +1,62 @@
-"use strict";
+
 
 module.exports = {
-	namespace: "",
-	nodeID: null,
+  namespace: '',
+  nodeID: null,
 
-	logger: true,
-	logLevel: "info",
-	logFormatter: "default",
+  logger: true,
+  logLevel: 'info',
+  logFormatter: 'default',
 
-	serializer: "JSON",
+  serializer: 'JSON',
 
-	requestTimeout: 10 * 1000,
-	requestRetry: 0,
-	maxCallLevel: 100,
-	heartbeatInterval: 5,
-	heartbeatTimeout: 15,
+  requestTimeout: 10 * 1000,
+  requestRetry: 0,
+  maxCallLevel: 100,
+  heartbeatInterval: 5,
+  heartbeatTimeout: 15,
 
-	disableBalancer: false,
+  disableBalancer: false,
 
-	registry: {
-		strategy: "RoundRobin",
-		preferLocal: true
-	},
+  registry: {
+    strategy: 'RoundRobin',
+    preferLocal: true
+  },
 
-	circuitBreaker: {
-		enabled: false,
-		maxFailures: 3,
-		halfOpenTime: 10 * 1000,
-		failureOnTimeout: true,
-		failureOnReject: true
-	},
+  circuitBreaker: {
+    enabled: false,
+    maxFailures: 3,
+    halfOpenTime: 10 * 1000,
+    failureOnTimeout: true,
+    failureOnReject: true
+  },
 
-	validation: true,
-	validator: null,
-	metrics: false,
-	metricsRate: 1,
-	statistics: false,
-	internalActions: true,
+  validation: true,
+  validator: null,
+  metrics: false,
+  metricsRate: 1,
+  statistics: false,
+  internalActions: true,
 
-	hotReload: false,
+  hotReload: false,
 
-	replCommands: null,
+  replCommands: null,
 
-	// Register middlewares
-	middlewares: [],
+  // Register middlewares
+  middlewares: [],
 
-	// Called after broker created.
-	created(broker) {
-		
-	},
+  // Called after broker created.
+  created(broker) {
 
-	// Called after broker starte.
-	started(broker) {
+  },
 
-	},
+  // Called after broker starte.
+  started(broker) {
 
-	// Called after broker stopped.
-	stopped(broker) {
+  },
 
-	}
+  // Called after broker stopped.
+  stopped(broker) {
+
+  }
 };
