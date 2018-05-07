@@ -32,8 +32,8 @@ module.exports = {
           Object.keys(ctx.params).length > 0 &&
           ctx.params.hasOwnProperty('sku')
         ) {
-          const es = require('../libs/elastic');
-          const esClient = new es();
+          const Es = require('../libs/elastic');
+          const esClient = new Es();
           const product = await esClient.fetchProduct(
             'products',
             'Product',
@@ -57,8 +57,8 @@ module.exports = {
     products: {
       auth: 'required',
       async handler(ctx) {
-        const es = require('../libs/elastic');
-        const esClient = new es();
+        const Es = require('../libs/elastic');
+        const esClient = new Es();
         const KlayerLib = require('../libs/klayer');
         const klayer = new KlayerLib();
         let instance = await klayer.findInstance(ctx.meta.user);
