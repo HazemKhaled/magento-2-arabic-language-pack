@@ -1,6 +1,7 @@
 {
   "name": "microes",
   "version": "0.1.0",
+  "private": true,
   "description": "Knawat MarketPlace API layer",
   "scripts": {
     "dev": "moleculer-runner --repl --hot services",
@@ -10,11 +11,7 @@
     "test": "jest --coverage",
     "lint": "eslint services"
   },
-  "keywords": [
-    "microservices",
-    "moleculer"
-  ],
-  "author": "",
+  "author": "Knawat, LLC.",
   "devDependencies": {
     "eslint": "^4.18.2",
     "eslint-config-airbnb": "^16.1.0",
@@ -25,7 +22,6 @@
     "npm-check": "^5.7.0"
   },
   "dependencies": {
-    "bcrypt": "^2.0.1",
     "bluebird": "^3.5.1",
     "elasticsearch": "^14.2.2",
     "jsonwebtoken": "^8.2.1",
@@ -44,8 +40,6 @@
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
     "rootDir": "./services",
-    "roots": [
-      "../test"
-    ]
+    "roots": ["../test"]
   }
 }
