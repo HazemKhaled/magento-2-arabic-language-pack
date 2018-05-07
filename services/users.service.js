@@ -61,8 +61,8 @@ module.exports = {
             const KlayerLib = require('../libs/klayer');
             const klayer = new KlayerLib();
             try {
-              let instance = await klayer.findInstance(consumer_key);
-              instance = instance[0];
+              let instance = await klayer.findInstance(consumerKey);
+              instance = instance['0'];
               if (!instance) {
                 return this.Promise.reject(
                   new MoleculerClientError(
