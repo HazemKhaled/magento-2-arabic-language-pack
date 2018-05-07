@@ -60,9 +60,13 @@ module.exports = {
 			async handler(ctx) {
 				const es = require("../libs/elastic");
 				const esClient = new es();
-				const products = await esClient.fetch("products", "Product", ctx.params.hasOwnProperty("page") ? ctx.params.page : undefined);
-				return products;				
-			}			
+				const KlayerLib = require("../libs/klayer");
+				const klayer = new KlayerLib();
+				let instance = await klayer.findInstance(ctx.meta.user);
+				instance = instance[0];				
+				const products = await esClient.findProducts("products", "Product", instance, ctx.params.hasOwnProperty("page") ? ctx.params.page : undefined);
+				return products;	
+			}
 		},
 
 		/**
