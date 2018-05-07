@@ -90,15 +90,9 @@ class ElasticLib {
 
   async findIP(indexName, type, instance, page) {
     const Loop = require('bluebird');
-    let from = 0;
+    const from = 0;
     const size = 1000;
-    let pages;
-    if (page === undefined) {
-      from = 0;
-      size = 1
-    } else {
-      pages = { from: page === 1 ? from : size * page, size: size };
-    }
+
     try {
       const search = await this.es.search({
         index: indexName,
