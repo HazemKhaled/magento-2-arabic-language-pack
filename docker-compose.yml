@@ -51,6 +51,7 @@ services:
     # deploy:
     #   replicas: 2
     networks:
+      - default
       - elastic
 
   order:
