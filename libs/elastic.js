@@ -32,12 +32,9 @@ class ElasticLib {
   }
 
   /**
+   * Get Categories from ElasticSearch
    *
-   *
-   * @param {any} indexName
-   * @param {any} type
-   * @param {any} page
-   * @returns
+   * @returns {Array} Categories
    * @memberof ElasticLib
    */
   async fetch(indexName, type, page) {
@@ -71,13 +68,10 @@ class ElasticLib {
   }
 
   /**
+   * Get Product By SKU
    *
-   *
-   * @param {any} indexName
-   * @param {any} type
-   * @param {any} sku
-   * @param {any} instance
-   * @returns
+   * @param {Object} instance
+   * @returns {Object} Product
    * @memberof ElasticLib
    */
   async fetchProduct(indexName, type, sku, instance) {
@@ -124,15 +118,6 @@ class ElasticLib {
   }
 
   /**
-   *
-   *
-   * @param {any} indexName
-   * @param {any} type
-   * @param {any} instance
-   * @param {any} _page
-   * @returns
-   * @memberof ElasticLib
-   */
   async findIP(indexName, type, instance, _page) {
     const from = 0;
     const size = 1000;
@@ -163,15 +148,11 @@ class ElasticLib {
     }
   }
 
-  /**
    * Get products by instance
    *
-   * @param {any} indexName
-   * @param {any} type
-   * @param {any} instance
-   * @param {any} page
-   * @param {any} limit
-   * @returns
+   * @param {Number} page
+   * @param {Number} limit
+   * @returns {Array} Products
    * @memberof ElasticLib
    */
   async findProducts(indexName, type, instance, page, limit) {
@@ -232,12 +213,20 @@ class ElasticLib {
   }
 
   /**
+   * Get Products-Instances by Instance Hash
    *
+   * @param {Object} instance
+   * @param {Number} page
+   * @returns {Array} Instance Products
+   * @memberof ElasticLib
+   */
+  /**
+   * Format Variations
    *
-   * @param {any} variations
-   * @param {any} instance
-   * @param {any} rate
-   * @returns
+   * @param {Array} variations
+   * @param {Object} instance
+   * @param {Number} rate
+   * @returns {Array} Transformed Variations
    * @memberof ElasticLib
    */
   async formatVariations(variations, instance, rate) {
@@ -265,10 +254,10 @@ class ElasticLib {
   }
 
   /**
+   * Format Categories
    *
-   *
-   * @param {any} categories
-   * @returns
+   * @param {Array} categories
+   * @returns {Array} Categories
    * @memberof ElasticLib
    */
   async formatCategories(categories) {
@@ -286,10 +275,10 @@ class ElasticLib {
   }
 
   /**
+   * Format Attributes
    *
-   *
-   * @param {any} attributes
-   * @returns
+   * @param {Array} attributes
+   * @returns {Array} Formatted Attributes
    * @memberof ElasticLib
    */
   async formatAttributes(attributes) {
