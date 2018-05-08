@@ -53,26 +53,25 @@ class KlayerLib {
    * @returns {Number} Rate
    * @memberof KlayerLib
    */
+  async currencyRate(id) {
     try {
-      const update = await request({
-        method: 'PATCH',
-        uri: this.getUrl('Instances'),
+      const currency = await request({
+        method: 'GET',
+        uri: this.getUrl(`Currencies/${id}`),
         qs: {
           access_token: this.access_token
         },
         headers: {
           'User-Agent': 'Request-Middleware'
         },
-        body: instance,
         json: true
       });
-      return update;
+      return currency.rate;
     } catch (err) {
       return err.message;
     }
   }
 
-  async currencyRate(id) {
   /**
    * Create Order in Klayer
    *
