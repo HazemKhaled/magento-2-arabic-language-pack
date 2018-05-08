@@ -79,19 +79,25 @@ class KlayerLib {
    * @returns {Object} response
    * @memberof KlayerLib
    */
+  async createOrder(order, id) {
+    let instance = await this.findInstance(id);
+    instance = instance['0'];
+    const hash = instance.webhook_hash;
+
     try {
-      const currency = await request({
-        method: 'GET',
-        uri: this.getUrl(`Currencies/${id}`),
+      const created = await request({
+        method: 'POST',
+        uri: this.getUrl(`webhook/orders/create/${hash}`),
         qs: {
           access_token: this.access_token
         },
         headers: {
-          'User-Agent': 'Request-Middleware'
+          'User-Agent': 'Request-MicroES',
         },
+        body: order,
         json: true
       });
-      return currency.rate;
+      return created;
     } catch (err) {
       return err.message;
     }
