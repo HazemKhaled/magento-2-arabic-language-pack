@@ -74,10 +74,7 @@ module.exports = {
                 .call('users.resolveToken', { token })
                 .then(user => {
                   if (user) {
-                    this.logger.info(
-                      'Authenticated via JWT: ',
-                      user.consumerKey
-                    );
+                    this.logger.info('Authenticated via JWT: ', user.id);
                     // Reduce user fields (it will be transferred to other nodes)
                     ctx.meta.user = user.id;
                     ctx.meta.token = token;
