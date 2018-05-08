@@ -37,33 +37,32 @@ class ElasticLib {
    * @returns {Array} Categories
    * @memberof ElasticLib
    */
-  async fetch(indexName, type, page) {
-    const from = 0;
-    const size = 1000;
-    let pages;
-    if (page === undefined) {
-      pages = { from: 0, size: 10 };
-    } else {
-      pages = { from: page === 1 ? from : size * page, size: size };
-    }
-
+  async fetchCategories() {
     try {
       const result = await this.es.search({
-        index: indexName,
-        type: type,
-        body: pages
+        index: this.indices.categories,
+        type: this.types.categories,
+        body: {
+          size: 999
+        }
       });
       if (result.hits.total === 0) {
         return {
           status: 'failed',
-          message: 'There are no products at the moment.'
+          message: 'There are no categories at the moment.'
         };
       }
-      let products = result.hits.hits;
-      products = products.map(product => product._source);
-      return products;
+      let categories = result.hits.hits;
+      categories = categories.map(category => {
+        category = category._source;
+        return {
+          id: category.odooId,
+          name: category.name
+        };
+      });
+      return categories;
     } catch (err) {
-      return err;
+      return new MoleculerClientError(err);
     }
   }
 
@@ -74,12 +73,15 @@ class ElasticLib {
    * @returns {Object} Product
    * @memberof ElasticLib
    */
-  async fetchProduct(indexName, type, sku, instance) {
+  async fetchProduct(sku, id) {
     const api = new KlayerAPI();
+    let instance = await api.findInstance(id);
+    instance = instance['0'];
+
     try {
       const result = await this.es.search({
-        index: indexName,
-        type: type,
+        index: this.indices.products,
+        type: this.types.products,
         body: {
           query: {
             term: {
@@ -125,29 +127,26 @@ class ElasticLib {
    * @returns {Array} Products
    * @memberof ElasticLib
    */
-  async findProducts(indexName, type, instance, page, limit) {
+  async findProducts(page, _size, id) {
     const api = new KlayerAPI();
-    const from = 0;
-    const size = 1000;
+    let instance = await api.findInstance(id);
+    instance = instance['0'];
 
-    const instanceProducts = await this.findIP(
-      'products-instances',
-      'product',
-      instance,
-      page,
-      limit
-    );
+    const from = 0;
+    const size = _size || 10;
+    page = parseInt(page, 10) === 1 ? from : size * page;
+
+    const instanceProducts = await this.findIP(page, size, instance);
 
     try {
       const search = await this.es.search({
-        index: indexName,
-        type: type,
-        from: page === undefined ? 0 : page === 1 ? from : size * page,
-        size: page === undefined ? 10 : size,
+        index: this.indices.products,
+        type: this.types.products,
+        from: page || 0,
+        size: size,
         body: {
           query: {
             ids: {
-              type: type,
               values: instanceProducts
             }
           }
