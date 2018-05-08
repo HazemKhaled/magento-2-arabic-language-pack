@@ -15,8 +15,8 @@ class ElasticLib {
    */
   constructor() {
     // Indexes & types
-    this.indeces = { products: 'products', categories: 'categories' };
-    this.types = { products: 'Product', categories: 'Category' };
+    this.indices = { products: 'products', categories: 'categories', proinstances: 'products-instances' };
+    this.types = { products: 'Product', categories: 'Category', proinstances: 'product' };
 
     this.es = new elasticsearch.Client({
       host: [
