@@ -37,13 +37,13 @@ services:
     # deploy:
     #   replicas: 2
 
-  catalog:
+  products:
     build:
       context: .
     image: conduit
     env_file: docker-compose.env
     environment:
-      SERVICES: catalog
+      SERVICES: products
     links:
       - redis
     depends_on:
@@ -53,6 +53,23 @@ services:
     networks:
       - default
       - elastic
+
+    categories:
+      build:
+        context: .
+      image: conduit
+      env_file: docker-compose.env
+      environment:
+        SERVICES: categories
+      links:
+        - redis
+      depends_on:
+        - redis
+      # deploy:
+      #   replicas: 2
+      networks:
+        - default
+        - elastic
 
   order:
     build:
