@@ -1,7 +1,7 @@
 const { MoleculerClientError } = require('moleculer').Errors;
 
-// const crypto = require("crypto");
 const jwt = require('jsonwebtoken');
+const KlayerLib = require('../libs/klayer');
 
 const DbService = require('../mixins/db.mixin');
 
@@ -17,18 +17,13 @@ module.exports = {
     JWT_SECRET: process.env.JWT_SECRET || 'jwt-conduit-secret',
 
     /** Public fields */
-    fields: ['_id', 'username', 'email', 'bio', 'image']
+    fields: ['_id'],
 
     /** Validator schema for entity */
-    // entityValidator: {
-    //   username: { type: 'string', min: 2, pattern: /^[a-zA-Z0-9]+$/ },
-    //   password: { type: 'string', min: 6 },
-    //   consumer_key: { type: 'string' },
-    //   consumer_secret: { type: 'string' },
-    //   email: { type: 'email' },
-    //   bio: { type: 'string', optional: true },
-    //   image: { type: 'string', optional: true }
-    // }
+    entityValidator: {
+      consumerKey: { type: 'string' },
+      consumerSecret: { type: 'string' }
+    }
   },
 
   /**
@@ -36,7 +31,7 @@ module.exports = {
    */
   actions: {
     /**
-     * Login with username & password
+     * Login with consumerKey & consumerSecret
      *
      * @actions
      * @param {Object} user - User credentials
@@ -45,20 +40,14 @@ module.exports = {
      */
     login: {
       params: {
-        user: {
-          type: 'object',
-          props: {
-            consumerKey: { type: 'string' },
-            consumerSecret: { type: 'string', min: 1 }
-          }
-        }
+        consumerKey: { type: 'string' },
+        consumerSecret: { type: 'string' }
       },
       handler(ctx) {
-        const { consumerKey, consumerSecret } = ctx.params.user;
+        const { consumerKey, consumerSecret } = ctx.params;
 
         return this.Promise.resolve()
           .then(async () => {
-            const KlayerLib = require('../libs/klayer');
             const klayer = new KlayerLib();
             try {
               let instance = await klayer.findInstance(consumerKey);
@@ -86,7 +75,7 @@ module.exports = {
               }
               return this.Promise.reject(
                 new MoleculerClientError(
-                  'consumer_key or consumer_secret is invalid!',
+                  'consumerKey or consumerSecret is invalid!',
                   422,
                   '',
                   [
@@ -131,9 +120,9 @@ module.exports = {
             }
           );
         }).then(async decoded => {
-          const KlayerLib = require('../libs/klayer');
-          const klayer = new KlayerLib();
           if (decoded.id) {
+            // Get instance info from Klayer
+            const klayer = new KlayerLib();
             const instance = await klayer.findInstance(decoded.id);
             if (instance[0].status === 'confirmed') {
               return decoded;
@@ -161,7 +150,7 @@ module.exports = {
       return jwt.sign(
         {
           id: user._id,
-          username: user.username,
+          consumerKey: user.consumerKey,
           exp: Math.floor(exp.getTime() / 1000)
         },
         this.settings.JWT_SECRET
@@ -179,13 +168,7 @@ module.exports = {
         if (withToken) user.token = token || this.generateJWT(user);
       }
 
-      return { user };
-    }
-  },
-
-  events: {
-    'cache.clean.users'() {
-      if (this.broker.cacher) this.broker.cacher.clean(`${this.name}.*`);
+      return { channel: user };
     }
   }
 };
