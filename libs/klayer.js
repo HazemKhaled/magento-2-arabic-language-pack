@@ -1,5 +1,9 @@
 const request = require('request-promise');
-
+/**
+ * Klayer Interface
+ *
+ * @class KlayerLib
+ */
 class KlayerLib {
   /**
    * Creates an instance of KlayerLib.
@@ -42,8 +46,13 @@ class KlayerLib {
     }
   }
 
-  //FIXME: Why we have this?
-  async updateInstance(instance) {
+  /**
+   * Get Currency Rate
+   *
+   * @param {Number} id
+   * @returns {Number} Rate
+   * @memberof KlayerLib
+   */
     try {
       const update = await request({
         method: 'PATCH',
@@ -64,6 +73,13 @@ class KlayerLib {
   }
 
   async currencyRate(id) {
+  /**
+   * Create Order in Klayer
+   *
+   * @param {Object} order
+   * @returns {Object} response
+   * @memberof KlayerLib
+   */
     try {
       const currency = await request({
         method: 'GET',
@@ -82,6 +98,13 @@ class KlayerLib {
     }
   }
 
+  /**
+   * Get Formatted URL
+   *
+   * @param {String} endpoint
+   * @returns {String} URL
+   * @memberof KlayerLib
+   */
   getUrl(endpoint) {
     // if URL doesn't have / at the end add it
     let url =
