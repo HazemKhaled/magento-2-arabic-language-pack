@@ -220,6 +220,34 @@ class ElasticLib {
    * @returns {Array} Instance Products
    * @memberof ElasticLib
    */
+  async findIP(page, _size, instance) {
+    const size = _size || 10;
+
+    try {
+      const search = await this.es.search({
+        index: this.indices.proinstances,
+        type: this.types.proinstances,
+        from: page || 0,
+        size: size,
+        body: {
+          query: {
+            term: {
+              'instanceId.keyword': instance.webhook_hash
+            }
+          }
+        }
+      });
+      const results = search.hits.hits;
+      const ids = await Loop.map(results, async product => {
+        const source = product._source;
+        return source.sku;
+      });
+      return ids;
+    } catch (err) {
+      return new MoleculerClientError(err, 500);
+    }
+  }
+
   /**
    * Format Variations
    *
