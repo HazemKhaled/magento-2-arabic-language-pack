@@ -1,19 +1,32 @@
-
+const request = require('request-promise');
 
 class KlayerLib {
+  /**
+   * Creates an instance of KlayerLib.
+   *
+   * @memberof KlayerLib
+   */
   constructor() {
-    this.request = require('request-promise');
     this.access_token =
       process.env.TOKEN || 'dbbf3cb7-f7ad-46ce-bee3-4fd7477951c4';
     this.API_URL = process.env.API_URL || 'https://api.knawat.com';
   }
 
-  async findInstance(ck) {
+  /**
+   * Get instance by consumerKey
+   *
+   * @param {String} consumerKey -
+   * @returns {Object}
+   * @memberof KlayerLib
+   */
+  async findInstance(consumerKey) {
     try {
-      const instance = await this.request({
+      const instance = await request({
         method: 'get',
         uri: this.getUrl(
-          `Instances?filter=${JSON.stringify({ where: { webhook_hash: ck } })}`
+          `Instances?filter=${JSON.stringify({
+            where: { webhook_hash: consumerKey }
+          })}`
         ),
         qs: {
           access_token: this.access_token
@@ -29,9 +42,10 @@ class KlayerLib {
     }
   }
 
+  //FIXME: Why we have this?
   async updateInstance(instance) {
     try {
-      const update = await this.request({
+      const update = await request({
         method: 'PATCH',
         uri: this.getUrl('Instances'),
         qs: {
@@ -51,7 +65,7 @@ class KlayerLib {
 
   async currencyRate(id) {
     try {
-      const currency = await this.request({
+      const currency = await request({
         method: 'GET',
         uri: this.getUrl(`Currencies/${id}`),
         qs: {

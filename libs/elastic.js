@@ -1,6 +1,23 @@
+const elasticsearch = require('elasticsearch');
+const KlayerAPI = require('./klayer');
+const Loop = require('bluebird');
+const { MoleculerClientError } = require('moleculer').Errors;
+
+/**
+ * Elasticsearch interface
+ *
+ * @class ElasticLib
+ */
 class ElasticLib {
+  /**
+   * Creates an instance of ElasticLib.
+   * @memberof ElasticLib
+   */
   constructor() {
-    const elasticsearch = require('elasticsearch');
+    // Indexes & types
+    this.indeces = { products: 'products', categories: 'categories' };
+    this.types = { products: 'Product', categories: 'Category' };
+
     this.es = new elasticsearch.Client({
       host: [
         {
@@ -14,6 +31,15 @@ class ElasticLib {
     });
   }
 
+  /**
+   *
+   *
+   * @param {any} indexName
+   * @param {any} type
+   * @param {any} page
+   * @returns
+   * @memberof ElasticLib
+   */
   async fetch(indexName, type, page) {
     const from = 0;
     const size = 1000;
@@ -44,8 +70,17 @@ class ElasticLib {
     }
   }
 
+  /**
+   *
+   *
+   * @param {any} indexName
+   * @param {any} type
+   * @param {any} sku
+   * @param {any} instance
+   * @returns
+   * @memberof ElasticLib
+   */
   async fetchProduct(indexName, type, sku, instance) {
-    const KlayerAPI = require('./klayer');
     const api = new KlayerAPI();
     try {
       const result = await this.es.search({
@@ -88,17 +123,27 @@ class ElasticLib {
     }
   }
 
-  async findIP(indexName, type, instance, page) {
-    const Loop = require('bluebird');
+  /**
+   *
+   *
+   * @param {any} indexName
+   * @param {any} type
+   * @param {any} instance
+   * @param {any} _page
+   * @returns
+   * @memberof ElasticLib
+   */
+  async findIP(indexName, type, instance, _page) {
     const from = 0;
     const size = 1000;
+    const page = _page === 1 ? from : size * _page;
 
     try {
       const search = await this.es.search({
         index: indexName,
         type: type,
-        from: page === undefined ? 0 : page === 1 ? from : size * page,
-        size: page === undefined ? 10 : size,
+        from: page || 0,
+        size: size || 10,
         body: {
           query: {
             term: {
@@ -114,23 +159,34 @@ class ElasticLib {
       });
       return ids;
     } catch (err) {
-      console.log(err);
-      return err;
+      return new MoleculerClientError(err, 500);
     }
   }
 
-  async findProducts(indexName, type, instance, page) {
-    const KlayerAPI = require('./klayer');
+  /**
+   * Get products by instance
+   *
+   * @param {any} indexName
+   * @param {any} type
+   * @param {any} instance
+   * @param {any} page
+   * @param {any} limit
+   * @returns
+   * @memberof ElasticLib
+   */
+  async findProducts(indexName, type, instance, page, limit) {
     const api = new KlayerAPI();
-    const Loop = require('bluebird');
     const from = 0;
     const size = 1000;
+
     const instanceProducts = await this.findIP(
       'products-instances',
       'product',
       instance,
-      page
+      page,
+      limit
     );
+
     try {
       const search = await this.es.search({
         index: indexName,
@@ -171,15 +227,22 @@ class ElasticLib {
       });
       return products;
     } catch (err) {
-      console.log(err);
-      return err;
+      return new MoleculerClientError(err, 500);
     }
   }
 
+  /**
+   *
+   *
+   * @param {any} variations
+   * @param {any} instance
+   * @param {any} rate
+   * @returns
+   * @memberof ElasticLib
+   */
   async formatVariations(variations, instance, rate) {
-    const Loop = require('bluebird');
     if (variations) {
-      variations = await Loop.map(variations, async (variation) => {
+      variations = await Loop.map(variations, async variation => {
         if (variation) {
           return {
             sku: variation.sku,
@@ -187,13 +250,13 @@ class ElasticLib {
             sale_price:
               instance.salePriceOprator === 1
                 ? variation.sale * instance.salePrice * rate
-                : (variation.sale * rate) + instance.salePrice,
+                : variation.sale * rate + instance.salePrice,
             market_price:
               instance.comparedAtPriceOprator === 1
                 ? variation.sale * instance.comparedAtPrice * rate
-                : (variation.sale * rate) + instance.comparedAtPrice,
+                : variation.sale * rate + instance.comparedAtPrice,
             weight: variation.weight,
-            attributes: await this.formatAttributes(variation.attributes),
+            attributes: await this.formatAttributes(variation.attributes)
           };
         }
       });
@@ -201,8 +264,14 @@ class ElasticLib {
     }
   }
 
+  /**
+   *
+   *
+   * @param {any} categories
+   * @returns
+   * @memberof ElasticLib
+   */
   async formatCategories(categories) {
-    const Loop = require('bluebird');
     if (categories) {
       categories = await Loop.map(categories, async category => {
         if (category) {
@@ -216,9 +285,15 @@ class ElasticLib {
     }
   }
 
+  /**
+   *
+   *
+   * @param {any} attributes
+   * @returns
+   * @memberof ElasticLib
+   */
   async formatAttributes(attributes) {
-    const Loop = require('bluebird');
-    if(attributes) {
+    if (attributes) {
       attributes = await Loop.map(attributes, async attribute => {
         if (attribute) {
           return {

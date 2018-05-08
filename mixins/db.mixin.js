@@ -1,17 +1,11 @@
-
-
 const path = require('path');
 const mkdir = require('mkdirp').sync;
 
 const DbService = require('moleculer-db');
+const MongoAdapter = require('moleculer-db-adapter-mongo');
 
-// process.env.MONGO_URI = "mongodb://localhost/conduit";
-
-module.exports = function (collection) {
+module.exports = collection => {
   if (process.env.MONGO_URI) {
-    // Mongo adapter
-    const MongoAdapter = require('moleculer-db-adapter-mongo');
-
     return {
       mixins: [DbService],
       adapter: new MongoAdapter(process.env.MONGO_URI),

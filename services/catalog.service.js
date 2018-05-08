@@ -1,3 +1,7 @@
+const ElasticLib = require('../libs/elastic');
+const KlayerLib = require('../libs/klayer');
+const Loop = require('bluebird');
+
 module.exports = {
   name: 'catalog',
 
@@ -25,32 +29,24 @@ module.exports = {
      *
      * @returns {Object} Product
      */
-    product: {
+    get: {
       auth: 'required',
+      cache: false,
       async handler(ctx) {
-        const KlayerLib = require('../libs/klayer');
+        const { sku } = ctx.params;
+
         const klayer = new KlayerLib();
         let instance = await klayer.findInstance(ctx.meta.user);
         instance = instance['0'];
-        if (
-          Object.keys(ctx.params).length > 0 &&
-          ctx.params.hasOwnProperty('sku')
-        ) {
-          const Es = require('../libs/elastic');
-          const esClient = new Es();
-          const product = await esClient.fetchProduct(
-            'products',
-            'Product',
-            ctx.params.sku,
-            instance
-          );
-          return product;
-        }
-        return {
-          errorCode: 404,
-          errorMessage: 'SKU(s) not found or No SKU was requested',
-          data: {}
-        };
+
+        const esClient = new ElasticLib();
+        const product = await esClient.fetchProduct(
+          'products',
+          'Product',
+          sku,
+          instance
+        );
+        return { product };
       }
     },
 
@@ -59,24 +55,30 @@ module.exports = {
      *
      * @returns {Array} 10 - 1000 products per page
      */
-    products: {
+    list: {
       auth: 'required',
+      cache: false,
+      // cache: {
+      //   keys: ['page', 'limit'],
+      //   ttl: 10 * 60 // 10 mins
+      // },
       async handler(ctx) {
-        const Es = require('../libs/elastic');
-        const esClient = new Es();
-        const KlayerLib = require('../libs/klayer');
+        const { page, limit } = ctx.params;
+
         const klayer = new KlayerLib();
         let instance = await klayer.findInstance(ctx.meta.user);
         instance = instance['0'];
+
+        const esClient = new ElasticLib();
         const products = await esClient.findProducts(
           'products',
           'Product',
           instance,
-          ctx.params.hasOwnProperty('page') ? ctx.params.page : undefined
+          page,
+          limit
         );
-        return {
-          data: products
-        };
+
+        return { products };
       }
     },
 
@@ -85,17 +87,11 @@ module.exports = {
      *
      * @returns {Array} 10 - 1000  categories per page
      */
-    categories: {
+    listCategories: {
       auth: 'required',
-      async handler(ctx) {
-        const Es = require('../libs/elastic');
-        const esClient = new Es();
-        const Loop = require('bluebird');
-        let categories = await esClient.fetch(
-          'categories',
-          'Category',
-          1
-        );
+      async handler() {
+        const esClient = new ElasticLib();
+        let categories = await esClient.fetch('categories', 'Category', 1);
         categories = await Loop.map(categories, category => ({
           id: category.odooId,
           name: category.name
@@ -103,30 +99,5 @@ module.exports = {
         return categories;
       }
     }
-  },
-
-  /**
-   * Events
-   */
-  events: {},
-
-  /**
-   * Methods
-   */
-  methods: {},
-
-  /**
-   * Service created lifecycle event handler
-   */
-  created() {},
-
-  /**
-   * Service started lifecycle event handler
-   */
-  started() {},
-
-  /**
-   * Service stopped lifecycle event handler
-   */
-  stopped() {}
+  }
 };
