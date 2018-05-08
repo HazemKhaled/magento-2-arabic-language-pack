@@ -226,9 +226,9 @@ class ElasticLib {
    * @returns {Array} Transformed Variations
    * @memberof ElasticLib
    */
-  formatVariations(variations, instance, rate) {
+  async formatVariations(variations, instance, rate) {
     if (variations) {
-      variations = variations.map(variation => ({
+      variations = await Loop.map(variations, async variation => {
         if (variation) {
           return {
             sku: variation.sku,
@@ -242,10 +242,10 @@ class ElasticLib {
                 ? variation.sale * instance.comparedAtPrice * rate
                 : (variation.sale * rate) + instance.comparedAtPrice,
             weight: variation.weight,
-            attributes: this.formatAttributes(variation.attributes)
+            attributes: await this.formatAttributes(variation.attributes)
           };
         }
-      }));
+      });
       return variations;
     }
   }
@@ -257,9 +257,9 @@ class ElasticLib {
    * @returns {Array} Categories
    * @memberof ElasticLib
    */
-  formatCategories(categories) {
+  async formatCategories(categories) {
     if (categories) {
-      categories = categories.map(category => {
+      categories = await Loop.map(categories, async category => {
         if (category) {
           return {
             id: category.odooId,
@@ -278,9 +278,9 @@ class ElasticLib {
    * @returns {Array} Formatted Attributes
    * @memberof ElasticLib
    */
-  formatAttributes(attributes) {
+  async formatAttributes(attributes) {
     if (attributes) {
-      attributes = attributes.map(attribute => {
+      attributes = await Loop.map(attributes, async attribute => {
         if (attribute) {
           return {
             id: attribute.id,
