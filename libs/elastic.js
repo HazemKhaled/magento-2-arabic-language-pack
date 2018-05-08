@@ -239,11 +239,11 @@ class ElasticLib {
             sale_price:
               instance.salePriceOprator === 1
                 ? variation.sale * instance.salePrice * rate
-                : variation.sale * rate + instance.salePrice,
+                : (variation.sale * rate) + instance.salePrice,
             market_price:
               instance.comparedAtPriceOprator === 1
                 ? variation.sale * instance.comparedAtPrice * rate
-                : variation.sale * rate + instance.comparedAtPrice,
+                : (variation.sale * rate) + instance.comparedAtPrice,
             weight: variation.weight,
             attributes: await this.formatAttributes(variation.attributes)
           };
