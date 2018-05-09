@@ -28,6 +28,7 @@ module.exports = {
      * @param {String} name - User name
      */
     create: {
+      auth: 'required',
       params: {
         id: { type: 'string' },
         status: { type: 'string' },
