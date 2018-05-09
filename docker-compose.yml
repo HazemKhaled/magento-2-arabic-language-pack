@@ -71,13 +71,13 @@ services:
       - default
       - elastic
 
-  order:
+  orders:
     build:
       context: .
     image: conduit
     env_file: docker-compose.env
     environment:
-      SERVICES: order
+      SERVICES: orders
     links:
       - redis
     depends_on:

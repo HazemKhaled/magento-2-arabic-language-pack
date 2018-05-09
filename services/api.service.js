@@ -25,7 +25,7 @@ module.exports = {
           'GET catalog/categories': 'categories.list',
 
           // Order
-          'POST order': 'order.create'
+          'POST orders': 'orders.create'
         },
 
         // Disable to call not-mapped actions
