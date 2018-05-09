@@ -38,7 +38,7 @@ class KlayerLib {
           access_token: this.access_token
         },
         headers: {
-          'User-Agent': 'Request-Middleware'
+          'User-Agent': 'Request-MicroEs'
         },
         json: true
       });
@@ -64,7 +64,7 @@ class KlayerLib {
           access_token: this.access_token
         },
         headers: {
-          'User-Agent': 'Request-Middleware'
+          'User-Agent': 'Request-MicroEs'
         },
         json: true
       });
@@ -127,7 +127,7 @@ class KlayerLib {
           access_token: this.access_token
         },
         headers: {
-          'User-Agent': 'Request-Middleware'
+          'User-Agent': 'Request-MicroEs'
         },
         json: true
       });
