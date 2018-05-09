@@ -25,7 +25,7 @@ module.exports = {
           'GET catalog/categories': 'categories.list',
 
           // Order
-          'POST orders': 'orders.create',
+          'POST order': 'orders.create',
           'GET order/:order_id': 'orders.get',
           'GET order/': 'orders.get',
           'GET orders/': 'orders.list'
