@@ -118,7 +118,7 @@ class KlayerLib {
     const partner = instance.partner_id;
     const query = id === undefined ? { partner_id: partner } : { partner_id: partner, id: id };
     try {
-      const orders = await request({
+      let orders = await request({
         method: 'GET',
         uri: this.getUrl(`webhook/orders?filter=${JSON.stringify({
           where: query
@@ -132,8 +132,24 @@ class KlayerLib {
         json: true
       });
       if (id) {
-        return orders[0];
+        const order = orders['0'];
+        return {
+          id: order.id,
+          status: order.status,
+          items: order.line_items,
+          billing: order.billing,
+          shipping: order.shipping,
+          createDate: order.date_created
+        };
       } else {
+        orders = orders.map(order => ({
+          id: order.id,
+          status: order.status,
+          items: order.line_items,
+          billing: order.billing,
+          shipping: order.shipping,
+          createDate: order.date_created
+        }));
         return orders;
       }
     } catch (err) {
