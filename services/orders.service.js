@@ -68,10 +68,31 @@ module.exports = {
         invoice_url: { type: 'string' },
       },
       async handler(ctx) {
-        const KlayerAPI = require('../libs/klayer');
         const api = new KlayerAPI();
         const created = api.createOrder(ctx.params, ctx.meta.user);
         return created;
+      }
+    },
+
+    get: {
+      auth: 'required',
+      params: {
+        order_id: { type: 'string' },
+      },
+      async handler(ctx) {
+        const id = ctx.params.order_id;
+        const api = new KlayerAPI();
+        const order = api.getOrders(ctx.meta.user, id);
+        return order;
+      }
+    },
+
+    list: {
+      auth: 'required',
+      async handler(ctx) {
+        const api = new KlayerAPI();
+        const orders = api.getOrders(ctx.meta.user);
+        return orders;
       }
     }
   },
