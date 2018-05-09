@@ -1,4 +1,6 @@
 const request = require('request-promise');
+const { MoleculerClientError } = require('moleculer').Errors;
+
 /**
  * Klayer Interface
  *
@@ -42,7 +44,7 @@ class KlayerLib {
       });
       return instance;
     } catch (err) {
-      return err;
+      return new MoleculerClientError(err);
     }
   }
 
@@ -68,7 +70,7 @@ class KlayerLib {
       });
       return currency.rate;
     } catch (err) {
-      return err.message;
+      return new MoleculerClientError(err.message);
     }
   }
 
