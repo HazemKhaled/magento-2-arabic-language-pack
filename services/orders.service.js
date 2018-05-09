@@ -82,7 +82,8 @@ module.exports = {
       async handler(ctx) {
         const id = ctx.params.order_id;
         const api = new KlayerAPI();
-        const order = api.getOrders(ctx.meta.user, id);
+        const order = await api.getOrders(ctx.meta.user, id);
+
         return order;
       }
     },
@@ -91,7 +92,7 @@ module.exports = {
       auth: 'required',
       async handler(ctx) {
         const api = new KlayerAPI();
-        const orders = api.getOrders(ctx.meta.user);
+        const orders = await api.getOrders(ctx.meta.user);
         return orders;
       }
     }
