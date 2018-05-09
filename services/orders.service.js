@@ -70,17 +70,21 @@ module.exports = {
       },
       async handler(ctx) {
         const api = new KlayerAPI();
-        const result = await api.createOrder(ctx.params, ctx.meta.user);
-        const order = result.data;
-
-        return {
-          id: order.id,
-          status: order.status,
-          items: order.line_items,
-          billing: order.billing,
-          shipping: order.shipping,
-          createDate: order.date_created
-        };
+        ctx.params.id = uuidv1();
+        try {
+          const result = await api.createOrder(ctx.params, ctx.meta.user);
+          const order = result.data;
+          return {
+            id: order.id,
+            status: order.status,
+            items: order.line_items,
+            billing: order.billing,
+            shipping: order.shipping,
+            createDate: order.date_created
+          };
+        } catch (err) {
+          return new MoleculerClientError(err);
+        }
       }
     },
 
