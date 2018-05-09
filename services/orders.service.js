@@ -32,7 +32,6 @@ module.exports = {
     create: {
       auth: 'required',
       params: {
-        id: { type: 'string' },
         status: { type: 'string' },
         items: { type: 'array', items: 'object' },
         billing: {
