@@ -20,14 +20,13 @@ module.exports = {
           'POST token': 'users.login',
 
           // Product
-          'GET catalog/product/:sku': 'products.get',
+          'GET catalog/products/:sku': 'products.get',
           'GET catalog/products': 'products.list',
           'GET catalog/categories': 'categories.list',
 
           // Order
-          'POST order': 'orders.create',
-          'GET order/:order_id': 'orders.get',
-          'GET order/': 'orders.get',
+          'POST orders': 'orders.create',
+          'GET orders/:order_id': 'orders.get',
           'GET orders/': 'orders.list'
         },
 
