@@ -101,7 +101,7 @@ class KlayerLib {
       });
       return created;
     } catch (err) {
-      return err.message;
+      return new MoleculerClientError(err);
     }
   }
 
