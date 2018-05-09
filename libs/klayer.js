@@ -106,6 +106,42 @@ class KlayerLib {
   }
 
   /**
+   * Get Order By ID or Get All Orders: Both by Instance Hash
+   *
+   * @param {String} id order id
+   * @param {String} hash instance webhook_hash
+   * @memberof KlayerLib
+   */
+  async getOrders(hash, id) {
+    let instance = await this.findInstance(hash);
+    instance = instance['0'];
+    const partner = instance.partner_id;
+    const query = id === undefined ? { partner_id: partner } : { partner_id: partner, id: id };
+    try {
+      const orders = await request({
+        method: 'GET',
+        uri: this.getUrl(`webhook/orders?filter=${JSON.stringify({
+          where: query
+        })}`),
+        qs: {
+          access_token: this.access_token
+        },
+        headers: {
+          'User-Agent': 'Request-Middleware'
+        },
+        json: true
+      });
+      if (id) {
+        return orders[0];
+      } else {
+        return orders;
+      }
+    } catch (err) {
+      return new MoleculerClientError(err);
+    }
+  }
+
+  /**
    * Get Formatted URL
    *
    * @param {String} endpoint
