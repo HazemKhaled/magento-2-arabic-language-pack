@@ -1,4 +1,6 @@
 const KlayerAPI = require('../libs/klayer');
+const uuidv1 = require('uuid/v1');
+const { MoleculerClientError } = require('moleculer').Errors;
 
 module.exports = {
   name: 'orders',
