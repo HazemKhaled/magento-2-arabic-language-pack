@@ -1,5 +1,7 @@
+const KlayerAPI = require('../libs/klayer');
+
 module.exports = {
-  name: 'order',
+  name: 'orders',
 
   /**
    * Service settings
