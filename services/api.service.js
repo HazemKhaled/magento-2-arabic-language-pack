@@ -27,7 +27,8 @@ module.exports = {
           // Order
           'POST orders': 'orders.create',
           'GET orders/:order_id': 'orders.get',
-          'GET orders/': 'orders.list'
+          'GET orders/': 'orders.list',
+          'PUT orders/:id': 'orders.update'
         },
 
         // Disable to call not-mapped actions
