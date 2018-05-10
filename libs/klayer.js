@@ -106,6 +106,36 @@ class KlayerLib {
   }
 
   /**
+   * Create Order in Klayer
+   *
+   * @param {Object} order
+   * @returns {Object} response
+   * @memberof KlayerLib
+   */
+  async updateOrder(order, id) {
+    let instance = await this.findInstance(id);
+    instance = instance['0'];
+    const hash = instance.webhook_hash;
+    try {
+      const updated = await request({
+        method: 'POST',
+        uri: this.getUrl(`webhook/orders/update/${hash}`),
+        qs: {
+          access_token: this.access_token
+        },
+        headers: {
+          'User-Agent': 'Request-MicroES',
+        },
+        body: order,
+        json: true
+      });
+      return updated;
+    } catch (err) {
+      return new MoleculerClientError(err);
+    }
+  }
+
+  /**
    * Get Order By ID or Get All Orders: Both by Instance Hash
    *
    * @param {String} id order id
