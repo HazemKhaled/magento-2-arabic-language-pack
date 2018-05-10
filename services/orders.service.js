@@ -112,6 +112,73 @@ module.exports = {
         const orders = await api.getOrders(ctx.meta.user);
         return orders;
       }
+    },
+
+    update: {
+      auth: 'required',
+      params: {
+        id: { type: 'string' },
+        status: { type: 'string' },
+        billing: {
+          type: 'object',
+          props: {
+            first_name: { type: 'string' },
+            last_name: { type: 'string' },
+            company: { type: 'string' },
+            city: { type: 'string' },
+            address_1: { type: 'string' },
+            address_2: { type: 'string' },
+            phone: { type: 'string' },
+            postcode: { type: 'string' },
+            state: { type: 'string' },
+            country: { type: 'string' },
+            email: { type: 'email' },
+          }
+        },
+        shipping: {
+          type: 'object',
+          props: {
+            first_name: { type: 'string' },
+            last_name: { type: 'string' },
+            company: { type: 'string', optional: true },
+            city: { type: 'string' },
+            address_1: { type: 'string' },
+            address_2: { type: 'string' },
+            phone: { type: 'string' },
+            postcode: { type: 'string' },
+            state: { type: 'string' },
+            country: { type: 'string' },
+            email: { type: 'email' },
+          }
+        },
+      },
+      async handler(ctx) {
+        const api = new KlayerAPI();
+        try {
+          const result = await api.updateOrder(ctx.params, ctx.meta.user);
+          if (result.statusCode && result.statusCode === 404) {
+            return {
+              status: 'failed',
+              message: 'order not found',
+              data: []
+            };
+          } else {
+            const order = result.data;
+            return {
+              status: 'success',
+              data: {
+                id: order.id,
+                status: order.status,
+                billing: order.billing,
+                shipping: order.shipping,
+                updateDate: new Date()
+              }
+            };
+          }
+        } catch (err) {
+          return new MoleculerClientError(err);
+        }
+      }
     }
   },
 
