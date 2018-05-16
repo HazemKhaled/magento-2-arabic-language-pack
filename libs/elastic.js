@@ -166,6 +166,7 @@ class ElasticLib {
           last_stock_check: source.last_stock_check,
           supplier: source.seller_id,
           images: source.images,
+          last_check_date: source.last_check_date,
           categories: await this.formatCategories(source.categories),
           attributes: await this.formatAttributes(source.attributes),
           variations: await this.formatVariations(
