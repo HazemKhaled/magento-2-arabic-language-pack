@@ -127,7 +127,7 @@ class ElasticLib {
    * @returns {Array} Products
    * @memberof ElasticLib
    */
-  async findProducts(page, _size, id) {
+  async findProducts(page, _size, id, _source) {
     const api = new KlayerAPI();
     let instance = await api.findInstance(id);
     instance = instance['0'];
@@ -142,6 +142,7 @@ class ElasticLib {
       const search = await this.es.search({
         index: this.indices.products,
         type: this.types.products,
+        _source: _source,
         from: page || 0,
         size: size,
         body: {
