@@ -243,7 +243,8 @@ class ElasticLib {
                 ? variation.sale * instance.comparedAtPrice * rate
                 : (variation.sale * rate) + instance.comparedAtPrice,
             weight: variation.weight,
-            attributes: await this.formatAttributes(variation.attributes)
+            attributes: await this.formatAttributes(variation.attributes),
+            quantity: variation.quantity
           };
         }
       });
