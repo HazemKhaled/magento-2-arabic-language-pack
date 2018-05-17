@@ -8,7 +8,7 @@ module.exports = {
 
   serializer: 'JSON',
 
-  cacher: process.env.CACHER ? 'Redis' : 'Memory',
+  cacher: null,
 
   requestTimeout: 10 * 1000,
   requestRetry: 0,
