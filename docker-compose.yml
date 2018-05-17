@@ -6,14 +6,17 @@ services:
     build:
       context: .
     image: conduit
+    restart: always
     env_file: docker-compose.env
     environment:
       SERVICES: api
       PORT: 3000
     links:
       - redis
+      - nats
     depends_on:
       - redis
+      - nats
     labels:
       - "traefik.enable=true"
       - "traefik.backend=api"
@@ -27,13 +30,16 @@ services:
     build:
       context: .
     image: conduit
+    restart: always
     env_file: docker-compose.env
     environment:
       SERVICES: users
     links:
       - redis
+      - nats
     depends_on:
       - redis
+      - nats
     # deploy:
     #   replicas: 2
 
@@ -41,30 +47,16 @@ services:
     build:
       context: .
     image: conduit
+    restart: always
     env_file: docker-compose.env
     environment:
-      SERVICES: products
+      SERVICES: products,categories
     links:
       - redis
+      - nats
     depends_on:
       - redis
-    # deploy:
-    #   replicas: 2
-    networks:
-      - default
-      - elastic
-
-  categories:
-    build:
-      context: .
-    image: conduit
-    env_file: docker-compose.env
-    environment:
-      SERVICES: categories
-    links:
-      - redis
-    depends_on:
-      - redis
+      - nats
     # deploy:
     #   replicas: 2
     networks:
@@ -75,21 +67,28 @@ services:
     build:
       context: .
     image: conduit
+    restart: always
     env_file: docker-compose.env
     environment:
       SERVICES: orders
     links:
       - redis
+      - nats
     depends_on:
       - redis
+      - nats
     # deploy:
     #   replicas: 2
 
   redis:
     image: redis:alpine
 
+  nats:
+    image: nats
+
   traefik:
     image: traefik
+    restart: always
     command: --web --docker --docker.domain=docker.localhost --logLevel=INFO --docker.exposedbydefault=false
     ports:
       - "80:80"
