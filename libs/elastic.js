@@ -164,7 +164,6 @@ class ElasticLib {
           sku: source.sku,
           name: source.name,
           description: source.description,
-          last_stock_check: source.last_stock_check,
           supplier: source.seller_id,
           images: source.images,
           last_check_date: source.last_check_date,
