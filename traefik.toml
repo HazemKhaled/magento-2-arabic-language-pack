@@ -1,36 +1,43 @@
 # defaultEntryPoints must be at the top because it should not be in any table below
 defaultEntryPoints = ["http", "https"]
 
-[web]
-# Port for the status page
-address = ":8080"
+## Logs
+debug = false
+logLevel = "INFO"
 
 # Entrypoints, http and https
 [entryPoints]
 
 # http should be redirected to https
-[entryPoints.http]
-address = ":80"
-[entryPoints.http.redirect]
-entryPoint = "https"
+  [entryPoints.http]
+  address = ":80"
+    [entryPoints.http.redirect]
+    entryPoint = "https"
 
 # https is the default
-[entryPoints.https]
-address = ":443"
-[entryPoints.https.tls]
+  [entryPoints.https]
+  address = ":443"
+  [entryPoints.https.tls]
+
+[retry]
 
 # Enable ACME (Let's Encrypt): automatic SSL
 [acme]
-# caServer = "https://acme-staging.api.letsencrypt.org/directory"
 email = "it@knawat.com"
 storage = "acme.json" # or "traefik/acme/account" if using KV store
 entryPoint = "https"
-onDemand = false
-OnHostRule = true
+onHostRule = true
+acmeLogging = true
 
+[acme.httpChallenge]
+entryPoint = "http"
+
+[[acme.domains]]
+main = "dev.mp.knawat.io"
+#sans = ["dev.mp.knawat.io"]
 
 [docker]
 endpoint = "unix:///var/run/docker.sock"
-domain = "mp.knawat.io"
+domain = "dev.mp.knawat.io"
 watch = true
-exposedbydefault = false
+exposedByDefault = false
