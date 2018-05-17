@@ -13,10 +13,8 @@ services:
       PORT: 3000
     links:
       - redis
-      - nats
     depends_on:
       - redis
-      - nats
     labels:
       - "traefik.enable=true"
       - "traefik.backend=api"
@@ -36,10 +34,8 @@ services:
       SERVICES: users
     links:
       - redis
-      - nats
     depends_on:
       - redis
-      - nats
     # deploy:
     #   replicas: 2
 
@@ -53,10 +49,8 @@ services:
       SERVICES: products,categories
     links:
       - redis
-      - nats
     depends_on:
       - redis
-      - nats
     # deploy:
     #   replicas: 2
     networks:
@@ -73,18 +67,13 @@ services:
       SERVICES: orders
     links:
       - redis
-      - nats
     depends_on:
       - redis
-      - nats
     # deploy:
     #   replicas: 2
 
   redis:
     image: redis:alpine
-
-  nats:
-    image: nats
 
   traefik:
     image: traefik
