@@ -47,7 +47,11 @@ module.exports = {
           }
         }
       }
-    ]
+    ],
+
+    assets: {
+      folder: './public'
+    }
   },
 
   methods: {
