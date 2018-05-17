@@ -13,8 +13,17 @@ describe("Test 'products.get' service", () => {
     it('should reject an ValidationError', () => {
       expect(broker.call('products.get')).rejects.toBeInstanceOf(ValidationError);
     });
+    it('should have sku', () => {
+      expect(broker.call('products.get')).resolves.toHaveProperty('products.sku');
+    });
+  });
+
+  describe("Test 'products.list' action", () => {
     it('should reject an ValidationError', () => {
-      expect(broker.call('products.get')).resolves.toBeInstanceOf(ValidationError);
+      expect(broker.call('products.list')).rejects.toBeInstanceOf(ValidationError);
+    });
+    it('should have sku', () => {
+      expect(broker.call('products.list')).resolves.toHaveProperty('products.sku');
     });
   });
 });
