@@ -1,8 +1,9 @@
 const { ServiceBroker } = require('moleculer');
 const { ValidationError } = require('moleculer').Errors;
+const { MoleculerClientError } = require('moleculer').Errors;
 const TestService = require('../../services/orders.service');
 
-describe("Test 'greeter' service", () => {
+describe("Test 'orders' service", () => {
   const broker = new ServiceBroker();
   broker.createService(TestService);
 
@@ -48,7 +49,7 @@ describe("Test 'greeter' service", () => {
           email: 'knawat@knawat.com',
         },
         invoice_url: 'url_knawat'
-      })).resolves.toHaveProperty('orders.data');
+      })).rejects.toBeInstanceOf(MoleculerClientError);
     });
   });
 
