@@ -70,23 +70,27 @@ module.exports = {
       },
       async handler(ctx) {
         const api = new KlayerAPI();
-        ctx.params.id = uuidv1();
-        try {
-          const result = await api.createOrder(ctx.params, ctx.meta.user);
-          const order = result.data;
-          return {
-            status: 'success',
-            data: {
-              id: order.id,
-              status: order.status,
-              items: order.line_items,
-              billing: order.billing,
-              shipping: order.shipping,
-              createDate: order.date_created
-            }
-          };
-        } catch (err) {
-          return new MoleculerClientError(err);
+        if (ctx.meta.user) {
+          ctx.params.id = uuidv1();
+          try {
+            const result = await api.createOrder(ctx.params, ctx.meta.user);
+            const order = result.data;
+            return {
+              status: 'success',
+              data: {
+                id: order.id,
+                status: order.status,
+                items: order.line_items,
+                billing: order.billing,
+                shipping: order.shipping,
+                createDate: order.date_created
+              }
+            };
+          } catch (err) {
+            return this.Promise.reject(new MoleculerClientError(err));
+          }
+        } else {
+          return this.Promise.reject(new MoleculerClientError('User not authenticated'));
         }
       }
     },
