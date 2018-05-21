@@ -73,7 +73,7 @@ class ElasticLib {
    * @returns {Object} Product
    * @memberof ElasticLib
    */
-  async fetchProduct(sku, id) {
+  async fetchProduct(sku, id, _source) {
     const api = new KlayerAPI();
     let instance = await api.findInstance(id);
     instance = instance['0'];
@@ -82,6 +82,7 @@ class ElasticLib {
       const result = await this.es.search({
         index: this.indices.products,
         type: this.types.products,
+        _source: _source,
         body: {
           query: {
             term: {
