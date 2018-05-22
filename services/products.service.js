@@ -54,7 +54,7 @@ module.exports = {
         _source: { type: 'array', optional: true }
       },
       cache: {
-        keys: ['page', 'limit', '#token'],
+        keys: ['page', 'limit', '#token', '_source'],
         ttl: 10 * 60 // 10 mins
       },
       async handler(ctx) {
