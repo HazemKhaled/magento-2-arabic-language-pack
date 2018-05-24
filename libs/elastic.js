@@ -135,24 +135,19 @@ class ElasticLib {
 
     const size = _size || 10;
 
-
     const instanceProducts = await this.findIP(page, size, instance);
+    console.log(instanceProducts);
     try {
-      const search = await this.es.search({
+      const search = await this.es.mget({
         index: this.indices.products,
         type: this.types.products,
         _source: _source,
-        size: size,
         body: {
-          query: {
-            ids: {
-              values: instanceProducts
-            }
-          }
+          ids: instanceProducts
         }
       });
 
-      const results = search.hits.hits;
+      const results = search.docs;
 
       const rate = await api.currencyRate(instance.base_currency);
 
