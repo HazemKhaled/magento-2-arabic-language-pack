@@ -20,8 +20,8 @@ module.exports = {
           'POST token': 'users.login',
 
           // Product
-          'GET catalog/products/:sku': 'products.get',
           'GET catalog/products': 'products.list',
+          'GET catalog/products/:sku': 'products.get',
           'GET catalog/categories': 'categories.list',
 
           // Order
