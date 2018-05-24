@@ -72,10 +72,12 @@ module.exports = {
             )
           );
         }
+        const fields = ['sku', 'name', 'description', 'last_stock_check', 'seller_id', 'images', 'last_check_date', 'categories', 'attributes', 'variations'];
         // _source contains specific to be returned
-        if (_source) {
-          const fields = ['sku', 'name', 'description', 'last_stock_check', 'seller_id', 'images', 'last_check_date', 'categories', 'attributes', 'variations'];
+        if (Array.isArray(_source)) {
           _source = _source.map(field => (fields.includes(field) ? field : null));
+        } else {
+          _source = fields.includes(_source) ? _source : null;
         }
         const esClient = new ElasticLib();
         const products = await esClient.findProducts(page, limit, ctx.meta.user, _source);
