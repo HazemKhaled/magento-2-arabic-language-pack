@@ -133,18 +133,15 @@ class ElasticLib {
     let instance = await api.findInstance(id);
     instance = instance['0'];
 
-    const from = 0;
     const size = _size || 10;
-    page = parseInt(page, 10) === 1 ? from : size * page;
+
 
     const instanceProducts = await this.findIP(page, size, instance);
-
     try {
       const search = await this.es.search({
         index: this.indices.products,
         type: this.types.products,
         _source: _source,
-        from: page || 0,
         size: size,
         body: {
           query: {
