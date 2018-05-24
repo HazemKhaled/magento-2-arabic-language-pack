@@ -25,17 +25,17 @@ module.exports = {
      */
     get: {
       auth: 'required',
-      params: {
-        _source: { type: 'array', optional: true }
-      },
       cache: false,
       async handler(ctx) {
         const { sku } = ctx.params;
         let { _source } = ctx.params;
+
+        const fields = ['sku', 'name', 'description', 'last_stock_check', 'seller_id', 'images', 'last_check_date', 'categories', 'attributes', 'variations'];
         // _source contains specific to be returned
-        if (_source) {
-          const fields = ['sku', 'name', 'description', 'last_stock_check', 'seller_id', 'images', 'last_check_date', 'categories', 'attributes', 'variations'];
+        if (Array.isArray(_source)) {
           _source = _source.map(field => (fields.includes(field) ? field : null));
+        } else {
+          _source = fields.includes(_source) ? _source : null;
         }
         const esClient = new ElasticLib();
         const product = await esClient.fetchProduct(sku, ctx.meta.user, _source);
@@ -50,9 +50,6 @@ module.exports = {
      */
     list: {
       auth: 'required',
-      params: {
-        _source: { type: 'array', optional: true }
-      },
       cache: {
         keys: ['page', 'limit', '#token', '_source'],
         ttl: 10 * 60 // 10 mins
