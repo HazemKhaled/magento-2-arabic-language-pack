@@ -150,26 +150,32 @@ class ElasticLib {
       const results = search.docs;
 
       const rate = await api.currencyRate(instance.base_currency);
-
-      const products = await Loop.map(results, async product => {
-        const source = product._source;
-        return {
-          sku: source.sku,
-          name: source.name,
-          description: source.description,
-          supplier: source.seller_id,
-          images: source.images,
-          last_check_date: source.last_check_date,
-          categories: await this.formatCategories(source.categories),
-          attributes: await this.formatAttributes(source.attributes),
-          variations: await this.formatVariations(
-            source.variations,
-            instance,
-            rate
-          )
-        };
-      });
-      return products;
+      try {
+        let products = await Loop.map(results, async product => {
+          if (product.found === true) {
+            const source = product._source;
+            return {
+              sku: source.sku,
+              name: source.name,
+              description: source.description,
+              supplier: source.seller_id,
+              images: source.images,
+              last_check_date: source.last_check_date,
+              categories: await this.formatCategories(source.categories),
+              attributes: await this.formatAttributes(source.attributes),
+              variations: await this.formatVariations(
+                source.variations,
+                instance,
+                rate
+              )
+            };
+          }
+        });
+        products = products.filter(product => product !== undefined);
+        return products;
+      } catch (err) {
+        console.log(err);
+      }
     } catch (err) {
       return new MoleculerClientError(err, 500);
     }
