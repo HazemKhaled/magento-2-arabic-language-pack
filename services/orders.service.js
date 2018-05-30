@@ -59,11 +59,11 @@ module.exports = {
             city: { type: 'string' },
             address_1: { type: 'string' },
             address_2: { type: 'string' },
-            phone: { type: 'string' },
+            phone: { type: 'string', optional: true },
             postcode: { type: 'string' },
             state: { type: 'string' },
             country: { type: 'string' },
-            email: { type: 'email' },
+            email: { type: 'email', optional: true },
           }
         },
         invoice_url: { type: 'string' },
