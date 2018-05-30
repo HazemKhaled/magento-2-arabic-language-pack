@@ -136,48 +136,51 @@ class ElasticLib {
     const size = _size || 10;
 
     const instanceProducts = await this.findIP(page, size, instance);
-    console.log(instanceProducts);
-    try {
-      const search = await this.es.mget({
-        index: this.indices.products,
-        type: this.types.products,
-        _source: _source,
-        body: {
-          ids: instanceProducts
-        }
-      });
-
-      const results = search.docs;
-
-      const rate = await api.currencyRate(instance.base_currency);
+    if (instanceProducts.length === 0) {
+      return instanceProducts;
+    } else {
       try {
-        let products = await Loop.map(results, async product => {
-          if (product.found === true) {
-            const source = product._source;
-            return {
-              sku: source.sku,
-              name: source.name,
-              description: source.description,
-              supplier: source.seller_id,
-              images: source.images,
-              last_check_date: source.last_check_date,
-              categories: await this.formatCategories(source.categories),
-              attributes: await this.formatAttributes(source.attributes),
-              variations: await this.formatVariations(
-                source.variations,
-                instance,
-                rate
-              )
-            };
+        const search = await this.es.mget({
+          index: this.indices.products,
+          type: this.types.products,
+          _source: _source,
+          body: {
+            ids: instanceProducts
           }
         });
-        products = products.filter(product => product !== undefined);
-        return products;
+
+        const results = search.docs;
+
+        const rate = await api.currencyRate(instance.base_currency);
+        try {
+          let products = await Loop.map(results, async product => {
+            if (product.found === true) {
+              const source = product._source;
+              return {
+                sku: source.sku,
+                name: source.name,
+                description: source.description,
+                supplier: source.seller_id,
+                images: source.images,
+                last_check_date: source.last_check_date,
+                categories: await this.formatCategories(source.categories),
+                attributes: await this.formatAttributes(source.attributes),
+                variations: await this.formatVariations(
+                  source.variations,
+                  instance,
+                  rate
+                )
+              };
+            }
+          });
+          products = products.filter(product => product !== undefined);
+          return products;
+        } catch (err) {
+          return new MoleculerClientError(err);
+        }
       } catch (err) {
-        console.log(err);
+        return new MoleculerClientError(err, 500);
       }
-    } catch (err) {
-      return new MoleculerClientError(err, 500);
     }
   }
 
