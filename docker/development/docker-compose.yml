@@ -1,0 +1,92 @@
+version: "3.0"
+
+services:
+
+  api:
+    build:
+      context: ../../
+    image: conduit
+    restart: always
+    env_file: docker-compose.env
+    environment:
+      SERVICES: api
+      PORT: 3000
+    links:
+      - redis
+    depends_on:
+      - redis
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=api"
+      - "traefik.port=3000"
+      - "traefik.frontend.entryPoints=http,https"
+      - "traefik.frontend.rule=PathPrefix:/"
+    # deploy:
+    #   replicas: 2
+
+  users:
+    build:
+      context: ../../
+    image: conduit
+    restart: always
+    env_file: docker-compose.env
+    environment:
+      SERVICES: users
+    links:
+      - redis
+    depends_on:
+      - redis
+    # deploy:
+    #   replicas: 2
+
+  products:
+    build:
+      context: ../../
+    image: conduit
+    restart: always
+    env_file: docker-compose.env
+    environment:
+      SERVICES: products,categories
+    links:
+      - redis
+    depends_on:
+      - redis
+    # deploy:
+    #   replicas: 2
+    networks:
+      - default
+      - elastic
+
+  orders:
+    build:
+      context: ../../
+    image: conduit
+    restart: always
+    env_file: docker-compose.env
+    environment:
+      SERVICES: orders
+    links:
+      - redis
+    depends_on:
+      - redis
+    # deploy:
+    #   replicas: 2
+
+  redis:
+    image: redis:alpine
+
+  traefik:
+    image: traefik
+    restart: always
+    command: --web --docker --docker.domain=docker.localhost --logLevel=INFO --docker.exposedbydefault=false
+    ports:
+      - "93:80"
+      - "94:443"
+      - "8080:3000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik.toml:/traefik.toml
+networks:
+  elastic:
+    external:
+      name: dockerelk_elk
