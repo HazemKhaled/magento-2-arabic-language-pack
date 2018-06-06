@@ -12,17 +12,15 @@ services:
       SERVICES: api
       PORT: 3000
     links:
-      - redis
+      - nats
     depends_on:
-      - redis
+      - nats
     labels:
       - "traefik.enable=true"
       - "traefik.backend=api"
       - "traefik.port=3000"
       - "traefik.frontend.entryPoints=http,https"
       - "traefik.frontend.rule=PathPrefix:/"
-    # deploy:
-    #   replicas: 2
 
   users:
     build:
@@ -33,11 +31,9 @@ services:
     environment:
       SERVICES: users
     links:
-      - redis
+      - nats
     depends_on:
-      - redis
-    # deploy:
-    #   replicas: 2
+      - nats
 
   products:
     build:
@@ -48,14 +44,9 @@ services:
     environment:
       SERVICES: products,categories
     links:
-      - redis
+      - nats
     depends_on:
-      - redis
-    # deploy:
-    #   replicas: 2
-    networks:
-      - default
-      - elastic
+      - nats
 
   orders:
     build:
@@ -66,14 +57,12 @@ services:
     environment:
       SERVICES: orders
     links:
-      - redis
+      - nats
     depends_on:
-      - redis
-    # deploy:
-    #   replicas: 2
+      - nats
 
-  redis:
-    image: redis:alpine
+  nats:
+    image: nats
 
   traefik:
     image: traefik
