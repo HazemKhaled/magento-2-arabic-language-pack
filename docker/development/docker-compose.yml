@@ -86,7 +86,3 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./traefik.toml:/traefik.toml
-networks:
-  elastic:
-    external:
-      name: dockerelk_elk
