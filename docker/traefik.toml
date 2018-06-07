@@ -33,11 +33,11 @@ acmeLogging = true
 entryPoint = "http"
 
 [[acme.domains]]
-main = "suppliers.knawat.io"
-sans = ["dev.suppliers.knawat.io"]
+main = "mp.knawat.io"
+sans = ["dev.mp.knawat.io"]
 
 [docker]
 endpoint = "unix:///var/run/docker.sock"
-domain = "suppliers.knawat.io"
+domain = "mp.knawat.io"
 watch = true
 exposedByDefault = false
