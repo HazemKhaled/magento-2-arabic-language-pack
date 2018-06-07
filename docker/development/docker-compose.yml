@@ -3,7 +3,6 @@ version: "3.0"
 services:
 
   api:
-    container_name: mp_api
     build:
       context: ../../
     image: conduit
@@ -20,7 +19,6 @@ services:
       - "traefik.frontend.rule=Host:dev.mp.knawat.io"
 
   users:
-    container_name: mp_users
     build:
       context: ../../
     image: conduit
@@ -30,7 +28,6 @@ services:
       SERVICES: users
 
   catalog:
-    container_name: mp_catalog
     build:
       context: ../../
     image: conduit
@@ -40,7 +37,6 @@ services:
       SERVICES: products,categories
 
   orders:
-    container_name: mp_orders
     build:
       context: ../../
     image: conduit
@@ -50,7 +46,6 @@ services:
       SERVICES: orders
 
   traefik:
-    container_name: mp_traefik
     image: traefik
     restart: always
     ports:

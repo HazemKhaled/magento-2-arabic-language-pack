@@ -3,7 +3,6 @@ version: "3.0"
 services:
 
   api:
-    container_name: mp_api
     build:
       context: ../../
     image: conduit
@@ -14,8 +13,10 @@ services:
       PORT: 80
     links:
       - nats
+      - redis
     depends_on:
       - nats
+      - redis
     labels:
       - "traefik.enable=true"
       - "traefik.backend=production"
@@ -24,7 +25,6 @@ services:
       - "traefik.frontend.rule=Host:mp.knawat.io"
 
   users:
-    container_name: mp_users
     build:
       context: ../../
     image: conduit
@@ -40,7 +40,6 @@ services:
       - redis
 
   products:
-    container_name: mp_catalog
     build:
       context: ../../
     image: conduit
@@ -59,7 +58,6 @@ services:
       - elastic
 
   orders:
-    container_name: mp_orders
     build:
       context: ../../
     image: conduit
@@ -81,7 +79,6 @@ services:
     image: nats
 
   traefik:
-    container_name: mp_traefik
     image: traefik
     restart: always
     ports:
