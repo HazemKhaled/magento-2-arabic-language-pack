@@ -3,6 +3,7 @@ version: "3.0"
 services:
 
   api:
+    container_name: mp_api
     build:
       context: ../../
     image: conduit
@@ -11,18 +12,15 @@ services:
     environment:
       SERVICES: api
       PORT: 3000
-    links:
-      - nats
-    depends_on:
-      - nats
     labels:
       - "traefik.enable=true"
       - "traefik.backend=development"
       - "traefik.port=3000"
       - "traefik.frontend.entryPoints=http,https"
-      - "traefik.frontend.rule=PathPrefix:/"
+      - "traefik.frontend.rule=Host:dev.mp.knawat.io"
 
   users:
+    container_name: mp_users
     build:
       context: ../../
     image: conduit
@@ -30,12 +28,9 @@ services:
     env_file: docker-compose.env
     environment:
       SERVICES: users
-    links:
-      - nats
-    depends_on:
-      - nats
 
-  products:
+  catalog:
+    container_name: mp_catalog
     build:
       context: ../../
     image: conduit
@@ -43,12 +38,9 @@ services:
     env_file: docker-compose.env
     environment:
       SERVICES: products,categories
-    links:
-      - nats
-    depends_on:
-      - nats
 
   orders:
+    container_name: mp_orders
     build:
       context: ../../
     image: conduit
@@ -56,15 +48,9 @@ services:
     env_file: docker-compose.env
     environment:
       SERVICES: orders
-    links:
-      - nats
-    depends_on:
-      - nats
-
-  nats:
-    image: nats
 
   traefik:
+    container_name: mp_traefik
     image: traefik
     restart: always
     ports:
