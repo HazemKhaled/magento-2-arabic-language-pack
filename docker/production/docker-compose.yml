@@ -3,6 +3,7 @@ version: "3.0"
 services:
 
   api:
+    container_name: mp_api
     build:
       context: ../../
     image: conduit
@@ -12,19 +13,18 @@ services:
       SERVICES: api
       PORT: 80
     links:
-      - redis
+      - nats
     depends_on:
-      - redis
+      - nats
     labels:
       - "traefik.enable=true"
-      - "traefik.backend=api"
+      - "traefik.backend=production"
       - "traefik.port=80"
       - "traefik.frontend.entryPoints=http,https"
-      - "traefik.frontend.rule=PathPrefix:/"
-    # deploy:
-    #   replicas: 2
+      - "traefik.frontend.rule=Host:mp.knawat.io"
 
   users:
+    container_name: mp_users
     build:
       context: ../../
     image: conduit
@@ -33,13 +33,14 @@ services:
     environment:
       SERVICES: users
     links:
+      - nats
       - redis
     depends_on:
+      - nats
       - redis
-    # deploy:
-    #   replicas: 2
 
   products:
+    container_name: mp_catalog
     build:
       context: ../../
     image: conduit
@@ -48,16 +49,17 @@ services:
     environment:
       SERVICES: products,categories
     links:
+      - nats
       - redis
     depends_on:
+      - nats
       - redis
-    # deploy:
-    #   replicas: 2
     networks:
       - default
       - elastic
 
   orders:
+    container_name: mp_orders
     build:
       context: ../../
     image: conduit
@@ -66,26 +68,30 @@ services:
     environment:
       SERVICES: orders
     links:
+      - nats
       - redis
     depends_on:
+      - nats
       - redis
-    # deploy:
-    #   replicas: 2
 
   redis:
     image: redis:alpine
 
+  nats:
+    image: nats
+
   traefik:
+    container_name: mp_traefik
     image: traefik
     restart: always
-    command: --web --docker --docker.domain=docker.localhost --logLevel=INFO --docker.exposedbydefault=false
     ports:
       - "80:80"
       - "443:443"
-      - "8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./traefik.toml:/traefik.toml
+      - ./acme.json:/acme.json
+
 networks:
   elastic:
     external:
