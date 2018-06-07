@@ -2,8 +2,8 @@
 defaultEntryPoints = ["http", "https"]
 
 ## Logs
-debug = false
-logLevel = "ERROR"
+debug = true
+logLevel = "info"
 
 # Entrypoints, http and https
 [entryPoints]
