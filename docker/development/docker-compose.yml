@@ -13,15 +13,12 @@ services:
       PORT: 4040
     ports:
       - "4040:4040"
-    networks:
-      - traefik
     labels:
       - "traefik.enable=true"
       - "traefik.backend=mp-development"
       - "traefik.port=4040"
       - "traefik.frontend.entryPoints=http,https"
       - "traefik.frontend.rule=Host:dev.suppliers.knawat.io"
-      - "traefik.docker.network=traefik_default"
 
   users:
     build:
@@ -49,8 +46,3 @@ services:
     env_file: docker-compose.env
     environment:
       SERVICES: orders
-
-networks:
-  traefik:
-    external:
-      name: traefik_default
