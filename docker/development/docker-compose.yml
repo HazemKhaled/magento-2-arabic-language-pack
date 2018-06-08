@@ -11,12 +11,14 @@ services:
     environment:
       SERVICES: api
       PORT: 4040
+    ports:
+      - "4040:4040"
     labels:
       - "traefik.enable=true"
       - "traefik.backend=mp-development"
       - "traefik.port=4040"
-      - "traefik.frontend.entryPoints=http"
-      - "traefik.frontend.rule=PathPrefix:/"
+      - "traefik.frontend.entryPoints=http,https"
+      - "traefik.frontend.rule=Host:dev.suppliers.knawat.io"
 
   users:
     build:
@@ -44,13 +46,3 @@ services:
     env_file: docker-compose.env
     environment:
       SERVICES: orders
-
-  traefik:
-    image: traefik
-    command: --web --docker --docker.domain=docker.localhost --logLevel=INFO --docker.exposedbydefault=false
-    ports:
-      - "4040:80"
-      - "4444:8080"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /dev/null:/traefik.toml
