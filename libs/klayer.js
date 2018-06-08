@@ -14,8 +14,8 @@ class KlayerLib {
    */
   constructor() {
     this.access_token =
-      process.env.TOKEN || 'dbbf3cb7-f7ad-46ce-bee3-4fd7477951c4';
-    this.API_URL = process.env.API_URL || 'https://dev.api.knawat.com';
+      process.env.KLAYER_TOKEN || 'dbbf3cb7-f7ad-46ce-bee3-4fd7477951c4';
+    this.API_URL = process.env.KLAYER_URL || 'https://dev.api.knawat.com';
   }
 
   /**
@@ -94,7 +94,7 @@ class KlayerLib {
           access_token: this.access_token
         },
         headers: {
-          'User-Agent': 'Request-MicroES',
+          'User-Agent': 'Request-MicroES'
         },
         body: order,
         json: true
@@ -124,7 +124,7 @@ class KlayerLib {
           access_token: this.access_token
         },
         headers: {
-          'User-Agent': 'Request-MicroES',
+          'User-Agent': 'Request-MicroES'
         },
         body: order,
         json: true
@@ -146,13 +146,18 @@ class KlayerLib {
     let instance = await this.findInstance(hash);
     instance = instance['0'];
     const partner = instance.partner_id;
-    const query = id === undefined ? { partner_id: partner } : { partner_id: partner, id: id };
+    const query =
+      id === undefined
+        ? { partner_id: partner }
+        : { partner_id: partner, id: id };
     try {
       let orders = await request({
         method: 'GET',
-        uri: this.getUrl(`webhook/orders?filter=${JSON.stringify({
-          where: query
-        })}`),
+        uri: this.getUrl(
+          `webhook/orders?filter=${JSON.stringify({
+            where: query
+          })}`
+        ),
         qs: {
           access_token: this.access_token
         },
