@@ -1,6 +1,4 @@
-const { ValidationError } = require('moleculer').Errors;
 const request = require('request-promise');
-const TestService = require('../../services/api.service');
 
 /**
  *
