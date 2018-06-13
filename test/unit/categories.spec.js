@@ -14,7 +14,7 @@ describe("Test 'categories.list' service", () => {
       expect(broker.call('categories.list')).rejects.toBeInstanceOf(ValidationError);
     });
     it('should return an array', () => {
-      expect(broker.call('categories.list')).resolves.toHaveProperty('categories.id');
+      expect(broker.call('categories.list')).resolves.toBe(Array);
     });
   });
 });
