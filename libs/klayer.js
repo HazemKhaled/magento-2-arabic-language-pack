@@ -142,7 +142,7 @@ class KlayerLib {
    * @param {String} hash instance webhook_hash
    * @memberof KlayerLib
    */
-  async getOrders(hash, id) {
+  async getOrders(page, limit, hash, id) {
     let instance = await this.findInstance(hash);
     instance = instance['0'];
     const partner = instance.partner_id;
@@ -150,12 +150,15 @@ class KlayerLib {
       id === undefined
         ? { partner_id: partner }
         : { partner_id: partner, id: id };
+
     try {
       let orders = await request({
         method: 'GET',
         uri: this.getUrl(
           `webhook/orders?filter=${JSON.stringify({
-            where: query
+            where: query,
+            limit: limit === undefined ? 10 : limit,
+            skip: page === undefined ? 0 : page
           })}`
         ),
         qs: {
@@ -166,6 +169,7 @@ class KlayerLib {
         },
         json: true
       });
+
       if (id) {
         const order = orders['0'];
         return {
