@@ -67,6 +67,7 @@ module.exports = {
           }
         },
         invoice_url: { type: 'string' },
+        payment_method: { type: 'string' }
       },
       async handler(ctx) {
         const api = new KlayerAPI();
@@ -83,7 +84,8 @@ module.exports = {
                 items: order.line_items,
                 billing: order.billing,
                 shipping: order.shipping,
-                createDate: order.date_created
+                createDate: order.date_created,
+                payment_method: order.payment_method
               }
             };
           } catch (err) {
