@@ -9,7 +9,8 @@
     "deps": "npm-check -u",
     "ci": "jest --watch",
     "test": "jest --coverage",
-    "lint": "eslint services"
+    "lint": "eslint services",
+    "prettier": "prettier 'services/*.js' 'mixins/*.js' 'libs/*.js' '*.js' --write"
   },
   "author": "Knawat, LLC.",
   "devDependencies": {
@@ -19,7 +20,8 @@
     "jest": "^23.3.0",
     "jest-cli": "^23.3.0",
     "moleculer-repl": "^0.4.0",
-    "npm-check": "^5.7.1"
+    "npm-check": "^5.7.1",
+    "prettier": "^1.13.5"
   },
   "dependencies": {
     "bluebird": "^3.5.1",

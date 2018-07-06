@@ -13,7 +13,6 @@ module.exports = {
    */
   metadata: {},
 
-
   /**
    * Actions
    */

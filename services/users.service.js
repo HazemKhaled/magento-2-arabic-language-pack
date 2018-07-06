@@ -54,18 +54,12 @@ module.exports = {
               instance = instance['0'];
               if (!instance) {
                 return this.Promise.reject(
-                  new MoleculerClientError(
-                    'consumerKey or consumerSecret is invalid!',
-                    422,
-                    '',
-                    [{ field: 'consumerKey', message: 'is not found' }]
-                  )
+                  new MoleculerClientError('consumerKey or consumerSecret is invalid!', 422, '', [
+                    { field: 'consumerKey', message: 'is not found' }
+                  ])
                 );
               }
-              if (
-                consumerKey === instance.webhook_hash &&
-                consumerSecret === instance.secret
-              ) {
+              if (consumerKey === instance.webhook_hash && consumerSecret === instance.secret) {
                 return {
                   _id: instance.webhook_hash,
                   url: instance.url,
@@ -74,15 +68,10 @@ module.exports = {
                 };
               }
               return this.Promise.reject(
-                new MoleculerClientError(
-                  'consumerKey or consumerSecret is invalid!',
-                  422,
-                  '',
-                  [
-                    { field: 'consumerKey', message: 'is not valid' },
-                    { field: 'consumerSecret', message: 'is not valid' }
-                  ]
-                )
+                new MoleculerClientError('consumerKey or consumerSecret is invalid!', 422, '', [
+                  { field: 'consumerKey', message: 'is not valid' },
+                  { field: 'consumerSecret', message: 'is not valid' }
+                ])
               );
             } catch (err) {
               return this.Promise.reject(new MoleculerClientError(err));
@@ -110,15 +99,11 @@ module.exports = {
       },
       handler(ctx) {
         return new this.Promise((resolve, reject) => {
-          jwt.verify(
-            ctx.params.token,
-            this.settings.JWT_SECRET,
-            (err, decoded) => {
-              if (err) return reject(err);
+          jwt.verify(ctx.params.token, this.settings.JWT_SECRET, (err, decoded) => {
+            if (err) return reject(err);
 
-              resolve(decoded);
-            }
-          );
+            resolve(decoded);
+          });
         }).then(async decoded => {
           if (decoded.id) {
             // Get instance info from Klayer

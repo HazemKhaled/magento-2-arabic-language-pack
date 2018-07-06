@@ -13,8 +13,7 @@ class KlayerLib {
    * @memberof KlayerLib
    */
   constructor() {
-    this.access_token =
-      process.env.KLAYER_TOKEN || 'dbbf3cb7-f7ad-46ce-bee3-4fd7477951c4';
+    this.access_token = process.env.KLAYER_TOKEN || 'dbbf3cb7-f7ad-46ce-bee3-4fd7477951c4';
     this.API_URL = process.env.KLAYER_URL || 'https://dev.api.knawat.com';
   }
 
@@ -146,10 +145,7 @@ class KlayerLib {
     let instance = await this.findInstance(hash);
     instance = instance['0'];
     const partner = instance.partner_id;
-    const query =
-      id === undefined
-        ? { partner_id: partner }
-        : { partner_id: partner, id: id };
+    const query = id === undefined ? { partner_id: partner } : { partner_id: partner, id: id };
 
     try {
       let orders = await request({
@@ -205,8 +201,7 @@ class KlayerLib {
    */
   getUrl(endpoint) {
     // if URL doesn't have / at the end add it
-    let url =
-      this.API_URL.slice(-1) === '/' ? this.API_URL : `${this.API_URL}/`;
+    let url = this.API_URL.slice(-1) === '/' ? this.API_URL : `${this.API_URL}/`;
     // Add API base
     const api = 'api/';
     // Concat the final URL

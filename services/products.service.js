@@ -31,7 +31,18 @@ module.exports = {
         const { sku } = ctx.params;
         let { _source } = ctx.params;
 
-        const fields = ['sku', 'name', 'description', 'last_stock_check', 'seller_id', 'images', 'last_check_date', 'categories', 'attributes', 'variations'];
+        const fields = [
+          'sku',
+          'name',
+          'description',
+          'last_stock_check',
+          'seller_id',
+          'images',
+          'last_check_date',
+          'categories',
+          'attributes',
+          'variations'
+        ];
         // _source contains specific to be returned
         if (Array.isArray(_source)) {
           _source = _source.map(field => (fields.includes(field) ? field : null));
@@ -60,17 +71,23 @@ module.exports = {
         let { _source } = ctx.params;
         if (limit > 1000) {
           return this.Promise.reject(
-            new MoleculerClientError(
-              'Maximum Limit is 1000 !',
-              422,
-              '',
-              [
-                { field: 'limit', message: 'Max limit is 1000' },
-              ]
-            )
+            new MoleculerClientError('Maximum Limit is 1000 !', 422, '', [
+              { field: 'limit', message: 'Max limit is 1000' }
+            ])
           );
         }
-        const fields = ['sku', 'name', 'description', 'last_stock_check', 'seller_id', 'images', 'last_check_date', 'categories', 'attributes', 'variations'];
+        const fields = [
+          'sku',
+          'name',
+          'description',
+          'last_stock_check',
+          'seller_id',
+          'images',
+          'last_check_date',
+          'categories',
+          'attributes',
+          'variations'
+        ];
         // _source contains specific to be returned
         if (Array.isArray(_source)) {
           _source = _source.map(field => (fields.includes(field) ? field : null));

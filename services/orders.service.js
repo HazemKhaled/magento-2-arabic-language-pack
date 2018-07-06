@@ -48,7 +48,7 @@ module.exports = {
             postcode: { type: 'string' },
             state: { type: 'string' },
             country: { type: 'string' },
-            email: { type: 'email' },
+            email: { type: 'email' }
           }
         },
         shipping: {
@@ -64,7 +64,7 @@ module.exports = {
             postcode: { type: 'string' },
             state: { type: 'string' },
             country: { type: 'string' },
-            email: { type: 'email', optional: true },
+            email: { type: 'email', optional: true }
           }
         },
         invoice_url: { type: 'string' },
@@ -101,7 +101,7 @@ module.exports = {
     get: {
       auth: 'required',
       params: {
-        order_id: { type: 'string' },
+        order_id: { type: 'string' }
       },
       async handler(ctx) {
         const id = ctx.params.order_id;
@@ -123,14 +123,9 @@ module.exports = {
         const api = new KlayerAPI();
         if (limit > 50) {
           return this.Promise.reject(
-            new MoleculerClientError(
-              'Maximum Limit is 50 !',
-              422,
-              '',
-              [
-                { field: 'limit', message: 'Max limit is 50' },
-              ]
-            )
+            new MoleculerClientError('Maximum Limit is 50 !', 422, '', [
+              { field: 'limit', message: 'Max limit is 50' }
+            ])
           );
         }
         const orders = await api.getOrders(page, limit, ctx.meta.user);
@@ -156,7 +151,7 @@ module.exports = {
             postcode: { type: 'string' },
             state: { type: 'string' },
             country: { type: 'string' },
-            email: { type: 'email' },
+            email: { type: 'email' }
           }
         },
         shipping: {
@@ -172,9 +167,9 @@ module.exports = {
             postcode: { type: 'string' },
             state: { type: 'string' },
             country: { type: 'string' },
-            email: { type: 'email' },
+            email: { type: 'email' }
           }
-        },
+        }
       },
       async handler(ctx) {
         const api = new KlayerAPI();
@@ -186,19 +181,18 @@ module.exports = {
               message: 'order not found',
               data: []
             };
-          } else {
-            const order = result.data;
-            return {
-              status: 'success',
-              data: {
-                id: order.id,
-                status: order.status,
-                billing: order.billing,
-                shipping: order.shipping,
-                updateDate: new Date()
-              }
-            };
           }
+          const order = result.data;
+          return {
+            status: 'success',
+            data: {
+              id: order.id,
+              status: order.status,
+              billing: order.billing,
+              shipping: order.shipping,
+              updateDate: new Date()
+            }
+          };
         } catch (err) {
           return new MoleculerClientError(err);
         }
