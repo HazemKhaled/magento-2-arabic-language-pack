@@ -21,6 +21,7 @@
     "object-shorthand": "off",
     "no-param-reassign": "off",
     "radix": "off",
+    "class-methods-use-this": "off",
     "require-jsdoc": [
       "error",
       {

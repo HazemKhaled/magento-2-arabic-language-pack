@@ -1,5 +1,6 @@
-const ElasticLib = require('../libs/elastic');
 const { MoleculerClientError } = require('moleculer').Errors;
+
+const ElasticLib = require('../libs/elastic');
 
 module.exports = {
   name: 'products',

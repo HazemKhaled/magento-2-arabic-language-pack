@@ -1,8 +1,8 @@
 const elasticsearch = require('elasticsearch');
-const KlayerAPI = require('./klayer');
 const Loop = require('bluebird');
 const { MoleculerClientError } = require('moleculer').Errors;
 
+const KlayerAPI = require('./klayer');
 /**
  * Elasticsearch interface
  *
