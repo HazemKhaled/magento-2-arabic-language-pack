@@ -4,7 +4,7 @@
   "private": true,
   "description": "Knawat MarketPlace API layer",
   "scripts": {
-    "dev": "npm run lint && moleculer-runner --repl --hot services",
+    "dev": "npm run lint && env $(cat ./docker/development/docker-compose.env) moleculer-runner --repl --hot services",
     "start": "moleculer-runner",
     "deps": "npm-check -u",
     "ci": "jest --watch",
