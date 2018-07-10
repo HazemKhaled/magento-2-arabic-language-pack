@@ -176,17 +176,17 @@ class KlayerLib {
           shipping: order.shipping,
           createDate: order.date_created
         };
-      } else {
-        orders = orders.map(order => ({
-          id: order.id,
-          status: order.status,
-          items: order.line_items,
-          billing: order.billing,
-          shipping: order.shipping,
-          createDate: order.date_created
-        }));
-        return orders;
       }
+
+      orders = orders.map(order => ({
+        id: order.id,
+        status: order.status,
+        items: order.line_items,
+        billing: order.billing,
+        shipping: order.shipping,
+        createDate: order.date_created
+      }));
+      return orders;
     } catch (err) {
       return new MoleculerClientError(err);
     }
