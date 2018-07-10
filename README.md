@@ -28,13 +28,14 @@ npm run prettier
 ### Run without Docker (Development)
 
 1.  `cp ./docker/development/docker-compose.example.env ./docker/development/docker-compose.env` and update your vars
-2.  npm run dev
+2.  `npm run dev`
 
 ### Run in Docker (Development)
 
 1.  `cd ./docker/development/`
 2.  `cp docker-compose.example.env docker-compose.env` and update your vars
-3.  Start with docker-compose: `docker compose up -d`
+3.  Optional: Open docker-compose.yml and remove network if you don't have Traefik containner running
+4.  Start with docker-compose: `docker compose up -d`
 
 ### Run in Docker (Production)
 

@@ -46,3 +46,8 @@ services:
     env_file: docker-compose.env
     environment:
       SERVICES: orders
+
+networks:
+  default:
+    external:
+      name: traefik_default
