@@ -9,7 +9,8 @@
     "deps": "npm-check -u",
     "ci": "jest --watch",
     "test": "jest --coverage",
-    "lint": "eslint services",
+    "lint": "eslint services mixins libs",
+    "lint-fix": "eslint services mixins libs --fix",
     "prettier": "prettier 'services/*.js' 'mixins/*.js' 'libs/*.js' '*.js' --write"
   },
   "author": "Knawat, LLC.",
