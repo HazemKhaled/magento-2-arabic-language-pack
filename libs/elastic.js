@@ -79,8 +79,7 @@ class ElasticLib {
    */
   async fetchProduct(sku, id, _source) {
     const api = new KlayerAPI();
-    let instance = await api.findInstance(id);
-    instance = instance['0'];
+    const [instance] = await api.findInstance(id);
 
     try {
       const result = await this.es.search({
@@ -130,8 +129,7 @@ class ElasticLib {
    */
   async findProducts(page, _size, id, _source) {
     const api = new KlayerAPI();
-    let instance = await api.findInstance(id);
-    instance = instance['0'];
+    const [instance] = await api.findInstance(id);
 
     const size = _size || 10;
 

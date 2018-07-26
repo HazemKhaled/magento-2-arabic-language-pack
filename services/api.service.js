@@ -66,9 +66,9 @@ module.exports = {
     authorize(ctx, route, req) {
       let reqToken;
       if (req.headers.authorization) {
-        const type = req.headers.authorization.split(' ')[0];
+        const [type] = req.headers.authorization.split(' ');
         if (type === 'Token' || type === 'Bearer') {
-          reqToken = req.headers.authorization.split(' ')['1'];
+          [, reqToken] = req.headers.authorization.split(' ');
         }
       }
 

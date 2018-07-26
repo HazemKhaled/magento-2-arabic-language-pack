@@ -50,12 +50,12 @@ module.exports = {
           .then(async () => {
             const klayer = new KlayerLib();
             try {
-              let instance = await klayer.findInstance(consumerKey);
-              instance = instance['0'];
+              const [instance] = await klayer.findInstance(consumerKey);
+
               if (!instance) {
                 return this.Promise.reject(
                   new MoleculerClientError('consumerKey or consumerSecret is invalid!', 422, '', [
-                    { field: 'consumerKey', message: 'is not found' }
+                    { field: 'consumerKey', message: 'is not valid' }
                   ])
                 );
               }
@@ -108,8 +108,8 @@ module.exports = {
           if (decoded.id) {
             // Get instance info from Klayer
             const klayer = new KlayerLib();
-            const instance = await klayer.findInstance(decoded.id);
-            if (instance[0].status === 'confirmed') {
+            const [instance] = await klayer.findInstance(decoded.id);
+            if (instance.status === 'confirmed') {
               return decoded;
             }
           }

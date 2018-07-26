@@ -81,8 +81,7 @@ class KlayerLib {
    * @memberof KlayerLib
    */
   async createOrder(order, id) {
-    let instance = await this.findInstance(id);
-    instance = instance['0'];
+    const [instance] = await this.findInstance(id);
     const hash = instance.webhook_hash;
 
     try {
@@ -112,8 +111,7 @@ class KlayerLib {
    * @memberof KlayerLib
    */
   async updateOrder(order, id) {
-    let instance = await this.findInstance(id);
-    instance = instance['0'];
+    const [instance] = await this.findInstance(id);
     const hash = instance.webhook_hash;
     try {
       const updated = await request({
@@ -142,8 +140,7 @@ class KlayerLib {
    * @memberof KlayerLib
    */
   async getOrders(page, limit, hash, id) {
-    let instance = await this.findInstance(hash);
-    instance = instance['0'];
+    const [instance] = await this.findInstance(hash);
     const partner = instance.partner_id;
     const query = id === undefined ? { partner_id: partner } : { partner_id: partner, id: id };
 
@@ -167,7 +164,7 @@ class KlayerLib {
       });
 
       if (id) {
-        const order = orders['0'];
+        const [order] = orders;
         return {
           id: order.id,
           status: order.status,
