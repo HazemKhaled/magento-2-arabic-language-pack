@@ -26,8 +26,7 @@ class API {
    */
   getUrl() {
     // if URL doesn't have / at the end add it
-    let url =
-      this.hostname.slice(-1) === '/' ? this.hostname : `${this.hostname}/`;
+    let url = this.hostname.slice(-1) === '/' ? this.hostname : `${this.hostname}/`;
     // Add API base
     const api = 'api/';
     // Concat the final URL
@@ -36,7 +35,6 @@ class API {
   }
 }
 
-
 describe('Test products route', () => {
   test('should return an array of products', async () => {
     const apiTest = new API('http://localhost:3000', 'catalog/products');
@@ -44,7 +42,8 @@ describe('Test products route', () => {
       method: 'get',
       uri: apiTest.getUrl(),
       auth: {
-        bearer: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjlvS05FekJtUjNKbGtNUmo4dk02WllkMnEwUXBQWHk0IiwiZXhwIjoxNTMxNjU4NDM2LCJpYXQiOjE1MjY0NzQ0MzZ9.ATKhrEYFMTyGu76hJSUr3mp6ON9n4ufpi9eUb5ehCaU'
+        bearer:
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjlvS05FekJtUjNKbGtNUmo4dk02WllkMnEwUXBQWHk0IiwiZXhwIjoxNTMxNjU4NDM2LCJpYXQiOjE1MjY0NzQ0MzZ9.ATKhrEYFMTyGu76hJSUr3mp6ON9n4ufpi9eUb5ehCaU'
       },
       headers: {
         'User-Agent': 'Request-MicroEs'
@@ -54,12 +53,8 @@ describe('Test products route', () => {
 
     expect(result).toHaveProperty('products');
     expect(result.products).toBeInstanceOf(Array);
-    result.products.map((product) => {
-      expect(Object.keys(product)).toEqual(
-        expect.arrayContaining([
-          'sku'
-        ])
-      );
+    result.products.each(product => {
+      expect(Object.keys(product)).toEqual(expect.arrayContaining(['sku']));
     });
   });
 
@@ -69,7 +64,8 @@ describe('Test products route', () => {
       method: 'get',
       uri: apiTest.getUrl(),
       auth: {
-        bearer: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjlvS05FekJtUjNKbGtNUmo4dk02WllkMnEwUXBQWHk0IiwiZXhwIjoxNTMxNjU4NDM2LCJpYXQiOjE1MjY0NzQ0MzZ9.ATKhrEYFMTyGu76hJSUr3mp6ON9n4ufpi9eUb5ehCaU'
+        bearer:
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjlvS05FekJtUjNKbGtNUmo4dk02WllkMnEwUXBQWHk0IiwiZXhwIjoxNTMxNjU4NDM2LCJpYXQiOjE1MjY0NzQ0MzZ9.ATKhrEYFMTyGu76hJSUr3mp6ON9n4ufpi9eUb5ehCaU'
       },
       headers: {
         'User-Agent': 'Request-MicroEs'
@@ -88,7 +84,8 @@ describe('Test orders route', () => {
       method: 'get',
       uri: apiTest.getUrl(),
       auth: {
-        bearer: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjlvS05FekJtUjNKbGtNUmo4dk02WllkMnEwUXBQWHk0IiwiZXhwIjoxNTMxNjU4NDM2LCJpYXQiOjE1MjY0NzQ0MzZ9.ATKhrEYFMTyGu76hJSUr3mp6ON9n4ufpi9eUb5ehCaU'
+        bearer:
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjlvS05FekJtUjNKbGtNUmo4dk02WllkMnEwUXBQWHk0IiwiZXhwIjoxNTMxNjU4NDM2LCJpYXQiOjE1MjY0NzQ0MzZ9.ATKhrEYFMTyGu76hJSUr3mp6ON9n4ufpi9eUb5ehCaU'
       },
       headers: {
         'User-Agent': 'Request-MicroEs'
@@ -105,7 +102,8 @@ describe('Test orders route', () => {
       method: 'get',
       uri: apiTest.getUrl(),
       auth: {
-        bearer: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjlvS05FekJtUjNKbGtNUmo4dk02WllkMnEwUXBQWHk0IiwiZXhwIjoxNTMxNjU4NDM2LCJpYXQiOjE1MjY0NzQ0MzZ9.ATKhrEYFMTyGu76hJSUr3mp6ON9n4ufpi9eUb5ehCaU'
+        bearer:
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjlvS05FekJtUjNKbGtNUmo4dk02WllkMnEwUXBQWHk0IiwiZXhwIjoxNTMxNjU4NDM2LCJpYXQiOjE1MjY0NzQ0MzZ9.ATKhrEYFMTyGu76hJSUr3mp6ON9n4ufpi9eUb5ehCaU'
       },
       headers: {
         'User-Agent': 'Request-MicroEs'
@@ -122,17 +120,20 @@ describe('Test orders route', () => {
       method: 'post',
       uri: apiTest.getUrl(),
       auth: {
-        bearer: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjlvS05FekJtUjNKbGtNUmo4dk02WllkMnEwUXBQWHk0IiwiZXhwIjoxNTMxNjU4NDM2LCJpYXQiOjE1MjY0NzQ0MzZ9.ATKhrEYFMTyGu76hJSUr3mp6ON9n4ufpi9eUb5ehCaU'
+        bearer:
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjlvS05FekJtUjNKbGtNUmo4dk02WllkMnEwUXBQWHk0IiwiZXhwIjoxNTMxNjU4NDM2LCJpYXQiOjE1MjY0NzQ0MzZ9.ATKhrEYFMTyGu76hJSUr3mp6ON9n4ufpi9eUb5ehCaU'
       },
       headers: {
         'User-Agent': 'Request-MicroEs'
       },
       body: {
         status: '',
-        items: [{
-          sku: '',
-          quantity: 0
-        }],
+        items: [
+          {
+            sku: '',
+            quantity: 0
+          }
+        ],
         billing: {
           first_name: '',
           last_name: '',
@@ -144,7 +145,7 @@ describe('Test orders route', () => {
           postcode: '',
           state: '',
           country: '',
-          email: 'anouar.kacem@knawat.com',
+          email: 'anouar.kacem@knawat.com'
         },
         shipping: {
           first_name: '',
@@ -157,7 +158,7 @@ describe('Test orders route', () => {
           postcode: '',
           state: '',
           country: '',
-          email: 'anouar.kacem@knawat.com',
+          email: 'anouar.kacem@knawat.com'
         },
         invoice_url: ''
       },
@@ -172,17 +173,20 @@ describe('Test orders route', () => {
       method: 'put',
       uri: apiTest.getUrl(),
       auth: {
-        bearer: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjlvS05FekJtUjNKbGtNUmo4dk02WllkMnEwUXBQWHk0IiwiZXhwIjoxNTMxNjU4NDM2LCJpYXQiOjE1MjY0NzQ0MzZ9.ATKhrEYFMTyGu76hJSUr3mp6ON9n4ufpi9eUb5ehCaU'
+        bearer:
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjlvS05FekJtUjNKbGtNUmo4dk02WllkMnEwUXBQWHk0IiwiZXhwIjoxNTMxNjU4NDM2LCJpYXQiOjE1MjY0NzQ0MzZ9.ATKhrEYFMTyGu76hJSUr3mp6ON9n4ufpi9eUb5ehCaU'
       },
       headers: {
         'User-Agent': 'Request-MicroEs'
       },
       body: {
         status: '',
-        items: [{
-          sku: '',
-          quantity: 0
-        }],
+        items: [
+          {
+            sku: '',
+            quantity: 0
+          }
+        ],
         billing: {
           first_name: '',
           last_name: '',
@@ -194,7 +198,7 @@ describe('Test orders route', () => {
           postcode: '',
           state: '',
           country: '',
-          email: 'anouar.kacem@knawat.com',
+          email: 'anouar.kacem@knawat.com'
         },
         shipping: {
           first_name: '',
@@ -207,7 +211,7 @@ describe('Test orders route', () => {
           postcode: '',
           state: '',
           country: '',
-          email: 'anouar.kacem@knawat.com',
+          email: 'anouar.kacem@knawat.com'
         },
         invoice_url: ''
       },
@@ -225,7 +229,8 @@ describe('Test categories route', () => {
       method: 'get',
       uri: apiTest.getUrl(),
       auth: {
-        bearer: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjlvS05FekJtUjNKbGtNUmo4dk02WllkMnEwUXBQWHk0IiwiZXhwIjoxNTMxNjU4NDM2LCJpYXQiOjE1MjY0NzQ0MzZ9.ATKhrEYFMTyGu76hJSUr3mp6ON9n4ufpi9eUb5ehCaU'
+        bearer:
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjlvS05FekJtUjNKbGtNUmo4dk02WllkMnEwUXBQWHk0IiwiZXhwIjoxNTMxNjU4NDM2LCJpYXQiOjE1MjY0NzQ0MzZ9.ATKhrEYFMTyGu76hJSUr3mp6ON9n4ufpi9eUb5ehCaU'
       },
       headers: {
         'User-Agent': 'Request-MicroEs'
