@@ -3,11 +3,9 @@ const { MoleculerClientError } = require('moleculer').Errors;
 const jwt = require('jsonwebtoken');
 const KlayerLib = require('../libs/klayer');
 
-const DbService = require('../mixins/db.mixin');
-
 module.exports = {
   name: 'users',
-  mixins: [DbService('users')],
+  mixins: [],
 
   /**
    * Default settings
