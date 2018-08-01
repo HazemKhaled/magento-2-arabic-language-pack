@@ -5,7 +5,7 @@ services:
   api:
     build:
       context: ../../
-    image: conduit
+    image: api
     restart: always
     env_file: .env
     environment:
@@ -23,7 +23,7 @@ services:
   users:
     build:
       context: ../../
-    image: conduit
+    image: users
     restart: always
     env_file: .env
     environment:
@@ -32,7 +32,7 @@ services:
   catalog:
     build:
       context: ../../
-    image: conduit
+    image: catalog
     restart: always
     env_file: .env
     environment:
@@ -41,7 +41,7 @@ services:
   orders:
     build:
       context: ../../
-    image: conduit
+    image: orders
     restart: always
     env_file: .env
     environment:
