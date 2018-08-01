@@ -14,7 +14,7 @@ class KlayerLib {
    */
   constructor() {
     this.access_token = process.env.KLAYER_TOKEN || 'dbbf3cb7-f7ad-46ce-bee3-4fd7477951c4';
-    this.API_URL = process.env.KLAYER_URL || 'https://dev.api.knawat.com';
+    this.API_URL = process.env.KLAYER_URL || 'https://dev.api.knawat.io';
   }
 
   /**

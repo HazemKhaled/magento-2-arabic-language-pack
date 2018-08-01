@@ -5,6 +5,5 @@ npm-debug.log
 stats.json
 yarn-error.log
 data/
-docker-compose.env
 acme.json
 .env

@@ -27,11 +27,11 @@ class ElasticLib {
         {
           host: process.env.ELASTIC_HOST || 'elastic.knawat.com',
           auth: process.env.ELASTIC_AUTH || 'admin:C7ywZQoZ99avzbnmh7Q7hxPqt',
-          protocol: 'http',
+          protocol: process.env.ELASTIC_PROTOCOL || 'http',
           port: process.env.ELASTIC_PORT || 9200
         }
       ],
-      log: process.env.LOG || 'error'
+      log: process.env.ELASTIC_LOG || 'error'
     });
   }
 

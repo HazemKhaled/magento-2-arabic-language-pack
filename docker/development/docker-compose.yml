@@ -7,7 +7,7 @@ services:
       context: ../../
     image: conduit
     restart: always
-    env_file: docker-compose.env
+    env_file: .env
     environment:
       SERVICES: api
       PORT: 4040
@@ -25,7 +25,7 @@ services:
       context: ../../
     image: conduit
     restart: always
-    env_file: docker-compose.env
+    env_file: .env
     environment:
       SERVICES: users
 
@@ -34,7 +34,7 @@ services:
       context: ../../
     image: conduit
     restart: always
-    env_file: docker-compose.env
+    env_file: .env
     environment:
       SERVICES: products,categories
 
@@ -43,7 +43,7 @@ services:
       context: ../../
     image: conduit
     restart: always
-    env_file: docker-compose.env
+    env_file: .env
     environment:
       SERVICES: orders
 
