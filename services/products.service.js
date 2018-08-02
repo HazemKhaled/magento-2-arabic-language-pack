@@ -26,7 +26,7 @@ module.exports = {
      */
     get: {
       auth: 'required',
-      cache: { keys: ['sku'], ttl: 5 * 60 },
+      cache: { keys: ['sku'], ttl: 60 },
       async handler(ctx) {
         const { sku } = ctx.params;
         let { _source } = ctx.params;
@@ -64,7 +64,7 @@ module.exports = {
       auth: 'required',
       cache: {
         keys: ['page', 'limit', '#token', '_source'],
-        ttl: 10 * 60 // 10 mins
+        ttl: 30 * 60 // 10 mins
       },
       async handler(ctx) {
         const { page, limit } = ctx.params;
