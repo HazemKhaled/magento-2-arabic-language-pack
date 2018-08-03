@@ -20,7 +20,7 @@ class KlayerLib {
   /**
    * Get instance by consumerKey
    *
-   * @param {String} consumerKey -
+   * @param {String} consumerKey instance webhook_hash
    * @returns {Object}
    * @memberof KlayerLib
    */
@@ -50,15 +50,15 @@ class KlayerLib {
   /**
    * Get Currency Rate
    *
-   * @param {Number} id
+   * @param {String} currencyCode
    * @returns {Number} Rate
    * @memberof KlayerLib
    */
-  async currencyRate(id) {
+  async currencyRate(currencyCode) {
     try {
       const currency = await request({
         method: 'GET',
-        uri: this.getUrl(`Currencies/${id}`),
+        uri: this.getUrl(`Currencies/${currencyCode}`),
         qs: {
           access_token: this.access_token
         },
@@ -77,11 +77,12 @@ class KlayerLib {
    * Create Order in Klayer
    *
    * @param {Object} order
+   * @param {String} consumerKey instance webhook_hash
    * @returns {Object} response
    * @memberof KlayerLib
    */
-  async createOrder(order, id) {
-    const [instance] = await this.findInstance(id);
+  async createOrder(order, consumerKey) {
+    const [instance] = await this.findInstance(consumerKey);
     const hash = instance.webhook_hash;
 
     try {
@@ -107,11 +108,12 @@ class KlayerLib {
    * Create Order in Klayer
    *
    * @param {Object} order
+   * @param {String} consumerKey instance webhook_hash
    * @returns {Object} response
    * @memberof KlayerLib
    */
-  async updateOrder(order, id) {
-    const [instance] = await this.findInstance(id);
+  async updateOrder(order, consumerKey) {
+    const [instance] = await this.findInstance(consumerKey);
     const hash = instance.webhook_hash;
     try {
       const updated = await request({
@@ -135,14 +137,18 @@ class KlayerLib {
   /**
    * Get Order By ID or Get All Orders: Both by Instance Hash
    *
-   * @param {String} id order id
-   * @param {String} hash instance webhook_hash
+   * @param {int} page
+   * @param {int} limit
+   * @param {String} consumerKey instance webhook_hash
+   * @param {String} orderId order id
+   * @returns
    * @memberof KlayerLib
    */
-  async getOrders(page, limit, hash, id) {
-    const [instance] = await this.findInstance(hash);
-    const partner = instance.partner_id;
-    const query = id === undefined ? { partner_id: partner } : { partner_id: partner, id: id };
+  async getOrders(page, limit, consumerKey, orderId) {
+    const [instance] = await this.findInstance(consumerKey);
+
+    const partnerId = instance.partner_id;
+    const query = !orderId ? { partner_id: partnerId } : { partner_id: partnerId, id: orderId };
 
     try {
       let orders = await request({
@@ -163,7 +169,7 @@ class KlayerLib {
         json: true
       });
 
-      if (id) {
+      if (orderId) {
         const [order] = orders;
         return {
           id: order.id,
