@@ -6,7 +6,7 @@
     "es6": true,
     "jest": true
   },
-  "extends": ["eslint:recommended", "airbnb-base"],
+  "extends": ["eslint:recommended", "airbnb-base", "prettier"],
   "parserOptions": {
     "ecmaVersion": 8,
     "sourceType": "module"

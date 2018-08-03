@@ -15,14 +15,15 @@
   },
   "author": "Knawat, LLC.",
   "devDependencies": {
-    "eslint": "^5.1.0",
+    "eslint": "^5.2.0",
     "eslint-config-airbnb-base": "^13.0.0",
+    "eslint-config-prettier": "^2.9.0",
     "eslint-plugin-import": "^2.13.0",
     "jest": "^23.3.0",
     "jest-cli": "^23.3.0",
     "moleculer-repl": "^0.5.0",
     "npm-check": "^5.7.1",
-    "prettier": "^1.13.5"
+    "prettier": "^1.14.0"
   },
   "dependencies": {
     "bluebird": "^3.5.1",
