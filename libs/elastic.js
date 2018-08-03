@@ -61,7 +61,7 @@ class ElasticLib {
         category = category._source;
         return {
           id: category.odooId,
-          name: category.name
+          name: this.formatI18nText(category.name)
         };
       });
       return categories;
@@ -105,8 +105,8 @@ class ElasticLib {
       const source = result.hits.hits[0]._source;
       return {
         sku: source.sku,
-        name: source.name,
-        description: source.description,
+        name: this.formatI18nText(source.name),
+        description: this.formatI18nText(source.description),
         last_check_date: source.last_check_date,
         supplier: source.seller_id,
         images: source.images,
@@ -156,8 +156,8 @@ class ElasticLib {
             const source = product._source;
             return {
               sku: source.sku,
-              name: source.name,
-              description: source.description,
+              name: this.formatI18nText(source.name),
+              description: this.formatI18nText(source.description),
               supplier: source.seller_id,
               images: source.images,
               last_check_date: source.last_check_date,
@@ -261,7 +261,7 @@ class ElasticLib {
         if (category) {
           return {
             id: category.odooId,
-            name: category.name_i18n
+            name: this.formatI18nText(category.name_i18n)
           };
         }
       });
@@ -283,20 +283,42 @@ class ElasticLib {
           return {
             id: attribute.id,
             name: {
-              tr: attribute.name,
-              en: '',
-              ar: ''
+              en: attribute.name
             },
             option: {
-              tr: attribute.option,
-              en: '',
-              ar: ''
+              en: attribute.option
             }
           };
         }
       });
       return attributes;
     }
+  }
+
+  /**
+   * Pick only language keys
+   *
+   * @param {Object} obj
+   * @returns
+   * @memberof ElasticLib
+   */
+  formatI18nText(obj) {
+    if (!obj) return;
+
+    const output = {};
+
+    ['ar', 'en', 'tr', 'fr'].forEach(key => {
+      if (obj[key] && key.length === 2) {
+        output[key] = typeof obj[key] === 'string' ? obj[key] : obj[key].text;
+      }
+    });
+
+    // Cleanup null values
+    Object.keys(output).forEach(k => {
+      if (!output[k]) delete output[k];
+    });
+
+    return Object.keys(output).length ? output : false;
   }
 }
 
