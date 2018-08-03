@@ -103,12 +103,10 @@ module.exports = {
       params: {
         order_id: { type: 'string' }
       },
-      async handler(ctx) {
-        const id = ctx.params.order_id;
-        const api = new KlayerAPI();
-        const order = await api.getOrders(ctx.meta.user, id);
+      handler(ctx) {
+        const orderId = ctx.params.order_id;
 
-        return order;
+        return new KlayerAPI().getOrders(0, 1, ctx.meta.user, orderId);
       }
     },
 
