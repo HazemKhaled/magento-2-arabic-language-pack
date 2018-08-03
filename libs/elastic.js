@@ -229,7 +229,7 @@ class ElasticLib {
         if (variation) {
           return {
             sku: variation.sku,
-            cost_price: variation.cost * rate,
+            cost_price: variation.sale * rate,
             sale_price:
               instance.salePriceOprator === 1
                 ? variation.sale * instance.salePrice * rate
