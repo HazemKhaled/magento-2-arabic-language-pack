@@ -33,22 +33,14 @@ module.exports = {
     create: {
       auth: 'required',
       params: {
-        status: { type: 'string' },
-        items: { type: 'array', items: 'object' },
-        billing: {
-          type: 'object',
+        id: { type: 'string' },
+        status: { type: 'enum', values: ['pending', 'processing', 'canceled'] },
+        items: {
+          type: 'array',
+          items: 'object',
           props: {
-            first_name: { type: 'string' },
-            last_name: { type: 'string' },
-            company: { type: 'string' },
-            city: { type: 'string' },
-            address_1: { type: 'string' },
-            address_2: { type: 'string' },
-            phone: { type: 'string' },
-            postcode: { type: 'string' },
-            state: { type: 'string' },
-            country: { type: 'string' },
-            email: { type: 'email' }
+            quantity: { type: 'number', min: 1, max: 10 },
+            sku: { type: 'string' }
           }
         },
         shipping: {
@@ -57,17 +49,34 @@ module.exports = {
             first_name: { type: 'string' },
             last_name: { type: 'string' },
             company: { type: 'string', optional: true },
-            city: { type: 'string' },
             address_1: { type: 'string' },
-            address_2: { type: 'string' },
-            phone: { type: 'string', optional: true },
-            postcode: { type: 'string' },
+            address_2: { type: 'string', optional: true },
+            city: { type: 'string' },
             state: { type: 'string' },
-            country: { type: 'string' },
+            postcode: { type: 'string' },
+            country: { type: 'string', length: '2' },
+            phone: { type: 'string', optional: true },
             email: { type: 'email', optional: true }
           }
         },
-        invoice_url: { type: 'string' },
+        billing: {
+          type: 'object',
+          optional: true,
+          props: {
+            first_name: { type: 'string' },
+            last_name: { type: 'string' },
+            company: { type: 'string', optional: true },
+            address_1: { type: 'string' },
+            address_2: { type: 'string', optional: true },
+            city: { type: 'string' },
+            state: { type: 'string' },
+            postcode: { type: 'string' },
+            country: { type: 'string', length: '2' },
+            phone: { type: 'string', optional: true },
+            email: { type: 'email', optional: true }
+          }
+        },
+        invoice_url: { type: 'string', optional: true },
         payment_method: { type: 'string' }
       },
       async handler(ctx) {
@@ -135,21 +144,13 @@ module.exports = {
       auth: 'required',
       params: {
         id: { type: 'string' },
-        status: { type: 'string' },
-        billing: {
-          type: 'object',
+        status: { type: 'enum', values: ['pending', 'processing', 'canceled'] },
+        items: {
+          type: 'array',
+          items: 'object',
           props: {
-            first_name: { type: 'string' },
-            last_name: { type: 'string' },
-            company: { type: 'string' },
-            city: { type: 'string' },
-            address_1: { type: 'string' },
-            address_2: { type: 'string' },
-            phone: { type: 'string' },
-            postcode: { type: 'string' },
-            state: { type: 'string' },
-            country: { type: 'string' },
-            email: { type: 'email' }
+            quantity: { type: 'number', min: 1, max: 10 },
+            sku: { type: 'string' }
           }
         },
         shipping: {
@@ -158,16 +159,35 @@ module.exports = {
             first_name: { type: 'string' },
             last_name: { type: 'string' },
             company: { type: 'string', optional: true },
-            city: { type: 'string' },
             address_1: { type: 'string' },
-            address_2: { type: 'string' },
-            phone: { type: 'string' },
-            postcode: { type: 'string' },
+            address_2: { type: 'string', optional: true },
+            city: { type: 'string' },
             state: { type: 'string' },
-            country: { type: 'string' },
-            email: { type: 'email' }
+            postcode: { type: 'string' },
+            country: { type: 'string', length: '2' },
+            phone: { type: 'string', optional: true },
+            email: { type: 'email', optional: true }
           }
-        }
+        },
+        billing: {
+          type: 'object',
+          optional: true,
+          props: {
+            first_name: { type: 'string' },
+            last_name: { type: 'string' },
+            company: { type: 'string', optional: true },
+            address_1: { type: 'string' },
+            address_2: { type: 'string', optional: true },
+            city: { type: 'string' },
+            state: { type: 'string' },
+            postcode: { type: 'string' },
+            country: { type: 'string', length: '2' },
+            phone: { type: 'string', optional: true },
+            email: { type: 'email', optional: true }
+          }
+        },
+        invoice_url: { type: 'string', optional: true },
+        payment_method: { type: 'string' }
       },
       async handler(ctx) {
         const api = new KlayerAPI();
