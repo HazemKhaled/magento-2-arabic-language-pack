@@ -3,6 +3,55 @@ const { MoleculerClientError } = require('moleculer').Errors;
 
 const KlayerAPI = require('../libs/klayer');
 
+const entityValidator = {
+  id: { type: 'string', empty: false },
+  status: { type: 'enum', values: ['pending', 'processing', 'canceled'] },
+  items: {
+    type: 'array',
+    items: 'object',
+    min: 1,
+    props: {
+      quantity: { type: 'number', min: 1, max: 10 },
+      sku: { type: 'string', empty: false }
+    }
+  },
+  shipping: {
+    type: 'object',
+    props: {
+      first_name: { type: 'string', empty: false },
+      last_name: { type: 'string', empty: false },
+      company: { type: 'string', optional: true },
+      address_1: { type: 'string', empty: false },
+      address_2: { type: 'string', optional: true },
+      city: { type: 'string', empty: false },
+      state: { type: 'string', empty: false },
+      postcode: { type: 'string', optional: true },
+      country: { type: 'string', length: 2 },
+      phone: { type: 'string', optional: true },
+      email: { type: 'email', optional: true }
+    }
+  },
+  billing: {
+    type: 'object',
+    optional: true,
+    props: {
+      first_name: { type: 'string', empty: false },
+      last_name: { type: 'string', empty: false },
+      company: { type: 'string', optional: true },
+      address_1: { type: 'string', empty: false },
+      address_2: { type: 'string', optional: true },
+      city: { type: 'string', empty: false },
+      state: { type: 'string', empty: false },
+      postcode: { type: 'string', optional: true },
+      country: { type: 'string', length: 2 },
+      phone: { type: 'string', optional: true },
+      email: { type: 'email', optional: true }
+    }
+  },
+  invoice_url: { type: 'string', optional: true },
+  payment_method: { type: 'string', empty: false }
+};
+
 module.exports = {
   name: 'orders',
 
@@ -15,54 +64,7 @@ module.exports = {
    * Service metadata
    */
   metadata: {
-    entityValidator: {
-      id: { type: 'string', empty: false },
-      status: { type: 'enum', values: ['pending', 'processing', 'canceled'] },
-      items: {
-        type: 'array',
-        items: 'object',
-        min: 1,
-        props: {
-          quantity: { type: 'number', min: 1, max: 10 },
-          sku: { type: 'string', empty: false }
-        }
-      },
-      shipping: {
-        type: 'object',
-        props: {
-          first_name: { type: 'string', empty: false },
-          last_name: { type: 'string', empty: false },
-          company: { type: 'string', optional: true },
-          address_1: { type: 'string', empty: false },
-          address_2: { type: 'string', optional: true },
-          city: { type: 'string', empty: false },
-          state: { type: 'string', empty: false },
-          postcode: { type: 'string', optional: true },
-          country: { type: 'string', length: 2 },
-          phone: { type: 'string', optional: true },
-          email: { type: 'email', optional: true }
-        }
-      },
-      billing: {
-        type: 'object',
-        optional: true,
-        props: {
-          first_name: { type: 'string', empty: false },
-          last_name: { type: 'string', empty: false },
-          company: { type: 'string', optional: true },
-          address_1: { type: 'string', empty: false },
-          address_2: { type: 'string', optional: true },
-          city: { type: 'string', empty: false },
-          state: { type: 'string', empty: false },
-          postcode: { type: 'string', optional: true },
-          country: { type: 'string', length: 2 },
-          phone: { type: 'string', optional: true },
-          email: { type: 'email', optional: true }
-        }
-      },
-      invoice_url: { type: 'string', optional: true },
-      payment_method: { type: 'string', empty: false }
-    }
+    entityValidator
   },
 
   /**
@@ -81,7 +83,7 @@ module.exports = {
      */
     create: {
       auth: 'required',
-      params: module.exports.metadata.entityValidator,
+      params: entityValidator,
       async handler(ctx) {
         const api = new KlayerAPI();
         if (ctx.meta.user) {
@@ -145,7 +147,7 @@ module.exports = {
 
     update: {
       auth: 'required',
-      params: module.exports.metadata.entityValidator,
+      params: entityValidator,
       async handler(ctx) {
         const api = new KlayerAPI();
         try {
