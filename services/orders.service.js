@@ -14,7 +14,56 @@ module.exports = {
   /**
    * Service metadata
    */
-  metadata: {},
+  metadata: {
+    entityValidator: {
+      id: { type: 'string', empty: false },
+      status: { type: 'enum', values: ['pending', 'processing', 'canceled'] },
+      items: {
+        type: 'array',
+        items: 'object',
+        min: 1,
+        props: {
+          quantity: { type: 'number', min: 1, max: 10 },
+          sku: { type: 'string', empty: false }
+        }
+      },
+      shipping: {
+        type: 'object',
+        props: {
+          first_name: { type: 'string', empty: false },
+          last_name: { type: 'string', empty: false },
+          company: { type: 'string', optional: true },
+          address_1: { type: 'string', empty: false },
+          address_2: { type: 'string', optional: true },
+          city: { type: 'string', empty: false },
+          state: { type: 'string', empty: false },
+          postcode: { type: 'string', optional: true },
+          country: { type: 'string', length: 2 },
+          phone: { type: 'string', optional: true },
+          email: { type: 'email', optional: true }
+        }
+      },
+      billing: {
+        type: 'object',
+        optional: true,
+        props: {
+          first_name: { type: 'string', empty: false },
+          last_name: { type: 'string', empty: false },
+          company: { type: 'string', optional: true },
+          address_1: { type: 'string', empty: false },
+          address_2: { type: 'string', optional: true },
+          city: { type: 'string', empty: false },
+          state: { type: 'string', empty: false },
+          postcode: { type: 'string', optional: true },
+          country: { type: 'string', length: 2 },
+          phone: { type: 'string', optional: true },
+          email: { type: 'email', optional: true }
+        }
+      },
+      invoice_url: { type: 'string', optional: true },
+      payment_method: { type: 'string', empty: false }
+    }
+  },
 
   /**
    * Service dependencies
@@ -32,53 +81,7 @@ module.exports = {
      */
     create: {
       auth: 'required',
-      params: {
-        id: { type: 'string' },
-        status: { type: 'enum', values: ['pending', 'processing', 'canceled'] },
-        items: {
-          type: 'array',
-          items: 'object',
-          props: {
-            quantity: { type: 'number', min: 1, max: 10 },
-            sku: { type: 'string' }
-          }
-        },
-        shipping: {
-          type: 'object',
-          props: {
-            first_name: { type: 'string' },
-            last_name: { type: 'string' },
-            company: { type: 'string', optional: true },
-            address_1: { type: 'string' },
-            address_2: { type: 'string', optional: true },
-            city: { type: 'string' },
-            state: { type: 'string' },
-            postcode: { type: 'string' },
-            country: { type: 'string', length: 2 },
-            phone: { type: 'string', optional: true },
-            email: { type: 'email', optional: true }
-          }
-        },
-        billing: {
-          type: 'object',
-          optional: true,
-          props: {
-            first_name: { type: 'string' },
-            last_name: { type: 'string' },
-            company: { type: 'string', optional: true },
-            address_1: { type: 'string' },
-            address_2: { type: 'string', optional: true },
-            city: { type: 'string' },
-            state: { type: 'string' },
-            postcode: { type: 'string' },
-            country: { type: 'string', length: 2 },
-            phone: { type: 'string', optional: true },
-            email: { type: 'email', optional: true }
-          }
-        },
-        invoice_url: { type: 'string', optional: true },
-        payment_method: { type: 'string' }
-      },
+      params: module.exports.metadata.entityValidator,
       async handler(ctx) {
         const api = new KlayerAPI();
         if (ctx.meta.user) {
@@ -142,53 +145,7 @@ module.exports = {
 
     update: {
       auth: 'required',
-      params: {
-        id: { type: 'string' },
-        status: { type: 'enum', values: ['pending', 'processing', 'canceled'] },
-        items: {
-          type: 'array',
-          items: 'object',
-          props: {
-            quantity: { type: 'number', min: 1, max: 10 },
-            sku: { type: 'string' }
-          }
-        },
-        shipping: {
-          type: 'object',
-          props: {
-            first_name: { type: 'string' },
-            last_name: { type: 'string' },
-            company: { type: 'string', optional: true },
-            address_1: { type: 'string' },
-            address_2: { type: 'string', optional: true },
-            city: { type: 'string' },
-            state: { type: 'string' },
-            postcode: { type: 'string' },
-            country: { type: 'string', length: 2 },
-            phone: { type: 'string', optional: true },
-            email: { type: 'email', optional: true }
-          }
-        },
-        billing: {
-          type: 'object',
-          optional: true,
-          props: {
-            first_name: { type: 'string' },
-            last_name: { type: 'string' },
-            company: { type: 'string', optional: true },
-            address_1: { type: 'string' },
-            address_2: { type: 'string', optional: true },
-            city: { type: 'string' },
-            state: { type: 'string' },
-            postcode: { type: 'string' },
-            country: { type: 'string', length: 2 },
-            phone: { type: 'string', optional: true },
-            email: { type: 'email', optional: true }
-          }
-        },
-        invoice_url: { type: 'string', optional: true },
-        payment_method: { type: 'string' }
-      },
+      params: module.exports.metadata.entityValidator,
       async handler(ctx) {
         const api = new KlayerAPI();
         try {
