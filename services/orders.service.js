@@ -164,7 +164,7 @@ module.exports = {
             city: { type: 'string' },
             state: { type: 'string' },
             postcode: { type: 'string' },
-            country: { type: 'string', length: '2' },
+            country: { type: 'string', length: 2 },
             phone: { type: 'string', optional: true },
             email: { type: 'email', optional: true }
           }
