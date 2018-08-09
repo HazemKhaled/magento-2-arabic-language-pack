@@ -25,13 +25,13 @@ class ElasticLib {
     this.es = new elasticsearch.Client({
       host: [
         {
-          host: process.env.ELASTIC_HOST || 'elastic.knawat.com',
-          auth: process.env.ELASTIC_AUTH || 'admin:C7ywZQoZ99avzbnmh7Q7hxPqt',
+          host: process.env.ELASTIC_HOST,
+          auth: process.env.ELASTIC_AUTH,
           protocol: process.env.ELASTIC_PROTOCOL || 'http',
           port: process.env.ELASTIC_PORT || 9200
         }
       ],
-      log: process.env.ELASTIC_LOG || 'error'
+      log: process.env.ELASTIC_LOG || 'info'
     });
   }
 
@@ -227,14 +227,18 @@ class ElasticLib {
     if (variations) {
       variations = await Loop.map(variations, async variation => {
         if (variation) {
+          const cost = parseFloat((variation.sale * rate).toFixed(2));
+
           return {
             sku: variation.sku,
-            cost_price: variation.sale * rate,
-            sale_price:
+            cost_price: cost,
+            sale_price: this.formatPrice(cost, instance.salePriceOprator, instance.salePrice),
+            market_price: this.formatPrice(cost, instance.salePriceOprator, instance.salePrice),
+            sale_price1:
               instance.salePriceOprator === 1
                 ? variation.sale * instance.salePrice * rate
                 : variation.sale * rate + instance.salePrice,
-            market_price:
+            market_price1:
               instance.comparedAtPriceOprator === 1
                 ? variation.sale * instance.comparedAtPrice * rate
                 : variation.sale * rate + instance.comparedAtPrice,
@@ -246,6 +250,19 @@ class ElasticLib {
       });
       return variations;
     }
+  }
+
+  /**
+   *
+   *
+   * @param {*} params
+   * @returns
+   * @memberof ElasticLib
+   */
+  formatPrice(cost, salePriceOprator, salePrice) {
+    console.log('>>>', salePriceOprator, salePrice);
+    const result = salePriceOprator === 1 ? cost * salePrice : cost + salePrice;
+    return parseFloat((cost + result / 100).toFixed(2));
   }
 
   /**
