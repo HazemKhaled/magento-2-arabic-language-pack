@@ -150,9 +150,10 @@ class ElasticLib {
 
       const rate = await api.currencyRate(instance.base_currency);
       try {
-        let products = await Loop.map(results, async product => {
+        const products = await Loop.map(results, async product => {
           if (product.found) {
             const source = product._source;
+
             return {
               sku: source.sku,
               name: this.formatI18nText(source.name),
@@ -162,12 +163,17 @@ class ElasticLib {
               last_check_date: source.last_check_date,
               categories: await this.formatCategories(source.categories),
               attributes: await this.formatAttributes(source.attributes),
-              variations: await this.formatVariations(source.variations, instance, rate)
+              variations: await this.formatVariations(
+                source.variations,
+                instance,
+                rate,
+                source.archive
+              )
             };
           }
         });
-        products = products.filter(product => !!product && product.variations.length !== 0);
-        return products;
+
+        return products.filter(product => !!product && product.variations.length !== 0);
       } catch (err) {
         return new MoleculerClientError(err);
       }
@@ -222,7 +228,7 @@ class ElasticLib {
    * @returns {Array} Transformed Variations
    * @memberof ElasticLib
    */
-  async formatVariations(variations, instance, rate) {
+  async formatVariations(variations, instance, rate, archive) {
     if (variations) {
       variations = await Loop.map(variations, async variation => {
         if (variation) {
@@ -243,7 +249,7 @@ class ElasticLib {
                 : variation.sale * rate + instance.comparedAtPrice,
             weight: variation.weight,
             attributes: await this.formatAttributes(variation.attributes),
-            quantity: variation.quantity
+            quantity: archive ? 0 : variation.quantity
           };
         }
       });
