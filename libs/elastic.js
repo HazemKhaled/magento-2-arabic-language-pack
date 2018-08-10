@@ -151,7 +151,7 @@ class ElasticLib {
       const rate = await api.currencyRate(instance.base_currency);
       try {
         let products = await Loop.map(results, async product => {
-          if (product.found === true) {
+          if (product.found) {
             const source = product._source;
             return {
               sku: source.sku,
@@ -166,7 +166,7 @@ class ElasticLib {
             };
           }
         });
-        products = products.filter(product => product !== undefined);
+        products = products.filter(product => !!product && product.variations.length !== 0);
         return products;
       } catch (err) {
         return new MoleculerClientError(err);
@@ -196,8 +196,8 @@ class ElasticLib {
         body: {
           sort: [{ createdAt: { order: 'asc' } }],
           query: {
-            term: {
-              'instanceId.keyword': instance.webhook_hash
+            match: {
+              instanceId: instance.webhook_hash
             }
           }
         }
