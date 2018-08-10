@@ -5,7 +5,7 @@ const KlayerAPI = require('../libs/klayer');
 
 const entityValidator = {
   id: { type: 'string', empty: false },
-  status: { type: 'enum', values: ['pending', 'processing', 'canceled'] },
+  status: { type: 'enum', values: ['pending', 'processing', 'cancelled'] },
   items: {
     type: 'array',
     items: 'object',
