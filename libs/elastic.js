@@ -111,7 +111,7 @@ class ElasticLib {
         images: source.images,
         categories: await this.formatCategories(source.categories),
         attributes: await this.formatAttributes(source.attributes),
-        variations: await this.formatVariations(source.variations, instance, rate)
+        variations: await this.formatVariations(source.variations, instance, rate, source.archive)
       };
     } catch (err) {
       return new Error(err);
