@@ -41,33 +41,32 @@ class ElasticLib {
    * @returns {Array} Categories
    * @memberof ElasticLib
    */
-  async fetchCategories() {
-    try {
-      const result = await this.es.search({
+  fetchCategories() {
+    return this.es
+      .search({
         index: this.indices.categories,
         type: this.types.categories,
         body: {
           size: 999
         }
-      });
-      if (result.hits.total === 0) {
-        return {
-          status: 'failed',
-          message: 'There are no categories at the moment.'
-        };
-      }
-      let categories = result.hits.hits;
-      categories = categories.map(category => {
-        category = category._source;
-        return {
-          id: category.odooId,
-          name: this.formatI18nText(category.name)
-        };
-      });
-      return categories;
-    } catch (err) {
-      return new MoleculerClientError(err);
-    }
+      })
+      .then(result => {
+        if (result.hits.total === 0) {
+          return {
+            status: 'failed',
+            message: 'There are no categories at the moment.'
+          };
+        }
+
+        return result.hits.hits.map(category => {
+          category = category._source;
+          return {
+            id: category.odooId,
+            name: this.formatI18nText(category.name)
+          };
+        });
+      })
+      .catch(err => new MoleculerClientError(err));
   }
 
   /**
@@ -260,7 +259,6 @@ class ElasticLib {
    * @memberof ElasticLib
    */
   formatPrice(cost, salePriceOprator, salePrice) {
-    console.log('>>>', salePriceOprator, salePrice);
     const result = salePriceOprator === 1 ? cost * salePrice : cost + salePrice;
     return parseFloat((cost + result / 100).toFixed(2));
   }

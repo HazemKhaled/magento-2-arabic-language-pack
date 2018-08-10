@@ -27,10 +27,8 @@ module.exports = {
       cache: {
         ttl: 60 * 60 // 1 hour
       },
-      async handler() {
-        const esClient = new ElasticLib();
-        const categories = await esClient.fetchCategories();
-        return categories;
+      handler() {
+        return new ElasticLib().fetchCategories();
       }
     }
   }
