@@ -1,29 +1,28 @@
-version: "3.0"
+version: '3.3'
 
 services:
-
   api:
     build:
       context: ../../
-    image: api
+    image: microes
     restart: always
     env_file: .env
     environment:
       SERVICES: api
       PORT: 4040
     ports:
-      - "4040:4040"
+      - '4040:4040'
     labels:
-      - "traefik.enable=true"
-      - "traefik.backend=mp-development"
-      - "traefik.port=4040"
-      - "traefik.frontend.entryPoints=http,https"
-      - "traefik.frontend.rule=Host:dev.mp.knawat.io"
+      - 'traefik.enable=true'
+      - 'traefik.backend=mp-development'
+      - 'traefik.port=4040'
+      - 'traefik.frontend.entryPoints=http,https'
+      - 'traefik.frontend.rule=Host:dev.mp.knawat.io'
 
   users:
     build:
       context: ../../
-    image: users
+    image: microes
     restart: always
     env_file: .env
     environment:
@@ -32,7 +31,7 @@ services:
   catalog:
     build:
       context: ../../
-    image: catalog
+    image: microes
     restart: always
     env_file: .env
     environment:
@@ -41,7 +40,7 @@ services:
   orders:
     build:
       context: ../../
-    image: orders
+    image: microes
     restart: always
     env_file: .env
     environment:

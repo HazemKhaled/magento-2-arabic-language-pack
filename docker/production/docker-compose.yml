@@ -1,11 +1,10 @@
-version: "3.0"
+version: '3.3'
 
 services:
-
   api:
     build:
       context: ../../
-    image: api
+    image: microes
     restart: always
     env_file: .env
     environment:
@@ -18,16 +17,16 @@ services:
       - nats
       - redis
     labels:
-      - "traefik.enable=true"
-      - "traefik.backend=production"
-      - "traefik.port=80"
-      - "traefik.frontend.entryPoints=http,https"
-      - "traefik.frontend.rule=Host:mp.knawat.io"
+      - 'traefik.enable=true'
+      - 'traefik.backend=production'
+      - 'traefik.port=80'
+      - 'traefik.frontend.entryPoints=http,https'
+      - 'traefik.frontend.rule=Host:mp.knawat.io'
 
   users:
     build:
       context: ../../
-    image: users
+    image: microes
     restart: always
     env_file: .env
     environment:
@@ -42,7 +41,7 @@ services:
   catalog:
     build:
       context: ../../
-    image: catalog
+    image: microes
     restart: always
     env_file: .env
     environment:
@@ -60,7 +59,7 @@ services:
   orders:
     build:
       context: ../../
-    image: orders
+    image: microes
     restart: always
     env_file: .env
     environment:
@@ -82,8 +81,8 @@ services:
     image: traefik
     restart: always
     ports:
-      - "80:80"
-      - "443:443"
+      - '80:80'
+      - '443:443'
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./traefik.toml:/traefik.toml
