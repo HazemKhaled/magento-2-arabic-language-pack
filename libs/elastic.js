@@ -192,12 +192,12 @@ class ElasticLib {
    */
   async findIP(page, _size, instance) {
     const size = _size || 10;
-
+    page = parseInt(page) || 1;
     try {
       const search = await this.es.search({
         index: this.indices.proinstances,
         type: this.types.proinstances,
-        from: parseInt(page) === 1 ? 0 : page * size || 0,
+        from: (parseInt(page) - 1) * size || 0,
         size: parseInt(size),
         body: {
           sort: [{ createdAt: { order: 'asc' } }],
@@ -232,7 +232,6 @@ class ElasticLib {
     if (variations) {
       variations = await Loop.map(variations, async variation => {
         if (variation) {
-
           return {
             sku: variation.sku,
             cost_price: variation.sale * rate,
