@@ -89,7 +89,13 @@ module.exports = {
         if (ctx.meta.user) {
           ctx.params.id = uuidv1();
           try {
-            const result = await api.createOrder(ctx.params, ctx.meta.user);
+            // @TODO: transformation needed.
+            const data = ctx.params;
+            if(ctx.params.invoice_url){
+              data.pdf_invoice_url = ctx.params.invoice_url;
+            }
+
+            const result = await api.createOrder(data, ctx.meta.user);
             const order = result.data;
             return {
               status: 'success',
