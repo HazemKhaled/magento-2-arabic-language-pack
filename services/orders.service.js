@@ -157,7 +157,13 @@ module.exports = {
       async handler(ctx) {
         const api = new KlayerAPI();
         try {
-          const result = await api.updateOrder(ctx.params, ctx.meta.user);
+          // @TODO: transformation needed.
+          const data = ctx.params;
+          if(ctx.params.invoice_url){
+            data.pdf_invoice_url = ctx.params.invoice_url;
+          }
+
+          const result = await api.updateOrder(data, ctx.meta.user);
           if (result.statusCode && result.statusCode === 404) {
             return {
               status: 'failed',
