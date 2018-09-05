@@ -99,6 +99,25 @@ module.exports = {
 
         return { products };
       }
+    },
+
+    /**
+     * Delete product by SKU
+     *
+     * @returns {Object} Product
+     */
+    delete: {
+      auth: 'required',
+      params: {
+        sku: { type: 'string' }
+      },
+      async handler(ctx) {
+        const { sku } = ctx.params;
+
+        const esClient = new ElasticLib();
+        const product = await esClient.deleteProduct(sku, ctx.meta.user);
+        return { product };
+      }
     }
   }
 };

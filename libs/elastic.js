@@ -220,6 +220,46 @@ class ElasticLib {
   }
 
   /**
+   * Delete Product By SKU
+   *
+   * @param SKU
+   * @param id Intance ID
+   * @returns {Object} Status of delete product
+   * @memberof ElasticLib
+   */
+  async deleteProduct(sku, id) {
+    try {
+      const result = await this.es.update({
+        index: this.indices.proinstances,
+        type: this.types.proinstances,
+        id: `${id}-${sku}`,
+        body: {
+          doc: {
+            deleted: true
+          }
+        }
+      });
+      if (result._shards.successful > 0) {
+        return {
+          status: 'success',
+          message: 'Product has been deleted.',
+          sku: sku
+        };
+      }
+      return {};
+    } catch (err) {
+      if (err.message){
+        return {
+          status: 'failed',
+          message: err.message,
+          sku: sku
+        }
+      }
+      return new Error(err);
+    }
+  }
+
+  /**
    * Format Variations
    *
    * @param {Array} variations

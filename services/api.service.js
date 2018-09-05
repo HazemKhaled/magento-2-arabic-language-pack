@@ -22,6 +22,7 @@ module.exports = {
           // Product
           'GET catalog/products': 'products.list',
           'GET catalog/products/:sku': 'products.get',
+          'DELETE catalog/products/:sku': 'products.delete',
           'GET catalog/categories': 'categories.list',
 
           // Order
