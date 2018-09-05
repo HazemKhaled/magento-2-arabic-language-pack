@@ -235,7 +235,8 @@ class ElasticLib {
         id: `${id}-${sku}`,
         body: {
           doc: {
-            deleted: true
+            deleted: true,
+            delete_date: new Date()
           }
         }
       });
