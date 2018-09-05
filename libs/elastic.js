@@ -202,8 +202,13 @@ class ElasticLib {
         body: {
           sort: [{ createdAt: { order: 'asc' } }],
           query: {
-            match: {
-              instanceId: instance.webhook_hash
+            bool: {
+              filter: {
+                bool: {
+                  must_not: [{ term: { deleted: true } }],
+                  must: [{ match: { instanceId: instance.webhook_hash } }]
+                }
+              }
             }
           }
         }
