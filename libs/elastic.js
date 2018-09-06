@@ -132,7 +132,12 @@ class ElasticLib {
 
     const size = _size || 10;
 
-    const instanceProducts = await this.findIP(page, size, instance);
+    const instanceProductsFull = await this.findIP(page, size, instance);
+    const instanceProducts = await Loop.map(instanceProductsFull, async product => {
+      const source = product._source;
+      return source.sku;
+    });
+
     if (instanceProducts.length === 0) {
       return instanceProducts;
     }
@@ -170,6 +175,25 @@ class ElasticLib {
                 source.archive
               )
             };
+          }
+          // In case product not found at products instance
+          if (product._id) {
+            const blankProduct = {
+              sku: product._id,
+              images: [],
+              categories: []
+            };
+            instanceProductsFull.forEach( instanceProduct => {
+              const productSource = instanceProduct._source;
+              if (productSource.sku === product._id && productSource.variations) {
+                blankProduct.variations = productSource.variations.map( variation =>{
+                  const variant = variation;
+                  variant.quantity = 0;
+                  return variant;
+                });
+              }
+            });
+            return blankProduct;
           }
         });
 
@@ -214,11 +238,7 @@ class ElasticLib {
         }
       });
       const results = search.hits.hits;
-      const ids = await Loop.map(results, async product => {
-        const source = product._source;
-        return source.sku;
-      });
-      return ids;
+      return results;
     } catch (err) {
       return new MoleculerClientError(err, 500);
     }
