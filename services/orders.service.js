@@ -91,7 +91,7 @@ module.exports = {
           try {
             // @TODO: transformation needed.
             const data = ctx.params;
-            if(ctx.params.invoice_url){
+            if (ctx.params.invoice_url) {
               data.pdf_invoice_url = ctx.params.invoice_url;
             }
 
@@ -159,7 +159,7 @@ module.exports = {
         try {
           // @TODO: transformation needed.
           const data = ctx.params;
-          if(ctx.params.invoice_url){
+          if (ctx.params.invoice_url) {
             data.pdf_invoice_url = ctx.params.invoice_url;
           }
 

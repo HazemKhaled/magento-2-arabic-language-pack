@@ -183,10 +183,10 @@ class ElasticLib {
               images: [],
               categories: []
             };
-            instanceProductsFull.forEach( instanceProduct => {
+            instanceProductsFull.forEach(instanceProduct => {
               const productSource = instanceProduct._source;
               if (productSource.sku === product._id && productSource.variations) {
-                blankProduct.variations = productSource.variations.map( variation =>{
+                blankProduct.variations = productSource.variations.map(variation => {
                   const variant = variation;
                   variant.quantity = 0;
                   return variant;
@@ -274,12 +274,12 @@ class ElasticLib {
       }
       return {};
     } catch (err) {
-      if (err.message){
+      if (err.message) {
         return {
           status: 'failed',
           message: err.message,
           sku: sku
-        }
+        };
       }
       return new Error(err);
     }

@@ -180,8 +180,8 @@ class KlayerLib {
           shipping: order.shipping,
           createDate: order.date_created
         };
-        if(order.meta_data && order.meta_data.length > 0){
-          order.meta_data.forEach( meta => {
+        if (order.meta_data && order.meta_data.length > 0) {
+          order.meta_data.forEach(meta => {
             formattedOrder[meta.key.substring(1)] = meta.value || '';
           });
         }
