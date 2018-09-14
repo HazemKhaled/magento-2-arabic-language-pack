@@ -178,11 +178,17 @@ class KlayerLib {
           items: order.line_items,
           billing: order.billing,
           shipping: order.shipping,
-          createDate: order.date_created
+          createDate: order.date_created,
+          knawat_order_status: order.state ? this.getStatusName(order.state) : ''
         };
         if (order.meta_data && order.meta_data.length > 0) {
           order.meta_data.forEach(meta => {
-            formattedOrder[meta.key.substring(1)] = meta.value || '';
+            if (
+              meta.key === '_shipment_tracking_number' ||
+              meta.key === '_shipment_provider_name'
+            ) {
+              formattedOrder[meta.key.substring(1)] = meta.value || '';
+            }
           });
         }
         return formattedOrder;
@@ -213,6 +219,29 @@ class KlayerLib {
     // Concat the final URL
     url = url + api + endpoint;
     return url;
+  }
+
+  /**
+   * Get Status Name
+   *
+   * @param {String} Status
+   * @returns {String} Status Name
+   * @memberof KlayerLib
+   */
+  getStatusName(status) {
+    const stateNames = {
+      draft: 'Order Placed',
+      sent: 'Sent',
+      on_hold: 'On-hold',
+      sale: 'Processing',
+      done: 'Shipped',
+      cancel: 'Cancelled',
+      error: '...'
+    };
+    if (stateNames[status]) {
+      return stateNames[status];
+    }
+    return '';
   }
 }
 
