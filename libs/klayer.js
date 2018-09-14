@@ -151,13 +151,15 @@ class KlayerLib {
     const query = !orderId ? { partner_id: partnerId } : { partner_id: partnerId, id: orderId };
 
     try {
+      const orderLimit = limit === undefined ? 10 : limit;
+      const orderSkip = page > 0 ? (page - 1) * orderLimit : 0;
       let orders = await request({
         method: 'GET',
         uri: this.getUrl(
           `webhook/orders?filter=${JSON.stringify({
             where: query,
-            limit: limit === undefined ? 10 : limit,
-            skip: page === undefined ? 0 : page
+            limit: orderLimit,
+            skip: orderSkip
           })}`
         ),
         qs: {
@@ -169,9 +171,8 @@ class KlayerLib {
         json: true
       });
 
-      if (orderId) {
-        const [order] = orders;
-        return {
+      orders = orders.map(order => {
+        const formattedOrder = {
           id: order.id,
           status: order.status,
           items: order.line_items,
@@ -179,16 +180,18 @@ class KlayerLib {
           shipping: order.shipping,
           createDate: order.date_created
         };
+        if(order.meta_data && order.meta_data.length > 0){
+          order.meta_data.forEach( meta => {
+            formattedOrder[meta.key.substring(1)] = meta.value || '';
+          });
+        }
+        return formattedOrder;
+      });
+      // for case of single order.
+      if (orderId) {
+        const [order] = orders;
+        return order;
       }
-
-      orders = orders.map(order => ({
-        id: order.id,
-        status: order.status,
-        items: order.line_items,
-        billing: order.billing,
-        shipping: order.shipping,
-        createDate: order.date_created
-      }));
       return orders;
     } catch (err) {
       return new MoleculerClientError(err);
