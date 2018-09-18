@@ -185,9 +185,13 @@ class KlayerLib {
           order.meta_data.forEach(meta => {
             if (
               meta.key === '_shipment_tracking_number' ||
-              meta.key === '_shipment_provider_name'
+              meta.key === '_shipment_provider_name' ||
+              meta.key === '_knawat_order_status'
             ) {
               formattedOrder[meta.key.substring(1)] = meta.value || '';
+              if (meta.key === '_knawat_order_status') {
+                formattedOrder[meta.key.substring(1)] = this.getStatusName(meta.value) || '';
+              }
             }
           });
         }
@@ -234,6 +238,7 @@ class KlayerLib {
       sent: 'Sent',
       on_hold: 'On-hold',
       sale: 'Processing',
+      shipped: 'Shipped',
       done: 'Shipped',
       cancel: 'Cancelled',
       error: '...'
