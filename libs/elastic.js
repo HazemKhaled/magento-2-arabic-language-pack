@@ -350,7 +350,7 @@ class ElasticLib {
   async formatAttributes(attributes) {
     if (attributes) {
       attributes = await Loop.map(attributes, async attribute => {
-        if (attribute) {
+        if (attribute && typeof attribute.name === 'string') {
           return {
             id: attribute.id,
             name: {
@@ -361,6 +361,7 @@ class ElasticLib {
             }
           };
         }
+        return attribute;
       });
       return attributes;
     }
