@@ -2,8 +2,10 @@
 defaultEntryPoints = ["http", "https"]
 
 ## Logs
-debug = false
-logLevel = "error"
+logLevel = "WARN"
+[api]
+  debug = false
+  dashboard = true
 
 # Entrypoints, http and https
 [entryPoints]
