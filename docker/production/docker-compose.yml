@@ -52,9 +52,6 @@ services:
     depends_on:
       - nats
       - redis
-    networks:
-      - default
-      - elastic
 
   orders:
     build:
@@ -88,8 +85,3 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./traefik.toml:/traefik.toml
       - ./acme.json:/acme.json
-
-networks:
-  elastic:
-    external:
-      name: dockerelk_elk

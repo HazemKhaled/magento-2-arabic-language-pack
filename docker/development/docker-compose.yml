@@ -45,8 +45,3 @@ services:
     env_file: .env
     environment:
       SERVICES: orders
-
-networks:
-  default:
-    external:
-      name: traefik_default
