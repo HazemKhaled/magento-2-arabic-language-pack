@@ -477,11 +477,11 @@ class ElasticLib {
           console.log(`[SUCCESS] ${product.sku} has been Updated`);
         }
         if (updated && updated.failures.length > 0) {
-          console.log(`[ERROR] ${product.sku}`, updated);
+          console.error(`[ERROR] ${product.sku}`, updated);
           result = false;
         }
       } catch (err) {
-        console.log(`[ERROR] ${product.sku} Error: `, err);
+        console.error(`[ERROR] ${product.sku} Error: `, err);
         result = false;
         return new MoleculerClientError(err);
       }

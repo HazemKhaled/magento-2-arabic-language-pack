@@ -12,11 +12,13 @@ module.exports = {
     {
       name: 'updateInstanceProducts',
       cronTime: '* * * * *', // Every minute
-      onTick: () => {
-        // this.logger.info('Update Instance Products Cron ticked');
-      },
-      runOnInit: () => {
-        // this.logger.info("Update Instance Products Cron is created");
+      onTick() {
+        if (this.logger) {
+          this.logger.info('Update Instance Products Cron ticked');
+        }
+        if (this.call) {
+          this.call('elastic-update.run');
+        }
       },
       start: true
     }
@@ -52,6 +54,7 @@ module.exports = {
       async handler(ctx) {
         if (this.settings.isRunning) {
           this.logger.info('Update instance Products is already running');
+          return;
         }
         this.settings.isRunning = true;
         const esClient = new ElasticLib();
