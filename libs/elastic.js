@@ -392,6 +392,102 @@ class ElasticLib {
 
     return Object.keys(output).length ? output : false;
   }
+
+  /**
+   * Update products from "products" to "products-instances"
+   *
+   * @returns
+   * @memberof ElasticLib
+   */
+  async syncInstanceProducts(lastUpdateDate) {
+    if (!lastUpdateDate && lastUpdateDate === '') {
+      return false;
+    }
+    const limit = process.env.ELASTIC_UPDATE_LIMIT || 999;
+    const products = await this.es
+      .search({
+        index: this.indices.products,
+        type: this.types.products,
+        body: {
+          query: {
+            range: {
+              updated: { gt: new Date(lastUpdateDate) }
+            }
+          },
+          sort: { updated: { order: 'asc' } }
+        },
+        size: limit
+      })
+      .catch(err => new MoleculerClientError(err));
+
+    if (products.hits && products.hits.hits && products.hits.hits.length === 0) {
+      return {
+        success: true,
+        LastDate: '',
+        noProducts: true
+      };
+    }
+
+    if (products.hits && products.hits.hits && products.hits.hits.length > 0) {
+      const LastDate = products.hits.hits[products.hits.hits.length - 1]._source.updated || '';
+      const isUpdated = await this.bulkUpdateInstanceProducts(products.hits.hits);
+      if (isUpdated) {
+        return {
+          success: true,
+          LastDate
+        };
+      }
+    } else {
+      return false;
+    }
+  }
+
+  /**
+   * Bulk Update Products in ElasticSearch "products-instances"
+   *
+   * @param {Array } products
+   * @returns
+   * @memberof ElasticLib
+   */
+  async bulkUpdateInstanceProducts(products) {
+    let result = true;
+    await Loop.each(products, async product => {
+      product = product._source;
+      const updateData = {
+        index: this.indices.proinstances,
+        type: this.types.proinstances,
+        body: {
+          query: {
+            term: {
+              'sku.keyword': product.sku
+            }
+          },
+          script: {
+            inline: `ctx._source.archive= ${product.archive}; ctx._source.updated= '${
+              product.updated
+            }';`,
+            lang: 'painless'
+          }
+        },
+        conflicts: 'proceed'
+      };
+      try {
+        const updated = await this.es.updateByQuery(updateData);
+        if (updated && updated.failures.length === 0) {
+          console.log(`[SUCCESS] ${product.sku} has been Updated`);
+        }
+        if (updated && updated.failures.length > 0) {
+          console.log(`[ERROR] ${product.sku}`, updated);
+          result = false;
+        }
+      } catch (err) {
+        console.log(`[ERROR] ${product.sku} Error: `, err);
+        result = false;
+        return new MoleculerClientError(err);
+      }
+    });
+    return result;
+  }
 }
 
 module.exports = ElasticLib;

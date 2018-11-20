@@ -11,7 +11,7 @@
     "test": "jest --coverage",
     "lint": "eslint .",
     "lint-fix": "eslint services mixins libs --fix",
-    "prettier": "prettier 'services/*.js' 'mixins/*.js' 'libs/*.js' '*.js' --write"
+    "prettier": "prettier services/*.js mixins/*.js libs/*.js *.js --write"
   },
   "author": "Knawat, LLC.",
   "devDependencies": {
@@ -32,7 +32,8 @@
     "jsonwebtoken": "^8.3.0",
     "mkdirp": "^0.5.1",
     "moleculer": "^0.13.0",
-    "moleculer-db": "^0.7.3",
+    "moleculer-cron": "0.0.2",
+    "moleculer-db": "^0.7.6",
     "moleculer-db-adapter-mongo": "^0.4.0",
     "moleculer-web": "^0.8.0",
     "nats": "^1.0.0",
