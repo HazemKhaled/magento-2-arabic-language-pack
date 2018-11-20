@@ -46,6 +46,17 @@ services:
     environment:
       SERVICES: orders
 
+  elastic-update:
+    build:
+      context: ../../
+    image: microes
+    restart: always
+    env_file: .env
+    environment:
+      SERVICES: elastic-update
+    volumes:
+      - ../../data:/app/data
+
   traefik:
     image: traefik
     restart: always

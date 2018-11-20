@@ -68,6 +68,23 @@ services:
       - nats
       - redis
 
+  elastic-update:
+    build:
+      context: ../../
+    image: microes
+    restart: always
+    env_file: .env
+    environment:
+      SERVICES: elastic-update
+    links:
+      - nats
+      - redis
+    depends_on:
+      - nats
+      - redis
+    volumes:
+      - ../../data:/app/data
+
   redis:
     image: redis:alpine
 
