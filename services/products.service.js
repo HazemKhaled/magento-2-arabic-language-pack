@@ -75,7 +75,7 @@ module.exports = {
         lastupdate: { type: 'string', empty: false, optional: true }
       },
       cache: {
-        keys: ['page', 'limit', '#token', '_source'],
+        keys: ['page', 'limit', 'lastupdate', '#token', '_source'],
         ttl: 30 * 60 // 10 mins
       },
       async handler(ctx) {
