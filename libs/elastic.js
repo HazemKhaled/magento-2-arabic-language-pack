@@ -483,9 +483,12 @@ class ElasticLib {
             }
           },
           script: {
-            inline: `ctx._source.archive= ${product.archive}; ctx._source.updated= '${
-              product.updated
-            }';`,
+            params: {
+              productArchive: product.archive || false,
+              productUpdated: product.updated || new Date()
+            },
+            inline:
+              'ctx._source.archive=params.productArchive; ctx._source.updated=params.productUpdated;',
             lang: 'painless'
           }
         },
