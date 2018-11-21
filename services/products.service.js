@@ -62,12 +62,24 @@ module.exports = {
      */
     list: {
       auth: 'required',
+      params: {
+        limit: {
+          type: 'number',
+          convert: true,
+          integer: true,
+          min: 1,
+          max: 1000,
+          optional: true
+        },
+        page: { type: 'number', convert: true, integer: true, min: 1, optional: true },
+        lastupdate: { type: 'string', empty: false, optional: true }
+      },
       cache: {
         keys: ['page', 'limit', '#token', '_source'],
         ttl: 30 * 60 // 10 mins
       },
       async handler(ctx) {
-        const { page, limit } = ctx.params;
+        const { page, limit, lastupdate = '' } = ctx.params;
         let { _source } = ctx.params;
         if (limit > 1000) {
           return this.Promise.reject(
@@ -95,7 +107,13 @@ module.exports = {
           _source = fields.includes(_source) ? _source : null;
         }
         const esClient = new ElasticLib();
-        const products = await esClient.findProducts(page, limit, ctx.meta.user, _source);
+        const products = await esClient.findProducts(
+          page,
+          limit,
+          ctx.meta.user,
+          _source,
+          lastupdate
+        );
 
         return { products };
       }

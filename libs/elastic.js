@@ -126,13 +126,12 @@ class ElasticLib {
    * @returns {Array} Products
    * @memberof ElasticLib
    */
-  async findProducts(page, _size, id, _source) {
+  async findProducts(page, _size, id, _source, lastupdate = '') {
     const api = new KlayerAPI();
     const [instance] = await api.findInstance(id);
 
     const size = _size || 10;
-
-    const instanceProductsFull = await this.findIP(page, size, instance);
+    const instanceProductsFull = await this.findIP(page, size, instance, lastupdate);
     const instanceProducts = await Loop.map(instanceProductsFull, async product => {
       const source = product._source;
       return source.sku;
@@ -214,11 +213,11 @@ class ElasticLib {
    * @returns {Array} Instance Products
    * @memberof ElasticLib
    */
-  async findIP(page, _size, instance) {
+  async findIP(page, _size, instance, lastUpdated = '') {
     const size = _size || 10;
     page = parseInt(page) || 1;
     try {
-      const search = await this.es.search({
+      const searchQuery = {
         index: this.indices.proinstances,
         type: this.types.proinstances,
         from: (parseInt(page) - 1) * size || 0,
@@ -236,7 +235,28 @@ class ElasticLib {
             }
           }
         }
-      });
+      };
+
+      if (lastUpdated && lastUpdated !== '') {
+        const lastUpdatedDate = new Date(Number(lastUpdated) * 1000).toISOString();
+        searchQuery.body.query.bool.should = [];
+        searchQuery.body.query.bool.minimum_should_match = 1;
+        searchQuery.body.query.bool.should.push({
+          range: {
+            updated: {
+              gte: lastUpdatedDate
+            }
+          }
+        });
+        searchQuery.body.query.bool.should.push({
+          range: {
+            createdAt: {
+              gte: lastUpdatedDate
+            }
+          }
+        });
+      }
+      const search = await this.es.search(searchQuery);
       const results = search.hits.hits;
       return results;
     } catch (err) {
