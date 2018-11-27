@@ -1,6 +1,8 @@
 const { MoleculerClientError } = require('moleculer').Errors;
+const AgileCRM = require('../mixins/agilecrm.mixin');
 
 const ElasticLib = require('../libs/elastic');
+const KlayerLib = require('../libs/klayer');
 
 module.exports = {
   name: 'products',
@@ -14,6 +16,11 @@ module.exports = {
    * Service metadata
    */
   metadata: {},
+
+  /**
+   * Service Mixins
+   */
+  mixins: [AgileCRM],
 
   /**
    * Actions
@@ -114,7 +121,8 @@ module.exports = {
           _source,
           lastupdate
         );
-
+        // Emit async Event
+        ctx.emit('list.afterRemote', ctx);
         return { products };
       }
     },
@@ -135,6 +143,21 @@ module.exports = {
         const esClient = new ElasticLib();
         const product = await esClient.deleteProduct(sku, ctx.meta.user);
         return { product };
+      }
+    }
+  },
+
+  events: {
+    // Subscribe 'list.afterRemote' which will get emit after list action called.
+    'list.afterRemote': {
+      async handler(payload) {
+        if (payload.meta && payload.meta.user) {
+          const klayer = new KlayerLib();
+          const [instance] = await klayer.findInstance(payload.meta.user);
+          if (instance && instance.partner_id) {
+            this.updateLastSyncDate(instance.partner_id);
+          }
+        }
       }
     }
   }

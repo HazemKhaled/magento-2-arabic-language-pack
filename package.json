@@ -26,6 +26,7 @@
     "prettier": "^1.14.0"
   },
   "dependencies": {
+    "agile_crm": "^1.2.5",
     "bluebird": "^3.5.1",
     "elasticsearch": "^15.1.1",
     "ioredis": "^3.2.2",
