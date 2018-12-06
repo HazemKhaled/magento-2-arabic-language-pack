@@ -132,6 +132,17 @@ module.exports = {
 
     list: {
       auth: 'required',
+      params: {
+        limit: {
+          type: 'number',
+          convert: true,
+          integer: true,
+          min: 1,
+          max: 50,
+          optional: true
+        },
+        page: { type: 'number', convert: true, integer: true, min: 1, optional: true }
+      },
       cache: {
         keys: ['page', 'limit', '#token'],
         ttl: 15 * 60 // 10 mins
@@ -139,13 +150,7 @@ module.exports = {
       async handler(ctx) {
         const { page, limit } = ctx.params;
         const api = new KlayerAPI();
-        if (limit > 50) {
-          return this.Promise.reject(
-            new MoleculerClientError('Maximum Limit is 50 !', 422, '', [
-              { field: 'limit', message: 'Max limit is 50' }
-            ])
-          );
-        }
+
         const orders = await api.getOrders(page, limit, ctx.meta.user);
         return orders;
       }
