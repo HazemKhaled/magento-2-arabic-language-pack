@@ -75,7 +75,7 @@ module.exports = {
           convert: true,
           integer: true,
           min: 1,
-          max: 1000,
+          max: 100,
           optional: true
         },
         page: { type: 'number', convert: true, integer: true, min: 1, optional: true },
@@ -88,13 +88,7 @@ module.exports = {
       async handler(ctx) {
         const { page, limit, lastupdate = '' } = ctx.params;
         let { _source } = ctx.params;
-        if (limit > 1000) {
-          return this.Promise.reject(
-            new MoleculerClientError('Maximum Limit is 1000 !', 422, '', [
-              { field: 'limit', message: 'Max limit is 1000' }
-            ])
-          );
-        }
+
         const fields = [
           'sku',
           'name',
