@@ -1,4 +1,3 @@
-const { MoleculerClientError } = require('moleculer').Errors;
 const AgileCRM = require('../mixins/agilecrm.mixin');
 
 const ElasticLib = require('../libs/elastic');
