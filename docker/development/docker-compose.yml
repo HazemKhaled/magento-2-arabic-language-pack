@@ -36,6 +36,9 @@ services:
     env_file: .env
     environment:
       SERVICES: products,categories
+    networks:
+      - elastic
+      - default
 
   orders:
     build:
@@ -56,6 +59,9 @@ services:
       SERVICES: elastic-update
     volumes:
       - ../../data:/app/data
+    networks:
+      - elastic
+      - default
 
   traefik:
     image: traefik
@@ -68,3 +74,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./traefik.toml:/traefik.toml
       - ./acme.json:/acme.json
+
+networks:
+  elastic:
+    external:
+      name: dockerelk_elk
