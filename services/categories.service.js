@@ -1,6 +1,5 @@
 const ESService = require('moleculer-elasticsearch');
 const { MoleculerClientError } = require('moleculer').Errors;
-const ElasticLib = require('../libs/elastic');
 
 module.exports = {
   name: 'categories',
@@ -37,7 +36,7 @@ module.exports = {
         ttl: 60 * 60 // 1 hour
       },
       handler() {
-        return new ElasticLib().fetchCategories();
+        return this.fetchCategories();
       }
     }
   },
@@ -92,6 +91,7 @@ module.exports = {
           output[key] = typeof obj[key] === 'string' ? obj[key] : obj[key].text;
         }
       });
+      return output;
     }
   }
 };
