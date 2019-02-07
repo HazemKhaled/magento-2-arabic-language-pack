@@ -1,3 +1,5 @@
+const ESService = require('moleculer-elasticsearch');
+const { MoleculerClientError } = require('moleculer').Errors;
 const ElasticLib = require('../libs/elastic');
 
 module.exports = {
@@ -6,7 +8,14 @@ module.exports = {
   /**
    * Service settings
    */
-  settings: {},
+  settings: {
+    elasticsearch: {
+      host: `http://${process.env.ELASTIC_AUTH}@${process.env.ELASTIC_HOST}:${
+        process.env.ELASTIC_PORT
+      }`
+    }
+  },
+  mixins: [ESService],
 
   /**
    * Service metadata
@@ -30,6 +39,59 @@ module.exports = {
       handler() {
         return new ElasticLib().fetchCategories();
       }
+    }
+  },
+  methods: {
+    /**
+     * Get Categories from ElasticSearch
+     *
+     * @returns {Array} Categories
+     * @memberof ElasticLib
+     */
+    fetchCategories() {
+      return this.broker
+        .call('categories.search', {
+          index: 'categories',
+          type: 'Category',
+          body: {
+            size: 999
+          }
+        })
+        .then(result => {
+          if (result.hits.total === 0) {
+            return {
+              status: 'failed',
+              message: 'There are no categories at the moment.'
+            };
+          }
+
+          return result.hits.hits.map(category => {
+            category = category._source;
+            return {
+              id: category.odooId,
+              name: this.formatI18nText(category.name)
+            };
+          });
+        })
+        .catch(err => new MoleculerClientError(err));
+    },
+    /**
+     * Pick only language keys
+     *
+     * @param {Object} obj
+     * @returns
+     * @memberof ElasticLib
+     */
+    formatI18nText(obj) {
+      if (!obj) return;
+
+      const output = {};
+
+      ['ar', 'en', 'tr', 'fr'].forEach(key => {
+        if (obj[key] && key.length === 2) {
+          output[key] = typeof obj[key] === 'string' ? obj[key] : obj[key].text;
+        }
+      });
     }
   }
 };

@@ -1,5 +1,7 @@
+const ESService = require('moleculer-elasticsearch');
 const Cron = require('moleculer-cron');
-const ElasticLib = require('../libs/elastic');
+const { MoleculerClientError } = require('moleculer').Errors;
+const Loop = require('bluebird');
 const DbService = require('../mixins/db.mixin');
 
 module.exports = {
@@ -13,26 +15,30 @@ module.exports = {
       name: 'updateInstanceProducts',
       cronTime: '* * * * *', // Every minute
       onTick() {
-        if (this.logger) {
+        if (this.logger && process.env.NODE_ENV !== 'development') {
           this.logger.info('Update Instance Products Cron ticked');
         }
-        if (this.call) {
+        if (this.call && process.env.NODE_ENV !== 'development') {
           this.call('elastic-update.run');
         }
-      },
-      start: true
+      }
     }
   ],
 
   /**
    * Service Mixins
    */
-  mixins: [DbService('elastic-update'), Cron],
+  mixins: [ESService, DbService('elastic-update'), Cron],
 
   /**
    * Service settings
    */
   settings: {
+    elasticsearch: {
+      host: `http://${process.env.ELASTIC_AUTH}@${process.env.ELASTIC_HOST}:${
+        process.env.ELASTIC_PORT
+      }`
+    },
     isRunning: false
   },
 
@@ -57,10 +63,9 @@ module.exports = {
           return;
         }
         this.settings.isRunning = true;
-        const esClient = new ElasticLib();
         const lastUpdateDate = await this.getLastUpdateDate();
         if (lastUpdateDate) {
-          const products = await esClient.syncInstanceProducts(lastUpdateDate);
+          const products = await this.syncInstanceProducts(lastUpdateDate);
           if (products && products.success === true) {
             if (products.LastDate && products.LastDate !== '') {
               const updated = await this.updateLastUpdateDate(new Date(products.LastDate), ctx);
@@ -83,6 +88,106 @@ module.exports = {
    * Methods
    */
   methods: {
+    /**
+     * Update products from "products" to "products-instances"
+     *
+     * @returns
+     * @memberof ElasticLib
+     */
+    async syncInstanceProducts(lastUpdateDate) {
+      if (!lastUpdateDate && lastUpdateDate === '') {
+        return false;
+      }
+      const limit = process.env.ELASTIC_UPDATE_LIMIT || 999;
+      const products = await this.broker
+        .call('elastic-update.search', {
+          index: 'products',
+          type: 'Product',
+          body: {
+            query: {
+              range: {
+                updated: { gt: new Date(lastUpdateDate) }
+              }
+            },
+            sort: { updated: { order: 'asc' } }
+          },
+          size: limit
+        })
+        .catch(err => new MoleculerClientError(err));
+
+      if (products.hits && products.hits.hits && products.hits.hits.length === 0) {
+        return {
+          success: true,
+          LastDate: '',
+          noProducts: true
+        };
+      }
+
+      if (products.hits && products.hits.hits && products.hits.hits.length > 0) {
+        const LastDate = products.hits.hits[products.hits.hits.length - 1]._source.updated || '';
+        const isUpdated = await this.bulkUpdateInstanceProducts(products.hits.hits);
+        if (isUpdated) {
+          return {
+            success: true,
+            LastDate
+          };
+        }
+      } else {
+        return false;
+      }
+    },
+    /**
+     * Bulk Update Products in ElasticSearch "products-instances"
+     *
+     * @param {Array } products
+     * @returns
+     * @memberof ElasticLib
+     */
+    async bulkUpdateInstanceProducts(products) {
+      let result = true;
+      await Loop.each(products, async product => {
+        product = product._source;
+        const updateData = {
+          index: 'products-instances',
+          type: 'product',
+          body: {
+            query: {
+              term: {
+                'sku.keyword': product.sku
+              }
+            },
+            script: {
+              params: {
+                productArchive: product.archive || false,
+                productUpdated: product.updated || new Date()
+              },
+              inline:
+                'ctx._source.archive=params.productArchive; ctx._source.updated=params.productUpdated;',
+              lang: 'painless'
+            }
+          },
+          conflicts: 'proceed'
+        };
+        try {
+          const updated = await this.broker.call('elastic-update.call', {
+            api: 'updateByQuery',
+            params: updateData
+          });
+          if (updated && updated.failures.length === 0) {
+            this.logger.info(`[SUCCESS] ${product.sku} has been Updated`);
+          }
+          if (updated && updated.failures.length > 0) {
+            this.logger.error(`[ERROR] ${product.sku}`, updated);
+            result = false;
+          }
+        } catch (err) {
+          this.logger.error(`[ERROR] ${product.sku} Error: `, err);
+          result = false;
+          return new MoleculerClientError(err);
+        }
+      });
+      return result;
+    },
     /**
      * Get Last Run Date
      *
