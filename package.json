@@ -36,6 +36,7 @@
     "moleculer-cron": "0.0.2",
     "moleculer-db": "^0.7.6",
     "moleculer-db-adapter-mongo": "^0.4.2",
+    "moleculer-elasticsearch": "^1.1.1",
     "moleculer-web": "^0.8.5",
     "nats": "^1.0.1",
     "request": "^2.88.0",
