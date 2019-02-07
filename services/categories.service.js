@@ -91,7 +91,13 @@ module.exports = {
           output[key] = typeof obj[key] === 'string' ? obj[key] : obj[key].text;
         }
       });
-      return output;
+
+      // Cleanup null values
+      Object.keys(output).forEach(k => {
+        if (!output[k]) delete output[k];
+      });
+
+      return Object.keys(output).length ? output : false;
     }
   }
 };
