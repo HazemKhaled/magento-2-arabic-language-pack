@@ -350,6 +350,7 @@ module.exports = {
             params: { scroll: '30s', scrollId: scrollId }
           });
         }
+        const results = fullResult.concat(search.hits.hits);
         if (endTrace > size && max > parseInt(process.env.SCROLL_LIMIT)) {
           return this.findIP(
             page,
