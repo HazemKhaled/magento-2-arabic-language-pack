@@ -301,6 +301,7 @@ module.exports = {
       let max = maxScroll;
       let search = [];
       try {
+        if (!scrollId) {
         const searchQuery = {
           index: 'products-instances',
           type: 'product',
