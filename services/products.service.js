@@ -351,6 +351,16 @@ module.exports = {
           });
         }
         if (endTrace > size && max > parseInt(process.env.SCROLL_LIMIT)) {
+          return this.findIP(
+            page,
+            _size,
+            instance,
+            lastUpdated,
+            results,
+            endTrace,
+            search._scroll_id,
+            max
+          );
       } catch (err) {
         return new MoleculerClientError(err, 500);
       }
