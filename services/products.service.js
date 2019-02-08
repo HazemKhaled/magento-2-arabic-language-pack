@@ -285,7 +285,16 @@ module.exports = {
      * @returns {Array} Instance Products
      * @memberof ElasticLib
      */
-    async findIP(page, _size, instance, lastUpdated = '') {
+    async findIP(
+      page,
+      _size,
+      instance,
+      lastUpdated = '',
+      fullResult = [], // all products from scroll pages
+      trace = 0, // to trace the end product needed and stop scrolling after reaching it
+      scrollId = false, // sending the scroll id on the callback
+      maxScroll = 0 // just tracking to total products number to the scroll limit to stop if no more products
+    ) {
       const size = _size || 10;
       page = parseInt(page) || 1;
       try {
