@@ -343,6 +343,7 @@ module.exports = {
         }
           endTrace = page * size;
           search = await this.broker.call('products.search', searchQuery);
+          max = search.hits.total;
         } else {
           search = await this.broker.call('products.call', {
             api: 'scroll',
