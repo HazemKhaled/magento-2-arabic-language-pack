@@ -352,6 +352,8 @@ module.exports = {
         }
         const results = fullResult.concat(search.hits.hits);
         if (endTrace > size && max > parseInt(process.env.SCROLL_LIMIT)) {
+          max -= parseInt(process.env.SCROLL_LIMIT);
+          endTrace -= parseInt(process.env.SCROLL_LIMIT);
           return this.findIP(
             page,
             _size,
