@@ -350,6 +350,7 @@ module.exports = {
             params: { scroll: '30s', scrollId: scrollId }
           });
         }
+        if (endTrace > size && max > parseInt(process.env.SCROLL_LIMIT)) {
       } catch (err) {
         return new MoleculerClientError(err, 500);
       }
