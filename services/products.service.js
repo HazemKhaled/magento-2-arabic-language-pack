@@ -302,45 +302,45 @@ module.exports = {
       let search = [];
       try {
         if (!scrollId) {
-        const searchQuery = {
-          index: 'products-instances',
-          type: 'product',
+          const searchQuery = {
+            index: 'products-instances',
+            type: 'product',
             scroll: '1m',
             size: process.env.SCROLL_LIMIT,
-          body: {
-            sort: [{ createdAt: { order: 'asc' } }],
-            query: {
-              bool: {
-                filter: {
-                  bool: {
-                    must_not: [{ term: { deleted: true } }],
-                    must: [{ match: { instanceId: instance.webhook_hash } }]
+            body: {
+              sort: [{ createdAt: { order: 'asc' } }],
+              query: {
+                bool: {
+                  filter: {
+                    bool: {
+                      must_not: [{ term: { deleted: true } }],
+                      must: [{ match: { instanceId: instance.webhook_hash } }]
+                    }
                   }
                 }
               }
             }
-          }
-        };
+          };
 
-        if (lastUpdated && lastUpdated !== '') {
-          const lastUpdatedDate = new Date(Number(lastUpdated) * 1000).toISOString();
-          searchQuery.body.query.bool.should = [];
-          searchQuery.body.query.bool.minimum_should_match = 1;
-          searchQuery.body.query.bool.should.push({
-            range: {
-              updated: {
-                gte: lastUpdatedDate
+          if (lastUpdated && lastUpdated !== '') {
+            const lastUpdatedDate = new Date(Number(lastUpdated) * 1000).toISOString();
+            searchQuery.body.query.bool.should = [];
+            searchQuery.body.query.bool.minimum_should_match = 1;
+            searchQuery.body.query.bool.should.push({
+              range: {
+                updated: {
+                  gte: lastUpdatedDate
+                }
               }
-            }
-          });
-          searchQuery.body.query.bool.should.push({
-            range: {
-              createdAt: {
-                gte: lastUpdatedDate
+            });
+            searchQuery.body.query.bool.should.push({
+              range: {
+                createdAt: {
+                  gte: lastUpdatedDate
+                }
               }
-            }
-          });
-        }
+            });
+          }
           endTrace = page * size;
           search = await this.broker.call('products.search', searchQuery);
           max = search.hits.total;
@@ -364,6 +364,8 @@ module.exports = {
             search._scroll_id,
             max
           );
+        }
+        return results.slice(page * size - size, page * size);
       } catch (err) {
         return new MoleculerClientError(err, 500);
       }
