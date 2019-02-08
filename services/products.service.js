@@ -341,6 +341,7 @@ module.exports = {
             }
           });
         }
+          endTrace = page * size;
           search = await this.broker.call('products.search', searchQuery);
         } else {
           search = await this.broker.call('products.call', {
