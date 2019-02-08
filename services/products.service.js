@@ -296,7 +296,10 @@ module.exports = {
       maxScroll = 0 // just tracking to total products number to the scroll limit to stop if no more products
     ) {
       const size = _size || 10;
+      let endTrace = trace;
       page = parseInt(page) || 1;
+      let max = maxScroll;
+      let search = [];
       try {
         const searchQuery = {
           index: 'products-instances',
