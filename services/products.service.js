@@ -341,9 +341,7 @@ module.exports = {
             }
           });
         }
-        const search = await this.broker.call('products.search', searchQuery);
-        const results = search.hits.hits;
-        return results;
+          search = await this.broker.call('products.search', searchQuery);
       } catch (err) {
         return new MoleculerClientError(err, 500);
       }
