@@ -342,6 +342,12 @@ module.exports = {
           });
         }
           search = await this.broker.call('products.search', searchQuery);
+        } else {
+          search = await this.broker.call('products.call', {
+            api: 'scroll',
+            params: { scroll: '30s', scrollId: scrollId }
+          });
+        }
       } catch (err) {
         return new MoleculerClientError(err, 500);
       }
