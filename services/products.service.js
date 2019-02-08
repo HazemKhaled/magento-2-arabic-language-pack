@@ -305,8 +305,8 @@ module.exports = {
         const searchQuery = {
           index: 'products-instances',
           type: 'product',
-          from: (parseInt(page) - 1) * size || 0,
-          size: parseInt(size),
+            scroll: '1m',
+            size: process.env.SCROLL_LIMIT,
           body: {
             sort: [{ createdAt: { order: 'asc' } }],
             query: {
