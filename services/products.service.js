@@ -2,7 +2,6 @@ const ESService = require('moleculer-elasticsearch');
 const Loop = require('bluebird');
 const { MoleculerClientError } = require('moleculer').Errors;
 const AgileCRM = require('../mixins/agilecrm.mixin');
-const KlayerAPI = require('../libs/klayer');
 
 module.exports = {
   name: 'products',
@@ -146,8 +145,7 @@ module.exports = {
      * @memberof ElasticLib
      */
     async fetchProduct(sku, id, _source) {
-      const api = new KlayerAPI();
-      const [instance] = await api.findInstance(id);
+      const [instance] = await this.broker.call('klayer.findInstance', { consumerKey: id });
 
       try {
         const result = await this.broker.call('products.search', {
@@ -169,7 +167,9 @@ module.exports = {
             sku: sku
           };
         }
-        const rate = await api.currencyRate(instance.base_currency);
+        const rate = await this.broker.call('klayer.currencyRate', {
+          currencyCode: instance.base_currency
+        });
         const source = result.hits.hits[0]._source;
         return {
           sku: source.sku,
@@ -195,8 +195,7 @@ module.exports = {
      * @memberof ElasticLib
      */
     async findProducts(page, _size, id, _source, lastupdate = '') {
-      const api = new KlayerAPI();
-      const [instance] = await api.findInstance(id);
+      const [instance] = await this.broker.call('klayer.findInstance', { consumerKey: id });
 
       const size = _size || 10;
       const instanceProductsFull = await this.findIP(page, size, instance, lastupdate);
@@ -224,7 +223,9 @@ module.exports = {
 
         const results = search.docs;
 
-        const rate = await api.currencyRate(instance.base_currency);
+        const rate = await this.broker.call('klayer.currencyRate', {
+          currencyCode: instance.base_currency
+        });
         try {
           const products = await Loop.map(results, async product => {
             if (product.found) {
@@ -524,8 +525,9 @@ module.exports = {
     'list.afterRemote': {
       async handler(payload) {
         if (payload.meta && payload.meta.user) {
-          const klayer = new KlayerAPI();
-          const [instance] = await klayer.findInstance(payload.meta.user);
+          const [instance] = await this.broker.call('klayer.findInstance', {
+            consumerKey: payload.meta.user
+          });
           if (instance && instance.partner_id) {
             this.updateLastSyncDate(instance.partner_id);
           }

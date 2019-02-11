@@ -1,8 +1,6 @@
 const uuidv1 = require('uuid/v1');
 const { MoleculerClientError } = require('moleculer').Errors;
 
-const KlayerAPI = require('../libs/klayer');
-
 const entityValidator = {
   id: { type: 'string', empty: false },
   status: { type: 'enum', values: ['pending', 'processing', 'cancelled'] },
@@ -85,7 +83,6 @@ module.exports = {
       auth: 'required',
       params: entityValidator,
       async handler(ctx) {
-        const api = new KlayerAPI();
         if (ctx.meta.user) {
           ctx.params.id = uuidv1();
           try {
@@ -95,7 +92,10 @@ module.exports = {
               data.pdf_invoice_url = ctx.params.invoice_url;
             }
 
-            const result = await api.createOrder(data, ctx.meta.user);
+            const result = await ctx.call('klayer.createOrder', {
+              order: data,
+              consumerKey: ctx.meta.user
+            });
             const order = result.data;
             return {
               status: 'success',
@@ -126,7 +126,12 @@ module.exports = {
       handler(ctx) {
         const orderId = ctx.params.order_id;
 
-        return new KlayerAPI().getOrders(0, 1, ctx.meta.user, orderId);
+        return ctx.call('klayer.getOrders', {
+          page: 0,
+          limit: 1,
+          consumerKey: ctx.meta.user,
+          orderId: orderId
+        });
       }
     },
 
@@ -149,9 +154,12 @@ module.exports = {
       },
       async handler(ctx) {
         const { page, limit } = ctx.params;
-        const api = new KlayerAPI();
 
-        const orders = await api.getOrders(page, limit, ctx.meta.user);
+        const orders = await ctx.call('klayer.getOrders', {
+          page: page,
+          limit: limit,
+          consumerKey: ctx.meta.user
+        });
         return orders;
       }
     },
@@ -160,7 +168,6 @@ module.exports = {
       auth: 'required',
       params: entityValidator,
       async handler(ctx) {
-        const api = new KlayerAPI();
         try {
           // @TODO: transformation needed.
           const data = ctx.params;
@@ -168,7 +175,7 @@ module.exports = {
             data.pdf_invoice_url = ctx.params.invoice_url;
           }
 
-          const result = await api.updateOrder(data, ctx.meta.user);
+          const result = await ctx.call('updateOrder', { order: data, consumerKey: ctx.meta.user });
           if (result.statusCode && result.statusCode === 404) {
             return {
               status: 'failed',

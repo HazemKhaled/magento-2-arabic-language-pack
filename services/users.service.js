@@ -1,7 +1,6 @@
 const { MoleculerClientError } = require('moleculer').Errors;
 
 const jwt = require('jsonwebtoken');
-const KlayerLib = require('../libs/klayer');
 
 module.exports = {
   name: 'users',
@@ -46,9 +45,10 @@ module.exports = {
 
         return this.Promise.resolve()
           .then(async () => {
-            const klayer = new KlayerLib();
             try {
-              const [instance] = await klayer.findInstance(consumerKey);
+              const [instance] = await this.broker.call('klayer.findInstance', {
+                consumerKey: consumerKey
+              });
 
               if (!instance) {
                 return this.Promise.reject(
@@ -105,8 +105,9 @@ module.exports = {
         }).then(async decoded => {
           if (decoded.id) {
             // Get instance info from Klayer
-            const klayer = new KlayerLib();
-            const [instance] = await klayer.findInstance(decoded.id);
+            const [instance] = await this.broker.call('klayer.findInstance', {
+              consumerKey: decoded.id
+            });
             if (instance.status === 'confirmed') {
               return decoded;
             }
