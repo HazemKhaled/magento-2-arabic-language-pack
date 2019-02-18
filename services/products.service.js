@@ -138,13 +138,17 @@ module.exports = {
 
       try {
         const result = await this.broker.call('elasticsearch.search', {
-          index: 'products',
-          type: 'Product',
+          index: 'products-instances',
+          type: 'product',
           _source: _source,
           body: {
             query: {
-              term: {
-                sku: sku
+              bool: {
+                filter: {
+                  match: {
+                    sku: sku
+                  }
+                }
               }
             }
           }
