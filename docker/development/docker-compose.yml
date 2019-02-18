@@ -27,6 +27,9 @@ services:
     env_file: .env
     environment:
       SERVICES: elasticsearch
+    networks:
+      - elastic
+      - default
 
   klayer:
     build:
