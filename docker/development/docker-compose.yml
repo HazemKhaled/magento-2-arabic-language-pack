@@ -19,6 +19,15 @@ services:
       - 'traefik.frontend.entryPoints=http,https'
       - 'traefik.frontend.rule=Host:dev.mp.knawat.io'
 
+  elasticsearch:
+    build:
+      context: ../../
+    image: microes
+    restart: always
+    env_file: .env
+    environment:
+      SERVICES: elasticsearch
+
   klayer:
     build:
       context: ../../
