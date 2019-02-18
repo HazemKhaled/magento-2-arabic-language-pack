@@ -1,7 +1,7 @@
 const ESService = require('moleculer-elasticsearch');
 
 module.exports = {
-  name: 'products',
+  name: 'elasticsearch',
   mixins: [ESService],
   /**
    * Service settings
