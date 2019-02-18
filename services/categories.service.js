@@ -1,20 +1,7 @@
-const ESService = require('moleculer-elasticsearch');
 const { MoleculerClientError } = require('moleculer').Errors;
 
 module.exports = {
   name: 'categories',
-
-  /**
-   * Service settings
-   */
-  settings: {
-    elasticsearch: {
-      host: `http://${process.env.ELASTIC_AUTH}@${process.env.ELASTIC_HOST}:${
-        process.env.ELASTIC_PORT
-      }`
-    }
-  },
-  mixins: [ESService],
 
   /**
    * Service metadata
@@ -49,7 +36,7 @@ module.exports = {
      */
     fetchCategories() {
       return this.broker
-        .call('categories.search', {
+        .call('elasticsearch.search', {
           index: 'categories',
           type: 'Category',
           body: {

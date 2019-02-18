@@ -1,20 +1,9 @@
-const ESService = require('moleculer-elasticsearch');
 const Loop = require('bluebird');
 const { MoleculerClientError } = require('moleculer').Errors;
 const AgileCRM = require('../mixins/agilecrm.mixin');
 
 module.exports = {
   name: 'products',
-  /**
-   * Service settings
-   */
-  settings: {
-    elasticsearch: {
-      host: `http://${process.env.ELASTIC_AUTH}@${process.env.ELASTIC_HOST}:${
-        process.env.ELASTIC_PORT
-      }`
-    }
-  },
 
   /**
    * Service metadata
@@ -24,7 +13,7 @@ module.exports = {
   /**
    * Service Mixins
    */
-  mixins: [ESService, AgileCRM],
+  mixins: [AgileCRM],
 
   /**
    * Actions
@@ -148,7 +137,7 @@ module.exports = {
       const [instance] = await this.broker.call('klayer.findInstance', { consumerKey: id });
 
       try {
-        const result = await this.broker.call('products.search', {
+        const result = await this.broker.call('elasticsearch.search', {
           index: 'products',
           type: 'Product',
           _source: _source,
@@ -209,7 +198,7 @@ module.exports = {
         return instanceProducts;
       }
       try {
-        const search = await this.broker.call('products.call', {
+        const search = await this.broker.call('elasticsearch.call', {
           api: 'mget',
           params: {
             index: 'products',
@@ -343,10 +332,10 @@ module.exports = {
             });
           }
           endTrace = page * size;
-          search = await this.broker.call('products.search', searchQuery);
+          search = await this.broker.call('elasticsearch.search', searchQuery);
           max = search.hits.total;
         } else {
-          search = await this.broker.call('products.call', {
+          search = await this.broker.call('elasticsearch.call', {
             api: 'scroll',
             params: { scroll: '30s', scrollId: scrollId }
           });
@@ -382,7 +371,7 @@ module.exports = {
      */
     async deleteProduct(sku, id) {
       try {
-        const result = await this.broker.call('products.update', {
+        const result = await this.broker.call('elasticsearch.update', {
           index: 'products-instances',
           type: 'product',
           id: `${id}-${sku}`,

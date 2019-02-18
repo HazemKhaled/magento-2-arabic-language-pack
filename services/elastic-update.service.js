@@ -1,4 +1,3 @@
-const ESService = require('moleculer-elasticsearch');
 const Cron = require('moleculer-cron');
 const { MoleculerClientError } = require('moleculer').Errors;
 const Loop = require('bluebird');
@@ -28,17 +27,12 @@ module.exports = {
   /**
    * Service Mixins
    */
-  mixins: [ESService, DbService('elastic-update'), Cron],
+  mixins: [DbService('elastic-update'), Cron],
 
   /**
    * Service settings
    */
   settings: {
-    elasticsearch: {
-      host: `http://${process.env.ELASTIC_AUTH}@${process.env.ELASTIC_HOST}:${
-        process.env.ELASTIC_PORT
-      }`
-    },
     isRunning: false
   },
 
@@ -100,7 +94,7 @@ module.exports = {
       }
       const limit = process.env.ELASTIC_UPDATE_LIMIT || 999;
       const products = await this.broker
-        .call('elastic-update.search', {
+        .call('elasticsearch.search', {
           index: 'products',
           type: 'Product',
           body: {
@@ -169,7 +163,7 @@ module.exports = {
           conflicts: 'proceed'
         };
         try {
-          const updated = await this.broker.call('elastic-update.call', {
+          const updated = await this.broker.call('elasticsearch.call', {
             api: 'updateByQuery',
             params: updateData
           });
