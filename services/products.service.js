@@ -103,7 +103,7 @@ module.exports = {
 
         // Emit async Event
         ctx.emit('list.afterRemote', ctx);
-        return { products };
+        return products;
       }
     },
 
@@ -189,7 +189,7 @@ module.exports = {
       const size = _size || 10;
       const instanceProductsFull = await this.findIP(page, size, instance, lastupdate);
 
-      const instanceProducts = await Loop.map(instanceProductsFull, async product => {
+      const instanceProducts = await Loop.map(instanceProductsFull.page, async product => {
         const source = product._source;
         return source.sku;
       });
@@ -244,7 +244,7 @@ module.exports = {
                 images: [],
                 categories: []
               };
-              instanceProductsFull.forEach(instanceProduct => {
+              instanceProductsFull.page.forEach(instanceProduct => {
                 const productSource = instanceProduct._source;
                 if (productSource.sku === product._id && productSource.variations) {
                   blankProduct.variations = productSource.variations.map(variation => {
@@ -258,7 +258,10 @@ module.exports = {
             }
           });
 
-          return products.filter(product => !!product && product.variations.length !== 0);
+          return {
+            products: products.filter(product => !!product && product.variations.length !== 0),
+            totalProducts: instanceProductsFull.totalProducts
+          };
         } catch (err) {
           return new MoleculerClientError(err);
         }
@@ -355,7 +358,10 @@ module.exports = {
             max
           );
         }
-        return results.slice(page * size - size, page * size);
+        return {
+          page: results.slice(page * size - size, page * size),
+          totalProducts: search.hits.total
+        };
       } catch (err) {
         return new MoleculerClientError(err, 500);
       }
