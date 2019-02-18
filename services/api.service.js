@@ -33,7 +33,7 @@ module.exports = {
         },
 
         // Disable to call not-mapped actions
-        // mappingPolicy: 'restrict',
+        mappingPolicy: 'restrict',
 
         // Set CORS headers
         cors: false,
