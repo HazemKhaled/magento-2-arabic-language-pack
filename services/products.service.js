@@ -286,7 +286,7 @@ module.exports = {
 
           return {
             products: products.filter(product => !!product && product.variations.length !== 0),
-            totalProducts: instanceProductsFull.totalProducts
+            total: instanceProductsFull.totalProducts
           };
         } catch (err) {
           return new MoleculerClientError(err);
