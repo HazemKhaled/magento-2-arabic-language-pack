@@ -99,4 +99,4 @@ services:
 networks:
   elastic:
     external:
-      name: dockerelk_elk
+      name: elk-dev_default
