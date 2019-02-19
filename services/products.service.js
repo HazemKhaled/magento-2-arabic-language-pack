@@ -176,11 +176,7 @@ module.exports = {
           );
         this.logger.info(result.hits.hits);
         if (result.hits.total === 0) {
-          return {
-            status: 'failed',
-            message: 'Product not found',
-            sku: sku
-          };
+          throw new MoleculerClientError('Product not found', 404, sku);
         }
         const rate = await this.broker.call('klayer.currencyRate', {
           currencyCode: instance.base_currency
@@ -198,7 +194,7 @@ module.exports = {
           variations: await this.formatVariations(source.variations, instance, rate, source.archive)
         };
       } catch (err) {
-        return new Error(err);
+        throw new MoleculerClientError(err.message, 404, sku);
       }
     },
     /**
@@ -424,11 +420,7 @@ module.exports = {
         return {};
       } catch (err) {
         if (err.message) {
-          return {
-            status: 'failed',
-            message: err.message,
-            sku: sku
-          };
+          throw new MoleculerClientError(err.message, 404, sku);
         }
         return new Error(err);
       }
