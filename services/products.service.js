@@ -137,22 +137,44 @@ module.exports = {
       const [instance] = await this.broker.call('klayer.findInstance', { consumerKey: id });
 
       try {
-        const result = await this.broker.call('elasticsearch.search', {
-          index: 'products-instances',
-          type: 'product',
-          _source: _source,
-          body: {
-            query: {
-              bool: {
-                filter: {
-                  match: {
-                    sku: sku
+        const result = await this.broker
+          .call('elasticsearch.search', {
+            index: 'products-instances',
+            type: 'product',
+            _source: _source,
+            body: {
+              query: {
+                bool: {
+                  filter: {
+                    term: {
+                      'sku.keyword': sku
+                    }
                   }
                 }
               }
             }
-          }
-        });
+          })
+          .then(res =>
+            res.hits.total > 0
+              ? this.broker.call('elasticsearch.search', {
+                  index: 'products',
+                  type: 'Product',
+                  _source: _source,
+                  body: {
+                    query: {
+                      bool: {
+                        filter: {
+                          term: {
+                            _id: sku
+                          }
+                        }
+                      }
+                    }
+                  }
+                })
+              : res
+          );
+        this.logger.info(result.hits.hits);
         if (result.hits.total === 0) {
           return {
             status: 'failed',
