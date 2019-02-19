@@ -36,7 +36,7 @@ module.exports = {
      */
     fetchCategories() {
       return this.broker
-        .call('elasticsearch.search', {
+        .call('es.search', {
           index: 'categories',
           type: 'Category',
           body: {

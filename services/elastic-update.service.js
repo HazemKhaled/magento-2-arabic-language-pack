@@ -94,7 +94,7 @@ module.exports = {
       }
       const limit = process.env.ELASTIC_UPDATE_LIMIT || 999;
       const products = await this.broker
-        .call('elasticsearch.search', {
+        .call('es.search', {
           index: 'products',
           type: 'Product',
           body: {
@@ -163,7 +163,7 @@ module.exports = {
           conflicts: 'proceed'
         };
         try {
-          const updated = await this.broker.call('elasticsearch.call', {
+          const updated = await this.broker.call('es.call', {
             api: 'updateByQuery',
             params: updateData
           });

@@ -138,7 +138,7 @@ module.exports = {
 
       try {
         const result = await this.broker
-          .call('elasticsearch.search', {
+          .call('es.search', {
             index: 'products-instances',
             type: 'product',
             _source: _source,
@@ -156,7 +156,7 @@ module.exports = {
           })
           .then(res =>
             res.hits.total > 0
-              ? this.broker.call('elasticsearch.search', {
+              ? this.broker.call('es.search', {
                   index: 'products',
                   type: 'Product',
                   _source: _source,
@@ -224,7 +224,7 @@ module.exports = {
         return instanceProducts;
       }
       try {
-        const search = await this.broker.call('elasticsearch.call', {
+        const search = await this.broker.call('es.call', {
           api: 'mget',
           params: {
             index: 'products',
@@ -361,10 +361,10 @@ module.exports = {
             });
           }
           endTrace = page * size;
-          search = await this.broker.call('elasticsearch.search', searchQuery);
+          search = await this.broker.call('es.search', searchQuery);
           max = search.hits.total;
         } else {
-          search = await this.broker.call('elasticsearch.call', {
+          search = await this.broker.call('es.call', {
             api: 'scroll',
             params: { scroll: '30s', scrollId: scrollId }
           });
@@ -403,7 +403,7 @@ module.exports = {
      */
     async deleteProduct(sku, id) {
       try {
-        const result = await this.broker.call('elasticsearch.update', {
+        const result = await this.broker.call('es.update', {
           index: 'products-instances',
           type: 'product',
           id: `${id}-${sku}`,
