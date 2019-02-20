@@ -55,6 +55,45 @@ module.exports = {
     },
 
     /**
+     * Get User total Products Number
+     *
+     * @return {Number}
+     */
+    count: {
+      auth: 'required',
+      async handler(ctx) {
+        const [instance] = await this.broker.call('klayer.findInstance', {
+          consumerKey: ctx.meta.user
+        });
+        const res = await ctx.call('es.count', {
+          body: {
+            query: {
+              bool: {
+                filter: [
+                  {
+                    term: {
+                      'instanceId.keyword': instance.webhook_hash
+                    }
+                  }
+                ],
+                must_not: [
+                  {
+                    term: { deleted: true }
+                  },
+                  {
+                    term: { archive: true }
+                  }
+                ]
+              }
+            }
+          }
+        });
+        if (typeof res.count !== 'number') return new MoleculerClientError('Error', 500);
+        return { total: res.count };
+      }
+    },
+
+    /**
      * Get Products By Page
      *
      * @returns {Array} 10 - 1000 products per page
