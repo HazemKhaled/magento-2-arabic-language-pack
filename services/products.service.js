@@ -61,35 +61,35 @@ module.exports = {
      */
     count: {
       auth: 'required',
-      async handler(ctx) {
-        const [instance] = await this.broker.call('klayer.findInstance', {
-          consumerKey: ctx.meta.user
-        });
-        const res = await ctx.call('es.count', {
-          body: {
-            query: {
-              bool: {
-                filter: [
-                  {
-                    term: {
-                      'instanceId.keyword': instance.webhook_hash
+      handler(ctx) {
+        return ctx
+          .call('es.count', {
+            body: {
+              query: {
+                bool: {
+                  filter: [
+                    {
+                      term: {
+                        'instanceId.keyword': ctx.meta.user
+                      }
                     }
-                  }
-                ],
-                must_not: [
-                  {
-                    term: { deleted: true }
-                  },
-                  {
-                    term: { archive: true }
-                  }
-                ]
+                  ],
+                  must_not: [
+                    {
+                      term: { deleted: true }
+                    },
+                    {
+                      term: { archive: true }
+                    }
+                  ]
+                }
               }
             }
-          }
-        });
-        if (typeof res.count !== 'number') return new MoleculerClientError('Error', 500);
-        return { total: res.count };
+          })
+          .then(res => {
+            if (typeof res.count !== 'number') return new MoleculerClientError('Error', 500);
+            return { total: res.count };
+          });
       }
     },
 
