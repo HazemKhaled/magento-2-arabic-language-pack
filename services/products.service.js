@@ -71,7 +71,8 @@ module.exports = {
           optional: true
         },
         page: { type: 'number', convert: true, integer: true, min: 1, optional: true },
-        lastupdate: { type: 'string', empty: false, optional: true }
+        lastupdate: { type: 'string', empty: false, optional: true },
+        keyword: { type: 'string', optional: true }
       },
       cache: {
         keys: ['page', 'limit', 'lastupdate', '#token', '_source'],
@@ -99,7 +100,14 @@ module.exports = {
         } else {
           _source = fields.includes(_source) ? _source : null;
         }
-        const products = await this.findProducts(page, limit, ctx.meta.user, _source, lastupdate);
+        const products = await this.findProducts(
+          page,
+          limit,
+          ctx.meta.user,
+          _source,
+          lastupdate,
+          ctx.params.keyword
+        );
 
         // Emit async Event
         ctx.emit('list.afterRemote', ctx);
@@ -205,11 +213,11 @@ module.exports = {
      * @returns {Array} Products
      * @memberof ElasticLib
      */
-    async findProducts(page, _size, id, _source, lastupdate = '') {
+    async findProducts(page, _size, id, _source, lastupdate = '', keyword) {
       const [instance] = await this.broker.call('klayer.findInstance', { consumerKey: id });
 
       const size = _size || 10;
-      const instanceProductsFull = await this.findIP(page, size, instance, lastupdate);
+      const instanceProductsFull = await this.findIP(page, size, instance, lastupdate, keyword);
 
       const instanceProducts = await Loop.map(instanceProductsFull.page, async product => {
         const source = product._source;
@@ -305,6 +313,7 @@ module.exports = {
       _size,
       instance,
       lastUpdated = '',
+      keyword,
       fullResult = [], // all products from scroll pages
       trace = 0, // to trace the end product needed and stop scrolling after reaching it
       scrollId = false, // sending the scroll id on the callback
@@ -326,17 +335,21 @@ module.exports = {
               sort: [{ createdAt: { order: 'asc' } }],
               query: {
                 bool: {
-                  filter: {
-                    bool: {
-                      must_not: [{ term: { deleted: true } }],
-                      must: [{ match: { instanceId: instance.webhook_hash } }]
-                    }
-                  }
+                  must_not: [{ term: { deleted: true } }],
+                  must: [{ term: { 'instanceId.keyword': instance.webhook_hash } }]
                 }
               }
             }
           };
-
+          if (keyword && keyword !== '')
+            searchQuery.body.query.bool.must.push({
+              multi_match: {
+                query: keyword,
+                fields: ['sku.keyword', 'variations.sku.keyword'],
+                fuzziness: 'AUTO'
+              }
+            });
+          this.logger.info(searchQuery.body);
           if (lastUpdated && lastUpdated !== '') {
             const lastUpdatedDate = new Date(Number(lastUpdated) * 1000).toISOString();
             searchQuery.body.query.bool.should = [];
@@ -374,6 +387,7 @@ module.exports = {
             _size,
             instance,
             lastUpdated,
+            keyword,
             results,
             endTrace,
             search._scroll_id,
