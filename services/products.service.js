@@ -264,7 +264,10 @@ module.exports = {
       });
 
       if (instanceProducts.length === 0) {
-        return instanceProducts;
+        return {
+          products: [],
+          total: instanceProductsFull.totalProducts
+        };
       }
       try {
         const search = await this.broker.call('es.call', {
