@@ -56,7 +56,19 @@ services:
     restart: always
     env_file: .env
     environment:
-      SERVICES: products,categories
+      SERVICES: products
+    networks:
+      - elastic
+      - default
+
+  list:
+    build:
+      context: ../../
+    image: microes
+    restart: always
+    env_file: .env
+    environment:
+      SERVICES: categories,products-list
     networks:
       - elastic
       - default
