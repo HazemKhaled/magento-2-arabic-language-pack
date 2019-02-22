@@ -1,9 +1,12 @@
 // const { MoleculerClientError } = require('moleculer').Errors;
+const Transformation = require('../mixins/transformation.mixin');
 
 module.exports = {
   name: 'products-list',
+  mixins: [Transformation],
   actions: {
     searchByFilters: {
+      auth: 'required',
       params: {
         limit: {
           type: 'number',
@@ -100,12 +103,13 @@ module.exports = {
             }
           }
         };
-        return this.searchCall(body, ctx.params.limit, ctx.params.page);
+        return this.searchCall(ctx.meta.user, body, ctx.params.limit, ctx.params.page);
       }
     }
   },
   methods: {
     async searchCall(
+      user,
       body,
       limit,
       page,
@@ -137,10 +141,39 @@ module.exports = {
       if (trace > limit && maxScroll > parseInt(process.env.SCROLL_LIMIT)) {
         maxScroll -= parseInt(process.env.SCROLL_LIMIT);
         trace -= parseInt(process.env.SCROLL_LIMIT);
-        return this.searchCall(body, limit, page, fullResult, result._scroll_id, trace, maxScroll);
+        return this.searchCall(
+          user,
+          body,
+          limit,
+          page,
+          fullResult,
+          result._scroll_id,
+          trace,
+          maxScroll
+        );
       }
+      const [instance] = await this.broker.call('klayer.findInstance', { consumerKey: user });
+      const rate = await this.broker.call('klayer.currencyRate', {
+        currencyCode: instance.base_currency
+      });
+
       return {
-        products: fullResult.slice(page * limit - limit, page * limit),
+        products: fullResult.slice(page * limit - limit, page * limit).map(product => ({
+            sku: product._source.sku,
+            name: this.formatI18nText(product._source.name),
+            description: this.formatI18nText(product._source.description),
+            supplier: product._source.seller_id,
+            images: product._source.images,
+            last_check_date: product._source.last_check_date,
+            categories: this.formatCategories(product._source.categories),
+            attributes: this.formatAttributes(product._source.attributes),
+            variations: this.formatVariations(
+              product._source.variations,
+              instance,
+              rate,
+              product._source.archive
+            )
+          })),
         total: result.hits.total
       };
     }
