@@ -1,6 +1,7 @@
 const Loop = require('bluebird');
 const { MoleculerClientError } = require('moleculer').Errors;
 const AgileCRM = require('../mixins/agilecrm.mixin');
+const Transformation = require('../mixins/transformation.mixin');
 
 module.exports = {
   name: 'products',
@@ -13,7 +14,7 @@ module.exports = {
   /**
    * Service Mixins
    */
-  mixins: [AgileCRM],
+  mixins: [AgileCRM, Transformation],
 
   /**
    * Actions
@@ -479,112 +480,6 @@ module.exports = {
           throw new MoleculerClientError(err.message, 404, sku);
         }
         return new Error(err);
-      }
-    },
-    /**
-     * Pick only language keys
-     *
-     * @param {Object} obj
-     * @returns
-     * @memberof ElasticLib
-     */
-    formatI18nText(obj) {
-      if (!obj) return;
-
-      const output = {};
-
-      ['ar', 'en', 'tr', 'fr'].forEach(key => {
-        if (obj[key] && key.length === 2) {
-          output[key] = typeof obj[key] === 'string' ? obj[key] : obj[key].text;
-        }
-      });
-
-      // Cleanup null values
-      Object.keys(output).forEach(k => {
-        if (!output[k]) delete output[k];
-      });
-
-      return Object.keys(output).length ? output : false;
-    },
-    /**
-     * Format Variations
-     *
-     * @param {Array} variations
-     * @param {Object} instance
-     * @param {Number} rate
-     * @returns {Array} Transformed Variations
-     * @memberof ElasticLib
-     */
-    async formatVariations(variations, instance, rate, archive) {
-      if (variations) {
-        variations = await Loop.map(variations, async variation => {
-          if (variation) {
-            return {
-              sku: variation.sku,
-              cost_price: variation.sale * rate,
-              sale_price:
-                instance.salePriceOprator === 1
-                  ? variation.sale * instance.salePrice * rate
-                  : variation.sale * rate + instance.salePrice,
-              market_price:
-                instance.comparedAtPriceOprator === 1
-                  ? variation.sale * instance.comparedAtPrice * rate
-                  : variation.sale * rate + instance.comparedAtPrice,
-              weight: variation.weight,
-              attributes: await this.formatAttributes(variation.attributes),
-              quantity: archive ? 0 : variation.quantity
-            };
-          }
-        });
-        return variations;
-      }
-    },
-
-    /**
-     * Format Categories
-     *
-     * @param {Array} categories
-     * @returns {Array} Categories
-     * @memberof ElasticLib
-     */
-    async formatCategories(categories) {
-      if (categories) {
-        categories = await Loop.map(categories, async category => {
-          if (category) {
-            return {
-              id: category.odooId,
-              name: this.formatI18nText(category.name_i18n)
-            };
-          }
-        });
-        return categories;
-      }
-    },
-
-    /**
-     * Format Attributes
-     *
-     * @param {Array} attributes
-     * @returns {Array} Formatted Attributes
-     * @memberof ElasticLib
-     */
-    async formatAttributes(attributes) {
-      if (attributes) {
-        attributes = await Loop.map(attributes, async attribute => {
-          if (attribute && typeof attribute.name === 'string') {
-            return {
-              id: attribute.id,
-              name: {
-                en: attribute.name
-              },
-              option: {
-                en: attribute.option
-              }
-            };
-          }
-          return attribute;
-        });
-        return attributes;
       }
     }
   },
