@@ -1,4 +1,3 @@
-const Loop = require('bluebird');
 const { MoleculerClientError } = require('moleculer').Errors;
 const AgileCRM = require('../mixins/agilecrm.mixin');
 const Transformation = require('../mixins/transformation.mixin');
@@ -222,7 +221,6 @@ module.exports = {
                 })
               : res
           );
-        this.logger.info(result.hits.hits);
         if (result.hits.total === 0) {
           throw new MoleculerClientError('Product not found', 404, sku);
         }
@@ -237,9 +235,9 @@ module.exports = {
           last_check_date: source.last_check_date,
           supplier: source.seller_id,
           images: source.images,
-          categories: await this.formatCategories(source.categories),
-          attributes: await this.formatAttributes(source.attributes),
-          variations: await this.formatVariations(source.variations, instance, rate, source.archive)
+          categories: this.formatCategories(source.categories),
+          attributes: this.formatAttributes(source.attributes),
+          variations: this.formatVariations(source.variations, instance, rate, source.archive)
         };
       } catch (err) {
         throw new MoleculerClientError(err.message, 404, sku);
@@ -255,11 +253,10 @@ module.exports = {
      */
     async findProducts(page, _size, id, _source, lastupdate = '', keyword) {
       const [instance] = await this.broker.call('klayer.findInstance', { consumerKey: id });
-
       const size = _size || 10;
       const instanceProductsFull = await this.findIP(page, size, instance, lastupdate, keyword);
 
-      const instanceProducts = await Loop.map(instanceProductsFull.page, async product => {
+      const instanceProducts = instanceProductsFull.page.map(product => {
         const source = product._source;
         return source.sku;
       });
@@ -289,10 +286,9 @@ module.exports = {
           currencyCode: instance.base_currency
         });
         try {
-          const products = await Loop.map(results, async product => {
+          const products = results.map(product => {
             if (product.found) {
               const source = product._source;
-
               return {
                 sku: source.sku,
                 name: this.formatI18nText(source.name),
@@ -300,14 +296,9 @@ module.exports = {
                 supplier: source.seller_id,
                 images: source.images,
                 last_check_date: source.last_check_date,
-                categories: await this.formatCategories(source.categories),
-                attributes: await this.formatAttributes(source.attributes),
-                variations: await this.formatVariations(
-                  source.variations,
-                  instance,
-                  rate,
-                  source.archive
-                )
+                categories: this.formatCategories(source.categories),
+                attributes: this.formatAttributes(source.attributes),
+                variations: this.formatVariations(source.variations, instance, rate, source.archive)
               };
             }
             // In case product not found at products instance
@@ -329,6 +320,7 @@ module.exports = {
               });
               return blankProduct;
             }
+            return [];
           });
 
           return {
@@ -336,7 +328,7 @@ module.exports = {
             total: instanceProductsFull.totalProducts
           };
         } catch (err) {
-          return new MoleculerClientError(err);
+          return new MoleculerClientError(err, 500);
         }
       } catch (err) {
         return new MoleculerClientError(err, 500);
@@ -392,7 +384,6 @@ module.exports = {
                 fuzziness: 'AUTO'
               }
             });
-          this.logger.info(searchQuery.body);
           if (lastUpdated && lastUpdated !== '') {
             const lastUpdatedDate = new Date(Number(lastUpdated) * 1000).toISOString();
             searchQuery.body.query.bool.should = [];
