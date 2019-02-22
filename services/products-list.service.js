@@ -34,12 +34,11 @@ module.exports = {
           optional: true
         },
         keyword: { type: 'string', optional: true },
-        categoryId: {
+        category_id: {
           type: 'number',
           convert: true,
           integer: true,
           min: -1,
-          max: 500,
           optional: true
         },
         sortBy: { type: 'string', optional: true }
@@ -80,6 +79,8 @@ module.exports = {
             }
           });
         }
+        if (ctx.params.category_id)
+          filter.push({ term: { 'categories.id': parseInt(ctx.params.category_id) } });
         const sort = {};
         switch (ctx.params.sortBy) {
           case 'salesDesc':
