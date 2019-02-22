@@ -17,7 +17,7 @@ module.exports = {
           optional: true
         },
         page: { type: 'number', convert: true, integer: true, min: 1, optional: true },
-        price_from: {
+        price_to: {
           type: 'number',
           convert: true,
           integer: true,
@@ -25,7 +25,7 @@ module.exports = {
           max: 500,
           optional: true
         },
-        price_to: {
+        price_from: {
           type: 'number',
           convert: true,
           integer: true,
@@ -56,8 +56,8 @@ module.exports = {
               query: {
                 range: {
                   'variations.sale': {
-                    gte: ctx.params.price_from,
-                    lte: ctx.params.price_to,
+                    gte: ctx.params.price_to,
+                    lte: ctx.params.price_from,
                     boost: 2.0
                   }
                 }
