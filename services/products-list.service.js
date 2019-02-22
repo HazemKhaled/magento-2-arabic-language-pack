@@ -17,8 +17,22 @@ module.exports = {
           optional: true
         },
         page: { type: 'number', convert: true, integer: true, min: 1, optional: true },
-        gte: { type: 'number', convert: true, integer: true, min: 1, max: 500, optional: true },
-        lte: { type: 'number', convert: true, integer: true, min: 0, max: 499, optional: true },
+        price_from: {
+          type: 'number',
+          convert: true,
+          integer: true,
+          min: 1,
+          max: 500,
+          optional: true
+        },
+        price_to: {
+          type: 'number',
+          convert: true,
+          integer: true,
+          min: 0,
+          max: 499,
+          optional: true
+        },
         keyword: { type: 'string', optional: true },
         categoryId: {
           type: 'number',
@@ -35,15 +49,15 @@ module.exports = {
         filter.push({
           term: { archive: false }
         });
-        if (ctx.params.gte && ctx.params.lte) {
+        if (ctx.params.price_from && ctx.params.price_to) {
           filter.push({
             nested: {
               path: 'variations',
               query: {
                 range: {
                   'variations.sale': {
-                    gte: ctx.params.gte,
-                    lte: ctx.params.lte,
+                    gte: ctx.params.price_from,
+                    lte: ctx.params.price_to,
                     boost: 2.0
                   }
                 }
@@ -159,21 +173,21 @@ module.exports = {
 
       return {
         products: fullResult.slice(page * limit - limit, page * limit).map(product => ({
-            sku: product._source.sku,
-            name: this.formatI18nText(product._source.name),
-            description: this.formatI18nText(product._source.description),
-            supplier: product._source.seller_id,
-            images: product._source.images,
-            last_check_date: product._source.last_check_date,
-            categories: this.formatCategories(product._source.categories),
-            attributes: this.formatAttributes(product._source.attributes),
-            variations: this.formatVariations(
-              product._source.variations,
-              instance,
-              rate,
-              product._source.archive
-            )
-          })),
+          sku: product._source.sku,
+          name: this.formatI18nText(product._source.name),
+          description: this.formatI18nText(product._source.description),
+          supplier: product._source.seller_id,
+          images: product._source.images,
+          last_check_date: product._source.last_check_date,
+          categories: this.formatCategories(product._source.categories),
+          attributes: this.formatAttributes(product._source.attributes),
+          variations: this.formatVariations(
+            product._source.variations,
+            instance,
+            rate,
+            product._source.archive
+          )
+        })),
         total: result.hits.total
       };
     }
