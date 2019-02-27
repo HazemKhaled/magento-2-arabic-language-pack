@@ -114,7 +114,7 @@ module.exports = {
         keyword: { type: 'string', optional: true }
       },
       cache: {
-        keys: ['#token', 'page', 'limit', 'lastupdate', '_source'],
+        keys: ['#token', 'page', 'limit', 'lastupdate', 'keyword', '_source'],
         ttl: 30 * 60 // 10 mins
       },
       async handler(ctx) {
@@ -401,18 +401,18 @@ module.exports = {
             const lastUpdatedDate = new Date(Number(lastUpdated) * 1000).toISOString();
             searchQuery.body.query.bool.should = [
               {
-              range: {
-                updated: {
-                  gte: lastUpdatedDate
+                range: {
+                  updated: {
+                    gte: lastUpdatedDate
+                  }
                 }
-              }
               },
               {
-              range: {
-                createdAt: {
-                  gte: lastUpdatedDate
+                range: {
+                  createdAt: {
+                    gte: lastUpdatedDate
+                  }
                 }
-              }
               }
             ];
             searchQuery.body.query.bool.minimum_should_match = 1;
