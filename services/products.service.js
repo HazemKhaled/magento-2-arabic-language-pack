@@ -114,7 +114,7 @@ module.exports = {
         keyword: { type: 'string', optional: true }
       },
       cache: {
-        keys: ['page', 'limit', 'lastupdate', '#token', '_source'],
+        keys: ['#token', 'page', 'limit', 'lastupdate', '_source'],
         ttl: 30 * 60 // 10 mins
       },
       async handler(ctx) {
@@ -164,11 +164,17 @@ module.exports = {
       params: {
         sku: { type: 'string' }
       },
-      async handler(ctx) {
+      handler(ctx) {
         const { sku } = ctx.params;
 
-        const product = await this.deleteProduct(sku, ctx.meta.user);
-        return { product };
+        return this.deleteProduct(sku, ctx.meta.user)
+          .then(product => {
+            this.broker.cacher.clean(`products.list:${ctx.meta.token}**`);
+            return { product };
+          })
+          .catch(error => {
+            throw MoleculerClientError(error);
+          });
       }
     }
   },
