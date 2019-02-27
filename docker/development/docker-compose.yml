@@ -96,6 +96,12 @@ services:
       - elastic
       - default
 
+  redis:
+    image: redis:alpine
+
+  nats:
+    image: nats
+
   traefik:
     image: traefik
     restart: always

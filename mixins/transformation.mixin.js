@@ -74,7 +74,7 @@ module.exports = {
      * @memberof ElasticLib
      */
     formatAttributes(attributes) {
-      attributes = attributes.map(attribute => {
+      return attributes.map(attribute => {
         if (attribute && typeof attribute.name === 'string') {
           return {
             id: attribute.id,
@@ -88,7 +88,6 @@ module.exports = {
         }
         return attribute;
       });
-      return attributes;
     }
   }
 };

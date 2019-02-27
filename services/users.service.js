@@ -43,39 +43,29 @@ module.exports = {
       handler(ctx) {
         const { consumerKey, consumerSecret } = ctx.params;
 
-        return this.Promise.resolve()
-          .then(async () => {
-            try {
-              const [instance] = await this.broker.call('klayer.findInstance', {
-                consumerKey: consumerKey
-              });
-
-              if (!instance) {
-                return this.Promise.reject(
-                  new MoleculerClientError('consumerKey or consumerSecret is invalid!', 422, '', [
-                    { field: 'consumerKey', message: 'is not valid' }
-                  ])
-                );
-              }
-              if (consumerKey === instance.webhook_hash && consumerSecret === instance.secret) {
-                return {
-                  _id: instance.webhook_hash,
-                  url: instance.url,
-                  status: instance.status,
-                  base_currency: instance.base_currency
-                };
-              }
-              return this.Promise.reject(
-                new MoleculerClientError('consumerKey or consumerSecret is invalid!', 422, '', [
-                  { field: 'consumerKey', message: 'is not valid' },
-                  { field: 'consumerSecret', message: 'is not valid' }
-                ])
-              );
-            } catch (err) {
-              return this.Promise.reject(new MoleculerClientError(err));
+        return this.Promise.resolve(this.broker.call('klayer.findInstance', { consumerKey }))
+          .then(([instance]) => {
+            if (consumerKey === instance.webhook_hash && consumerSecret === instance.secret) {
+              return {
+                _id: instance.webhook_hash,
+                url: instance.url,
+                status: instance.status,
+                base_currency: instance.base_currency
+              };
             }
+
+            throw new MoleculerClientError('consumerKey or consumerSecret is invalid!', 422, '', [
+              { field: 'consumerKey', message: 'is not valid' },
+              { field: 'consumerSecret', message: 'is not valid' }
+            ]);
           })
-          .then(user => this.transformEntity(user, true, ctx.meta.token));
+          .then(user => this.transformEntity(user, true, ctx.meta.token))
+          .catch(() => {
+            throw new MoleculerClientError('consumerKey or consumerSecret is invalid!', 422, '', [
+              { field: 'consumerKey', message: 'is not valid' },
+              { field: 'consumerSecret', message: 'is not valid' }
+            ]);
+          });
       }
     },
 
@@ -96,23 +86,30 @@ module.exports = {
         token: 'string'
       },
       handler(ctx) {
-        return new this.Promise((resolve, reject) => {
-          jwt.verify(ctx.params.token, this.settings.JWT_SECRET, (err, decoded) => {
-            if (err) return reject(err);
+        return new this.Promise(resolve => {
+          jwt.verify(ctx.params.token, this.settings.JWT_SECRET, (error, decoded) => {
+            if (error) {
+              throw new MoleculerClientError(error);
+            }
 
             resolve(decoded);
           });
-        }).then(async decoded => {
-          if (decoded.id) {
-            // Get instance info from Klayer
-            const [instance] = await this.broker.call('klayer.findInstance', {
-              consumerKey: decoded.id
-            });
-            if (instance.status === 'confirmed') {
-              return decoded;
+        })
+          .then(async decoded => {
+            if (decoded.id) {
+              // Get instance info from Klayer
+              const [instance] = await this.broker.call('klayer.findInstance', {
+                consumerKey: decoded.id
+              });
+
+              if (instance.status === 'confirmed') {
+                return decoded;
+              }
             }
-          }
-        });
+          })
+          .catch(error => {
+            throw new MoleculerClientError(error);
+          });
       }
     }
   },
@@ -142,7 +139,7 @@ module.exports = {
     },
 
     /**
-     * Transform returned user entity. Generate JWT token if neccessary.
+     * Transform returned user entity. Generate JWT token if necessary.
      *
      * @param {Object} user
      * @param {Boolean} withToken

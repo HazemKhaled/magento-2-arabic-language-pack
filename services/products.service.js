@@ -249,23 +249,24 @@ module.exports = {
         throw new MoleculerClientError(err.message, 404, sku);
       }
     },
+
     /**
      * Get products by instance
      *
-     * @param {Number} page
-     * @param {Number} limit
+     * @param {number} page
+     * @param {number} size
+     * @param {string} instanceId
+     * @param {array} _source
+     * @param {string} [lastupdate='']
+     * @param {string} keyword
      * @returns {Array} Products
      * @memberof ElasticLib
      */
-    async findProducts(page, _size, id, _source, lastupdate = '', keyword) {
-      const [instance] = await this.broker.call('klayer.findInstance', { consumerKey: id });
-      const size = _size || 10;
-      const instanceProductsFull = await this.findIP(page, size, instance, lastupdate, keyword);
+    async findProducts(page, size = 10, instanceId, _source, lastupdate = '', keyword) {
+      const [instance] = await this.broker.call('klayer.findInstance', { consumerKey: instanceId });
+      const instanceProductsFull = await this.findIP(page, size, instanceId, lastupdate, keyword);
 
-      const instanceProducts = instanceProductsFull.page.map(product => {
-        const source = product._source;
-        return source.sku;
-      });
+      const instanceProducts = instanceProductsFull.page.map(product => product._source.sku);
 
       if (instanceProducts.length === 0) {
         return {
@@ -273,6 +274,7 @@ module.exports = {
           total: instanceProductsFull.totalProducts
         };
       }
+
       try {
         const search = await this.broker.call('es.call', {
           api: 'mget',
@@ -291,6 +293,7 @@ module.exports = {
         const rate = await this.broker.call('klayer.currencyRate', {
           currencyCode: instance.base_currency
         });
+
         try {
           const products = results.map(product => {
             if (product.found) {
@@ -303,10 +306,11 @@ module.exports = {
                 images: source.images,
                 last_check_date: source.last_check_date,
                 categories: this.formatCategories(source.categories),
-                attributes: this.formatAttributes(source.attributes),
+                attributes: this.formatAttributes(source.attributes || []),
                 variations: this.formatVariations(source.variations, instance, rate, source.archive)
               };
             }
+
             // In case product not found at products instance
             if (product._id) {
               const blankProduct = {
@@ -334,10 +338,10 @@ module.exports = {
             total: instanceProductsFull.totalProducts
           };
         } catch (err) {
-          return new MoleculerClientError(err, 500);
+          return new MoleculerClientError(err);
         }
       } catch (err) {
-        return new MoleculerClientError(err, 500);
+        return new MoleculerClientError(err);
       }
     },
 
@@ -358,7 +362,7 @@ module.exports = {
     async findIP(
       page = 1,
       size = 10,
-      instance,
+      instanceId,
       lastUpdated = '',
       keyword,
       fullResult = [],
@@ -381,13 +385,13 @@ module.exports = {
               query: {
                 bool: {
                   must_not: [{ term: { deleted: true } }],
-                  must: [{ term: { 'instanceId.keyword': instance.webhook_hash } }]
+                  must: [{ term: { 'instanceId.keyword': instanceId } }]
                 }
               }
             }
           };
 
-          if (keyword && keyword !== '')
+          if (keyword && keyword !== '') {
             searchQuery.body.query.bool.must.push({
               multi_match: {
                 query: keyword,
@@ -395,6 +399,7 @@ module.exports = {
                 fuzziness: 'AUTO'
               }
             });
+          }
 
           // Get new an updated products only
           if (lastUpdated && lastUpdated !== '') {
@@ -417,8 +422,19 @@ module.exports = {
             ];
             searchQuery.body.query.bool.minimum_should_match = 1;
           }
+
+          if (page * size <= 10000) {
+            this.logger.info('NO NEED FOR SCROLL YA M3LM');
+            searchQuery.from = (page - 1) * size;
+            searchQuery.size = size;
+            delete searchQuery.scroll;
+            this.logger.info(searchQuery);
+          } else {
           endTrace = page * size;
+          }
+
           search = await this.broker.call('es.search', searchQuery);
+
           maxScroll = search.hits.total;
         } else {
           search = await this.broker.call('es.call', {
@@ -428,13 +444,15 @@ module.exports = {
         }
 
         const results = fullResult.concat(search.hits.hits);
+
         if (endTrace > size && maxScroll > parseInt(process.env.SCROLL_LIMIT)) {
           maxScroll -= parseInt(process.env.SCROLL_LIMIT);
           endTrace -= parseInt(process.env.SCROLL_LIMIT);
+
           return this.findIP(
             page,
             size,
-            instance,
+            instanceId,
             lastUpdated,
             keyword,
             results,
@@ -443,12 +461,13 @@ module.exports = {
             maxScroll
           );
         }
+
         return {
-          page: results.slice(page * size - size, page * size),
+          page: scrollId ? results.slice(page * size - size, page * size) : results,
           totalProducts: search.hits.total
         };
       } catch (err) {
-        return new MoleculerClientError(err, 500);
+        return new MoleculerClientError(err);
       }
     },
 
