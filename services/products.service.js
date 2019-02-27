@@ -344,27 +344,31 @@ module.exports = {
     /**
      * Get Products-Instances by Instance Hash
      *
-     * @param {Object} instance
-     * @param {Number} page
-     * @returns {Array} Instance Products
-     * @memberof ElasticLib
+     * @param {number} [page=1]
+     * @param {number} [size=10]
+     * @param {object} instance
+     * @param {string} [lastUpdated='']
+     * @param {string} keyword
+     * @param {array} [fullResult=[]] Array of products last recursive call
+     * @param {number} [endTrace=0]  to trace the end product needed and stop scrolling after reaching it
+     * @param {boolean} [scrollId=false] sending the scroll id on the callback
+     * @param {number} [maxScroll=0] just tracking to total products number to the scroll limit to stop if no more products
+     * @returns {array} Instance Products
      */
     async findIP(
-      page,
-      _size,
+      page = 1,
+      size = 10,
       instance,
       lastUpdated = '',
       keyword,
-      fullResult = [], // all products from scroll pages
-      trace = 0, // to trace the end product needed and stop scrolling after reaching it
-      scrollId = false, // sending the scroll id on the callback
-      maxScroll = 0 // just tracking to total products number to the scroll limit to stop if no more products
+      fullResult = [],
+      endTrace = 0,
+      scrollId = false,
+      maxScroll = 0
     ) {
-      const size = _size || 10;
-      let endTrace = trace;
       page = parseInt(page) || 1;
-      let max = maxScroll;
       let search = [];
+
       try {
         if (!scrollId) {
           const searchQuery = {
@@ -382,6 +386,7 @@ module.exports = {
               }
             }
           };
+
           if (keyword && keyword !== '')
             searchQuery.body.query.bool.must.push({
               multi_match: {
@@ -390,48 +395,52 @@ module.exports = {
                 fuzziness: 'AUTO'
               }
             });
+
+          // Get new an updated products only
           if (lastUpdated && lastUpdated !== '') {
             const lastUpdatedDate = new Date(Number(lastUpdated) * 1000).toISOString();
-            searchQuery.body.query.bool.should = [];
-            searchQuery.body.query.bool.minimum_should_match = 1;
-            searchQuery.body.query.bool.should.push({
+            searchQuery.body.query.bool.should = [
+              {
               range: {
                 updated: {
                   gte: lastUpdatedDate
                 }
               }
-            });
-            searchQuery.body.query.bool.should.push({
+              },
+              {
               range: {
                 createdAt: {
                   gte: lastUpdatedDate
                 }
               }
-            });
+              }
+            ];
+            searchQuery.body.query.bool.minimum_should_match = 1;
           }
           endTrace = page * size;
           search = await this.broker.call('es.search', searchQuery);
-          max = search.hits.total;
+          maxScroll = search.hits.total;
         } else {
           search = await this.broker.call('es.call', {
             api: 'scroll',
             params: { scroll: '30s', scrollId: scrollId }
           });
         }
+
         const results = fullResult.concat(search.hits.hits);
-        if (endTrace > size && max > parseInt(process.env.SCROLL_LIMIT)) {
-          max -= parseInt(process.env.SCROLL_LIMIT);
+        if (endTrace > size && maxScroll > parseInt(process.env.SCROLL_LIMIT)) {
+          maxScroll -= parseInt(process.env.SCROLL_LIMIT);
           endTrace -= parseInt(process.env.SCROLL_LIMIT);
           return this.findIP(
             page,
-            _size,
+            size,
             instance,
             lastUpdated,
             keyword,
             results,
             endTrace,
             search._scroll_id,
-            max
+            maxScroll
           );
         }
         return {
@@ -447,7 +456,7 @@ module.exports = {
      * Delete Product By SKU
      *
      * @param SKU
-     * @param id Intance ID
+     * @param id Instance ID
      * @returns {Object} Status of delete product
      * @memberof ElasticLib
      */
