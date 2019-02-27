@@ -422,7 +422,17 @@ module.exports = {
             ];
             searchQuery.body.query.bool.minimum_should_match = 1;
           }
+
+          if (page * size <= 10000) {
+            this.logger.info('NO NEED FOR SCROLL YA M3LM');
+            searchQuery.from = (page - 1) * size;
+            searchQuery.size = size;
+            delete searchQuery.scroll;
+            this.logger.info(searchQuery);
+          } else {
           endTrace = page * size;
+          }
+
           search = await this.broker.call('es.search', searchQuery);
 
           maxScroll = search.hits.total;
@@ -453,7 +463,7 @@ module.exports = {
         }
 
         return {
-          page: results.slice(page * size - size, page * size),
+          page: scrollId ? results.slice(page * size - size, page * size) : results,
           totalProducts: search.hits.total
         };
       } catch (err) {
