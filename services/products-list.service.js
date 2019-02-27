@@ -161,7 +161,7 @@ module.exports = {
             if (newSKUs.length !== 0) {
               res.hits.hits.forEach(product => {
                 bulk.push({
-                  create: {
+                  index: {
                     _index: 'products-instances',
                     _type: 'product',
                     _id: `${instance.webhook_hash}-${product._id}`
