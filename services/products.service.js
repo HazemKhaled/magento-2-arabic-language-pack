@@ -303,7 +303,7 @@ module.exports = {
                 images: source.images,
                 last_check_date: source.last_check_date,
                 categories: this.formatCategories(source.categories),
-                attributes: this.formatAttributes(source.attributes),
+                attributes: this.formatAttributes(source.attributes || []),
                 variations: this.formatVariations(source.variations, instance, rate, source.archive)
               };
             }
