@@ -143,8 +143,8 @@ module.exports = {
      */
     getOrders: {
       params: {
-        page: { type: 'number', optional: true },
-        limit: { type: 'number', optional: true },
+        page: { type: 'number', convert: true, integer: true, optional: true },
+        limit: { type: 'number', convert: true, integer: true, optional: true },
         orderId: { type: 'string', optional: true }
       },
       async handler(ctx) {
