@@ -16,30 +16,31 @@ module.exports = {
      * @memberof KlayerService
      */
     findInstance: {
+      cache: {
+        keys: ['consumerKey'],
+        ttl: 60 * 60 // 1 hour
+      },
       params: {
         consumerKey: { type: 'string' }
       },
-      async handler(ctx) {
-        try {
-          const instance = await request({
-            method: 'get',
-            uri: this.getUrl(
-              `Instances?filter=${JSON.stringify({
-                where: { webhook_hash: ctx.params.consumerKey }
-              })}`
-            ),
-            qs: {
-              access_token: this.settings.access_token
-            },
-            headers: {
-              'User-Agent': 'Request-MicroES'
-            },
-            json: true
-          });
-          return instance;
-        } catch (err) {
-          return new MoleculerClientError(err);
-        }
+      handler(ctx) {
+        return request({
+          method: 'get',
+          uri: this.getUrl(
+            `Instances?filter=${JSON.stringify({
+              where: { webhook_hash: ctx.params.consumerKey }
+            })}`
+          ),
+          qs: {
+            access_token: this.settings.access_token
+          },
+          headers: {
+            'User-Agent': 'Request-MicroES'
+          },
+          json: true
+        }).catch(error => {
+          throw new MoleculerClientError(error.message, error.code, error.type, ctx.params);
+        });
       }
     },
 
@@ -54,23 +55,22 @@ module.exports = {
       params: {
         currencyCode: { type: 'string' }
       },
-      async handler(ctx) {
-        try {
-          const currency = await request({
-            method: 'GET',
-            uri: this.getUrl(`Currencies/${ctx.params.currencyCode}`),
-            qs: {
-              access_token: this.settings.access_token
-            },
-            headers: {
-              'User-Agent': 'Request-MicroES'
-            },
-            json: true
+      handler(ctx) {
+        return request({
+          method: 'GET',
+          uri: this.getUrl(`Currencies/${ctx.params.currencyCode}`),
+          qs: {
+            access_token: this.settings.access_token
+          },
+          headers: {
+            'User-Agent': 'Request-MicroES'
+          },
+          json: true
+        })
+          .then(({ rate }) => rate)
+          .catch(error => {
+            throw new MoleculerClientError(error.message, error.code, error.type, ctx.params);
           });
-          return currency.rate;
-        } catch (err) {
-          return new MoleculerClientError(err.message);
-        }
       }
     },
 
@@ -78,38 +78,28 @@ module.exports = {
      * Create Order in Klayer
      *
      * @param {Object} order
-     * @param {String} consumerKey instance webhook_hash
      * @returns {Object} response
      * @memberof KlayerService
      */
     createOrder: {
       params: {
-        order: { type: 'object' },
-        consumerKey: { type: 'string' }
+        order: { type: 'object' }
       },
-      async handler(ctx) {
-        const [instance] = await ctx.call('klayer.findInstance', {
-          consumerKey: ctx.params.consumerKey
+      handler(ctx) {
+        request({
+          method: 'POST',
+          uri: this.getUrl(`webhook/orders/create/${ctx.meta.user}`),
+          qs: {
+            access_token: this.settings.access_token
+          },
+          headers: {
+            'User-Agent': 'Request-MicroES'
+          },
+          body: ctx.params.order,
+          json: true
+        }).catch(error => {
+          throw new MoleculerClientError(error.message, error.code, error.type, ctx.params);
         });
-        const hash = instance.webhook_hash;
-
-        try {
-          const created = await request({
-            method: 'POST',
-            uri: this.getUrl(`webhook/orders/create/${hash}`),
-            qs: {
-              access_token: this.settings.access_token
-            },
-            headers: {
-              'User-Agent': 'Request-MicroES'
-            },
-            body: ctx.params.order,
-            json: true
-          });
-          return created;
-        } catch (err) {
-          return new MoleculerClientError(err);
-        }
       }
     },
 
@@ -117,37 +107,28 @@ module.exports = {
      * Create Order in Klayer
      *
      * @param {Object} order
-     * @param {String} consumerKey instance webhook_hash
      * @returns {Object} response
      * @memberof KlayerService
      */
     updateOrder: {
       params: {
-        order: { type: 'object' },
-        consumerKey: { type: 'string' }
+        order: { type: 'object' }
       },
-      async handler(ctx) {
-        const [instance] = await ctx.call('klayer.findInstance', {
-          consumerKey: ctx.params.consumerKey
+      handler(ctx) {
+        return request({
+          method: 'POST',
+          uri: this.getUrl(`webhook/orders/update/${ctx.meta.user}`),
+          qs: {
+            access_token: this.settings.access_token
+          },
+          headers: {
+            'User-Agent': 'Request-MicroES'
+          },
+          body: ctx.params.order,
+          json: true
+        }).catch(error => {
+          throw new MoleculerClientError(error.message, error.code, error.type, ctx.params);
         });
-        const hash = instance.webhook_hash;
-        try {
-          const updated = await request({
-            method: 'POST',
-            uri: this.getUrl(`webhook/orders/update/${hash}`),
-            qs: {
-              access_token: this.settings.access_token
-            },
-            headers: {
-              'User-Agent': 'Request-MicroES'
-            },
-            body: ctx.params.order,
-            json: true
-          });
-          return updated;
-        } catch (err) {
-          return new MoleculerClientError(err);
-        }
       }
     },
 
@@ -156,7 +137,6 @@ module.exports = {
      *
      * @param {int} page
      * @param {int} limit
-     * @param {String} consumerKey instance webhook_hash
      * @param {String} orderId order id
      * @returns
      * @memberof KlayerService
@@ -165,12 +145,11 @@ module.exports = {
       params: {
         page: { type: 'number' },
         limit: { type: 'number' },
-        consumerKey: { type: 'string' },
         orderId: { type: 'string', optional: true }
       },
       async handler(ctx) {
         const [instance] = await ctx.call('klayer.findInstance', {
-          consumerKey: ctx.params.consumerKey
+          consumerKey: ctx.meta.user
         });
 
         const partnerId = instance.partner_id;
