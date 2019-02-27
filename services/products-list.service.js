@@ -1,4 +1,3 @@
-// const { MoleculerClientError } = require('moleculer').Errors;
 const { MoleculerClientError } = require('moleculer').Errors;
 const Transformation = require('../mixins/transformation.mixin');
 
@@ -143,6 +142,7 @@ module.exports = {
           .call('es.search', {
             index: 'products',
             type: 'Product',
+            size: skus.length + 1,
             body: {
               query: {
                 bool: {
