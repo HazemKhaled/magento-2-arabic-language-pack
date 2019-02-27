@@ -9,7 +9,7 @@
     "deps": "npm-check -u",
     "ci": "jest --watch",
     "test": "jest --coverage",
-    "lint": "eslint .",
+    "lint": "eslint services mixins",
     "lint-fix": "eslint services mixins libs --fix",
     "prettier": "prettier services/*.js mixins/*.js libs/*.js *.js --write"
   },
