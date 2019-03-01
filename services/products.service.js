@@ -111,10 +111,11 @@ module.exports = {
         },
         page: { type: 'number', convert: true, integer: true, min: 1, optional: true },
         lastupdate: { type: 'string', empty: false, optional: true },
+        hideOutOfStock: { type: 'boolean', convert: true, optional: true },
         keyword: { type: 'string', optional: true }
       },
       cache: {
-        keys: ['#token', 'page', 'limit', 'lastupdate', 'keyword', '_source'],
+        keys: ['#token', 'page', 'limit', 'lastupdate', 'hideOutOfStock', 'keyword', '_source'],
         ttl: 30 * 60 // 10 mins
       },
       async handler(ctx) {
@@ -145,6 +146,7 @@ module.exports = {
           ctx.meta.user,
           _source,
           lastupdate,
+          ctx.params.hideOutOfStock,
           ctx.params.keyword
         );
 
@@ -336,9 +338,24 @@ module.exports = {
      * @returns {Array} Products
      * @memberof ElasticLib
      */
-    async findProducts(page, size = 10, instanceId, _source, lastupdate = '', keyword) {
+    async findProducts(
+      page,
+      size = 10,
+      instanceId,
+      _source,
+      lastupdate = '',
+      hideOutOfStock,
+      keyword
+    ) {
       const [instance] = await this.broker.call('klayer.findInstance', { consumerKey: instanceId });
-      const instanceProductsFull = await this.findIP(page, size, instanceId, lastupdate, keyword);
+      const instanceProductsFull = await this.findIP(
+        page,
+        size,
+        instanceId,
+        lastupdate,
+        hideOutOfStock,
+        keyword
+      );
 
       const instanceProducts = instanceProductsFull.page.map(product => product._source.sku);
 
@@ -438,6 +455,7 @@ module.exports = {
       size = 10,
       instanceId,
       lastUpdated = '',
+      hideOutOfStock = false,
       keyword,
       fullResult = [],
       endTrace = 0,
@@ -446,7 +464,9 @@ module.exports = {
     ) {
       page = parseInt(page) || 1;
       let search = [];
-
+      const mustNot = hideOutOfStock
+        ? [{ term: { deleted: true } }, { term: { archive: true } }]
+        : [{ term: { deleted: true } }];
       try {
         if (!scrollId) {
           const searchQuery = {
@@ -458,7 +478,7 @@ module.exports = {
               sort: [{ createdAt: { order: 'asc' } }],
               query: {
                 bool: {
-                  must_not: [{ term: { deleted: true } }],
+                  must_not: mustNot,
                   must: [{ term: { 'instanceId.keyword': instanceId } }]
                 }
               }
@@ -528,6 +548,7 @@ module.exports = {
             size,
             instanceId,
             lastUpdated,
+            hideOutOfStock,
             keyword,
             results,
             endTrace,
