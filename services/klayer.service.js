@@ -143,29 +143,27 @@ module.exports = {
      */
     getOrders: {
       params: {
-        page: { type: 'number' },
-        limit: { type: 'number' },
+        page: { type: 'number', convert: true, integer: true, optional: true },
+        limit: { type: 'number', convert: true, integer: true, optional: true },
         orderId: { type: 'string', optional: true }
       },
       async handler(ctx) {
+        const { page = 1, limit = 10, orderId } = ctx.params;
         const [instance] = await ctx.call('klayer.findInstance', {
           consumerKey: ctx.meta.user
         });
 
         const partnerId = instance.partner_id;
-        const query = !ctx.params.orderId
-          ? { partner_id: partnerId }
-          : { partner_id: partnerId, id: ctx.params.orderId };
+        const query = !orderId ? { partner_id: partnerId } : { partner_id: partnerId, id: orderId };
 
         try {
-          const orderLimit = ctx.params.limit === undefined ? 10 : ctx.params.limit;
-          const orderSkip = ctx.params.page > 0 ? (ctx.params.page - 1) * orderLimit : 0;
+          const orderSkip = page > 0 ? (page - 1) * limit : 0;
           let orders = await request({
             method: 'GET',
             uri: this.getUrl(
               `webhook/orders?filter=${JSON.stringify({
                 where: query,
-                limit: orderLimit,
+                limit: limit,
                 skip: orderSkip
               })}`
             ),
@@ -205,7 +203,7 @@ module.exports = {
             return formattedOrder;
           });
           // for case of single order.
-          if (ctx.params.orderId) {
+          if (orderId) {
             const [order] = orders;
             return order;
           }
