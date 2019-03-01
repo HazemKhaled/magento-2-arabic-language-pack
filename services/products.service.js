@@ -111,7 +111,7 @@ module.exports = {
         },
         page: { type: 'number', convert: true, integer: true, min: 1, optional: true },
         lastupdate: { type: 'string', empty: false, optional: true },
-        hideOutOfStock: { type: 'boolean', convert: true, optional: true },
+        hideOutOfStock: { type: 'number', empty: false, convert: true, optional: true },
         keyword: { type: 'string', optional: true }
       },
       cache: {
@@ -455,7 +455,7 @@ module.exports = {
       size = 10,
       instanceId,
       lastUpdated = '',
-      hideOutOfStock = false,
+      hideOutOfStock,
       keyword,
       fullResult = [],
       endTrace = 0,
@@ -464,9 +464,10 @@ module.exports = {
     ) {
       page = parseInt(page) || 1;
       let search = [];
-      const mustNot = hideOutOfStock
-        ? [{ term: { deleted: true } }, { term: { archive: true } }]
-        : [{ term: { deleted: true } }];
+      const mustNot =
+        parseInt(hideOutOfStock) === 1
+          ? [{ term: { deleted: true } }, { term: { archive: true } }]
+          : [{ term: { deleted: true } }];
       try {
         if (!scrollId) {
           const searchQuery = {
