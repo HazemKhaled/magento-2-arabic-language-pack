@@ -34,6 +34,15 @@ services:
       - elastic
       - default
 
+  klayer:
+    build:
+      context: ../../
+    image: microes
+    restart: always
+    env_file: .env
+    environment:
+      SERVICES: klayer
+
   users:
     build:
       context: ../../
