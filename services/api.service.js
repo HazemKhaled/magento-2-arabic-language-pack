@@ -25,8 +25,8 @@ module.exports = {
           'GET catalog/products/:sku': 'products.get',
           'DELETE catalog/products/:sku': 'products.delete',
           'GET catalog/categories': 'categories.list',
-          'GET catalog/list': 'products-list.searchByFilters',
-          'POST catalog/add': 'products-list.import',
+          // 'GET catalog/list': 'products-list.searchByFilters',
+          'POST catalog/add': 'products.import',
           // Order
           'POST orders': 'orders.create',
           'GET orders/:order_id': 'orders.get',

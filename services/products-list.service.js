@@ -1,4 +1,3 @@
-const { MoleculerClientError } = require('moleculer').Errors;
 const Transformation = require('../mixins/transformation.mixin');
 
 module.exports = {
@@ -119,80 +118,6 @@ module.exports = {
           }
         };
         return this.searchCall(ctx.meta.user, body, ctx.params.limit, ctx.params.page);
-      }
-    },
-    import: {
-      auth: 'required',
-      params: {
-        products: {
-          type: 'array',
-          items: {
-            type: 'object',
-            props: {
-              sku: { type: 'string' }
-            }
-          },
-          max: 1000,
-          min: 1
-        }
-      },
-      handler(ctx) {
-        const skus = ctx.params.products.map(i => i.sku);
-        return ctx
-          .call('es.search', {
-            index: 'products',
-            type: 'Product',
-            size: skus.length + 1,
-            body: {
-              query: {
-                bool: {
-                  filter: [{ terms: { _id: skus } }, { term: { archive: false } }]
-                }
-              }
-            }
-          })
-          .then(async res => {
-            const newSKUs = res.hits.hits.map(product => product._id);
-            const outOfStock = skus.filter(sku => !newSKUs.includes(sku));
-            const [instance] = await this.broker.call('klayer.findInstance', {
-              consumerKey: ctx.meta.user
-            });
-            const bulk = [];
-            if (newSKUs.length !== 0) {
-              res.hits.hits.forEach(product => {
-                bulk.push({
-                  index: {
-                    _index: 'products-instances',
-                    _type: 'product',
-                    _id: `${instance.webhook_hash}-${product._id}`
-                  }
-                });
-                bulk.push({
-                  instanceId: instance.webhook_hash,
-                  createdAt: new Date(),
-                  siteUrl: instance.url,
-                  sku: product._id,
-                  variations: product._source.variations
-                    .filter(variation => variation.quantity > 0)
-                    .map(variation => ({ sku: variation.sku }))
-                });
-              });
-            }
-            await ctx
-              .call('es.bulk', {
-                index: 'products-instances',
-                type: 'product',
-                body: bulk
-              })
-              .then(() => this.broker.cacher.clean(`products.list:${ctx.meta.token}**`));
-            return {
-              success: newSKUs,
-              outOfStock: outOfStock
-            };
-          })
-          .catch(error => {
-            throw new MoleculerClientError(error.message, 500, error.type, ctx.params);
-          });
       }
     }
   },
