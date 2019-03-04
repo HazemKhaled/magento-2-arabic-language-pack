@@ -27,6 +27,7 @@ module.exports = {
           'GET catalog/categories': 'categories.list',
           // 'GET catalog/list': 'products-list.searchByFilters',
           'POST catalog/add': 'products.import',
+          'PUT catalog/update/:sku': 'products.update',
           // Order
           'POST orders': 'orders.create',
           'GET orders/:order_id': 'orders.get',

@@ -252,6 +252,42 @@ module.exports = {
             throw new MoleculerClientError(error.message, 500, error.type, ctx.params);
           });
       }
+    },
+    update: {
+      auth: 'required',
+      params: {
+        sku: { type: 'string', convert: true },
+        externalUrl: { type: 'string', optional: true },
+        externalId: { type: 'number', convert: true, optional: true },
+        variations: {
+          type: 'array',
+          optional: true,
+          items: {
+            type: 'object',
+            props: {
+              sku: { type: 'string', convert: true, optional: true },
+              externalId: { type: 'number', optional: true, convert: true }
+            }
+          }
+        }
+      },
+      handler(ctx) {
+        const body = {};
+        if (ctx.params.externalUrl) body.externalUrl = ctx.params.externalUrl;
+        if (ctx.params.externalId) body.externalId = ctx.params.externalId;
+        if (ctx.params.variations) body.variations = ctx.params.variations;
+        return ctx
+          .call('es.update', {
+            index: 'products-instances',
+            type: 'product',
+            id: `${ctx.meta.user}-${ctx.params.sku}`,
+            body: { doc: body }
+          })
+          .then(() => 'Updated Successfully!')
+          .catch(err => {
+            throw new MoleculerClientError(err.message, 500, err.type, ctx.params);
+          });
+      }
     }
   },
   methods: {
