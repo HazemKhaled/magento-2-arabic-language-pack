@@ -164,7 +164,8 @@ module.exports = {
         maxScroll = result.hits.total;
         trace = page * limit;
       }
-      fullResult = fullResult.concat(result.hits.hits);
+      fullResult =
+        trace - parseInt(process.env.SCROLL_LIMIT) <= 0 ? fullResult.concat(result.hits.hits) : [];
       if (trace > limit && maxScroll > parseInt(process.env.SCROLL_LIMIT)) {
         maxScroll -= parseInt(process.env.SCROLL_LIMIT);
         trace -= parseInt(process.env.SCROLL_LIMIT);
@@ -185,22 +186,27 @@ module.exports = {
       });
 
       return {
-        products: fullResult.slice(page * limit - limit, page * limit).map(product => ({
-          sku: product._source.sku,
-          name: this.formatI18nText(product._source.name),
-          description: this.formatI18nText(product._source.description),
-          supplier: product._source.seller_id,
-          images: product._source.images,
-          last_check_date: product._source.last_check_date,
-          categories: this.formatCategories(product._source.categories),
-          attributes: this.formatAttributes(product._source.attributes),
-          variations: this.formatVariations(
-            product._source.variations,
-            instance,
-            rate,
-            product._source.archive
+        products: fullResult
+          .slice(
+            scrollId ? -limit + trace + parseInt(process.env.SCROLL_LIMIT) : -limit + trace,
+            scrollId ? trace + parseInt(process.env.SCROLL_LIMIT) : trace
           )
-        })),
+          .map(product => ({
+            sku: product._source.sku,
+            name: this.formatI18nText(product._source.name),
+            description: this.formatI18nText(product._source.description),
+            supplier: product._source.seller_id,
+            images: product._source.images,
+            last_check_date: product._source.last_check_date,
+            categories: this.formatCategories(product._source.categories),
+            attributes: this.formatAttributes(product._source.attributes),
+            variations: this.formatVariations(
+              product._source.variations,
+              instance,
+              rate,
+              product._source.archive
+            )
+          })),
         total: result.hits.total
       };
     }
