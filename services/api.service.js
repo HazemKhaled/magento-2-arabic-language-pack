@@ -21,13 +21,13 @@ module.exports = {
 
           // Product
           'GET catalog/products': 'products.list',
-          'GET catalog/products/count': 'products.count',
-          'GET catalog/products/:sku': 'products.get',
-          'DELETE catalog/products/:sku': 'products.delete',
+          'GET catalog/products/count': 'products.total',
+          'GET catalog/products/:sku': 'products.getInstanceProduct',
+          'DELETE catalog/products/:sku': 'products.deleteInstanceProduct',
           'GET catalog/categories': 'categories.list',
-          // 'GET catalog/list': 'products-list.searchByFilters',
+          'GET catalog/list': 'products-list.searchByFilters',
           'POST catalog/add': 'products.import',
-          'PUT catalog/update/:sku': 'products.update',
+          'PUT catalog/update/:sku': 'products.instanceUpdate',
           // Order
           'POST orders': 'orders.create',
           'GET orders/:order_id': 'orders.get',

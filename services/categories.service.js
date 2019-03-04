@@ -1,4 +1,5 @@
 const { MoleculerClientError } = require('moleculer').Errors;
+const ESService = require('moleculer-elasticsearch');
 
 module.exports = {
   name: 'categories',
@@ -7,6 +8,18 @@ module.exports = {
    * Service metadata
    */
   metadata: {},
+  mixins: [ESService],
+
+  /**
+   * Service settings
+   */
+  settings: {
+    elasticsearch: {
+      host: `http://${process.env.ELASTIC_AUTH}@${process.env.ELASTIC_HOST}:${
+        process.env.ELASTIC_PORT
+      }`
+    }
+  },
 
   /**
    * Actions
@@ -36,7 +49,7 @@ module.exports = {
      */
     fetchCategories() {
       return this.broker
-        .call('es.search', {
+        .call('categories.search', {
           index: 'categories',
           type: 'Category',
           body: {

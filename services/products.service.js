@@ -1,4 +1,5 @@
 const { MoleculerClientError } = require('moleculer').Errors;
+const ESService = require('moleculer-elasticsearch');
 const AgileCRM = require('../mixins/agilecrm.mixin');
 const Transformation = require('../mixins/transformation.mixin');
 
@@ -9,11 +10,20 @@ module.exports = {
    * Service metadata
    */
   metadata: {},
-
+  /**
+   * Service settings
+   */
+  settings: {
+    elasticsearch: {
+      host: `http://${process.env.ELASTIC_AUTH}@${process.env.ELASTIC_HOST}:${
+        process.env.ELASTIC_PORT
+      }`
+    }
+  },
   /**
    * Service Mixins
    */
-  mixins: [AgileCRM, Transformation],
+  mixins: [AgileCRM, Transformation, ESService],
 
   /**
    * Actions
@@ -24,7 +34,7 @@ module.exports = {
      *
      * @returns {Object} Product
      */
-    get: {
+    getInstanceProduct: {
       auth: 'required',
       cache: { keys: ['sku'], ttl: 60 },
       async handler(ctx) {
@@ -59,11 +69,11 @@ module.exports = {
      *
      * @return {Number}
      */
-    count: {
+    total: {
       auth: 'required',
       handler(ctx) {
         return ctx
-          .call('es.count', {
+          .call('products.count', {
             body: {
               query: {
                 bool: {
@@ -88,7 +98,7 @@ module.exports = {
           })
           .then(res => {
             if (typeof res.count !== 'number') return new MoleculerClientError('Error', 500);
-            return { total: res.count };
+            return { total: res.countac };
           });
       }
     },
@@ -161,7 +171,7 @@ module.exports = {
      *
      * @returns {Object} Product
      */
-    delete: {
+    deleteInstanceProduct: {
       auth: 'required',
       params: {
         sku: { type: 'string' }
@@ -187,7 +197,7 @@ module.exports = {
           items: {
             type: 'object',
             props: {
-              sku: { type: 'string' }
+              sku: { type: 'string', convert: true }
             }
           },
           max: 1000,
@@ -197,7 +207,7 @@ module.exports = {
       handler(ctx) {
         const skus = ctx.params.products.map(i => i.sku);
         return ctx
-          .call('es.search', {
+          .call('products.search', {
             index: 'products',
             type: 'Product',
             size: skus.length + 1,
@@ -237,7 +247,7 @@ module.exports = {
               });
             }
             await ctx
-              .call('es.bulk', {
+              .call('products.bulk', {
                 index: 'products-instances',
                 type: 'product',
                 body: bulk
@@ -247,13 +257,10 @@ module.exports = {
               success: newSKUs,
               outOfStock: outOfStock
             };
-          })
-          .catch(error => {
-            throw new MoleculerClientError(error.message, 500, error.type, ctx.params);
           });
       }
     },
-    update: {
+    instanceUpdate: {
       auth: 'required',
       params: {
         sku: { type: 'string', convert: true },
@@ -277,7 +284,7 @@ module.exports = {
         if (ctx.params.externalId) body.externalId = ctx.params.externalId;
         if (ctx.params.variations) body.variations = ctx.params.variations;
         return ctx
-          .call('es.update', {
+          .call('products.update', {
             index: 'products-instances',
             type: 'product',
             id: `${ctx.meta.user}-${ctx.params.sku}`,
@@ -303,7 +310,7 @@ module.exports = {
 
       try {
         const result = await this.broker
-          .call('es.search', {
+          .call('products.search', {
             index: 'products-instances',
             type: 'product',
             _source: _source,
@@ -321,7 +328,7 @@ module.exports = {
           })
           .then(res =>
             res.hits.total > 0
-              ? this.broker.call('es.search', {
+              ? this.broker.call('products.search', {
                   index: 'products',
                   type: 'Product',
                   _source: _source,
@@ -403,7 +410,7 @@ module.exports = {
       }
 
       try {
-        const search = await this.broker.call('es.call', {
+        const search = await this.broker.call('products.call', {
           api: 'mget',
           params: {
             index: 'products',
@@ -564,11 +571,11 @@ module.exports = {
             endTrace = page * size;
           }
 
-          search = await this.broker.call('es.search', searchQuery);
+          search = await this.broker.call('products.search', searchQuery);
 
           maxScroll = search.hits.total;
         } else {
-          search = await this.broker.call('es.call', {
+          search = await this.broker.call('products.call', {
             api: 'scroll',
             params: { scroll: '30s', scrollId: scrollId }
           });
@@ -613,7 +620,7 @@ module.exports = {
      */
     async deleteProduct(sku, id) {
       try {
-        const result = await this.broker.call('es.update', {
+        const result = await this.broker.call('products.update', {
           index: 'products-instances',
           type: 'product',
           id: `${id}-${sku}`,

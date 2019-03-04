@@ -1,8 +1,16 @@
+const ESService = require('moleculer-elasticsearch');
 const Transformation = require('../mixins/transformation.mixin');
 
 module.exports = {
   name: 'products-list',
-  mixins: [Transformation],
+  mixins: [Transformation, ESService],
+  settings: {
+    elasticsearch: {
+      host: `http://${process.env.ELASTIC_AUTH}@${process.env.ELASTIC_HOST}:${
+        process.env.ELASTIC_PORT
+      }`
+    }
+  },
   actions: {
     searchByFilters: {
       auth: 'required',
@@ -141,12 +149,12 @@ module.exports = {
       page = page ? parseInt(page) : 1;
       let result = [];
       if (scrollId)
-        result = await this.broker.call('es.call', {
+        result = await this.broker.call('products-list.call', {
           api: 'scroll',
           params: { scroll: '30s', scrollId: scrollId }
         });
       else {
-        result = await this.broker.call('es.search', {
+        result = await this.broker.call('products-list.search', {
           index: 'products',
           type: 'Product',
           size: process.env.SCROLL_LIMIT,
