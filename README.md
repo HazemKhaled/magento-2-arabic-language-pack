@@ -34,7 +34,7 @@ npm run prettier
 
 1.  `cd ./docker/development/`
 2.  `cp docker-compose.example.env docker-compose.env` and update your vars
-3.  Optional: Open docker-compose.yml and remove network if you don't have Traefik containner running
+3.  Optional: Open docker-compose.yml and remove network if you don't have Traefik container running
 4.  Start with docker-compose: `docker compose up -d`
 
 ### Run in Docker (Production)
@@ -56,7 +56,7 @@ https://knawat-mp.restlet.io/
 
 #### MongoDB persistent store
 
-This project using NeDB for local configurations and authontication, into path `./data`, while we using MongoDB to manage products with FOX, set the `MONGO_URI` environment variable to connect.
+This project using NeDB for local configurations and authentication, into path `./data`, while we using MongoDB to manage products with FOX, set the `MONGO_URI` environment variable to connect.
 
 ```
 MONGO_URI=mongodb://localhost/suppliers
