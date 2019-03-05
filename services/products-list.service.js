@@ -48,7 +48,16 @@ module.exports = {
           min: -1,
           optional: true
         },
-        sortBy: { type: 'string', optional: true }
+        sortBy: { type: 'string', optional: true },
+        images: {
+          type: 'number',
+          optional: true,
+          integer: true,
+          max: 15,
+          min: 0,
+          empty: false,
+          convert: true
+        }
       },
       handler(ctx) {
         const filter = [];
@@ -116,6 +125,15 @@ module.exports = {
             break;
           default:
             break;
+        }
+        if (ctx.params.images) {
+          filter.push({
+            script: {
+              script: {
+                source: `doc['images'].values.size() > ${parseInt(ctx.params.images)};`
+              }
+            }
+          });
         }
         const body = {
           sort: sort,
