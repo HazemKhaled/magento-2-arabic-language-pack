@@ -12,6 +12,12 @@ module.exports = {
     }
   },
   actions: {
+    getAttributes: {
+      params: {},
+      handler(ctx) {
+        ctx.call('products-list.search', {});
+      }
+    },
     searchByFilters: {
       auth: 'required',
       params: {
@@ -55,20 +61,33 @@ module.exports = {
           convert: true
         }
       },
+      cache: {
+        keys: [
+          'page',
+          'limit',
+          'price_to',
+          'price_from',
+          'keyword',
+          'category_id',
+          'sortBy',
+          'images'
+        ],
+        ttl: 30 * 60 // 10 mins
+      },
       handler(ctx) {
         const filter = [];
         filter.push({
           term: { archive: false }
         });
-        if (ctx.params.price_from && ctx.params.price_to) {
+        if (ctx.params.price_from || ctx.params.price_to) {
           filter.push({
             nested: {
               path: 'variations',
               query: {
                 range: {
                   'variations.sale': {
-                    gte: ctx.params.price_to,
-                    lte: ctx.params.price_from,
+                    gte: ctx.params.price_to ? ctx.params.price_to : 0,
+                    lte: ctx.params.price_from ? ctx.params.price_from : 1000000,
                     boost: 2.0
                   }
                 }
