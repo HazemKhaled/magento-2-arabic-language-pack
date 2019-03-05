@@ -28,16 +28,12 @@ module.exports = {
           type: 'number',
           convert: true,
           integer: true,
-          min: 1,
-          max: 500,
           optional: true
         },
         price_from: {
           type: 'number',
           convert: true,
           integer: true,
-          min: 0,
-          max: 499,
           optional: true
         },
         keyword: { type: 'string', optional: true },
