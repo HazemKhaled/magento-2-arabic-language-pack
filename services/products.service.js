@@ -98,7 +98,7 @@ module.exports = {
           })
           .then(res => {
             if (typeof res.count !== 'number') return new MoleculerClientError('Error', 500);
-            return { total: res.countac };
+            return { total: res.count };
           });
       }
     },
