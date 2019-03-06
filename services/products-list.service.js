@@ -34,14 +34,17 @@ module.exports = {
           type: 'number',
           convert: true,
           integer: true,
+          empty: false,
           optional: true
         },
         price_from: {
           type: 'number',
           convert: true,
           integer: true,
+          empty: false,
           optional: true
         },
+        keywordLang: { type: 'array', optional: true, items: { type: 'string', min: 2, max: 2 } },
         keyword: { type: 'string', optional: true },
         category_id: {
           type: 'number',
@@ -68,6 +71,7 @@ module.exports = {
           'price_to',
           'price_from',
           'keyword',
+          'keywordLang',
           'category_id',
           'sortBy',
           'images'
@@ -86,8 +90,8 @@ module.exports = {
               query: {
                 range: {
                   'variations.sale': {
-                    gte: ctx.params.price_to ? ctx.params.price_to : 0,
-                    lte: ctx.params.price_from ? ctx.params.price_from : 1000000,
+                    gte: ctx.params.price_from ? ctx.params.price_from : 1000000,
+                    lte: ctx.params.price_to ? ctx.params.price_to : 0,
                     boost: 2.0
                   }
                 }
@@ -100,8 +104,12 @@ module.exports = {
             multi_match: {
               query: ctx.params.keyword,
               fields: [
-                ...['tr', 'en', 'ar'].map(l => `name.${l}.text`),
-                ...['tr', 'en', 'ar'].map(l => `description.${l}.text`),
+                ...(ctx.params.keywordLang ? ctx.params.keywordLang : ['tr', 'en', 'ar']).map(
+                  l => `name.${l}.text`
+                ),
+                ...(ctx.params.keywordLang ? ctx.params.keywordLang : ['tr', 'en', 'ar']).map(
+                  l => `description.${l}.text`
+                ),
                 'sku',
                 'variations.sku'
               ],
