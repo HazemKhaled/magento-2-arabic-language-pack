@@ -90,8 +90,8 @@ module.exports = {
               query: {
                 range: {
                   'variations.sale': {
-                    gte: ctx.params.price_from ? ctx.params.price_from : 1000000,
-                    lte: ctx.params.price_to ? ctx.params.price_to : 0,
+                    gte: ctx.params.price_from ? ctx.params.price_from : 0,
+                    lte: ctx.params.price_to ? ctx.params.price_to : 1000000,
                     boost: 2.0
                   }
                 }
