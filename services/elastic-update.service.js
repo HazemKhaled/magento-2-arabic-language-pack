@@ -58,12 +58,15 @@ module.exports = {
      */
     run: {
       async handler(ctx) {
+        // Don't run if another cron not completed
         if (this.settings.isRunning) {
           this.logger.info('Update instance Products is already running');
           return;
         }
+
         this.settings.isRunning = true;
         const lastUpdateDate = await this.getLastUpdateDate();
+
         if (lastUpdateDate) {
           const products = await this.syncInstanceProducts(lastUpdateDate);
           if (products && products.success === true) {
@@ -205,7 +208,7 @@ module.exports = {
           }
           return new Date('2001-01-01T12:00:00.000Z');
         })
-        .catch(err => this.logger.error('ERROR_DURRING_GET_LASTDATE', err));
+        .catch(err => this.logger.error('ERROR_DURING_GET_LAST_DATE', err));
     },
 
     /**
@@ -227,15 +230,15 @@ module.exports = {
               return this.adapter
                 .updateMany({ key: 'last_update_date' }, { $set: update })
                 .then(json => this.entityChanged('updated', json, ctx).then(() => json))
-                .catch(err => this.logger.error('ERROR_DURRING_UPDATE_LASTDATE', err));
+                .catch(err => this.logger.error('ERROR_DURING_UPDATE_LAST_DATE', err));
             }
             return this.adapter
               .insert({ key: 'last_update_date', date })
               .then(json => this.entityChanged('created', json, ctx).then(() => json))
-              .catch(err => this.logger.error('ERROR_DURRING_INSERT_LASTDATE', err));
+              .catch(err => this.logger.error('ERROR_DURING_INSERT_LAST_DATE', err));
           })
           .catch(err => {
-            this.logger.error('ERROR_DURRING_UPDATE_LASTDATE', err);
+            this.logger.error('ERROR_DURING_UPDATE_LAST_DATE', err);
           });
       }
     }
