@@ -15,11 +15,11 @@ module.exports = {
       name: 'updateInstanceProducts',
       cronTime: '* * * * *', // Every minute
       onTick() {
-        if (this.logger && process.env.NODE_ENV !== 'development') {
-          this.logger.info('Update Instance Products Cron ticked');
-        }
         if (this.call && process.env.NODE_ENV !== 'development') {
+          this.logger.info('Update Instance Products Cron ticked');
           this.call('elastic-update.run');
+        } else {
+          this.logger.warn('elastic-update not working on development environment');
         }
       }
     }
