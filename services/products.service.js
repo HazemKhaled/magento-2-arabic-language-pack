@@ -238,7 +238,7 @@ module.exports = {
                 bulk.push({
                   instanceId: instance.webhook_hash,
                   createdAt: new Date(),
-                  updated: product.updated,
+                  updated: product._source.updated,
                   siteUrl: instance.url,
                   sku: product._id,
                   variations: product._source.variations
