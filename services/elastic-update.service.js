@@ -223,7 +223,6 @@ module.exports = {
         .then(() => this.adapter.find(query))
         .then(([dateValue]) => {
           if (dateValue) {
-            this.logger.info('>>>', dateValue);
             return this.adapter
               .updateById('last_update_date', { $set: { date: new Date(date) } })
               .then(json => this.entityChanged('updated', json, ctx).then(() => json))
