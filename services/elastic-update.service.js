@@ -164,7 +164,7 @@ module.exports = {
                 productArchive: product.archive || false,
                 productUpdated: product.updated || new Date()
               },
-              inline:
+              source:
                 'ctx._source.archive=params.productArchive; ctx._source.updated=params.productUpdated;',
               lang: 'painless'
             }
