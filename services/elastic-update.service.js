@@ -71,9 +71,9 @@ module.exports = {
           const products = await this.syncInstanceProducts(lastUpdateDate);
           if (products && products.success === true) {
             if (products.LastDate && products.LastDate !== '') {
-              const updated = await this.updateLastUpdateDate(new Date(products.LastDate), ctx);
+              const updated = await this.updateLastUpdateDate(products.LastDate, ctx);
               if (updated) {
-                this.logger.info('Last Updated Date Updated');
+                this.logger.info('Last Updated Date Updated', products.LastDate);
               }
             } else if (products.noProducts) {
               this.logger.info('No Products for Update');
@@ -199,7 +199,7 @@ module.exports = {
      */
     getLastUpdateDate() {
       const query = {
-        query: { key: 'last_update_date' }
+        query: { _id: 'last_update_date' }
       };
       return this.Promise.resolve()
         .then(() => this.adapter.find(query))
@@ -210,34 +210,34 @@ module.exports = {
     /**
      * Update last Run date
      *
-     * @param {Date} date
+     * @param {string} [date='1970-01-01T12:00:00.000Z']
+     * @param {*} ctx
      * @returns
      */
-    updateLastUpdateDate(date, ctx) {
-      if (date && date !== '') {
-        const update = { date };
-        const query = {
-          query: { key: 'last_update_date' }
-        };
+    updateLastUpdateDate(date = '1970-01-01T12:00:00.000Z', ctx) {
+      const query = {
+        query: { _id: 'last_update_date' }
+      };
 
-        return this.Promise.resolve()
-          .then(() => this.adapter.find(query))
+      return this.Promise.resolve()
+        .then(() => this.adapter.find(query))
         .then(([dateValue]) => {
-          if (!dateValue) {
-              return this.adapter
-                .updateMany({ key: 'last_update_date' }, { $set: update })
-                .then(json => this.entityChanged('updated', json, ctx).then(() => json))
-                .catch(err => this.logger.error('ERROR_DURING_UPDATE_LAST_DATE', err));
-            }
+          if (dateValue) {
+            this.logger.info('>>>', dateValue);
             return this.adapter
-              .insert({ key: 'last_update_date', date })
-              .then(json => this.entityChanged('created', json, ctx).then(() => json))
-              .catch(err => this.logger.error('ERROR_DURING_INSERT_LAST_DATE', err));
-          })
-          .catch(err => {
-            this.logger.error('ERROR_DURING_UPDATE_LAST_DATE', err);
-          });
-      }
+              .updateById('last_update_date', { $set: { date: new Date(date) } })
+              .then(json => this.entityChanged('updated', json, ctx).then(() => json))
+              .catch(err => this.logger.error('ERROR_DURING_UPDATE_LAST_DATE', err));
+          }
+
+          return this.adapter
+            .insert({ _id: 'last_update_date', date: new Date(date) })
+            .then(json => this.entityChanged('created', json, ctx).then(() => json))
+            .catch(err => this.logger.error('ERROR_DURING_INSERT_LAST_DATE', err));
+        })
+        .catch(err => {
+          this.logger.error('ERROR_DURING_UPDATE_LAST_DATE', err);
+        });
     }
   }
 };
