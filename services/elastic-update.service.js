@@ -203,12 +203,7 @@ module.exports = {
       };
       return this.Promise.resolve()
         .then(() => this.adapter.find(query))
-        .then(date => {
-          if (typeof date !== 'undefined' && date.length > 0) {
-            return date[0].date;
-          }
-          return new Date('2001-01-01T12:00:00.000Z');
-        })
+        .then(([date = {}]) => date.date || new Date('1970-01-01T12:00:00.000Z'))
         .catch(err => this.logger.error('ERROR_DURING_GET_LAST_DATE', err));
     },
 
@@ -224,10 +219,11 @@ module.exports = {
         const query = {
           query: { key: 'last_update_date' }
         };
+
         return this.Promise.resolve()
           .then(() => this.adapter.find(query))
-          .then(dateValue => {
-            if (typeof dateValue !== 'undefined' && dateValue.length > 0) {
+        .then(([dateValue]) => {
+          if (!dateValue) {
               return this.adapter
                 .updateMany({ key: 'last_update_date' }, { $set: update })
                 .then(json => this.entityChanged('updated', json, ctx).then(() => json))
