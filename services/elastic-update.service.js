@@ -149,7 +149,8 @@ module.exports = {
     async bulkUpdateInstanceProducts(products) {
       let result = true;
       await Loop.each(products, async product => {
-        product = product._source;
+        // If no product came, mark ar archived
+        product = product._source || { archive: true, updated: new Date() };
         const updateData = {
           index: 'products-instances',
           type: 'product',
