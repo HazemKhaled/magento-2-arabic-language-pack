@@ -126,7 +126,8 @@ module.exports = {
       },
       cache: {
         keys: ['#token', 'page', 'limit', 'lastupdate', 'hideOutOfStock', 'keyword', '_source'],
-        ttl: 30 * 60 // 10 mins
+        ttl: 30 * 60, // 10 mins
+        monitor: true
       },
       async handler(ctx) {
         const { page, limit, lastupdate = '' } = ctx.params;
@@ -185,7 +186,7 @@ module.exports = {
             return { product };
           })
           .catch(error => {
-            throw MoleculerClientError(error);
+            throw new MoleculerClientError(error);
           });
       }
     },
