@@ -53,7 +53,7 @@ module.exports = {
                 base_currency: instance.base_currency
               };
             }
-
+            this.broker.cacher.clean(`klayer.findInstance:${ctx.params.consumerKey}`);
             throw new MoleculerClientError('consumerKey or consumerSecret is invalid!', 422, '', [
               { field: 'consumerKey', message: 'is not valid' },
               { field: 'consumerSecret', message: 'is not valid' }
@@ -61,6 +61,7 @@ module.exports = {
           })
           .then(user => this.transformEntity(user, true, ctx.meta.token))
           .catch(() => {
+            this.broker.cacher.clean(`users.resolveToken:${ctx.meta.token}`);
             throw new MoleculerClientError('consumerKey or consumerSecret is invalid!', 422, '', [
               { field: 'consumerKey', message: 'is not valid' },
               { field: 'consumerSecret', message: 'is not valid' }
