@@ -71,9 +71,9 @@ module.exports = {
           const products = await this.syncInstanceProducts(lastUpdateDate);
           if (products && products.success === true) {
             if (products.LastDate && products.LastDate !== '') {
-              const updated = await this.updateLastUpdateDate(new Date(products.LastDate), ctx);
+              const updated = await this.updateLastUpdateDate(products.LastDate, ctx);
               if (updated) {
-                this.logger.info('Last Updated Date Updated');
+                this.logger.info('Last Updated Date Updated', products.LastDate);
               }
             } else if (products.noProducts) {
               this.logger.info('No Products for Update');
@@ -149,7 +149,8 @@ module.exports = {
     async bulkUpdateInstanceProducts(products) {
       let result = true;
       await Loop.each(products, async product => {
-        product = product._source;
+        // If no product came, mark ar archived
+        product = product._source || { archive: true, updated: new Date() };
         const updateData = {
           index: 'products-instances',
           type: 'product',
@@ -164,7 +165,7 @@ module.exports = {
                 productArchive: product.archive || false,
                 productUpdated: product.updated || new Date()
               },
-              inline:
+              source:
                 'ctx._source.archive=params.productArchive; ctx._source.updated=params.productUpdated;',
               lang: 'painless'
             }
@@ -198,49 +199,44 @@ module.exports = {
      */
     getLastUpdateDate() {
       const query = {
-        query: { key: 'last_update_date' }
+        query: { _id: 'last_update_date' }
       };
       return this.Promise.resolve()
         .then(() => this.adapter.find(query))
-        .then(date => {
-          if (typeof date !== 'undefined' && date.length > 0) {
-            return date[0].date;
-          }
-          return new Date('2001-01-01T12:00:00.000Z');
-        })
+        .then(([date = {}]) => date.date || new Date('1970-01-01T12:00:00.000Z'))
         .catch(err => this.logger.error('ERROR_DURING_GET_LAST_DATE', err));
     },
 
     /**
      * Update last Run date
      *
-     * @param {Date} date
+     * @param {string} [date='1970-01-01T12:00:00.000Z']
+     * @param {*} ctx
      * @returns
      */
-    updateLastUpdateDate(date, ctx) {
-      if (date && date !== '') {
-        const update = { date };
-        const query = {
-          query: { key: 'last_update_date' }
-        };
-        return this.Promise.resolve()
-          .then(() => this.adapter.find(query))
-          .then(dateValue => {
-            if (typeof dateValue !== 'undefined' && dateValue.length > 0) {
-              return this.adapter
-                .updateMany({ key: 'last_update_date' }, { $set: update })
-                .then(json => this.entityChanged('updated', json, ctx).then(() => json))
-                .catch(err => this.logger.error('ERROR_DURING_UPDATE_LAST_DATE', err));
-            }
+    updateLastUpdateDate(date = '1970-01-01T12:00:00.000Z', ctx) {
+      const query = {
+        query: { _id: 'last_update_date' }
+      };
+
+      return this.Promise.resolve()
+        .then(() => this.adapter.find(query))
+        .then(([dateValue]) => {
+          if (dateValue) {
             return this.adapter
-              .insert({ key: 'last_update_date', date })
-              .then(json => this.entityChanged('created', json, ctx).then(() => json))
-              .catch(err => this.logger.error('ERROR_DURING_INSERT_LAST_DATE', err));
-          })
-          .catch(err => {
-            this.logger.error('ERROR_DURING_UPDATE_LAST_DATE', err);
-          });
-      }
+              .updateById('last_update_date', { $set: { date: new Date(date) } })
+              .then(json => this.entityChanged('updated', json, ctx).then(() => json))
+              .catch(err => this.logger.error('ERROR_DURING_UPDATE_LAST_DATE', err));
+          }
+
+          return this.adapter
+            .insert({ _id: 'last_update_date', date: new Date(date) })
+            .then(json => this.entityChanged('created', json, ctx).then(() => json))
+            .catch(err => this.logger.error('ERROR_DURING_INSERT_LAST_DATE', err));
+        })
+        .catch(err => {
+          this.logger.error('ERROR_DURING_UPDATE_LAST_DATE', err);
+        });
     }
   }
 };
