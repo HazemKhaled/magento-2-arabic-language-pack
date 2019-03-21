@@ -21,13 +21,19 @@ module.exports = {
 
           // Product
           'GET catalog/products': 'products.list',
+          'POST catalog/products': 'products.import',
           'GET catalog/products/count': 'products.total',
           'GET catalog/products/:sku': 'products.getInstanceProduct',
           'DELETE catalog/products/:sku': 'products.deleteInstanceProduct',
-          'GET catalog/categories': 'categories.list',
-          'GET catalog/list': 'products-list.searchByFilters',
-          'POST catalog/add': 'products.import',
+          'PUT catalog/products/:sku': 'products.instanceUpdate',
+
+          // Old routes, should be deprecated
           'PUT catalog/update/:sku': 'products.instanceUpdate',
+          'POST catalog/add': 'products.import',
+
+          'GET catalog/categories': 'categories.list',
+
+          'GET catalog/list': 'products-list.searchByFilters',
           // Order
           'POST orders': 'orders.create',
           'GET orders/:order_id': 'orders.get',
