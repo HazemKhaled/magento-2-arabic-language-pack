@@ -86,7 +86,7 @@ module.exports = {
         order: { type: 'object' }
       },
       handler(ctx) {
-        request({
+        return request({
           method: 'POST',
           uri: this.getUrl(`webhook/orders/create/${ctx.meta.user}`),
           qs: {
