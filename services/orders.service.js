@@ -175,7 +175,10 @@ module.exports = {
             data.pdf_invoice_url = ctx.params.invoice_url;
           }
 
-          const result = await ctx.call('updateOrder', { order: data, consumerKey: ctx.meta.user });
+          const result = await ctx.call('klayer.updateOrder', {
+            order: data,
+            consumerKey: ctx.meta.user
+          });
           if (result.statusCode && result.statusCode === 404) {
             return {
               status: 'failed',
