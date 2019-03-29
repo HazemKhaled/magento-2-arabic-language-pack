@@ -97,6 +97,7 @@ module.exports = {
               consumerKey: ctx.meta.user
             });
             const order = result.data;
+            this.broker.cacher.clean(`orders.list:${ctx.meta.token}**`);
             return {
               status: 'success',
               data: {
@@ -149,7 +150,7 @@ module.exports = {
         page: { type: 'number', convert: true, integer: true, min: 1, optional: true }
       },
       cache: {
-        keys: ['page', 'limit', '#token'],
+        keys: ['#token', 'page', 'limit'],
         ttl: 15 * 60 // 10 mins
       },
       async handler(ctx) {
@@ -187,6 +188,7 @@ module.exports = {
             };
           }
           const order = result.data;
+          this.broker.cacher.clean(`orders.list:${ctx.meta.token}**`);
           return {
             status: 'success',
             data: {
