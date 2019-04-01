@@ -392,7 +392,10 @@ module.exports = {
       hideOutOfStock,
       keyword
     ) {
-      const [instance] = await this.broker.call('klayer.findInstance', { consumerKey: instanceId });
+      const [instance] = await this.broker.call('klayer.findInstance', {
+        consumerKey: instanceId,
+        lastUpdated: lastupdate
+      });
       const instanceProductsFull = await this.findIP(
         page,
         size,

@@ -17,11 +17,12 @@ module.exports = {
      */
     findInstance: {
       cache: {
-        keys: ['consumerKey'],
+        keys: ['consumerKey', 'lastUpdated'],
         ttl: 60 * 60 // 1 hour
       },
       params: {
-        consumerKey: { type: 'string' }
+        consumerKey: { type: 'string' },
+        lastUpdated: { type: 'number', convert: true, optional: true }
       },
       handler(ctx) {
         return request({
@@ -54,6 +55,10 @@ module.exports = {
     currencyRate: {
       params: {
         currencyCode: { type: 'string' }
+      },
+      cache: {
+        key: ['currencyCode'],
+        ttl: 30 * 60 // 1 hour
       },
       handler(ctx) {
         return request({
