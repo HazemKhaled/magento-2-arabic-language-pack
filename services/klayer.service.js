@@ -184,10 +184,12 @@ module.exports = {
           orders = orders.map(order => {
             const formattedOrder = {
               id: order.id,
+              odooId: order.odooId,
               status: order.status,
               items: order.line_items,
               billing: order.billing,
               shipping: order.shipping,
+              total: order.total,
               createDate: order.date_created,
               knawat_order_status: order.state ? this.getStatusName(order.state) : ''
             };
