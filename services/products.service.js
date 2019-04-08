@@ -268,6 +268,11 @@ module.exports = {
         sku: { type: 'string', convert: true },
         externalUrl: { type: 'string', optional: true },
         externalId: { type: 'number', convert: true, optional: true },
+        error: {
+          type: 'array',
+          optional: true,
+          items: { type: 'string' }
+        },
         variations: {
           type: 'array',
           optional: true,
@@ -285,6 +290,7 @@ module.exports = {
         if (ctx.params.externalUrl) body.externalUrl = ctx.params.externalUrl;
         if (ctx.params.externalId) body.externalId = ctx.params.externalId;
         if (ctx.params.variations) body.variations = ctx.params.variations;
+        if (ctx.params.error) body.error = ctx.params.error;
         return ctx
           .call('products.update', {
             index: 'products-instances',
