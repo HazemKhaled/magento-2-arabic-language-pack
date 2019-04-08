@@ -22,6 +22,7 @@ module.exports = {
       },
       params: {
         consumerKey: { type: 'string' },
+        // Workaround to refresh cache until we migrate from KLayer
         lastUpdated: { type: 'number', convert: true, optional: true }
       },
       handler(ctx) {
