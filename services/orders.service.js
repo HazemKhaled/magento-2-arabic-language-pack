@@ -93,8 +93,7 @@ module.exports = {
             }
 
             const result = await ctx.call('klayer.createOrder', {
-              order: data,
-              consumerKey: ctx.meta.user
+              order: data
             });
             const order = result.data;
             this.broker.cacher.clean(`orders.list:${ctx.meta.token}**`);
