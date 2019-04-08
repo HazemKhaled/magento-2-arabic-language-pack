@@ -184,7 +184,6 @@ module.exports = {
           orders = orders.map(order => {
             const formattedOrder = {
               id: order.id,
-              odooId: order.odooId,
               status: order.status,
               items: order.line_items,
               billing: order.billing,
