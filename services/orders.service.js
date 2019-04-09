@@ -47,7 +47,7 @@ const entityValidator = {
     }
   },
   invoice_url: { type: 'string', optional: true },
-  payment_method: { type: 'string', empty: false }
+  payment_method: { type: 'string', empty: false, optional: true }
 };
 
 module.exports = {
