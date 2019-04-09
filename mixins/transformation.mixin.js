@@ -35,22 +35,31 @@ module.exports = {
      * @returns {Array} Transformed Variations
      * @memberof ElasticLib
      */
-    formatVariations(variations, instance, rate, archive) {
-      return variations.map(variation => ({
-        sku: variation.sku,
-        cost_price: variation.sale * rate,
-        sale_price:
-          instance.salePriceOprator === 1
-            ? variation.sale * instance.salePrice * rate
-            : variation.sale * rate + instance.salePrice,
-        market_price:
-          instance.comparedAtPriceOprator === 1
-            ? variation.sale * instance.comparedAtPrice * rate
-            : variation.sale * rate + instance.comparedAtPrice,
-        weight: variation.weight,
-        attributes: this.formatAttributes(variation.attributes),
-        quantity: archive ? 0 : variation.quantity
-      }));
+    formatVariations(variations, instance, rate, archive, variationsInstance) {
+      return variations.map((variation, n) => {
+        const variant = {
+          sku: variation.sku,
+          cost_price: variation.sale * rate,
+          sale_price:
+            instance.salePriceOprator === 1
+              ? variation.sale * instance.salePrice * rate
+              : variation.sale * rate + instance.salePrice,
+          market_price:
+            instance.comparedAtPriceOprator === 1
+              ? variation.sale * instance.comparedAtPrice * rate
+              : variation.sale * rate + instance.comparedAtPrice,
+          weight: variation.weight,
+          attributes: this.formatAttributes(variation.attributes),
+          quantity: archive ? 0 : variation.quantity
+        };
+        try {
+          if (typeof variationsInstance[n].externalId !== 'undefined')
+            variant.externalId = variationsInstance[n].externalId;
+        } catch (err) {
+          /** */
+        }
+        return variant;
+      });
     },
     /**
      * Format Categories

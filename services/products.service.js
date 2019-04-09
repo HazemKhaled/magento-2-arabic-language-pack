@@ -440,10 +440,10 @@ module.exports = {
         });
 
         try {
-          const products = results.map(product => {
+          const products = results.map((product, n) => {
             if (product.found) {
               const source = product._source;
-              return {
+              const p = {
                 sku: source.sku,
                 name: this.formatI18nText(source.name),
                 description: this.formatI18nText(source.description),
@@ -452,8 +452,23 @@ module.exports = {
                 last_check_date: source.last_check_date,
                 categories: this.formatCategories(source.categories),
                 attributes: this.formatAttributes(source.attributes || []),
-                variations: this.formatVariations(source.variations, instance, rate, source.archive)
+                variations: this.formatVariations(
+                  source.variations,
+                  instance,
+                  rate,
+                  source.archive,
+                  instanceProductsFull.page[n]._source.variations
+                )
               };
+              try {
+                if (typeof instanceProductsFull.page[n]._source.externalId !== 'undefined')
+                  p.externalId = instanceProductsFull.page[n]._source.externalId;
+                if (typeof instanceProductsFull._source.page[n].externalUrl !== 'undefined')
+                  p.externalUrl = instanceProductsFull.page[n]._source.externalUrl;
+              } catch (err) {
+                this.logger.info('No externalID or externalURL');
+              }
+              return p;
             }
 
             // In case product not found at products instance
