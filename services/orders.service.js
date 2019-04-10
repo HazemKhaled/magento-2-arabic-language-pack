@@ -166,7 +166,56 @@ module.exports = {
 
     update: {
       auth: 'required',
-      params: entityValidator,
+      params: {
+        id: { type: 'string', empty: false },
+        status: { type: 'enum', values: ['pending', 'processing', 'cancelled'] },
+        items: {
+          type: 'array',
+          optional: true,
+          items: 'object',
+          min: 1,
+          props: {
+            quantity: { type: 'number', min: 1, max: 10 },
+            sku: { type: 'string', empty: false }
+          }
+        },
+        shipping: {
+          type: 'object',
+          optional: true,
+          props: {
+            first_name: { type: 'string', empty: false },
+            last_name: { type: 'string', empty: false },
+            company: { type: 'string', optional: true },
+            address_1: { type: 'string', empty: false },
+            address_2: { type: 'string', optional: true },
+            city: { type: 'string', empty: false },
+            state: { type: 'string', optional: true },
+            postcode: { type: 'string', optional: true },
+            country: { type: 'string', length: 2 },
+            phone: { type: 'string', optional: true },
+            email: { type: 'email', optional: true }
+          }
+        },
+        billing: {
+          type: 'object',
+          optional: true,
+          props: {
+            first_name: { type: 'string', empty: false },
+            last_name: { type: 'string', empty: false },
+            company: { type: 'string', optional: true },
+            address_1: { type: 'string', empty: false },
+            address_2: { type: 'string', optional: true },
+            city: { type: 'string', empty: false },
+            state: { type: 'string', optional: true },
+            postcode: { type: 'string', optional: true },
+            country: { type: 'string', length: 2 },
+            phone: { type: 'string', optional: true },
+            email: { type: 'email', optional: true }
+          }
+        },
+        invoice_url: { type: 'string', optional: true },
+        payment_method: { type: 'string', empty: false, optional: true }
+      },
       async handler(ctx) {
         try {
           // @TODO: transformation needed.
