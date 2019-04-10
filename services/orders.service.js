@@ -258,10 +258,18 @@ module.exports = {
         id: { type: 'string', convert: true }
       },
       handler(ctx) {
-        return ctx.call('klayer.deleteOrder', { id: ctx.params.id }).then(res => {
+        return ctx
+          .call('klayer.deleteOrder', { id: ctx.params.id })
+          .then(() => {
           this.broker.cacher.clean(`orders.list:${ctx.meta.token}**`);
-          return res;
-        });
+            return {
+              status: 'success',
+              data: {
+                order_id: ctx.params.id
+              }
+            };
+          })
+          .catch(err => new MoleculerClientError(err));
       }
     }
   },
