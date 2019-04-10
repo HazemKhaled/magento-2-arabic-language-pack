@@ -216,6 +216,31 @@ module.exports = {
           return new MoleculerClientError(err);
         }
       }
+    },
+    deleteOrder: {
+      params: {
+        id: { type: 'string', convert: true }
+      },
+      handler(ctx) {
+        return request({
+          method: 'POST',
+          uri: this.getUrl(`webhook/orders/cancel/${ctx.meta.user}`),
+          qs: {
+            access_token: this.settings.access_token
+          },
+          headers: {
+            'User-Agent': 'Request-MicroES',
+            'x-shopify-topic': 'orders/cancelled'
+          },
+          body: {
+            id: ctx.params.id,
+            status: 'cancelled'
+          },
+          json: true
+        }).catch(error => {
+          throw new MoleculerClientError(error.message, error.code, error.type, ctx.params);
+        });
+      }
     }
   },
   methods: {

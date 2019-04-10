@@ -251,6 +251,18 @@ module.exports = {
           return new MoleculerClientError(err);
         }
       }
+    },
+    delete: {
+      auth: 'required',
+      params: {
+        id: { type: 'string', convert: true }
+      },
+      handler(ctx) {
+        return ctx.call('klayer.deleteOrder', { id: ctx.params.id }).then(res => {
+          this.broker.cacher.clean(`orders.list:${ctx.meta.token}**`);
+          return res;
+        });
+      }
     }
   },
 
