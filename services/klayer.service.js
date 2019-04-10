@@ -155,12 +155,9 @@ module.exports = {
       },
       async handler(ctx) {
         const { page = 1, limit = 10, orderId } = ctx.params;
-        const [instance] = await ctx.call('klayer.findInstance', {
-          consumerKey: ctx.meta.user
-        });
-
-        const partnerId = instance.partner_id;
-        const query = !orderId ? { partner_id: partnerId } : { partner_id: partnerId, id: orderId };
+        const query = !orderId
+          ? { webhook_hash: ctx.meta.user }
+          : { webhook_hash: ctx.meta.user, id: orderId };
 
         try {
           const orderSkip = page > 0 ? (page - 1) * limit : 0;
