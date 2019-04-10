@@ -223,7 +223,11 @@ module.exports = {
           if (ctx.params.invoice_url) {
             data.pdf_invoice_url = ctx.params.invoice_url;
           }
-
+          if (data.status === 'cancelled')
+            return ctx.call('orders.delete', { id: data.id }).then(res => {
+              this.broker.cacher.clean(`orders.list:${ctx.meta.token}**`);
+              return res;
+            });
           const result = await ctx.call('klayer.updateOrder', {
             order: data,
             consumerKey: ctx.meta.user
@@ -261,7 +265,7 @@ module.exports = {
         return ctx
           .call('klayer.deleteOrder', { id: ctx.params.id })
           .then(() => {
-          this.broker.cacher.clean(`orders.list:${ctx.meta.token}**`);
+            this.broker.cacher.clean(`orders.list:${ctx.meta.token}**`);
             return {
               status: 'success',
               data: {
