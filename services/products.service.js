@@ -354,7 +354,13 @@ module.exports = {
               .call('products.bulk', {
                 body: bulk
               })
-              .catch(err => this.logger.error(err));
+              .then(res => {
+                if (res.errors === false) return { status: 'success' };
+                throw new MoleculerClientError('Error', 500, 'Update Error');
+              })
+              .catch(() => {
+                throw new MoleculerClientError('Error', 500);
+              });
       }
     }
   },
