@@ -188,7 +188,10 @@ module.exports = {
               shipping: order.shipping,
               total: order.total,
               createDate: order.date_created,
-              knawat_order_status: order.state ? this.getStatusName(order.state) : ''
+              knawat_order_status:
+                order.knawat_status || order.state
+                  ? this.getStatusName(order.knawat_status || order.state)
+                  : ''
             };
             if (order.meta_data && order.meta_data.length > 0) {
               order.meta_data.forEach(meta => {
