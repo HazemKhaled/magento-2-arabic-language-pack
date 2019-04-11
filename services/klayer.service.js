@@ -178,7 +178,7 @@ module.exports = {
             },
             json: true
           });
-
+          if (orders.length === 0) return { response: { id: -1, status: 'No order found' } };
           orders = orders.map(order => {
             const formattedOrder = {
               id: order.id,
