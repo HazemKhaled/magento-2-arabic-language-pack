@@ -26,6 +26,7 @@ module.exports = {
           'GET catalog/products/:sku': 'products.getInstanceProduct',
           'DELETE catalog/products/:sku': 'products.deleteInstanceProduct',
           'PUT catalog/products/:sku': 'products.instanceUpdate',
+          'PATCH catalog/products': 'products.bulkProductInstance',
 
           // Old routes, should be deprecated
           'PUT catalog/update/:sku': 'products.instanceUpdate',

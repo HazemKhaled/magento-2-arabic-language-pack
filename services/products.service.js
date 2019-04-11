@@ -303,6 +303,59 @@ module.exports = {
             throw new MoleculerClientError(err.message, 500, err.type, ctx.params);
           });
       }
+    },
+    bulkProductInstance: {
+      auth: 'required',
+      params: {
+        productInstances: {
+          type: 'array',
+          items: {
+            type: 'object',
+            props: {
+              sku: { type: 'string', convert: true },
+              externalUrl: { type: 'string', optional: true },
+              externalId: { type: 'string', convert: true, optional: true },
+              error: {
+                type: 'array',
+                optional: true,
+                items: { type: 'string' }
+              },
+              variations: {
+                type: 'array',
+                optional: true,
+                items: {
+                  type: 'object',
+                  props: {
+                    sku: { type: 'string', convert: true, optional: true },
+                    externalId: { type: 'string', optional: true, convert: true }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      handler(ctx) {
+        const bulk = [];
+        ctx.params.productInstances.forEach(pi => {
+          bulk.push({
+            update: {
+              _index: 'products-instances',
+              _type: 'product',
+              _id: `${ctx.meta.user}-${pi.sku}`
+            }
+          });
+          delete pi.sku;
+          bulk.push({ doc: pi });
+        });
+        return bulk.length === 0
+          ? []
+          : this.broker
+              .call('products.bulk', {
+                body: bulk
+              })
+              .catch(err => this.logger.error(err));
+      }
     }
   },
   methods: {
