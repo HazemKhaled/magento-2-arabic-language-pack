@@ -268,7 +268,7 @@ module.exports = {
         sku: { type: 'string', convert: true },
         externalUrl: { type: 'string', optional: true },
         externalId: { type: 'number', convert: true, optional: true },
-        error: {
+        errors: {
           type: 'array',
           optional: true,
           items: { type: 'string' }
@@ -280,7 +280,12 @@ module.exports = {
             type: 'object',
             props: {
               sku: { type: 'string', convert: true, optional: true },
-              externalId: { type: 'number', optional: true, convert: true }
+              externalId: { type: 'number', optional: true, convert: true },
+              errors: {
+                type: 'array',
+                optional: true,
+                items: { type: 'string' }
+              }
             }
           }
         }
