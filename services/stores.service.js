@@ -5,8 +5,7 @@ module.exports = {
   name: 'stores',
   settings: {
     API_URL: process.env.STORES_URL || 'https://dev.stores.knawat.io',
-    STOREUSER: process.env.STOREUSER || 'app2',
-    STOREPASS: process.env.STOREPASS || '123'
+    AUTH: Buffer.from(`${process.env.STOREUSER}:${process.env.STOREPASS}`).toString('base64')
   },
   actions: {
     findInstance: {
@@ -18,10 +17,6 @@ module.exports = {
         consumerKey: { type: 'string', convert: true }
       },
       handler(ctx) {
-        const auth = Buffer.from(`${this.settings.STOREUSER}:${this.settings.STOREPASS}`).toString(
-          'base64'
-        );
-        this.logger.info(auth);
         return request({
           method: 'get',
           uri: this.getUrl(
@@ -32,7 +27,28 @@ module.exports = {
             })}`
           ),
           headers: {
-            Authorization: `Basic ${auth}`
+            Authorization: `Basic ${this.settings.AUTH}`
+          },
+          json: true
+        }).catch(error => {
+          throw new MoleculerClientError(error.message, error.code, error.type, ctx.params);
+        });
+      }
+    },
+    me: {
+      auth: 'required',
+      handler(ctx) {
+        return request({
+          method: 'get',
+          uri: this.getUrl(
+            `stores?filter=${JSON.stringify({
+              where: {
+                consumer_key: ctx.meta.user
+              }
+            })}`
+          ),
+          headers: {
+            Authorization: `Basic ${this.settings.AUTH}`
           },
           json: true
         }).catch(error => {
