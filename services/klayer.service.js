@@ -178,7 +178,7 @@ module.exports = {
             },
             json: true
           });
-          if (orders.length === 0) return { id: -1, status: 'No order found' };
+
           orders = orders.map(order => {
             const formattedOrder = {
               id: order.id,
@@ -288,7 +288,7 @@ module.exports = {
       if (stateNames[status]) {
         return stateNames[status];
       }
-      return '';
+      return 'Order Placed';
     }
   }
 };

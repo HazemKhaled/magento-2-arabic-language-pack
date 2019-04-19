@@ -79,10 +79,10 @@ module.exports = {
      * @returns {Object} Resolved user
      */
     resolveToken: {
-      cache: {
-        keys: ['token'],
-        ttl: 60 * 60 // 1 hour
-      },
+      // cache: {
+      //   keys: ['token'],
+      //   ttl: 60 * 60 // 1 hour
+      // },
       params: {
         token: 'string'
       },
