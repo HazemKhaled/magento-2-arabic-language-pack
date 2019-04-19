@@ -102,7 +102,6 @@ module.exports = {
               const [instance] = await this.broker.call('klayer.findInstance', {
                 consumerKey: decoded.id
               });
-              this.logger.info(instance);
               if (instance.status) return decoded;
             }
           })
