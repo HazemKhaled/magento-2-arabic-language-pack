@@ -126,12 +126,21 @@ module.exports = {
       handler(ctx) {
         const orderId = ctx.params.order_id;
 
-        return ctx.call('klayer.getOrders', {
-          page: 0,
-          limit: 1,
-          consumerKey: ctx.meta.user,
-          orderId: orderId
-        });
+        return ctx
+          .call('klayer.getOrders', {
+            page: 0,
+            limit: 1,
+            consumerKey: ctx.meta.user,
+            orderId: orderId
+          })
+          .then(res =>
+            typeof res === 'object'
+              ? res
+              : {
+                  id: -1,
+                  status: 'not found'
+                }
+          );
       }
     },
 
