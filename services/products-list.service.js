@@ -221,7 +221,7 @@ module.exports = {
           maxScroll
         );
       }
-      const [instance] = await this.broker.call('klayer.findInstance', { consumerKey: user });
+      const [instance] = await this.broker.call('stores.findInstance', { consumerKey: user });
       const rate = await this.broker.call('klayer.currencyRate', {
         currencyCode: instance.base_currency
       });

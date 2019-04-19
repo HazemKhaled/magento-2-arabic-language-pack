@@ -223,7 +223,7 @@ module.exports = {
           .then(async res => {
             const newSKUs = res.hits.hits.map(product => product._id);
             const outOfStock = skus.filter(sku => !newSKUs.includes(sku));
-            const [instance] = await this.broker.call('klayer.findInstance', {
+            const [instance] = await this.broker.call('stores.findInstance', {
               consumerKey: ctx.meta.user
             });
             const bulk = [];
@@ -378,7 +378,7 @@ module.exports = {
      * @memberof ElasticLib
      */
     async fetchProduct(sku, id, _source) {
-      const [instance] = await this.broker.call('klayer.findInstance', { consumerKey: id });
+      const [instance] = await this.broker.call('stores.findInstance', { consumerKey: id });
 
       try {
         const result = await this.broker
@@ -462,7 +462,7 @@ module.exports = {
       hideOutOfStock,
       keyword
     ) {
-      const [instance] = await this.broker.call('klayer.findInstance', {
+      const [instance] = await this.broker.call('stores.findInstance', {
         consumerKey: instanceId,
         lastUpdated: lastupdate
       });
@@ -743,7 +743,7 @@ module.exports = {
     'list.afterRemote': {
       async handler(payload) {
         if (payload.meta && payload.meta.user) {
-          const [instance] = await this.broker.call('klayer.findInstance', {
+          const [instance] = await this.broker.call('stores.findInstance', {
             consumerKey: payload.meta.user
           });
           if (instance && instance.partner_id) {

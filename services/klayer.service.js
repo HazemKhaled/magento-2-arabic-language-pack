@@ -9,44 +9,6 @@ module.exports = {
   },
   actions: {
     /**
-     * Get instance by consumerKey
-     *
-     * @param {String} consumerKey instance webhook_hash
-     * @returns {Object}
-     * @memberof KlayerService
-     */
-    findInstance: {
-      cache: {
-        keys: ['consumerKey', 'lastUpdated'],
-        ttl: 60 * 60 // 1 hour
-      },
-      params: {
-        consumerKey: { type: 'string' },
-        // Workaround to refresh cache until we migrate from KLayer
-        lastUpdated: { type: 'number', convert: true, optional: true }
-      },
-      handler(ctx) {
-        return request({
-          method: 'get',
-          uri: this.getUrl(
-            `Instances?filter=${JSON.stringify({
-              where: { webhook_hash: ctx.params.consumerKey }
-            })}`
-          ),
-          qs: {
-            access_token: this.settings.access_token
-          },
-          headers: {
-            'User-Agent': 'Request-MicroES'
-          },
-          json: true
-        }).catch(error => {
-          throw new MoleculerClientError(error.message, error.code, error.type, ctx.params);
-        });
-      }
-    },
-
-    /**
      * Get Currency Rate
      *
      * @param {String} currencyCode
