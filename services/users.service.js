@@ -43,17 +43,22 @@ module.exports = {
       handler(ctx) {
         const { consumerKey, consumerSecret } = ctx.params;
 
-        return this.Promise.resolve(this.broker.call('klayer.findInstance', { consumerKey }))
+        return this.Promise.resolve(
+          this.broker.call('stores.findInstance', { consumerKey, consumerSecret })
+        )
           .then(([instance]) => {
-            if (consumerKey === instance.webhook_hash && consumerSecret === instance.secret) {
+            if (
+              consumerKey === instance.consumer_key &&
+              consumerSecret === instance.consumer_secret
+            ) {
               return {
-                _id: instance.webhook_hash,
+                _id: instance.consumer_key,
                 url: instance.url,
                 status: instance.status,
                 base_currency: instance.base_currency
               };
             }
-            this.broker.cacher.clean(`klayer.findInstance:${ctx.params.consumerKey}`);
+            this.broker.cacher.clean(`stores.findInstance:${ctx.params.consumerKey}`);
             throw new MoleculerClientError('consumerKey or consumerSecret is invalid!', 422, '', [
               { field: 'consumerKey', message: 'is not valid' },
               { field: 'consumerSecret', message: 'is not valid' }
@@ -99,7 +104,7 @@ module.exports = {
           .then(async decoded => {
             if (decoded.id) {
               // Get instance info from Klayer
-              const [instance] = await this.broker.call('klayer.findInstance', {
+              const [instance] = await this.broker.call('stores.findInstance', {
                 consumerKey: decoded.id
               });
               if (instance.status) return decoded;
