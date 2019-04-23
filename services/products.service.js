@@ -233,11 +233,11 @@ module.exports = {
                   index: {
                     _index: 'products-instances',
                     _type: 'product',
-                    _id: `${instance.webhook_hash}-${product._id}`
+                    _id: `${instance.consumer_key}-${product._id}`
                   }
                 });
                 bulk.push({
-                  instanceId: instance.webhook_hash,
+                  instanceId: instance.consumer_key,
                   createdAt: new Date(),
                   updated: product._source.updated,
                   siteUrl: instance.url,
@@ -248,17 +248,21 @@ module.exports = {
                 });
               });
             }
-            await ctx
+            return ctx
               .call('products.bulk', {
                 index: 'products-instances',
                 type: 'product',
                 body: bulk
               })
-              .then(() => this.broker.cacher.clean(`products.list:${ctx.meta.token}**`));
-            return {
-              success: newSKUs,
-              outOfStock: outOfStock
-            };
+              .then(response => {
+                this.broker.cacher.clean(`products.list:${ctx.meta.token}**`);
+                if (!response.errors)
+                  return {
+                    success: newSKUs,
+                    outOfStock: outOfStock
+                  };
+                throw new MoleculerClientError('error');
+              });
           });
       }
     },
