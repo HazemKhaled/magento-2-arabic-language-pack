@@ -83,7 +83,7 @@ module.exports = {
       auth: 'required',
       params: entityValidator,
       async handler(ctx) {
-        if (ctx.meta.user) {
+        if (ctx.meta.user && ctx.params.shipping.company !== 'ebay') {
           ctx.params.id = uuidv1();
           try {
             // @TODO: transformation needed.
