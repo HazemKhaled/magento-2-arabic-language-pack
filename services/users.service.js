@@ -1,6 +1,6 @@
 const { MoleculerClientError } = require('moleculer').Errors;
-
 const jwt = require('jsonwebtoken');
+const fetch = require('node-fetch');
 
 module.exports = {
   name: 'users',
@@ -66,7 +66,7 @@ module.exports = {
           })
           .then(user => this.transformEntity(user, true, ctx.meta.token))
           .catch(() => {
-            this.broker.cacher.clean(`users.resolveToken:${ctx.meta.token}`);
+            this.broker.cacher.clean(`users.resolveBearerToken:${ctx.meta.token}`);
             throw new MoleculerClientError('consumerKey or consumerSecret is invalid!', 422, '', [
               { field: 'consumerKey', message: 'is not valid' },
               { field: 'consumerSecret', message: 'is not valid' }
@@ -83,11 +83,11 @@ module.exports = {
      *
      * @returns {Object} Resolved user
      */
-    resolveToken: {
-      // cache: {
-      //   keys: ['token'],
-      //   ttl: 60 * 60 // 1 hour
-      // },
+    resolveBearerToken: {
+      cache: {
+        keys: ['token'],
+        ttl: 60 * 60 // 1 hour
+      },
       params: {
         token: 'string'
       },
@@ -109,6 +109,40 @@ module.exports = {
               });
               if (instance.status) return decoded;
             }
+          })
+          .catch(error => {
+            throw new MoleculerClientError(error);
+          });
+      }
+    },
+
+    /**
+     * Get user by JWT token (for API GW authentication)
+     *
+     * @actions
+     * @param {String} token - user:pass base64
+     *
+     * @returns {Object} true or false
+     */
+    resolveBasicToken: {
+      cache: {
+        keys: ['token'],
+        ttl: 60 * 60 // 1 hour
+      },
+      params: {
+        token: 'string'
+      },
+      handler(ctx) {
+        return fetch(`${process.env.AUTH_BASEURL}/login`, {
+          headers: {
+            Authorization: `Basic ${ctx.params.token}`
+          }
+        })
+          .then(res => {
+            if (res.ok) {
+              return res.json();
+            }
+            throw new MoleculerClientError();
           })
           .catch(error => {
             throw new MoleculerClientError(error);

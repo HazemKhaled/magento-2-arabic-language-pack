@@ -83,21 +83,23 @@ module.exports = {
      * @returns {Promise}
      */
     authorize(ctx, route, req) {
-      let reqToken;
-      if (req.headers.authorization) {
-        const [type] = req.headers.authorization.split(' ');
-        if (type === 'Token' || type === 'Bearer') {
-          [, reqToken] = req.headers.authorization.split(' ');
-        }
+      // Pass if no auth required
+      if (!req.$endpoint.action.auth) {
+        return;
+      }
+
+      const [type, reqToken] = req.headers.authorization.split(' ');
+      if (!type || !reqToken) {
+        return this.Promise.reject(new UnAuthorizedError());
       }
 
       return this.Promise.resolve(reqToken)
         .then(token => {
-          if (token) {
-            // Verify JWT token
+          // Verify JWT token
+          if (type === 'Bearer') {
             return (
               ctx
-                .call('users.resolveToken', { token })
+                .call('users.resolveBearerToken', { token })
                 .then(user => {
                   if (user) {
                     this.logger.info('Authenticated via JWT: ', user.id);
@@ -111,9 +113,27 @@ module.exports = {
                 .catch(() => null)
             );
           }
+
+          // Verify Base64 Basic auth
+          if (type === 'Basic') {
+            return (
+              ctx
+                .call('users.resolveBasicToken', { token })
+                .then(user => {
+                  if (user) {
+                    this.logger.info('Authenticated via Basic');
+
+                    ctx.meta.token = token;
+                  }
+                  return user;
+                })
+                // Ignored because we continue processing if user is not exist
+                .catch(() => null)
+            );
+          }
         })
         .then(user => {
-          if (req.$endpoint.action.auth === 'required' && !user) {
+          if (!user) {
             return this.Promise.reject(new UnAuthorizedError());
           }
         });

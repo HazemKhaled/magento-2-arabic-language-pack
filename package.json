@@ -39,6 +39,7 @@
     "moleculer-elasticsearch": "^1.1.1",
     "moleculer-web": "^0.8.5",
     "nats": "^1.2.10",
+    "node-fetch": "^2.3.0",
     "request": "^2.88.0",
     "request-promise": "^4.2.4",
     "uuid": "^3.3.2"
