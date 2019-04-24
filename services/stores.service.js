@@ -70,6 +70,20 @@ module.exports = {
         }).then(res => JSON.parse(res));
       }
     },
+    list: {
+      params: {
+        filter: { type: 'string' }
+      },
+      handler(ctx) {
+        return request({
+          method: 'get',
+          uri: this.getUrl(`stores?filter=${ctx.params.filter}`),
+          headers: {
+            Authorization: `Basic ${this.settings.AUTH}`
+          }
+        }).then(res => JSON.parse(res));
+      }
+    },
     create: {
       params: {
         url: { type: 'url' },

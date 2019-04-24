@@ -45,6 +45,7 @@ module.exports = {
           // Stores
           'GET stores/me': 'stores.me',
           'GET stores/:id': 'stores.get',
+          'GET stores': 'stores.list',
           'POST stores': 'stores.create',
           'PUT stores/:id': 'stores.update'
         },
