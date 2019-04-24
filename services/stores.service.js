@@ -5,7 +5,7 @@ module.exports = {
   name: 'stores',
   settings: {
     API_URL: process.env.STORES_URL || 'https://dev.stores.knawat.io',
-    AUTH: Buffer.from(`${process.env.STOREUSER}:${process.env.STOREPASS}`).toString('base64')
+    AUTH: Buffer.from(`${process.env.BASIC_USER}:${process.env.BASIC_PASS}`).toString('base64')
   },
   actions: {
     findInstance: {
