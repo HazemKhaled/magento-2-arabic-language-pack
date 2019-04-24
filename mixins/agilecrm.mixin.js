@@ -54,7 +54,7 @@ module.exports = {
       if (userEmail !== '') {
         const contactId = await this.getContactIdByEmail(userEmail);
         if (typeof contactId === 'undefined') {
-          this.logger.error('[Agile][UpadateLastSync]', 'User not Found on agileCRM');
+          this.logger.error('[Agile][UpdateLastSync]', 'User not Found on agileCRM');
           return false;
         }
 
@@ -83,12 +83,12 @@ module.exports = {
             updateContact,
             response => {
               this.logger.info(
-                '[Agile][UpadateLastSync] Last Sync Date Updated sucessfully. ID:',
+                '[Agile][UpdateLastSync] Last Sync Date Updated successfully. ID:',
                 response.id
               );
             },
             err => {
-              this.logger.error('[Agile][UpadateLastSync]', err);
+              this.logger.error('[Agile][UpdateLastSync]', err);
             }
           );
         } catch (err) {
