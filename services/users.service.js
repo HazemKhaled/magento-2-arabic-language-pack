@@ -55,7 +55,7 @@ module.exports = {
                 _id: instance.consumer_key,
                 url: instance.url,
                 status: instance.status,
-                base_currency: instance.base_currency
+                currency: instance.currency
               };
             }
             this.broker.cacher.clean(`stores.findInstance:${ctx.params.consumerKey}`);

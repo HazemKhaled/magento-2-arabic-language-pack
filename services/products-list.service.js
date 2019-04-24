@@ -223,7 +223,7 @@ module.exports = {
       }
       const [instance] = await this.broker.call('stores.findInstance', { consumerKey: user });
       const rate = await this.broker.call('klayer.currencyRate', {
-        currencyCode: instance.base_currency
+        currencyCode: instance.currency
       });
 
       return {

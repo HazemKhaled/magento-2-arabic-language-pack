@@ -426,7 +426,7 @@ module.exports = {
           throw new MoleculerClientError('Product not found', 404, sku);
         }
         const rate = await this.broker.call('klayer.currencyRate', {
-          currencyCode: instance.base_currency
+          currencyCode: instance.currency
         });
         const source = result.hits.hits[0]._source;
         return {
@@ -504,7 +504,7 @@ module.exports = {
         const results = search.docs;
 
         const rate = await this.broker.call('klayer.currencyRate', {
-          currencyCode: instance.base_currency
+          currencyCode: instance.currency
         });
 
         try {
