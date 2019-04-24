@@ -80,7 +80,7 @@ module.exports = {
      * @param {String} name - User name
      */
     create: {
-      auth: 'required',
+      auth: 'Bearer',
       params: entityValidator,
       async handler(ctx) {
         if (ctx.meta.user && ctx.params.shipping.company !== 'ebay') {
@@ -119,7 +119,7 @@ module.exports = {
     },
 
     get: {
-      auth: 'required',
+      auth: 'Bearer',
       params: {
         order_id: { type: 'string' }
       },
@@ -145,7 +145,7 @@ module.exports = {
     },
 
     list: {
-      auth: 'required',
+      auth: 'Bearer',
       params: {
         limit: {
           type: 'number',
@@ -174,7 +174,7 @@ module.exports = {
     },
 
     update: {
-      auth: 'required',
+      auth: 'Bearer',
       params: {
         id: { type: 'string', empty: false },
         status: { type: 'enum', values: ['pending', 'processing', 'cancelled'] },
@@ -266,7 +266,7 @@ module.exports = {
       }
     },
     delete: {
-      auth: 'required',
+      auth: 'Bearer',
       params: {
         id: { type: 'string', convert: true }
       },

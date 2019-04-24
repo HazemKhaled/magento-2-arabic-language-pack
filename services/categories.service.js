@@ -31,7 +31,7 @@ module.exports = {
      * @returns {Array} Categories
      */
     list: {
-      auth: 'required',
+      auth: 'Bearer',
       cache: {
         ttl: 60 * 60 // 1 hour
       },

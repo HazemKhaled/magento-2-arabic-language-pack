@@ -9,6 +9,7 @@ module.exports = {
   },
   actions: {
     findInstance: {
+      auth: 'Basic',
       cache: {
         keys: ['consumerKey'],
         ttl: 60 * 60 // 1 hour
@@ -36,7 +37,7 @@ module.exports = {
       }
     },
     me: {
-      auth: 'required',
+      auth: 'Bearer',
       handler(ctx) {
         return request({
           method: 'get',
@@ -57,6 +58,7 @@ module.exports = {
       }
     },
     get: {
+      auth: 'Basic',
       params: {
         id: { type: 'string' }
       },
@@ -71,6 +73,7 @@ module.exports = {
       }
     },
     list: {
+      auth: 'Basic',
       params: {
         filter: { type: 'string' }
       },
@@ -85,6 +88,7 @@ module.exports = {
       }
     },
     create: {
+      auth: 'Basic',
       params: {
         url: { type: 'url' },
         name: { type: 'string' },
@@ -140,6 +144,7 @@ module.exports = {
       }
     },
     update: {
+      auth: 'Basic',
       params: {
         id: { type: 'url' },
         name: { type: 'string' },

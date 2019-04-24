@@ -35,7 +35,7 @@ module.exports = {
      * @returns {Object} Product
      */
     getInstanceProduct: {
-      auth: 'required',
+      auth: 'Bearer',
       cache: { keys: ['sku'], ttl: 60 },
       async handler(ctx) {
         const { sku } = ctx.params;
@@ -70,7 +70,7 @@ module.exports = {
      * @return {Number}
      */
     total: {
-      auth: 'required',
+      auth: 'Bearer',
       handler(ctx) {
         return ctx
           .call('products.count', {
@@ -109,7 +109,7 @@ module.exports = {
      * @returns {Array} 10 - 1000 products per page
      */
     list: {
-      auth: 'required',
+      auth: 'Bearer',
       params: {
         limit: {
           type: 'number',
@@ -173,7 +173,7 @@ module.exports = {
      * @returns {Object} Product
      */
     deleteInstanceProduct: {
-      auth: 'required',
+      auth: 'Bearer',
       params: {
         sku: { type: 'string' }
       },
@@ -191,7 +191,7 @@ module.exports = {
       }
     },
     import: {
-      auth: 'required',
+      auth: 'Bearer',
       params: {
         products: {
           type: 'array',
@@ -267,7 +267,7 @@ module.exports = {
       }
     },
     instanceUpdate: {
-      auth: 'required',
+      auth: 'Bearer',
       params: {
         sku: { type: 'string', convert: true },
         externalUrl: { type: 'string', optional: true },
@@ -314,7 +314,7 @@ module.exports = {
       }
     },
     bulkProductInstance: {
-      auth: 'required',
+      auth: 'Bearer',
       params: {
         productInstances: {
           type: 'array',

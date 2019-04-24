@@ -13,13 +13,14 @@ module.exports = {
   },
   actions: {
     getAttributes: {
+      auth: 'Basic',
       params: {},
       handler(ctx) {
         ctx.call('products-list.search', {});
       }
     },
     searchByFilters: {
-      auth: 'required',
+      auth: 'Basic',
       params: {
         limit: {
           type: 'number',
