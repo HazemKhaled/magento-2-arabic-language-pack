@@ -55,6 +55,133 @@ module.exports = {
           throw new MoleculerClientError(error.message, error.code, error.type, ctx.params);
         });
       }
+    },
+    get: {
+      params: {
+        id: { type: 'string' }
+      },
+      handler(ctx) {
+        return request({
+          method: 'get',
+          uri: this.getUrl(`stores/${encodeURIComponent(ctx.params.id)}`),
+          headers: {
+            Authorization: `Basic ${this.settings.AUTH}`
+          }
+        }).then(res => JSON.parse(res));
+      }
+    },
+    create: {
+      params: {
+        url: { type: 'url' },
+        name: { type: 'string' },
+        status: { type: 'enum', values: ['confirmed', 'unconfirmed', 'archived'] },
+        type: {
+          type: 'enum',
+          values: [
+            'woocommerce',
+            'magento1',
+            'magento2',
+            'salla',
+            'expandcart',
+            'opencart',
+            'shopify',
+            'other'
+          ]
+        },
+        stock_date: { type: 'date', optional: true },
+        stock_status: { type: 'enum', values: ['idle', 'in-progress'], optional: true },
+        price_date: { type: 'date', optional: true },
+        price_status: { type: 'enum', values: ['idle', 'in-progress'], optional: true },
+        sale_price: { type: 'number', optional: true },
+        sale_price_operator: { type: 'number', optional: true },
+        compared_at_price: { type: 'number', optional: true },
+        compared_at_price_operator: { type: 'enum', values: [1, 2], optional: true },
+        currency: { type: 'string', max: 3, optional: true },
+        external_data: { type: 'object', optional: true },
+        users: {
+          type: 'array',
+          items: {
+            type: 'object',
+            props: {
+              email: { type: 'email' },
+              roles: {
+                type: 'array',
+                items: { type: 'enum', values: ['owner', 'accounting', 'products', 'orders'] }
+              }
+            }
+          }
+        },
+        errors: { type: 'array', items: { type: 'object' }, optional: true }
+      },
+      handler(ctx) {
+        return request({
+          method: 'post',
+          uri: this.getUrl('stores'),
+          headers: {
+            Authorization: `Basic ${this.settings.AUTH}`
+          },
+          body: ctx.params,
+          json: true
+        });
+      }
+    },
+    update: {
+      params: {
+        id: { type: 'url' },
+        name: { type: 'string' },
+        status: { type: 'enum', values: ['confirmed', 'unconfirmed', 'archived'] },
+        type: {
+          type: 'enum',
+          values: [
+            'woocommerce',
+            'magento1',
+            'magento2',
+            'salla',
+            'expandcart',
+            'opencart',
+            'shopify',
+            'other'
+          ]
+        },
+        stock_date: { type: 'date', optional: true },
+        stock_status: { type: 'enum', values: ['idle', 'in-progress'], optional: true },
+        price_date: { type: 'date', optional: true },
+        price_status: { type: 'enum', values: ['idle', 'in-progress'], optional: true },
+        sale_price: { type: 'number', optional: true },
+        sale_price_operator: { type: 'number', optional: true },
+        compared_at_price: { type: 'number', optional: true },
+        compared_at_price_operator: { type: 'enum', values: [1, 2], optional: true },
+        currency: { type: 'string', max: 3, optional: true },
+        external_data: { type: 'object', optional: true },
+        users: {
+          type: 'array',
+          items: {
+            type: 'object',
+            props: {
+              email: { type: 'email' },
+              roles: {
+                type: 'array',
+                items: { type: 'enum', values: ['owner', 'accounting', 'products', 'orders'] }
+              }
+            }
+          }
+        },
+        errors: { type: 'array', items: { type: 'object' }, optional: true }
+      },
+      handler(ctx) {
+        const { id } = ctx.params;
+        delete ctx.params.id;
+        ctx.params.url = id;
+        return request({
+          method: 'put',
+          uri: this.getUrl(`stores/${encodeURIComponent(id)}`),
+          headers: {
+            Authorization: `Basic ${this.settings.AUTH}`
+          },
+          body: ctx.params,
+          json: true
+        });
+      }
     }
   },
   methods: {

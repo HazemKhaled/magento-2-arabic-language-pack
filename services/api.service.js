@@ -43,7 +43,10 @@ module.exports = {
           'DELETE orders/:id': 'orders.delete',
 
           // Stores
-          'GET stores/me': 'stores.me'
+          'GET stores/me': 'stores.me',
+          'GET stores/:id': 'stores.get',
+          'POST stores': 'stores.create',
+          'PUT stores/:id': 'stores.update'
         },
 
         // Disable to call not-mapped actions
