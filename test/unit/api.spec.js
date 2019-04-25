@@ -20,9 +20,8 @@ class API {
   /**
    * Get Formatted URL
    *
-   * @param {String} endpoint
-   * @returns {String} URL
-   * @memberof KlayerLib
+   * @returns
+   * @memberof API
    */
   getUrl() {
     // if URL doesn't have / at the end add it

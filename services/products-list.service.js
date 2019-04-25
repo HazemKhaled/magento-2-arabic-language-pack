@@ -19,7 +19,7 @@ module.exports = {
         ctx.call('products-list.search', {});
       }
     },
-    searchByFilters: {
+    list: {
       auth: 'Basic',
       params: {
         limit: {

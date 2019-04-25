@@ -103,7 +103,7 @@ module.exports = {
         })
           .then(async decoded => {
             if (decoded.id) {
-              // Get instance info from Klayer
+              // Get instance info
               const [instance] = await this.broker.call('stores.findInstance', {
                 consumerKey: decoded.id
               });

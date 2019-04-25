@@ -254,8 +254,7 @@ module.exports = {
      * Get Formatted URL
      *
      * @param {String} endpoint
-     * @returns {String} URL
-     * @memberof KlayerService
+     * @returns
      */
     getUrl(endpoint) {
       // if URL doesn't have / at the end add it
