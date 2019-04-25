@@ -1,4 +1,6 @@
 const ESService = require('moleculer-elasticsearch');
+const { MoleculerClientError } = require('moleculer').Errors;
+
 const Transformation = require('../mixins/transformation.mixin');
 
 module.exports = {
@@ -168,6 +170,12 @@ module.exports = {
           }
         };
         return this.searchCall(ctx.meta.user, body, ctx.params.limit, ctx.params.page);
+      }
+    },
+    get: {
+      auth: 'Basic',
+      handler() {
+        throw new MoleculerClientError('Not Implemented Yet!!');
       }
     }
   },
