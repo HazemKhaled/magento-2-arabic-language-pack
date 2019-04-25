@@ -4,8 +4,8 @@ const { MoleculerClientError } = require('moleculer').Errors;
 module.exports = {
   name: 'klayer',
   settings: {
-    access_token: process.env.KLAYER_TOKEN || 'dbbf3cb7-f7ad-46ce-bee3-4fd7477951c4',
-    API_URL: process.env.KLAYER_URL || 'https://dev.api.knawat.io'
+    access_token: process.env.KLAYER_TOKEN,
+    API_URL: process.env.KLAYER_URL
   },
   actions: {
     /**
