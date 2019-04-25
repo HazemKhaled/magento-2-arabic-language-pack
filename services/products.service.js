@@ -36,7 +36,7 @@ module.exports = {
      */
     getInstanceProduct: {
       auth: 'Bearer',
-      cache: { keys: ['sku'], ttl: 60 },
+      cache: { keys: ['#user', 'sku'], ttl: 60 },
       async handler(ctx) {
         const { sku } = ctx.params;
         let { _source } = ctx.params;

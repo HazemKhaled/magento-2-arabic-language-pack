@@ -241,6 +241,7 @@ module.exports = {
           json: true
         }).then(res => {
           this.broker.cacher.clean(`products.list:${res.consumer_key}**`);
+          this.broker.cacher.clean(`products.getInstanceProduct:${res.consumer_key}**`);
           return res;
         });
       }
