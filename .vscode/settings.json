@@ -4,6 +4,7 @@
         "Klayer",
         "Knawat",
         "cacher",
+        "ebay",
         "expandcart",
         "lastupdate",
         "magento",
@@ -11,10 +12,14 @@
         "mixins",
         "moleculer",
         "nats",
+        "odoo",
         "opencart",
         "salla",
         "shopify",
+        "skus",
+        "traefik",
         "uuidv",
+        "webhook",
         "woocommerce"
     ]
 }

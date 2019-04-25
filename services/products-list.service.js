@@ -114,7 +114,7 @@ module.exports = {
                 'sku',
                 'variations.sku'
               ],
-              // To get the result even if mispeled
+              // To get the result even if misspelled
               fuzziness: 'AUTO'
             }
           });
