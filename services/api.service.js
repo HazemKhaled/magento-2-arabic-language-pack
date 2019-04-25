@@ -87,8 +87,7 @@ module.exports = {
       if (!req.$endpoint.action.auth) {
         return;
       }
-      if (!req.headers.authorization)
-        return { authorization: 'Unauthorized request no access permision!' };
+      if (!req.headers.authorization) throw new UnAuthorizedError();
       const [type, reqToken] = req.headers.authorization.split(' ');
       if (!type || !reqToken) {
         return this.Promise.reject(new UnAuthorizedError());
