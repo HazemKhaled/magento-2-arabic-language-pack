@@ -21,7 +21,7 @@ npm run lint
 # Run ESLint with --fix
 npm run lint-fix
 
-# Formate the code with Prettier
+# Format the code with Prettier
 npm run prettier
 ```
 
