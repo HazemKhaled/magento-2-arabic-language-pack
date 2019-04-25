@@ -129,7 +129,24 @@ module.exports = {
             }
           }
         },
-        errors: { type: 'array', items: { type: 'object' }, optional: true }
+        errors: { type: 'array', items: { type: 'object' }, optional: true },
+        address: {
+          type: 'object',
+          props: {
+            first_name: { type: 'string' },
+            last_name: { type: 'string' },
+            company: { type: 'string', optional: true },
+            address_1: { type: 'string' },
+            address_2: { type: 'string', optional: true },
+            city: { type: 'string', optional: true },
+            state: { type: 'string', optional: true },
+            postcode: { type: 'number', optional: true },
+            country: { type: 'string', max: 2 },
+            email: { type: 'email', optional: true },
+            phone: { type: 'number', optional: true }
+          },
+          optional: true
+        }
       },
       handler(ctx) {
         return request({
@@ -185,7 +202,24 @@ module.exports = {
             }
           }
         },
-        errors: { type: 'array', items: { type: 'object' }, optional: true }
+        errors: { type: 'array', items: { type: 'object' }, optional: true },
+        address: {
+          type: 'object',
+          props: {
+            first_name: { type: 'string' },
+            last_name: { type: 'string' },
+            company: { type: 'string', optional: true },
+            address_1: { type: 'string' },
+            address_2: { type: 'string', optional: true },
+            city: { type: 'string', optional: true },
+            state: { type: 'string', optional: true },
+            postcode: { type: 'number', optional: true },
+            country: { type: 'string', max: 2 },
+            email: { type: 'email', optional: true },
+            phone: { type: 'number', optional: true }
+          },
+          optional: true
+        }
       },
       handler(ctx) {
         const { id } = ctx.params;
