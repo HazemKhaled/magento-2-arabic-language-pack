@@ -167,8 +167,8 @@ module.exports = {
       auth: 'Basic',
       params: {
         id: { type: 'url' },
-        name: { type: 'string' },
-        status: { type: 'enum', values: ['confirmed', 'unconfirmed', 'archived'] },
+        name: { type: 'string', optional: true },
+        status: { type: 'enum', values: ['confirmed', 'unconfirmed', 'archived'], optional: true },
         type: {
           type: 'enum',
           values: [
@@ -183,7 +183,8 @@ module.exports = {
             'ebay',
             'api',
             'other'
-          ]
+          ],
+          optional: true
         },
         stock_date: { type: 'date', optional: true },
         stock_status: { type: 'enum', values: ['idle', 'in-progress'], optional: true },
@@ -205,7 +206,8 @@ module.exports = {
                 type: 'array',
                 items: { type: 'enum', values: ['owner', 'accounting', 'products', 'orders'] }
               }
-            }
+            },
+            optional: true
           }
         },
         errors: { type: 'array', items: { type: 'object' }, optional: true },
