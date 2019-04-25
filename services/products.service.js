@@ -750,10 +750,9 @@ module.exports = {
           const [instance] = await this.broker.call('stores.findInstance', {
             consumerKey: payload.meta.user
           });
-          if (instance && instance.users.filter(user => user.role.includes('owner')).length > 0) {
-            this.updateLastSyncDate(
-              instance.users.filter(user => user.role.includes('owner'))[0].email
-            );
+          const [myUser] = instance.users.filter(user => user.roles.includes('owner'));
+          if (instance && myUser) {
+            this.updateLastSyncDate(myUser.email);
           }
         }
       }
