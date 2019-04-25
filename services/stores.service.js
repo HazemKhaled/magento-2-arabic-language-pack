@@ -176,6 +176,9 @@ module.exports = {
             'expandcart',
             'opencart',
             'shopify',
+            'csv',
+            'ebay',
+            'api',
             'other'
           ]
         },
