@@ -206,9 +206,9 @@ module.exports = {
                 type: 'array',
                 items: { type: 'enum', values: ['owner', 'accounting', 'products', 'orders'] }
               }
-            },
-            optional: true
-          }
+            }
+          },
+          optional: true
         },
         errors: { type: 'array', items: { type: 'object' }, optional: true },
         address: {
