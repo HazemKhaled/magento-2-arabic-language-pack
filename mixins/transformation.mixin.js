@@ -41,13 +41,13 @@ module.exports = {
           sku: variation.sku,
           cost_price: variation.sale * rate,
           sale_price:
-            instance.salePriceOprator === 1
-              ? variation.sale * instance.salePrice * rate
-              : variation.sale * rate + instance.salePrice,
+            instance.sale_price_operator === 1
+              ? variation.sale * instance.sale_price * rate
+              : variation.sale * rate + instance.sale_price,
           market_price:
-            instance.comparedAtPriceOprator === 1
-              ? variation.sale * instance.comparedAtPrice * rate
-              : variation.sale * rate + instance.comparedAtPrice,
+            instance.compared_at_price_operator === 1
+              ? variation.sale * instance.compared_at_price * rate
+              : variation.sale * rate + instance.compared_at_price,
           weight: variation.weight,
           attributes: this.formatAttributes(variation.attributes),
           quantity: archive ? 0 : variation.quantity
