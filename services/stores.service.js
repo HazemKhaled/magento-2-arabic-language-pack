@@ -239,6 +239,9 @@ module.exports = {
           },
           body: ctx.params,
           json: true
+        }).then(res => {
+          this.broker.cacher.clean(`products.list:${res.consumer_key}**`);
+          return res;
         });
       }
     }

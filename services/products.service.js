@@ -125,7 +125,7 @@ module.exports = {
         keyword: { type: 'string', optional: true }
       },
       cache: {
-        keys: ['#token', 'page', 'limit', 'lastupdate', 'hideOutOfStock', 'keyword', '_source'],
+        keys: ['#user', 'page', 'limit', 'lastupdate', 'hideOutOfStock', 'keyword', '_source'],
         ttl: 30 * 60, // 10 mins
         monitor: true
       },
@@ -182,7 +182,7 @@ module.exports = {
 
         return this.deleteProduct(sku, ctx.meta.user)
           .then(product => {
-            this.broker.cacher.clean(`products.list:${ctx.meta.token}**`);
+            this.broker.cacher.clean(`products.list:${ctx.meta.user}**`);
             return { product };
           })
           .catch(error => {
@@ -255,7 +255,7 @@ module.exports = {
                 body: bulk
               })
               .then(response => {
-                this.broker.cacher.clean(`products.list:${ctx.meta.token}**`);
+                this.broker.cacher.clean(`products.list:${ctx.meta.user}**`);
                 if (!response.errors)
                   return {
                     success: newSKUs,

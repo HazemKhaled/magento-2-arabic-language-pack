@@ -96,7 +96,7 @@ module.exports = {
               order: data
             });
             const order = result.data;
-            this.broker.cacher.clean(`orders.list:${ctx.meta.token}**`);
+            this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
             return {
               status: 'success',
               data: {
@@ -158,7 +158,7 @@ module.exports = {
         page: { type: 'number', convert: true, integer: true, min: 1, optional: true }
       },
       cache: {
-        keys: ['#token', 'page', 'limit'],
+        keys: ['#user', 'page', 'limit'],
         ttl: 15 * 60 // 10 mins
       },
       async handler(ctx) {
@@ -234,7 +234,7 @@ module.exports = {
           }
           if (data.status === 'cancelled')
             return ctx.call('orders.delete', { id: data.id }).then(res => {
-              this.broker.cacher.clean(`orders.list:${ctx.meta.token}**`);
+              this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
               return res;
             });
           const result = await ctx.call('klayer.updateOrder', {
@@ -249,7 +249,7 @@ module.exports = {
             };
           }
           const order = result.data;
-          this.broker.cacher.clean(`orders.list:${ctx.meta.token}**`);
+          this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
           return {
             status: 'success',
             data: {
@@ -274,7 +274,7 @@ module.exports = {
         return ctx
           .call('klayer.deleteOrder', { id: ctx.params.id })
           .then(() => {
-            this.broker.cacher.clean(`orders.list:${ctx.meta.token}**`);
+            this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
             return {
               status: 'success',
               data: {
