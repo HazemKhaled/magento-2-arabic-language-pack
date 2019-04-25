@@ -7,9 +7,9 @@ module.exports = {
    * Service settings
    */
   settings: {
-    agileDomain: process.env.AGILECRM_DOMAIN || 'testknawat',
-    agileKey: process.env.AGILECRM_KEY || 'rcffatjd9p3mjesj4clt76eql9',
-    agileEmail: process.env.AGILECRM_EMAIL || 'abdullah@knawat.com'
+    agileDomain: process.env.AGILECRM_DOMAIN,
+    agileKey: process.env.AGILECRM_KEY,
+    agileEmail: process.env.AGILECRM_EMAIL
   },
 
   /**
