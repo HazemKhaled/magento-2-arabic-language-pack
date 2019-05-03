@@ -43,6 +43,15 @@ services:
     environment:
       SERVICES: klayer
 
+  stores:
+    build:
+      context: ../../
+    image: microes
+    restart: always
+    env_file: .env
+    environment:
+      SERVICES: stores
+
   users:
     build:
       context: ../../
