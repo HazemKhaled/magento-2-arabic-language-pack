@@ -132,6 +132,7 @@ module.exports = {
             }
           }
         },
+        languages: { type: 'array', min: 1, max: 10, items: 'string' },
         errors: { type: 'array', items: { type: 'object' }, optional: true },
         address: {
           type: 'object',
@@ -210,6 +211,7 @@ module.exports = {
           },
           optional: true
         },
+        languages: { type: 'array', min: 1, max: 10, items: 'string', optional: true },
         errors: { type: 'array', items: { type: 'object' }, optional: true },
         address: {
           type: 'object',
@@ -232,7 +234,6 @@ module.exports = {
       handler(ctx) {
         const { id } = ctx.params;
         delete ctx.params.id;
-        ctx.params.url = id;
         return request({
           method: 'put',
           uri: this.getUrl(`stores/${encodeURIComponent(id)}`),
@@ -244,6 +245,7 @@ module.exports = {
         }).then(res => {
           this.broker.cacher.clean(`products.list:${res.consumer_key}**`);
           this.broker.cacher.clean(`products.getInstanceProduct:${res.consumer_key}**`);
+          this.broker.cacher.clean(`stores.findInstance:${res.consumer_key}`);
           return res;
         });
       }
