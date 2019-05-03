@@ -109,9 +109,9 @@ module.exports = {
             'other'
           ]
         },
-        stock_date: { type: 'date', optional: true },
+        stock_date: { type: 'date', optional: true, convert: true },
         stock_status: { type: 'enum', values: ['idle', 'in-progress'], optional: true },
-        price_date: { type: 'date', optional: true },
+        price_date: { type: 'date', optional: true, convert: true },
         price_status: { type: 'enum', values: ['idle', 'in-progress'], optional: true },
         sale_price: { type: 'number', optional: true },
         sale_price_operator: { type: 'number', optional: true },
@@ -133,7 +133,18 @@ module.exports = {
           }
         },
         languages: { type: 'array', min: 1, max: 10, items: 'string' },
-        errors: { type: 'array', items: { type: 'object' }, optional: true },
+        logs: {
+          type: 'array',
+          items: {
+            type: 'object',
+            props: {
+              message: { type: 'string' },
+              level: { type: 'string' },
+              date: { type: 'date', optional: true, convert: true }
+            }
+          },
+          optional: true
+        },
         address: {
           type: 'object',
           props: {
@@ -187,9 +198,9 @@ module.exports = {
           ],
           optional: true
         },
-        stock_date: { type: 'date', optional: true },
+        stock_date: { type: 'date', optional: true, convert: true },
         stock_status: { type: 'enum', values: ['idle', 'in-progress'], optional: true },
-        price_date: { type: 'date', optional: true },
+        price_date: { type: 'date', optional: true, convert: true },
         price_status: { type: 'enum', values: ['idle', 'in-progress'], optional: true },
         sale_price: { type: 'number', optional: true },
         sale_price_operator: { type: 'number', optional: true },
@@ -212,7 +223,18 @@ module.exports = {
           optional: true
         },
         languages: { type: 'array', min: 1, max: 10, items: 'string', optional: true },
-        errors: { type: 'array', items: { type: 'object' }, optional: true },
+        logs: {
+          type: 'array',
+          items: {
+            type: 'object',
+            props: {
+              message: { type: 'string' },
+              level: { type: 'string' },
+              date: { type: 'date', optional: true, convert: true }
+            }
+          },
+          optional: true
+        },
         address: {
           type: 'object',
           props: {

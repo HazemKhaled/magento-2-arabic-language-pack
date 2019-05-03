@@ -95,6 +95,8 @@ module.exports = {
             const result = await ctx.call('klayer.createOrder', {
               order: data
             });
+
+            this.logger.info(result);
             const order = result.data;
             this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
             return {
