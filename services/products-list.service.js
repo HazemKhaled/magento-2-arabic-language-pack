@@ -107,10 +107,10 @@ module.exports = {
             multi_match: {
               query: ctx.params.keyword,
               fields: [
-                ...(ctx.params.keywordLang ? ctx.params.keywordLang : ['tr', 'en', 'ar']).map(
+                ...(ctx.params.keywordLang ? ctx.params.keywordLang : ['tr', 'en', 'ar', 'fr']).map(
                   l => `name.${l}.text`
                 ),
-                ...(ctx.params.keywordLang ? ctx.params.keywordLang : ['tr', 'en', 'ar']).map(
+                ...(ctx.params.keywordLang ? ctx.params.keywordLang : ['tr', 'en', 'ar', 'fr']).map(
                   l => `description.${l}.text`
                 ),
                 'sku',
