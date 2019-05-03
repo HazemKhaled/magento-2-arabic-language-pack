@@ -48,7 +48,7 @@ module.exports = {
 
           // All Products
           'GET products': 'products-list.list',
-          'GET products/sku': 'products-list.get',
+          'GET products/:sku': 'products-list.get',
           'GET attributes': 'products.getAttributes',
 
           'GET catalog/categories': 'categories.list'
