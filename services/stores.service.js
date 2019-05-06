@@ -158,7 +158,7 @@ module.exports = {
             postcode: { type: 'number', optional: true },
             country: { type: 'string', max: 2 },
             email: { type: 'email', optional: true },
-            phone: { type: 'number', optional: true }
+            phone: { type: 'string', optional: true, convert: true }
           },
           optional: true
         }
@@ -252,7 +252,7 @@ module.exports = {
             postcode: { type: 'number', optional: true },
             country: { type: 'string', max: 2 },
             email: { type: 'email', optional: true },
-            phone: { type: 'number', optional: true }
+            phone: { type: 'string', optional: true, convert: true }
           },
           optional: true
         }
