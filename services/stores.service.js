@@ -92,7 +92,7 @@ module.exports = {
       params: {
         url: { type: 'url' },
         name: { type: 'string' },
-        status: { type: 'enum', values: ['confirmed', 'unconfirmed', 'archived'] },
+        status: { type: 'enum', values: ['confirmed', 'unconfirmed', 'archived', 'error'] },
         type: {
           type: 'enum',
           values: [
@@ -180,7 +180,11 @@ module.exports = {
       params: {
         id: { type: 'url' },
         name: { type: 'string', optional: true },
-        status: { type: 'enum', values: ['confirmed', 'unconfirmed', 'archived'], optional: true },
+        status: {
+          type: 'enum',
+          values: ['confirmed', 'unconfirmed', 'archived', 'error'],
+          optional: true
+        },
         type: {
           type: 'enum',
           values: [
