@@ -126,7 +126,16 @@ module.exports = {
         currency: { type: 'string', optional: true, min: 3, max: 3 }
       },
       cache: {
-        keys: ['#user', 'page', 'limit', 'lastupdate', 'hideOutOfStock', 'keyword', '_source'],
+        keys: [
+          '#user',
+          'page',
+          'limit',
+          'lastupdate',
+          'hideOutOfStock',
+          'keyword',
+          'currency',
+          '_source'
+        ],
         ttl: 30 * 60, // 10 mins
         monitor: true
       },
