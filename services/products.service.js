@@ -122,7 +122,8 @@ module.exports = {
         page: { type: 'number', convert: true, integer: true, min: 1, optional: true },
         lastupdate: { type: 'string', empty: false, optional: true },
         hideOutOfStock: { type: 'number', empty: false, convert: true, optional: true },
-        keyword: { type: 'string', optional: true }
+        keyword: { type: 'string', optional: true },
+        currency: { type: 'string', optional: true, min: 3, max: 3 }
       },
       cache: {
         keys: ['#user', 'page', 'limit', 'lastupdate', 'hideOutOfStock', 'keyword', '_source'],
@@ -158,7 +159,8 @@ module.exports = {
           _source,
           lastupdate,
           ctx.params.hideOutOfStock,
-          ctx.params.keyword
+          ctx.params.keyword,
+          ctx.params.currency
         );
 
         // Emit async Event
@@ -464,7 +466,8 @@ module.exports = {
       _source,
       lastupdate = '',
       hideOutOfStock,
-      keyword
+      keyword,
+      currency
     ) {
       const [instance] = await this.broker.call('stores.findInstance', {
         consumerKey: instanceId,
@@ -504,7 +507,7 @@ module.exports = {
         const results = search.docs;
 
         const rate = await this.broker.call('klayer.currencyRate', {
-          currencyCode: instance.currency
+          currencyCode: currency || instance.currency
         });
 
         try {
