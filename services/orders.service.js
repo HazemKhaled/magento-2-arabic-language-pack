@@ -83,7 +83,7 @@ module.exports = {
       auth: 'Bearer',
       params: entityValidator,
       async handler(ctx) {
-        if (ctx.meta.user && ctx.params.shipping.company !== 'ebay') {
+        if (ctx.meta.user) {
           ctx.params.id = uuidv1();
           try {
             // @TODO: transformation needed.
@@ -91,7 +91,23 @@ module.exports = {
             if (ctx.params.invoice_url) {
               data.pdf_invoice_url = ctx.params.invoice_url;
             }
-
+            const instance = await ctx.call('stores.findInstance', { consumerKey: ctx.meta.user });
+            if (!instance.address || !instance.address.first_name)
+              throw new MoleculerClientError('No Billing Adress!');
+            if (data.billing) delete data.billing;
+            data.billing = {
+              first_name: instance.address.first_name,
+              last_name: instance.address.last_name,
+              company: instance.company ? instance.company : '',
+              address_1: instance.address.address_1,
+              address_2: instance.address.address_2 ? instance.address.address_2 : '',
+              city: instance.address.city ? instance.address.city : '',
+              state: instance.address.state ? instance.address.state : '',
+              postcode: instance.address.postcode ? instance.address.postcode : '',
+              country: instance.address.country,
+              phone: instance.address.phone ? instance.address.phone : '',
+              email: instance.address.email
+            };
             const result = await ctx.call('klayer.createOrder', {
               order: data
             });
