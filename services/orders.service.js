@@ -29,23 +29,6 @@ const entityValidator = {
       email: { type: 'email', optional: true }
     }
   },
-  billing: {
-    type: 'object',
-    optional: true,
-    props: {
-      first_name: { type: 'string', empty: false },
-      last_name: { type: 'string', empty: false },
-      company: { type: 'string', optional: true },
-      address_1: { type: 'string', empty: false },
-      address_2: { type: 'string', optional: true },
-      city: { type: 'string', empty: false },
-      state: { type: 'string', optional: true },
-      postcode: { type: 'string', optional: true },
-      country: { type: 'string', length: 2 },
-      phone: { type: 'string', optional: true },
-      email: { type: 'email', optional: true }
-    }
-  },
   invoice_url: { type: 'string', optional: true },
   payment_method: { type: 'string', empty: false, optional: true }
 };
@@ -83,7 +66,7 @@ module.exports = {
       auth: 'Bearer',
       params: entityValidator,
       async handler(ctx) {
-        if (ctx.meta.user && ctx.params.shipping.company !== 'ebay') {
+        if (ctx.meta.user) {
           ctx.params.id = uuidv1();
           try {
             // @TODO: transformation needed.
@@ -91,7 +74,23 @@ module.exports = {
             if (ctx.params.invoice_url) {
               data.pdf_invoice_url = ctx.params.invoice_url;
             }
-
+            const instance = await ctx.call('stores.findInstance', { consumerKey: ctx.meta.user });
+            if (!instance.address || !instance.address.first_name)
+              throw new MoleculerClientError('No Billing Adress!');
+            if (data.billing) delete data.billing;
+            data.billing = {
+              first_name: instance.address.first_name,
+              last_name: instance.address.last_name,
+              company: instance.company ? instance.company : '',
+              address_1: instance.address.address_1,
+              address_2: instance.address.address_2 ? instance.address.address_2 : '',
+              city: instance.address.city ? instance.address.city : '',
+              state: instance.address.state ? instance.address.state : '',
+              postcode: instance.address.postcode ? instance.address.postcode : '',
+              country: instance.address.country,
+              phone: instance.address.phone ? instance.address.phone : '',
+              email: instance.address.email
+            };
             const result = await ctx.call('klayer.createOrder', {
               order: data
             });

@@ -92,7 +92,7 @@ module.exports = {
       params: {
         url: { type: 'url' },
         name: { type: 'string' },
-        status: { type: 'enum', values: ['confirmed', 'unconfirmed', 'archived'] },
+        status: { type: 'enum', values: ['confirmed', 'unconfirmed', 'archived', 'error'] },
         type: {
           type: 'enum',
           values: [
@@ -158,7 +158,7 @@ module.exports = {
             postcode: { type: 'number', optional: true },
             country: { type: 'string', max: 2 },
             email: { type: 'email', optional: true },
-            phone: { type: 'number', optional: true }
+            phone: { type: 'string', optional: true, convert: true }
           },
           optional: true
         }
@@ -180,7 +180,11 @@ module.exports = {
       params: {
         id: { type: 'url' },
         name: { type: 'string', optional: true },
-        status: { type: 'enum', values: ['confirmed', 'unconfirmed', 'archived'], optional: true },
+        status: {
+          type: 'enum',
+          values: ['confirmed', 'unconfirmed', 'archived', 'error'],
+          optional: true
+        },
         type: {
           type: 'enum',
           values: [
@@ -248,7 +252,7 @@ module.exports = {
             postcode: { type: 'number', optional: true },
             country: { type: 'string', max: 2 },
             email: { type: 'email', optional: true },
-            phone: { type: 'number', optional: true }
+            phone: { type: 'string', optional: true, convert: true }
           },
           optional: true
         }
