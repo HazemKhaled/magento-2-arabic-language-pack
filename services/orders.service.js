@@ -75,8 +75,15 @@ module.exports = {
               data.pdf_invoice_url = ctx.params.invoice_url;
             }
             const instance = await ctx.call('stores.findInstance', { consumerKey: ctx.meta.user });
-            if (!instance.address || !instance.address.first_name)
-              throw new MoleculerClientError('No Billing Adress!');
+            if (
+              !instance.address ||
+              !instance.address.first_name ||
+              !instance.address.last_name ||
+              !instance.address.address_1 ||
+              !instance.address.country ||
+              !instance.address.email
+            )
+              throw new MoleculerClientError('No Billing Address Or Address Missing Data!');
             if (data.billing) delete data.billing;
             data.billing = {
               first_name: instance.address.first_name,
