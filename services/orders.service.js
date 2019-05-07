@@ -29,23 +29,6 @@ const entityValidator = {
       email: { type: 'email', optional: true }
     }
   },
-  billing: {
-    type: 'object',
-    optional: true,
-    props: {
-      first_name: { type: 'string', empty: false },
-      last_name: { type: 'string', empty: false },
-      company: { type: 'string', optional: true },
-      address_1: { type: 'string', empty: false },
-      address_2: { type: 'string', optional: true },
-      city: { type: 'string', empty: false },
-      state: { type: 'string', optional: true },
-      postcode: { type: 'string', optional: true },
-      country: { type: 'string', length: 2 },
-      phone: { type: 'string', optional: true },
-      email: { type: 'email', optional: true }
-    }
-  },
   invoice_url: { type: 'string', optional: true },
   payment_method: { type: 'string', empty: false, optional: true }
 };
