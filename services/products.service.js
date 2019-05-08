@@ -436,7 +436,7 @@ module.exports = {
         if (result.hits.total === 0) {
           throw new MoleculerClientError('Product not found', 404, sku);
         }
-        const rate = await this.broker.call('klayer.currencyRate', {
+        const rate = await this.broker.call('currencies.getCurrency', {
           currencyCode: instance.currency
         });
         const source = result.hits.hits[0]._source;
@@ -449,7 +449,12 @@ module.exports = {
           images: source.images,
           categories: this.formatCategories(source.categories),
           attributes: this.formatAttributes(source.attributes),
-          variations: this.formatVariations(source.variations, instance, rate, source.archive)
+          variations: this.formatVariations(
+            source.variations,
+            instance,
+            rate.exchange_rate,
+            source.archive
+          )
         };
       } catch (err) {
         throw new MoleculerClientError(err.message, 404, sku);
@@ -515,7 +520,7 @@ module.exports = {
 
         const results = search.docs;
 
-        const rate = await this.broker.call('klayer.currencyRate', {
+        const rate = await this.broker.call('currencies.getCurrency', {
           currencyCode: currency || instance.currency
         });
 
@@ -535,7 +540,7 @@ module.exports = {
                 variations: this.formatVariations(
                   source.variations,
                   instance,
-                  rate,
+                  rate.exchange_rate,
                   source.archive,
                   instanceProductsFull.page[n]._source.variations
                 )

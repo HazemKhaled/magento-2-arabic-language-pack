@@ -231,7 +231,7 @@ module.exports = {
         );
       }
       const [instance] = await this.broker.call('stores.findInstance', { consumerKey: user });
-      const rate = await this.broker.call('klayer.currencyRate', {
+      const rate = await this.broker.call('currencies.getCurrency', {
         currencyCode: instance.currency
       });
 
@@ -253,7 +253,7 @@ module.exports = {
             variations: this.formatVariations(
               product._source.variations,
               instance,
-              rate,
+              rate.exchange_rate,
               product._source.archive
             )
           })),
