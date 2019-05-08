@@ -51,7 +51,11 @@ module.exports = {
           'GET products/:sku': 'products-list.get',
           'GET attributes': 'products.getAttributes',
 
-          'GET catalog/categories': 'categories.list'
+          'GET catalog/categories': 'categories.list',
+
+          // Currencies
+          'GET currencies:currencyCode': 'currencies.getCurrency',
+          'GET currencies': 'currencies.getCurrencies'
         },
 
         // Disable to call not-mapped actions
