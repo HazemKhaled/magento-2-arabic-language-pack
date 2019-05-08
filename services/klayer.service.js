@@ -9,40 +9,6 @@ module.exports = {
   },
   actions: {
     /**
-     * Get Currency Rate
-     *
-     * @param {String} currencyCode
-     * @returns {Number} Rate
-     * @memberof KlayerService
-     */
-    currencyRate: {
-      params: {
-        currencyCode: { type: 'string' }
-      },
-      cache: {
-        key: ['currencyCode'],
-        ttl: 30 * 60 // 1 hour
-      },
-      handler(ctx) {
-        return request({
-          method: 'GET',
-          uri: this.getUrl(`Currencies/${ctx.params.currencyCode}`),
-          qs: {
-            access_token: this.settings.access_token
-          },
-          headers: {
-            'User-Agent': 'Request-MicroES'
-          },
-          json: true
-        })
-          .then(({ rate }) => rate)
-          .catch(error => {
-            throw new MoleculerClientError(error.message, error.code, error.type, ctx.params);
-          });
-      }
-    },
-
-    /**
      * Create Order in Klayer
      *
      * @param {Object} order
