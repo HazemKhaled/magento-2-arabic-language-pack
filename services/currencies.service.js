@@ -10,6 +10,10 @@ module.exports = {
       params: {
         currencyCode: { type: 'string', min: 3, max: 3 }
       },
+      cache: {
+        key: ['currencyCode'],
+        ttl: 30 * 60 // 1 hour
+      },
       handler(ctx) {
         return fetch(`${process.env.OMS_URL}/currencies/${ctx.params.currency}`, {
           method: 'get',
@@ -20,6 +24,9 @@ module.exports = {
       }
     },
     getCurrencies: {
+      cache: {
+        ttl: 30 * 60 // 1 hour
+      },
       handler() {
         return fetch(`${process.env.OMS_URL}/currencies`, {
           method: 'get',
