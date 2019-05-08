@@ -100,6 +100,15 @@ services:
       - nats
       - redis
 
+  currencies:
+    build:
+      context: ../../
+    image: microes
+    restart: always
+    env_file: .env
+    environment:
+      SERVICES: currencies
+
   elastic-update:
     build:
       context: ../../
