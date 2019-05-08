@@ -8,7 +8,7 @@ module.exports = {
   actions: {
     getCurrency: {
       params: {
-        currency: { type: 'string', min: 3, max: 3 }
+        currencyCode: { type: 'string', min: 3, max: 3 }
       },
       handler(ctx) {
         return fetch(`${process.env.OMS_URL}/currencies/${ctx.params.currency}`, {
