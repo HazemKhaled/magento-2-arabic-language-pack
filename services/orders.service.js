@@ -74,7 +74,9 @@ module.exports = {
             if (ctx.params.invoice_url) {
               data.pdf_invoice_url = ctx.params.invoice_url;
             }
-            const instance = await ctx.call('stores.findInstance', { consumerKey: ctx.meta.user });
+            const [instance] = await ctx.call('stores.findInstance', {
+              consumerKey: ctx.meta.user
+            });
             if (
               !instance.address ||
               !instance.address.first_name ||
