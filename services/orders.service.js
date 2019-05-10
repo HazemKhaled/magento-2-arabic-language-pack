@@ -128,15 +128,21 @@ module.exports = {
               )
             );
             const inStock = found.filter(item => item.quantity > 0);
-            if (inStock.length === 0)
+            const enoughStock = found.filter(
+              item => item.quantity > data.items.find(i => i.sku === item.sku).quantity
+            );
+            console.log(enoughStock);
+            if (enoughStock.length === 0)
               return {
-                warning: {
-                  message:
-                    'The products you ordered is not in-stock, The order has not been created!',
-                  code: 1101
-                }
+                warnings: [
+                  {
+                    message:
+                      'The products you ordered is not in-stock, The order has not been created!',
+                    code: 1101
+                  }
+                ]
               };
-            data.items = data.items.filter(item => inStock.map(i => i.sku).includes(item.sku));
+            data.items = data.items.filter(item => enoughStock.map(i => i.sku).includes(item.sku));
             data.billing = {
               first_name: instance.address.first_name,
               last_name: instance.address.last_name,
@@ -155,6 +161,26 @@ module.exports = {
             });
             const order = result.data;
             this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
+            const bulk = [];
+            products.hits.hits.forEach(product => {
+              bulk.push({
+                update: {
+                  _index: 'products',
+                  _type: 'Product',
+                  _id: product._id
+                }
+              });
+              bulk.push({
+                doc: {
+                  sales_qty: product._source.sales_qty ? parseInt(product._source.sales_qty) + 1 : 1
+                }
+              });
+            });
+            ctx.call('products.bulk', {
+              index: 'products',
+              type: 'Product',
+              body: bulk
+            });
             const message = {
               status: 'success',
               data: {
@@ -167,12 +193,22 @@ module.exports = {
               }
             };
             const outOfStock = orderItems.filter(item => !inStock.map(i => i.sku).includes(item));
+            const notEnoughStock = inStock.filter(
+              item => !enoughStock.map(i => i.sku).includes(item.sku)
+            );
+            if (outOfStock.length > 0 || notEnoughStock.length > 0) message.warnings = [];
             if (outOfStock.length > 0)
-              message.warning = {
+              message.warnings.push({
                 message: `This items are out of stock ${outOfStock}`,
                 skus: outOfStock,
                 code: 1102
-              };
+              });
+            if (notEnoughStock.length > 0)
+              message.warnings.push({
+                message: `This items quantities are enough stock ${outOfStock}`,
+                skus: notEnoughStock,
+                code: 1103
+              });
             return message;
           } catch (err) {
             throw new MoleculerClientError(err, 500);
