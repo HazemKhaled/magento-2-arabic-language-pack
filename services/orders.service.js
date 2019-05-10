@@ -1,5 +1,6 @@
 const uuidv1 = require('uuid/v1');
 const ESService = require('moleculer-elasticsearch');
+const fetch = require('node-fetch');
 const { MoleculerClientError } = require('moleculer').Errors;
 
 const entityValidator = {
@@ -142,7 +143,24 @@ module.exports = {
                   }
                 ]
               };
+            const [user] = await fetch(
+              `${process.env.KLAYER_URL}/api/Partners?filter=${JSON.stringify({
+                where: {
+                  contact_email: instance.users.filter(usr => usr.roles.includes('owner'))[0].email
+                }
+              })}&access_token=dbbf3cb7-f7ad-46ce-bee3-4fd7477951c4`,
+              { method: 'get' }
+            ).then(res => res.json());
+            const subscription = this.currentSubscriptions(user.subscriptions);
             data.items = data.items.filter(item => enoughStock.map(i => i.sku).includes(item.sku));
+            if (
+              subscription.attr_order_processing_fees &&
+              subscription.attr_order_processing_fees > 0
+            )
+              data.items.push({
+                sku: 'PROCESSING-FEE',
+                quantity: 1
+              });
             data.billing = {
               first_name: instance.address.first_name,
               last_name: instance.address.last_name,
@@ -378,7 +396,19 @@ module.exports = {
   /**
    * Methods
    */
-  methods: {},
+  methods: {
+    currentSubscriptions(subscriptions) {
+      const max = [];
+      let lastDate = new Date(0);
+      subscriptions.forEach(subscription => {
+        if (new Date(subscription.expire_date) > lastDate) {
+          max.push(subscription);
+          lastDate = new Date(subscription.expire_date);
+        }
+      });
+      return max.pop();
+    }
+  },
 
   /**
    * Service created lifecycle event handler
