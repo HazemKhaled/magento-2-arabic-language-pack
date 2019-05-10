@@ -131,7 +131,6 @@ module.exports = {
             const enoughStock = found.filter(
               item => item.quantity > data.items.find(i => i.sku === item.sku).quantity
             );
-            console.log(enoughStock);
             if (enoughStock.length === 0)
               return {
                 warnings: [
