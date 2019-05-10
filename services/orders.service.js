@@ -136,6 +136,7 @@ module.exports = {
               return {
                 warnings: [
                   {
+                    status: 'fail',
                     message:
                       'The products you ordered is not in-stock, The order has not been created!',
                     code: 1101
@@ -205,7 +206,7 @@ module.exports = {
               });
             if (notEnoughStock.length > 0)
               message.warnings.push({
-                message: `This items quantities are enough stock ${outOfStock}`,
+                message: `This items quantities are not enough stock ${outOfStock}`,
                 skus: notEnoughStock,
                 code: 1103
               });
