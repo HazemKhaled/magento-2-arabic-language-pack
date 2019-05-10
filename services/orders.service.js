@@ -30,8 +30,7 @@ const entityValidator = {
       email: { type: 'email', optional: true }
     }
   },
-  invoice_url: { type: 'string', optional: true },
-  payment_method: { type: 'string', empty: false, optional: true }
+  invoice_url: { type: 'string', optional: true }
 };
 
 module.exports = {
@@ -164,8 +163,7 @@ module.exports = {
                 items: order.line_items,
                 billing: order.billing,
                 shipping: order.shipping,
-                createDate: order.date_created,
-                payment_method: order.payment_method
+                createDate: order.date_created
               }
             };
             const outOfStock = orderItems.filter(item => !inStock.map(i => i.sku).includes(item));
@@ -272,8 +270,7 @@ module.exports = {
             email: { type: 'email', optional: true }
           }
         },
-        invoice_url: { type: 'string', optional: true },
-        payment_method: { type: 'string', empty: false, optional: true }
+        invoice_url: { type: 'string', optional: true }
       },
       async handler(ctx) {
         try {
