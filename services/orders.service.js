@@ -1,4 +1,5 @@
 const uuidv1 = require('uuid/v1');
+const ESService = require('moleculer-elasticsearch');
 const { MoleculerClientError } = require('moleculer').Errors;
 
 const entityValidator = {
@@ -35,11 +36,17 @@ const entityValidator = {
 
 module.exports = {
   name: 'orders',
-
+  settings: {
+    elasticsearch: {
+      host: `http://${process.env.ELASTIC_AUTH}@${process.env.ELASTIC_HOST}:${
+        process.env.ELASTIC_PORT
+      }`
+    }
+  },
   /**
-   * Service settings
+   * Service Mixins
    */
-  settings: {},
+  mixins: [ESService],
 
   /**
    * Service metadata
@@ -62,7 +69,7 @@ module.exports = {
      *
      * @param {String} name - User name
      */
-    create: {
+    createOrder: {
       auth: 'Bearer',
       params: entityValidator,
       async handler(ctx) {
@@ -86,7 +93,51 @@ module.exports = {
               !instance.address.email
             )
               throw new MoleculerClientError('No Billing Address Or Address Missing Data!');
-            if (data.billing) delete data.billing;
+            const orderItems = data.items.map(item => item.sku);
+            const products = await ctx.call('orders.search', {
+              index: 'products',
+              type: 'Product',
+              body: {
+                query: {
+                  bool: {
+                    filter: [
+                      {
+                        nested: {
+                          path: 'variations',
+                          query: {
+                            bool: {
+                              filter: {
+                                terms: {
+                                  'variations.sku': orderItems
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            });
+            const found = [];
+            products.hits.hits.forEach(product =>
+              found.push(
+                ...product._source.variations
+                  .filter(variation => orderItems.includes(variation.sku))
+                  .map(item => ({ sku: item.sku, quantity: item.quantity }))
+              )
+            );
+            const inStock = found.filter(item => item.quantity > 0);
+            if (inStock.length === 0)
+              return {
+                warning: {
+                  message:
+                    'The products you ordered is not in-stock, The order has not been created!',
+                  code: 1101
+                }
+              };
+            data.items = data.items.filter(item => inStock.map(i => i.sku).includes(item.sku));
             data.billing = {
               first_name: instance.address.first_name,
               last_name: instance.address.last_name,
@@ -103,11 +154,9 @@ module.exports = {
             const result = await ctx.call('klayer.createOrder', {
               order: data
             });
-
-            this.logger.info(result);
             const order = result.data;
             this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
-            return {
+            const message = {
               status: 'success',
               data: {
                 id: order.id,
@@ -119,16 +168,24 @@ module.exports = {
                 payment_method: order.payment_method
               }
             };
+            const outOfStock = orderItems.filter(item => !inStock.map(i => i.sku).includes(item));
+            if (outOfStock.length > 0)
+              message.warning = {
+                message: `This items are out of stock ${outOfStock}`,
+                skus: outOfStock,
+                code: 1102
+              };
+            return message;
           } catch (err) {
-            return this.Promise.reject(new MoleculerClientError(err));
+            throw new MoleculerClientError(err, 500);
           }
         } else {
-          return this.Promise.reject(new MoleculerClientError('User not authenticated'));
+          throw new MoleculerClientError('User not authenticated');
         }
       }
     },
 
-    get: {
+    getOrder: {
       auth: 'Bearer',
       params: {
         order_id: { type: 'string' }
@@ -183,7 +240,7 @@ module.exports = {
       }
     },
 
-    update: {
+    updateOrder: {
       auth: 'Bearer',
       params: {
         id: { type: 'string', empty: false },
@@ -258,7 +315,7 @@ module.exports = {
         }
       }
     },
-    delete: {
+    deleteOrder: {
       auth: 'Bearer',
       params: {
         id: { type: 'string', convert: true }

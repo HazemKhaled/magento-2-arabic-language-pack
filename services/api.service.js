@@ -34,10 +34,10 @@ module.exports = {
 
           // Orders
           'GET orders': 'orders.list',
-          'POST orders': 'orders.create',
-          'GET orders/:order_id': 'orders.get',
-          'PUT orders/:id': 'orders.update',
-          'DELETE orders/:id': 'orders.delete',
+          'POST orders': 'orders.createOrder',
+          'GET orders/:order_id': 'orders.getOrder',
+          'PUT orders/:id': 'orders.updateOrder',
+          'DELETE orders/:id': 'orders.deleteOrder',
 
           // Stores
           'GET stores/me': 'stores.me',
