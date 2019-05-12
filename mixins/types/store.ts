@@ -23,4 +23,7 @@ export interface Store {
  * @export
  * @interface StoreUser
  */
-export interface StoreUser {}
+export interface StoreUser {
+  email: string;
+  roles: string[];
+}

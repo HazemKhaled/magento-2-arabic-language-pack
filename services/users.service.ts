@@ -1,9 +1,8 @@
-import { StoreUser } from './../mixins/types/store';
-import jwt, { VerifyErrors } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import { Errors, ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
 import { Store } from './../mixins/types';
-import { any } from 'bluebird';
+import { StoreUser } from './../mixins/types/store';
 
 const { MoleculerClientError } = Errors;
 
