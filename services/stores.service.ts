@@ -1,7 +1,9 @@
-const request = require('request-promise');
-const { MoleculerClientError } = require('moleculer').Errors;
+import { Errors, ServiceSchema } from 'moleculer';
+import request from 'request-promise';
 
-module.exports = {
+const { MoleculerClientError } = Errors;
+
+export const StoresService: ServiceSchema = {
   name: 'stores',
   settings: {
     API_URL: process.env.STORES_URL,
