@@ -37,6 +37,7 @@
   },
   "dependencies": {
     "@types/node-fetch": "^2.3.3",
+    "@types/request-promise": "^4.1.43",
     "agile_crm": "^1.2.5",
     "bluebird": "^3.5.4",
     "elasticsearch": "^16.0.0",

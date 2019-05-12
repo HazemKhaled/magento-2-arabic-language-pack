@@ -1,20 +1,17 @@
-const request = require('request-promise');
-const { MoleculerClientError } = require('moleculer').Errors;
+import { Errors, ServiceSchema } from 'moleculer';
+import request from 'request-promise';
 
-module.exports = {
+import { Order } from '../mixins/types';
+
+const { MoleculerClientError } = Errors;
+
+export const KlayerService: ServiceSchema = {
   name: 'klayer',
   settings: {
     access_token: process.env.KLAYER_TOKEN,
     API_URL: process.env.KLAYER_URL
   },
   actions: {
-    /**
-     * Create Order in Klayer
-     *
-     * @param {Object} order
-     * @returns {Object} response
-     * @memberof KlayerService
-     */
     createOrder: {
       params: {
         order: { type: 'object' }
@@ -94,7 +91,7 @@ module.exports = {
             uri: this.getUrl(
               `webhook/orders?filter=${JSON.stringify({
                 where: query,
-                limit: limit,
+                limit,
                 skip: orderSkip
               })}`
             ),
@@ -107,8 +104,8 @@ module.exports = {
             json: true
           });
 
-          orders = orders.map(order => {
-            const formattedOrder = {
+          orders = orders.map((order: Order) => {
+            const formattedOrder: Order = {
               id: order.id,
               status: order.status,
               items: order.line_items,
@@ -198,12 +195,11 @@ module.exports = {
     /**
      * Get Status Name
      *
-     * @param {String} Status
-     * @returns {String} Status Name
-     * @memberof KlayerService
+     * @param {string} status
+     * @returns {string}Status Name
      */
-    getStatusName(status) {
-      const stateNames = {
+    getStatusName(status: string = 'Order Placed'): string {
+      const stateNames: { [key: string]: string } = {
         draft: 'Order Placed',
         sent: 'Sent',
         on_hold: 'On-hold',
@@ -213,10 +209,8 @@ module.exports = {
         cancel: 'Cancelled',
         error: '...'
       };
-      if (stateNames[status]) {
-        return stateNames[status];
-      }
-      return 'Order Placed';
+
+      return stateNames[status];
     }
   }
 };
