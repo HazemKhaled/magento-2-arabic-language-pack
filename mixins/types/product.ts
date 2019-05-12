@@ -7,5 +7,8 @@ import { I18nText } from './i18ntext';
  * @interface Product
  */
 export interface Product {
-  name: I18nText;
+  sku?: any;
+  name?: I18nText;
+  updated: Date;
+  archive: boolean;
 }

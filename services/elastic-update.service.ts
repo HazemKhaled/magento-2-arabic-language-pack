@@ -1,8 +1,11 @@
-const Cron = require('moleculer-cron');
-const { MoleculerClientError } = require('moleculer').Errors;
-const Loop = require('bluebird');
-const ESService = require('moleculer-elasticsearch');
-const DbService = require('../mixins/db.mixin');
+import Loop from 'bluebird';
+import { Errors } from 'moleculer';
+import Cron from 'moleculer-cron';
+import ESService, { SearchResponse } from 'moleculer-elasticsearch';
+import DbService from '../mixins/db.mixin';
+import { Product } from '../mixins/types';
+
+const { MoleculerClientError } = Errors;
 
 module.exports = {
   name: 'elastic-update',
@@ -57,7 +60,7 @@ module.exports = {
      * @returns {Array} Categories
      */
     run: {
-      async handler(ctx) {
+      async handler(ctx: any) {
         // Don't run if another cron not completed
         if (this.settings.isRunning) {
           this.logger.info('Update instance Products is already running');
@@ -97,12 +100,12 @@ module.exports = {
      * @returns
      * @memberof ElasticLib
      */
-    async syncInstanceProducts(lastUpdateDate) {
+    async syncInstanceProducts(lastUpdateDate: string | number | Date) {
       if (!lastUpdateDate && lastUpdateDate === '') {
         return false;
       }
       const limit = process.env.ELASTIC_UPDATE_LIMIT || 999;
-      const products = await this.broker
+      const searchResponse: SearchResponse<Product> = await this.broker
         .call('elastic-update.search', {
           index: 'products',
           type: 'Product',
@@ -116,9 +119,15 @@ module.exports = {
           },
           size: limit
         })
-        .catch(err => new MoleculerClientError(err));
+        .catch(() => {
+          throw new MoleculerClientError('', 500, '');
+        });
 
-      if (products.hits && products.hits.hits && products.hits.hits.length === 0) {
+      if (
+        searchResponse.hits &&
+        searchResponse.hits.hits &&
+        searchResponse.hits.hits.length === 0
+      ) {
         return {
           success: true,
           LastDate: '',
@@ -126,9 +135,10 @@ module.exports = {
         };
       }
 
-      if (products.hits && products.hits.hits && products.hits.hits.length > 0) {
-        const LastDate = products.hits.hits[products.hits.hits.length - 1]._source.updated || '';
-        const isUpdated = await this.bulkUpdateInstanceProducts(products.hits.hits);
+      if (searchResponse.hits && searchResponse.hits.hits && searchResponse.hits.hits.length > 0) {
+        const LastDate =
+          searchResponse.hits.hits[searchResponse.hits.hits.length - 1]._source.updated || '';
+        const isUpdated = await this.bulkUpdateInstanceProducts(searchResponse);
         if (isUpdated) {
           return {
             success: true,
@@ -146,11 +156,11 @@ module.exports = {
      * @returns
      * @memberof ElasticLib
      */
-    async bulkUpdateInstanceProducts(products) {
+    async bulkUpdateInstanceProducts(search: SearchResponse<Product>) {
       let result = true;
-      await Loop.each(products, async product => {
+      await Loop.each(search.hits.hits, async hit => {
         // If no product came, mark ar archived
-        product = product._source || { archive: true, updated: new Date() };
+        const product: Product = hit._source || { archive: true, updated: new Date() };
         const updateData = {
           index: 'products-instances',
           type: 'product',
@@ -204,7 +214,9 @@ module.exports = {
       return this.Promise.resolve()
         .then(() => this.adapter.find(query))
         .then(([date = {}]) => date.date || new Date('1970-01-01T12:00:00.000Z'))
-        .catch(err => this.logger.error('ERROR_DURING_GET_LAST_DATE', err));
+        .catch((err: object) => {
+          this.logger.error('ERROR_DURING_GET_LAST_DATE', err);
+        });
     },
 
     /**
@@ -214,7 +226,7 @@ module.exports = {
      * @param {*} ctx
      * @returns
      */
-    updateLastUpdateDate(date = '1970-01-01T12:00:00.000Z', ctx) {
+    updateLastUpdateDate(date = '1970-01-01T12:00:00.000Z', ctx: any) {
       const query = {
         query: { _id: 'last_update_date' }
       };
@@ -225,16 +237,20 @@ module.exports = {
           if (dateValue) {
             return this.adapter
               .updateById('last_update_date', { $set: { date: new Date(date) } })
-              .then(json => this.entityChanged('updated', json, ctx).then(() => json))
-              .catch(err => this.logger.error('ERROR_DURING_UPDATE_LAST_DATE', err));
+              .then((json: object) => this.entityChanged('updated', json, ctx).then(() => json))
+              .catch((err: object) => {
+                this.logger.error('ERROR_DURING_UPDATE_LAST_DATE', err);
+              });
           }
 
           return this.adapter
             .insert({ _id: 'last_update_date', date: new Date(date) })
-            .then(json => this.entityChanged('created', json, ctx).then(() => json))
-            .catch(err => this.logger.error('ERROR_DURING_INSERT_LAST_DATE', err));
+            .then((json: object) => this.entityChanged('created', json, ctx).then(() => json))
+            .catch((err: object) => {
+              this.logger.error('ERROR_DURING_INSERT_LAST_DATE', err);
+            });
         })
-        .catch(err => {
+        .catch((err: object) => {
           this.logger.error('ERROR_DURING_UPDATE_LAST_DATE', err);
         });
     }
