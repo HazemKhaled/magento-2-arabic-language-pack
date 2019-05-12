@@ -1,4 +1,4 @@
-const AgileCRMManager = require('agile_crm');
+import AgileCRMManager, { Contact } from 'agile_crm';
 
 module.exports = {
   name: 'agilecrm',
@@ -19,24 +19,24 @@ module.exports = {
     /**
      * Get Contact ID by Email
      *
-     * @param {String} email
+     * @param {string} email
      * @returns contact
-     * @memberof AgileLib
      */
-    async getContactIdByEmail(email) {
+    async getContactIdByEmail(email: string) {
       try {
-        const contact = await new Promise((resolve, reject) => {
+        const contact: Contact = await new Promise((resolve, reject) => {
           this.agile.contactAPI.getContactByEmail(
             email,
-            response => {
+            (response: Contact) => {
               resolve(response);
             },
-            err => {
+            (err: Error) => {
               reject(err);
             }
           );
         });
-        if (typeof contact === 'object' && contact.id) {
+
+        if (contact && contact.id) {
           return contact.id;
         }
       } catch (err) {
@@ -47,10 +47,10 @@ module.exports = {
     /**
      * Agile Update Last Sync Date on agile CRM
      *
-     * @param {String} userEmail
+     * @param {string} userEmail
      * @returns
      */
-    async updateLastSyncDate(userEmail) {
+    async updateLastSyncDate(userEmail: string) {
       if (userEmail !== '') {
         const contactId = await this.getContactIdByEmail(userEmail);
         if (typeof contactId === 'undefined') {
@@ -62,32 +62,33 @@ module.exports = {
           .toISOString()
           .substr(0, 10)
           .split('-');
+
         const [year, month, date] = today;
         today = [month, date, year];
-        today = today.join('/');
+
         const properties = [
           {
             type: 'CUSTOM',
             name: 'Last Sync Date',
-            value: today
+            value: today.join('/')
           }
         ];
         const updateContact = {
           id: contactId,
-          properties: properties
+          properties
         };
 
         // Update Last Sync Date.
         try {
           this.agile.contactAPI.update(
             updateContact,
-            response => {
+            (response: Contact) => {
               this.logger.info(
                 '[Agile][UpdateLastSync] Last Sync Date Updated successfully. ID:',
                 response.id
               );
             },
-            err => {
+            (err: Error) => {
               this.logger.error('[Agile][UpdateLastSync]', err);
             }
           );
@@ -107,15 +108,5 @@ module.exports = {
       this.settings.agileKey,
       this.settings.agileEmail
     );
-  },
-
-  /**
-   * Service started lifecycle event handler
-   */
-  started() {},
-
-  /**
-   * Service stopped lifecycle event handler
-   */
-  stopped() {}
+  }
 };
