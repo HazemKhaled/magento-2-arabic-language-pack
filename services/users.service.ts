@@ -1,8 +1,13 @@
-const { MoleculerClientError } = require('moleculer').Errors;
-const jwt = require('jsonwebtoken');
-const fetch = require('node-fetch');
+import { StoreUser } from './../mixins/types/store';
+import jwt, { VerifyErrors } from 'jsonwebtoken';
+import { Errors, ServiceSchema } from 'moleculer';
+import fetch from 'node-fetch';
+import { Store } from './../mixins/types';
+import { any } from 'bluebird';
 
-module.exports = {
+const { MoleculerClientError } = Errors;
+
+export const UsersService: ServiceSchema = {
   name: 'users',
   mixins: [],
 
@@ -46,7 +51,7 @@ module.exports = {
         return this.Promise.resolve(
           this.broker.call('stores.findInstance', { consumerKey, consumerSecret })
         )
-          .then(([instance]) => {
+          .then(([instance]: Store[]) => {
             if (
               consumerKey === instance.consumer_key &&
               consumerSecret === instance.consumer_secret
@@ -64,7 +69,7 @@ module.exports = {
               { field: 'consumerSecret', message: 'is not valid' }
             ]);
           })
-          .then(user => this.transformEntity(user, true, ctx.meta.token))
+          .then((user: StoreUser) => this.transformEntity(user, true, ctx.meta.token))
           .catch(() => {
             this.broker.cacher.clean(`users.resolveBearerToken:${ctx.meta.token}`);
             throw new MoleculerClientError('consumerKey or consumerSecret is invalid!', 422, '', [
@@ -92,26 +97,32 @@ module.exports = {
         token: 'string'
       },
       handler(ctx) {
-        return new this.Promise(resolve => {
-          jwt.verify(ctx.params.token, this.settings.JWT_SECRET, (error, decoded) => {
-            if (error) {
-              throw new MoleculerClientError(error);
-            }
+        return new this.Promise((resolve: any) => {
+          jwt.verify(
+            ctx.params.token,
+            this.settings.JWT_SECRET,
+            (error: Error, decoded: object) => {
+              if (error) {
+                throw new MoleculerClientError('', 401, '', error);
+              }
 
-            resolve(decoded);
-          });
+              resolve(decoded);
+            }
+          );
         })
-          .then(async decoded => {
+          .then(async (decoded: { id: any }) => {
             if (decoded.id) {
               // Get instance info
               const [instance] = await this.broker.call('stores.findInstance', {
                 consumerKey: decoded.id
               });
-              if (instance.status) return decoded;
+              if (instance.status) {
+                return decoded;
+              }
             }
           })
-          .catch(error => {
-            throw new MoleculerClientError(error);
+          .catch((error: any) => {
+            throw new MoleculerClientError('', 401, '', error);
           });
       }
     },
@@ -142,7 +153,8 @@ module.exports = {
             if (res.ok) {
               return res.json();
             }
-            throw new MoleculerClientError();
+
+            throw new MoleculerClientError('Unknown error');
           })
           .catch(error => {
             throw new MoleculerClientError(error);
@@ -183,7 +195,9 @@ module.exports = {
      */
     transformEntity(user, withToken, token) {
       if (user) {
-        if (withToken) user.token = token || this.generateJWT(user);
+        if (withToken) {
+          user.token = token || this.generateJWT(user);
+        }
       }
 
       return { channel: user };
