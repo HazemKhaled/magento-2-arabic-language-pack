@@ -1,6 +1,7 @@
 import { Errors, ServiceSchema } from 'moleculer';
 import ESService, { SearchResponse } from 'moleculer-elasticsearch';
 
+import { I18nService } from './../mixins/i18n.mixin';
 import { Category, I18nText } from './../mixins/types';
 
 const { MoleculerClientError } = Errors;
@@ -12,7 +13,7 @@ export const CategoryService: ServiceSchema = {
    * Service metadata
    */
   metadata: {},
-  mixins: [ESService],
+  mixins: [ESService, I18nService],
 
   /**
    * Service settings
@@ -76,34 +77,6 @@ export const CategoryService: ServiceSchema = {
           });
         })
         .catch((error: any) => new MoleculerClientError(error));
-    },
-    /**
-     * Pick only language keys
-     *
-     * @param {I18nText} obj
-     * @returns {(I18nText | false)}
-     */
-    formatI18nText(obj: I18nText): I18nText | false {
-      if (!obj) {
-        return;
-      }
-
-      const output: I18nText = {};
-
-      ['ar', 'en', 'tr', 'fr'].forEach(key => {
-        if (obj[key] && key.length === 2) {
-          output[key] = typeof obj[key] === 'string' ? obj[key] : obj[key].text;
-        }
-      });
-
-      // Cleanup null values
-      Object.keys(output).forEach(k => {
-        if (!output[k]) {
-          delete output[k];
-        }
-      });
-
-      return Object.keys(output).length ? output : false;
     }
   }
 };
