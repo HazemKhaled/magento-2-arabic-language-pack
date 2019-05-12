@@ -1,13 +1,12 @@
 import Loop from 'bluebird';
-import { Errors } from 'moleculer';
+import { Errors, ServiceSchema } from 'moleculer';
 import Cron from 'moleculer-cron';
 import ESService, { SearchResponse } from 'moleculer-elasticsearch';
 import DbService from '../mixins/db.mixin';
 import { Product } from '../mixins/types';
 
 const { MoleculerClientError } = Errors;
-
-module.exports = {
+export const ElasticUpdateService: ServiceSchema = {
   name: 'elastic-update',
 
   /**
