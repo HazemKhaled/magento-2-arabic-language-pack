@@ -3,7 +3,7 @@ import path from 'path';
 
 import DbService from 'moleculer-db';
 
-module.exports = (collection: string) => {
+export default (collection: string) => {
   // Create data folder
   mkdir(path.resolve('./data'));
 
