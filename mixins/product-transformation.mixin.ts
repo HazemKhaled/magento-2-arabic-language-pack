@@ -1,7 +1,7 @@
 import { I18nService } from './i18n.mixin';
 import { Attribute, Category, Store, Variation } from './types';
 
-module.exports = {
+export const ProductTransformation = {
   name: 'transformation',
   mixins: [I18nService],
   methods: {
