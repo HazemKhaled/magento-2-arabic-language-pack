@@ -8,25 +8,32 @@
     "node": "10.x.x"
   },
   "scripts": {
-    "dev": "npm run lint && env $(cat ./docker/development/.env) moleculer-runner --repl --hot services",
-    "start": "moleculer-runner",
+    "build": "tsc",
+    "dev": "npm run lint && env $(cat ./docker/development/.env) ts-node ./node_modules/moleculer/bin/moleculer-runner.js --hot --repl --config moleculer.config.ts services/**/*.service.ts",
+    "cli": "moleculer connect TCP",
+    "start": "moleculer-runner services",
     "deps": "npm-check -u",
     "ci": "jest --watch",
     "test": "jest --coverage",
-    "lint": "eslint services mixins",
-    "lint-fix": "eslint services mixins libs --fix",
-    "prettier": "prettier services/*.js mixins/*.js libs/*.js *.js --write"
+    "lint": "tslint -p tsconfig.json",
+    "lint-fix": "tslint -p tsconfig.json --fix",
+    "prettier": "prettier services/*.ts mixins/*.ts *.ts --write"
   },
   "devDependencies": {
-    "eslint": "^5.16.0",
-    "eslint-config-airbnb-base": "^13.1.0",
-    "eslint-config-prettier": "^4.2.0",
-    "eslint-plugin-import": "^2.17.2",
-    "jest": "^24.7.1",
-    "jest-cli": "^24.7.1",
+    "@types/bluebird": "^3.5.26",
+    "@types/jest": "^24.0.12",
+    "@types/mkdirp": "^0.5.2",
+    "@types/node": "^10.14.6",
+    "jest": "^24.8.0",
+    "jest-cli": "^24.8.0",
     "moleculer-repl": "^0.5.7",
     "npm-check": "^5.9.0",
-    "prettier": "^1.17.0"
+    "prettier": "^1.17.0",
+    "ts-jest": "^24.0.2",
+    "ts-node": "^8.1.0",
+    "tslint": "^5.16.0",
+    "tslint-config-prettier": "^1.18.0",
+    "typescript": "^3.4.5"
   },
   "dependencies": {
     "agile_crm": "^1.2.5",
@@ -48,11 +55,23 @@
     "uuid": "^3.3.2"
   },
   "jest": {
-    "coverageDirectory": "../coverage",
+    "coverageDirectory": "<rootDir>/coverage",
     "testEnvironment": "node",
-    "rootDir": "./services",
-    "roots": [
-      "../test"
-    ]
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ],
+    "transform": {
+      "^.+\\.(ts|tsx)$": "ts-jest"
+    },
+    "testMatch": [
+      "**/*.spec.(ts|js)"
+    ],
+    "globals": {
+      "ts-jest": {
+        "tsConfig": "tsconfig.json"
+      }
+    }
   }
 }
