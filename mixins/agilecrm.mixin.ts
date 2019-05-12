@@ -1,6 +1,6 @@
 import AgileCRMManager, { Contact } from 'agile_crm';
 
-module.exports = {
+export const AgileCRM = {
   name: 'agilecrm',
 
   /**
