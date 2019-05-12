@@ -1,3 +1,5 @@
+import { OrderLine } from '.';
+
 /**
  * Order Type definition
  *
@@ -9,8 +11,8 @@ export interface Order {
   status: string;
   state?: string;
   knawat_order_status: string;
-  line_items?: object[];
-  items: object[];
+  line_items?: OrderLine[];
+  items: OrderLine[];
   billing: object;
   shipping: object;
   total: number;

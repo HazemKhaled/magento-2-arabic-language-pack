@@ -1,4 +1,5 @@
 import { I18nText } from './i18ntext';
+import { Variation } from './variation';
 
 /**
  * Product Type definition
@@ -11,4 +12,5 @@ export interface Product {
   name?: I18nText;
   updated: Date;
   archive: boolean;
+  variations: Variation[];
 }
