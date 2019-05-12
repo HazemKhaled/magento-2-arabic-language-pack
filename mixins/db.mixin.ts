@@ -1,9 +1,9 @@
-const path = require('path');
-const mkdir = require('mkdirp').sync;
+import { sync as mkdir } from 'mkdirp';
+import path from 'path';
 
-const DbService = require('moleculer-db');
+import DbService from 'moleculer-db';
 
-module.exports = collection => {
+module.exports = (collection: string) => {
   // Create data folder
   mkdir(path.resolve('./data'));
 
@@ -12,7 +12,7 @@ module.exports = collection => {
     adapter: new DbService.MemoryAdapter({ filename: `./data/${collection}.db` }),
 
     methods: {
-      entityChanged(type, json, ctx) {
+      entityChanged(type: string, json: object, ctx: any) {
         return this.clearCache().then(() => {
           const eventName = `${this.name}.entity.${type}`;
           this.broker.emit(eventName, { meta: ctx.meta, entity: json });
