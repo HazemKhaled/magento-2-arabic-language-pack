@@ -1,13 +1,14 @@
 import { sync as mkdir } from 'mkdirp';
+import { ServiceSchema } from 'moleculer';
+import DbService from 'moleculer-db';
 import path from 'path';
 
-import DbService from 'moleculer-db';
-
-export default (collection: string) => {
+export default (collection: string): ServiceSchema => {
   // Create data folder
   mkdir(path.resolve('./data'));
 
   return {
+    name: 'db_service',
     mixins: [DbService],
     adapter: new DbService.MemoryAdapter({ filename: `./data/${collection}.db` }),
 
