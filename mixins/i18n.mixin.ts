@@ -11,7 +11,7 @@ export const I18nService: ServiceSchema = {
      * @param {I18nText} obj
      * @returns {(I18nText | false)}
      */
-    formatI18nText(obj: I18nText): I18nText | false {
+    formatI18nText(obj: any): I18nText | false {
       if (!obj) {
         return;
       }
