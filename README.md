@@ -28,7 +28,8 @@ npm run prettier
 ### Run without Docker (Development)
 
 1.  `cp ./docker/development/docker-compose.example.env ./docker/development/docker-compose.env` and update your vars
-2.  `npm run dev`
+2.  `npm run build:watch`
+3.  `npm run dev`
 
 ### Run in Docker (Development)
 
