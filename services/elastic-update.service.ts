@@ -1,7 +1,8 @@
 import Loop from 'bluebird';
 import { Errors, ServiceSchema } from 'moleculer';
-import Cron from 'moleculer-cron';
+import * as Cron from 'moleculer-cron';
 import ESService, { SearchResponse } from 'moleculer-elasticsearch';
+import { AgileCRM } from '../mixins/agilecrm.mixin';
 import DbService from '../mixins/db.mixin';
 import { Product } from '../mixins/types';
 
@@ -30,7 +31,7 @@ const TheService: ServiceSchema = {
   /**
    * Service Mixins
    */
-  mixins: [DbService('elastic-update'), Cron, ESService],
+  mixins: [DbService('elastic-update'), Cron, ESService, AgileCRM],
 
   /**
    * Service settings
