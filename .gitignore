@@ -8,3 +8,5 @@ data/
 acme.json
 .env
 deployDev.sh
+*.js
+*.js.map
