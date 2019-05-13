@@ -5,11 +5,11 @@
  * @interface Store
  */
 export interface Store {
-  currency: any;
-  status: any;
-  url: any;
-  consumer_secret: any;
-  consumer_key: any;
+  currency: string;
+  status: 'confirmed' | 'unconfirmed' | 'archived' | 'error';
+  url: string;
+  consumer_secret: string;
+  consumer_key: string;
   sale_price: number;
   sale_price_operator: number;
   compared_at_price: number;

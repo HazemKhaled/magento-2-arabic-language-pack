@@ -109,7 +109,7 @@ export const ApiService: ServiceSchema = {
       }
 
       return this.Promise.resolve(reqToken)
-        .then((token: any) => {
+        .then((token: string) => {
           // Verify JWT token
           if (type === 'Bearer') {
             return (

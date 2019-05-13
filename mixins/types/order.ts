@@ -1,5 +1,3 @@
-import { OrderLine } from '.';
-
 /**
  * Order Type definition
  *
@@ -25,4 +23,14 @@ export interface Order {
   };
 
   [key: string]: any;
+}
+
+/**
+ * OrderLine Type definition
+ *
+ * @export
+ * @interface OrderLine
+ */
+export interface OrderLine {
+  sku: string;
 }
