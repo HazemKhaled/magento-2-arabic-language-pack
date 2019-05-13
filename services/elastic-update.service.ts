@@ -212,8 +212,10 @@ export const ElasticUpdateService: ServiceSchema = {
       };
       return this.Promise.resolve()
         .then(() => this.adapter.find(query))
-        .then(([date = {}]) => date.date || new Date('1970-01-01T12:00:00.000Z'))
-        .catch((err: object) => {
+        .then(([date]: [{ date: any }]) =>
+          date && date.date ? date.date : new Date('1970-01-01T12:00:00.000Z')
+        )
+        .catch((err: Error) => {
           this.logger.error('ERROR_DURING_GET_LAST_DATE', err);
         });
     },
@@ -232,7 +234,7 @@ export const ElasticUpdateService: ServiceSchema = {
 
       return this.Promise.resolve()
         .then(() => this.adapter.find(query))
-        .then(([dateValue]) => {
+        .then(([dateValue]: [any]) => {
           if (dateValue) {
             return this.adapter
               .updateById('last_update_date', { $set: { date: new Date(date) } })

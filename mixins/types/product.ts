@@ -11,7 +11,7 @@ export interface Product {
   name?: I18nText;
   updated: Date;
   archive: boolean;
-  variations: Variation[];
+  variations?: Variation[];
 }
 
 import { Attribute } from './';
