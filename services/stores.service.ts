@@ -3,7 +3,7 @@ import request from 'request-promise';
 
 const { MoleculerClientError } = Errors;
 
-export const StoresService: ServiceSchema = {
+const TheService: ServiceSchema = {
   name: 'stores',
   settings: {
     API_URL: process.env.STORES_URL,
@@ -297,3 +297,5 @@ export const StoresService: ServiceSchema = {
     }
   }
 };
+
+export = TheService;

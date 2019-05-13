@@ -3,7 +3,7 @@ import ApiGateway from 'moleculer-web';
 
 const { UnAuthorizedError, ERR_NO_TOKEN, ERR_INVALID_TOKEN } = ApiGateway.Errors;
 
-export const ApiService: ServiceSchema = {
+const TheService: ServiceSchema = {
   name: 'api',
   mixins: [ApiGateway],
 
@@ -157,3 +157,5 @@ export const ApiService: ServiceSchema = {
     }
   }
 };
+
+export = TheService;

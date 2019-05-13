@@ -6,7 +6,7 @@ import { StoreUser } from './../mixins/types/store';
 
 const { MoleculerClientError } = Errors;
 
-export const UsersService: ServiceSchema = {
+const TheService: ServiceSchema = {
   name: 'users',
   mixins: [],
 
@@ -203,3 +203,5 @@ export const UsersService: ServiceSchema = {
     }
   }
 };
+
+export = TheService;

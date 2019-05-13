@@ -6,7 +6,7 @@ import DbService from '../mixins/db.mixin';
 import { Product } from '../mixins/types';
 
 const { MoleculerClientError } = Errors;
-export const ElasticUpdateService: ServiceSchema = {
+const TheService: ServiceSchema = {
   name: 'elastic-update',
 
   /**
@@ -257,3 +257,5 @@ export const ElasticUpdateService: ServiceSchema = {
     }
   }
 };
+
+export = TheService;

@@ -6,7 +6,7 @@ import { Category, I18nText } from './../mixins/types';
 
 const { MoleculerClientError } = Errors;
 
-export const CategoriesService: ServiceSchema = {
+const TheService: ServiceSchema = {
   name: 'categories',
 
   /**
@@ -80,3 +80,5 @@ export const CategoriesService: ServiceSchema = {
     }
   }
 };
+
+export = TheService;

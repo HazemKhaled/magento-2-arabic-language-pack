@@ -5,7 +5,7 @@ import { Order } from '../mixins/types';
 
 const { MoleculerClientError } = Errors;
 
-export const KlayerService: ServiceSchema = {
+const TheService: ServiceSchema = {
   name: 'klayer',
   settings: {
     access_token: process.env.KLAYER_TOKEN,
@@ -214,3 +214,5 @@ export const KlayerService: ServiceSchema = {
     }
   }
 };
+
+export = TheService;

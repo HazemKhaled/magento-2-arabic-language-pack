@@ -1,7 +1,7 @@
 import { ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
 
-export const CurrenciesService: ServiceSchema = {
+const TheService: ServiceSchema = {
   name: 'currencies',
   settings: {
     AUTH: Buffer.from(`${process.env.BASIC_USER}:${process.env.BASIC_PASS}`).toString('base64')
@@ -40,3 +40,5 @@ export const CurrenciesService: ServiceSchema = {
     }
   }
 };
+
+export = TheService;
