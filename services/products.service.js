@@ -1,7 +1,7 @@
 const { MoleculerClientError } = require('moleculer').Errors;
 const ESService = require('moleculer-elasticsearch');
-const AgileCRM = require('../mixins/agilecrm.mixin');
-const Transformation = require('../mixins/transformation.mixin');
+const { AgileCRM } = require('../mixins/agilecrm.mixin');
+const { ProductTransformation } = require('../mixins/product-transformation.mixin');
 
 module.exports = {
   name: 'products',
@@ -23,7 +23,7 @@ module.exports = {
   /**
    * Service Mixins
    */
-  mixins: [AgileCRM, Transformation, ESService],
+  mixins: [AgileCRM, ProductTransformation, ESService],
 
   /**
    * Actions
@@ -394,7 +394,6 @@ module.exports = {
      */
     async fetchProduct(sku, id, _source) {
       const [instance] = await this.broker.call('stores.findInstance', { consumerKey: id });
-
       try {
         const result = await this.broker
           .call('products.search', {
@@ -497,7 +496,6 @@ module.exports = {
       );
 
       const instanceProducts = instanceProductsFull.page.map(product => product._source.sku);
-
       if (instanceProducts.length === 0) {
         return {
           products: [],
@@ -517,13 +515,11 @@ module.exports = {
             }
           }
         });
-
         const results = search.docs;
 
         const rate = await this.broker.call('currencies.getCurrency', {
           currencyCode: currency || instance.currency
         });
-
         try {
           const products = results.map((product, n) => {
             if (product.found) {

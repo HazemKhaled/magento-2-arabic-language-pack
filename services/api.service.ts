@@ -1,8 +1,9 @@
-const ApiGateway = require('moleculer-web');
+import { ServiceSchema } from 'moleculer';
+import ApiGateway from 'moleculer-web';
 
-const { UnAuthorizedError } = ApiGateway.Errors;
+const { UnAuthorizedError, ERR_NO_TOKEN, ERR_INVALID_TOKEN } = ApiGateway.Errors;
 
-module.exports = {
+const TheService: ServiceSchema = {
   name: 'api',
   mixins: [ApiGateway],
 
@@ -97,22 +98,24 @@ module.exports = {
       }
 
       // if no authorization in the header
-      if (!req.headers.authorization) throw new UnAuthorizedError();
+      if (!req.headers.authorization) {
+        throw new UnAuthorizedError(ERR_NO_TOKEN, req.headers);
+      }
 
       // If token or token type are missing, throw error
       const [type, reqToken] = req.headers.authorization.split(' ');
       if (!type || !reqToken) {
-        return this.Promise.reject(new UnAuthorizedError());
+        return this.Promise.reject(new UnAuthorizedError(ERR_NO_TOKEN, req.headers.authorization));
       }
 
       return this.Promise.resolve(reqToken)
-        .then(token => {
+        .then((token: string) => {
           // Verify JWT token
           if (type === 'Bearer') {
             return (
               ctx
                 .call('users.resolveBearerToken', { token })
-                .then(user => {
+                .then((user: { id: string }) => {
                   if (user) {
                     this.logger.info('Authenticated via JWT: ', user.id);
                     // Reduce user fields (it will be transferred to other nodes)
@@ -122,7 +125,7 @@ module.exports = {
                   return user;
                 })
                 // Ignored because we continue processing if user is not exist
-                .catch(() => null)
+                .catch()
             );
           }
 
@@ -131,7 +134,7 @@ module.exports = {
             return (
               ctx
                 .call('users.resolveBasicToken', { token })
-                .then(user => {
+                .then((user: any) => {
                   if (user) {
                     this.logger.info('Authenticated via Basic');
 
@@ -140,15 +143,19 @@ module.exports = {
                   return user;
                 })
                 // Ignored because we continue processing if user is not exist
-                .catch(() => null)
+                .catch()
             );
           }
         })
-        .then(user => {
+        .then((user: any) => {
           if (!user) {
-            return this.Promise.reject(new UnAuthorizedError());
+            return this.Promise.reject(
+              new UnAuthorizedError(ERR_INVALID_TOKEN, req.headers.authorization)
+            );
           }
         });
     }
   }
 };
+
+export = TheService;

@@ -1,14 +1,19 @@
-const { MoleculerClientError } = require('moleculer').Errors;
-const ESService = require('moleculer-elasticsearch');
+import { Errors, ServiceSchema } from 'moleculer';
+import ESService, { SearchResponse } from 'moleculer-elasticsearch';
 
-module.exports = {
+import { I18nService } from './../mixins/i18n.mixin';
+import { Category, I18nText } from './../mixins/types';
+
+const { MoleculerClientError } = Errors;
+
+const TheService: ServiceSchema = {
   name: 'categories',
 
   /**
    * Service metadata
    */
   metadata: {},
-  mixins: [ESService],
+  mixins: [ESService, I18nService],
 
   /**
    * Service settings
@@ -44,10 +49,9 @@ module.exports = {
     /**
      * Get Categories from ElasticSearch
      *
-     * @returns {Array} Categories
-     * @memberof ElasticLib
+     * @returns {Category[]}
      */
-    fetchCategories() {
+    fetchCategories(): Category[] {
       return this.broker
         .call('categories.search', {
           index: 'categories',
@@ -56,7 +60,7 @@ module.exports = {
             size: 999
           }
         })
-        .then(result => {
+        .then((result: SearchResponse<Category>) => {
           if (result.hits.total === 0) {
             return {
               status: 'failed',
@@ -64,40 +68,17 @@ module.exports = {
             };
           }
 
-          return result.hits.hits.map(category => {
-            category = category._source;
+          return result.hits.hits.map((param: { _source: Category }) => {
+            const category: Category = param._source;
             return {
               id: category.odooId,
               name: this.formatI18nText(category.name)
             };
           });
         })
-        .catch(err => new MoleculerClientError(err));
-    },
-    /**
-     * Pick only language keys
-     *
-     * @param {Object} obj
-     * @returns
-     * @memberof ElasticLib
-     */
-    formatI18nText(obj) {
-      if (!obj) return;
-
-      const output = {};
-
-      ['ar', 'en', 'tr', 'fr'].forEach(key => {
-        if (obj[key] && key.length === 2) {
-          output[key] = typeof obj[key] === 'string' ? obj[key] : obj[key].text;
-        }
-      });
-
-      // Cleanup null values
-      Object.keys(output).forEach(k => {
-        if (!output[k]) delete output[k];
-      });
-
-      return Object.keys(output).length ? output : false;
+        .catch((error: any) => new MoleculerClientError(error));
     }
   }
 };
+
+export = TheService;

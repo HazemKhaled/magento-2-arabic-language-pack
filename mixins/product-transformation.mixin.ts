@@ -1,43 +1,29 @@
-module.exports = {
+import { I18nService } from './i18n.mixin';
+import { Attribute, Category, Store, Variation } from './types';
+
+export const ProductTransformation = {
   name: 'transformation',
+  mixins: [I18nService],
   methods: {
-    /**
-     * Pick only language keys
-     *
-     * @param {Object} obj
-     * @returns
-     * @memberof ElasticLib
-     */
-    formatI18nText(obj) {
-      if (!obj) return;
-
-      const output = {};
-
-      ['ar', 'en', 'tr', 'fr'].forEach(key => {
-        if (obj[key] && key.length === 2) {
-          output[key] = typeof obj[key] === 'string' ? obj[key] : obj[key].text;
-        }
-      });
-
-      // Cleanup null values
-      Object.keys(output).forEach(k => {
-        if (!output[k]) delete output[k];
-      });
-
-      return Object.keys(output).length ? output : false;
-    },
     /**
      * Format Variations
      *
-     * @param {Array} variations
-     * @param {Object} instance
-     * @param {Number} rate
-     * @returns {Array} Transformed Variations
-     * @memberof ElasticLib
+     * @param {Variation[]} variations
+     * @param {Store} instance
+     * @param {number} rate
+     * @param {boolean} archive
+     * @param {Variation[]} variationsInstance Transformed Variations
+     * @returns {Variation[]}
      */
-    formatVariations(variations, instance, rate, archive, variationsInstance) {
+    formatVariations(
+      variations: Variation[],
+      instance: Store,
+      rate: number,
+      archive: boolean,
+      variationsInstance: Variation[]
+    ): Variation[] {
       return variations.map((variation, n) => {
-        const variant = {
+        const variant: Variation = {
           sku: variation.sku,
           cost_price: variation.sale * rate,
           sale_price:
@@ -52,23 +38,25 @@ module.exports = {
           attributes: this.formatAttributes(variation.attributes),
           quantity: archive ? 0 : variation.quantity
         };
+
         try {
-          if (typeof variationsInstance[n].externalId !== 'undefined')
+          if (typeof variationsInstance[n].externalId !== 'undefined') {
             variant.externalId = variationsInstance[n].externalId;
+          }
         } catch (err) {
           /** */
         }
         return variant;
       });
     },
+
     /**
      * Format Categories
      *
-     * @param {Array} categories
-     * @returns {Array} Categories
-     * @memberof ElasticLib
+     * @param {Category[]} categories
+     * @returns {Category[]}
      */
-    formatCategories(categories) {
+    formatCategories(categories: Category[]): Category[] {
       return categories.map(category => ({
         id: category.odooId,
         name: this.formatI18nText(category.name_i18n)
@@ -78,11 +66,10 @@ module.exports = {
     /**
      * Format Attributes
      *
-     * @param {Array} attributes
-     * @returns {Array} Formatted Attributes
-     * @memberof ElasticLib
+     * @param {Attribute[]} attributes
+     * @returns {Attribute[]}
      */
-    formatAttributes(attributes) {
+    formatAttributes(attributes: Attribute[]): object[] {
       return attributes.map(attribute => {
         if (attribute && typeof attribute.name === 'string') {
           return {
@@ -95,6 +82,7 @@ module.exports = {
             }
           };
         }
+
         return attribute;
       });
     }

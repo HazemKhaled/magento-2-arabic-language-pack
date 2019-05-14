@@ -15,6 +15,7 @@
         "mixins",
         "moleculer",
         "nats",
+        "ntext",
         "odoo",
         "opencart",
         "salla",
