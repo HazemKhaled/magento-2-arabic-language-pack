@@ -78,6 +78,9 @@ services:
     env_file: .env
     environment:
       SERVICES: orders
+    networks:
+      - elastic
+      - default
 
   currencies:
     build:
