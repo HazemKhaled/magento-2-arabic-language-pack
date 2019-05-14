@@ -87,8 +87,19 @@ module.exports = {
               !instance.address.address_1 ||
               !instance.address.country ||
               !instance.address.email
-            )
-              throw new MoleculerClientError('No Billing Address Or Address Missing Data!');
+            ) {
+              ctx.meta.$statusCode = 428;
+              ctx.meta.$statusMessage = 'Missing billing data';
+              return {
+                errors: [
+                  {
+                    status: 'fail',
+                    message: 'No Billing Address Or Address Missing Data. Your order failed!',
+                    solution: 'Please fill on your store billing address'
+                  }
+                ]
+              };
+            }
             const orderItems = data.items.map(item => item.sku);
             const products = await ctx.call('products-list.getProductsByVariationSku', {
               skus: orderItems
