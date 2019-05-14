@@ -31,7 +31,8 @@ const entityValidator = {
       email: { type: 'email', optional: true }
     }
   },
-  invoice_url: { type: 'string', optional: true }
+  invoice_url: { type: 'string', optional: true },
+  notes: { type: 'string', optional: true }
 };
 
 module.exports = {
@@ -309,7 +310,8 @@ module.exports = {
             email: { type: 'email', optional: true }
           }
         },
-        invoice_url: { type: 'string', optional: true }
+        invoice_url: { type: 'string', optional: true },
+        notes: { type: 'string', optional: true }
       },
       async handler(ctx) {
         try {
