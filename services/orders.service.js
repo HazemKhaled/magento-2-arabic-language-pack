@@ -1,5 +1,4 @@
 const uuidv1 = require('uuid/v1');
-const ESService = require('moleculer-elasticsearch');
 const fetch = require('node-fetch');
 const { MoleculerClientError } = require('moleculer').Errors;
 
@@ -44,10 +43,6 @@ module.exports = {
       }`
     }
   },
-  /**
-   * Service Mixins
-   */
-  mixins: [ESService],
 
   /**
    * Service metadata
