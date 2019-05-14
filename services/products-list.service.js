@@ -184,7 +184,7 @@ module.exports = {
       },
       handler(ctx) {
         return ctx
-          .call('orders.search', {
+          .call('products-list.search', {
             index: 'products',
             type: 'Product',
             body: {
@@ -242,7 +242,7 @@ module.exports = {
             }
           });
         });
-        ctx.call('products.bulk', {
+        ctx.call('products-list.bulk', {
           index: 'products',
           type: 'Product',
           body: bulk
