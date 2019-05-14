@@ -177,6 +177,77 @@ module.exports = {
       handler() {
         throw new MoleculerClientError('Not Implemented Yet!!');
       }
+    },
+    getProductsByVariationSku: {
+      params: {
+        skus: { type: 'array', items: { type: 'string' } }
+      },
+      handler(ctx) {
+        return ctx
+          .call('orders.search', {
+            index: 'products',
+            type: 'Product',
+            body: {
+              query: {
+                bool: {
+                  filter: [
+                    {
+                      nested: {
+                        path: 'variations',
+                        query: {
+                          bool: {
+                            filter: {
+                              terms: {
+                                'variations.sku': ctx.params.skus
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          })
+          .then(response => response.hits.hits);
+      }
+    },
+    updateSaleQuantity: {
+      params: {
+        products: {
+          type: 'array',
+          items: {
+            type: 'object',
+            props: {
+              _id: { type: 'string' },
+              sales_qty: { type: 'number', convert: true }
+            }
+          }
+        }
+      },
+      handler() {
+        const bulk = [];
+        ctx.params.products.forEach(product => {
+          bulk.push({
+            update: {
+              _index: 'products',
+              _type: 'Product',
+              _id: product._id
+            }
+          });
+          bulk.push({
+            doc: {
+              sales_qty: product.sales_qty ? parseInt(product.sales_qty) + 1 : 1
+            }
+          });
+        });
+        ctx.call('products.bulk', {
+          index: 'products',
+          type: 'Product',
+          body: bulk
+        });
+      }
     }
   },
   methods: {

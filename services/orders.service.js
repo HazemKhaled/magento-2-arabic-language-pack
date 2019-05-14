@@ -94,34 +94,11 @@ module.exports = {
             )
               throw new MoleculerClientError('No Billing Address Or Address Missing Data!');
             const orderItems = data.items.map(item => item.sku);
-            const products = await ctx.call('orders.search', {
-              index: 'products',
-              type: 'Product',
-              body: {
-                query: {
-                  bool: {
-                    filter: [
-                      {
-                        nested: {
-                          path: 'variations',
-                          query: {
-                            bool: {
-                              filter: {
-                                terms: {
-                                  'variations.sku': orderItems
-                                }
-                              }
-                            }
-                          }
-                        }
-                      }
-                    ]
-                  }
-                }
-              }
+            const products = await ctx.call('products-list.getProductsByVariationSku', {
+              skus: orderItems
             });
             const found = [];
-            products.hits.hits.forEach(product =>
+            products.forEach(product =>
               found.push(
                 ...product._source.variations
                   .filter(variation => orderItems.includes(variation.sku))
@@ -132,6 +109,8 @@ module.exports = {
             const enoughStock = found.filter(
               item => item.quantity > data.items.find(i => i.sku === item.sku).quantity
             );
+
+            // Return warning response if no Item available
             if (enoughStock.length === 0)
               return {
                 warnings: [
@@ -143,6 +122,11 @@ module.exports = {
                   }
                 ]
               };
+
+            // Filtering availabe variations
+            data.items = data.items.filter(item => enoughStock.map(i => i.sku).includes(item.sku));
+
+            // Getting the user Information to check subscription
             const [user] = await fetch(
               `${process.env.KLAYER_URL}/api/Partners?filter=${JSON.stringify({
                 where: {
@@ -151,8 +135,11 @@ module.exports = {
               })}&access_token=dbbf3cb7-f7ad-46ce-bee3-4fd7477951c4`,
               { method: 'get' }
             ).then(res => res.json());
+
+            // Getting the current user subscription
             const subscription = this.currentSubscriptions(user.subscriptions);
-            data.items = data.items.filter(item => enoughStock.map(i => i.sku).includes(item.sku));
+
+            // Checking for processing fees
             if (
               subscription.attr_order_processing_fees &&
               subscription.attr_order_processing_fees > 0
@@ -161,6 +148,8 @@ module.exports = {
                 sku: 'PROCESSING-FEE',
                 quantity: 1
               });
+
+            // Prepering billing data
             data.billing = {
               first_name: instance.address.first_name,
               last_name: instance.address.last_name,
@@ -174,31 +163,25 @@ module.exports = {
               phone: instance.address.phone ? instance.address.phone : '',
               email: instance.address.email
             };
+
+            // Send the order to klayer
             const result = await ctx.call('klayer.createOrder', {
               order: data
             });
-            const order = result.data;
+
+            // Clearing order list action(API) cache
             this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
-            const bulk = [];
-            products.hits.hits.forEach(product => {
-              bulk.push({
-                update: {
-                  _index: 'products',
-                  _type: 'Product',
-                  _id: product._id
-                }
-              });
-              bulk.push({
-                doc: {
-                  sales_qty: product._source.sales_qty ? parseInt(product._source.sales_qty) + 1 : 1
-                }
-              });
+
+            // Update products sales quantity
+            ctx.call('products-list.updateSaleQuantity', {
+              products: products.map(product => ({
+                _id: product._id,
+                sales_qty: product.sales_qty
+              }))
             });
-            ctx.call('products.bulk', {
-              index: 'products',
-              type: 'Product',
-              body: bulk
-            });
+
+            /* Prepare the response message in case of success or warnings */
+            const order = result.data;
             const message = {
               status: 'success',
               data: {
@@ -214,6 +197,8 @@ module.exports = {
             const notEnoughStock = inStock.filter(
               item => !enoughStock.map(i => i.sku).includes(item.sku)
             );
+
+            // Intiallizing warnings array if we have a Warning
             if (outOfStock.length > 0 || notEnoughStock.length > 0) message.warnings = [];
             if (outOfStock.length > 0)
               message.warnings.push({
