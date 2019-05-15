@@ -69,7 +69,7 @@ module.exports = {
       auth: 'Bearer',
       params: entityValidator,
       async handler(ctx) {
-        ctx.params.id = uuidv1();
+        if (ctx.params.shipping.company !== 'ebay') ctx.params.id = uuidv1();
         try {
           // @TODO: transformation needed.
           const data = ctx.params;
