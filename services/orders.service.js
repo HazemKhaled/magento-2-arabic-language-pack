@@ -69,162 +69,158 @@ module.exports = {
       auth: 'Bearer',
       params: entityValidator,
       async handler(ctx) {
-        if (ctx.meta.user) {
-          ctx.params.id = uuidv1();
-          try {
-            // @TODO: transformation needed.
-            const data = ctx.params;
-            if (ctx.params.invoice_url) {
-              data.pdf_invoice_url = ctx.params.invoice_url;
-            }
-            const [instance] = await ctx.call('stores.findInstance', {
-              consumerKey: ctx.meta.user
-            });
-            if (
-              !instance.address ||
-              !instance.address.first_name ||
-              !instance.address.last_name ||
-              !instance.address.address_1 ||
-              !instance.address.country ||
-              !instance.address.email
-            ) {
-              ctx.meta.$statusCode = 428;
-              ctx.meta.$statusMessage = 'Missing billing data';
-              return {
-                errors: [
-                  {
-                    status: 'fail',
-                    message: 'No Billing Address Or Address Missing Data. Your order failed!',
-                    solution: 'Please fill on your store billing address'
-                  }
-                ]
-              };
-            }
-            const orderItems = data.items.map(item => item.sku);
-            const products = await ctx.call('products-list.getProductsByVariationSku', {
-              skus: orderItems
-            });
-            const found = [];
-            products.forEach(product =>
-              found.push(
-                ...product._source.variations
-                  .filter(variation => orderItems.includes(variation.sku))
-                  .map(item => ({ sku: item.sku, quantity: item.quantity }))
-              )
-            );
-            const inStock = found.filter(item => item.quantity > 0);
-            const enoughStock = found.filter(
-              item => item.quantity > data.items.find(i => i.sku === item.sku).quantity
-            );
-
-            // Return warning response if no Item available
-            if (enoughStock.length === 0)
-              return {
-                warnings: [
-                  {
-                    status: 'fail',
-                    message:
-                      'The products you ordered is not in-stock, The order has not been created!',
-                    code: 1101
-                  }
-                ]
-              };
-
-            // Filtering availabe variations
-            data.items = data.items.filter(item => enoughStock.map(i => i.sku).includes(item.sku));
-
-            // Getting the user Information to check subscription
-            const [user] = await fetch(
-              `${process.env.KLAYER_URL}/api/Partners?filter=${JSON.stringify({
-                where: {
-                  contact_email: instance.users.filter(usr => usr.roles.includes('owner'))[0].email
-                }
-              })}&access_token=dbbf3cb7-f7ad-46ce-bee3-4fd7477951c4`,
-              { method: 'get' }
-            ).then(res => res.json());
-
-            // Getting the current user subscription
-            const subscription = this.currentSubscriptions(user.subscriptions);
-
-            // Checking for processing fees
-            if (
-              subscription.attr_order_processing_fees &&
-              subscription.attr_order_processing_fees > 0
-            )
-              data.items.push({
-                sku: 'PROCESSING-FEE',
-                quantity: 1
-              });
-
-            // Prepering billing data
-            data.billing = {
-              first_name: instance.address.first_name,
-              last_name: instance.address.last_name,
-              company: instance.company ? instance.company : '',
-              address_1: instance.address.address_1,
-              address_2: instance.address.address_2 ? instance.address.address_2 : '',
-              city: instance.address.city ? instance.address.city : '',
-              state: instance.address.state ? instance.address.state : '',
-              postcode: instance.address.postcode ? instance.address.postcode : '',
-              country: instance.address.country,
-              phone: instance.address.phone ? instance.address.phone : '',
-              email: instance.address.email
-            };
-
-            // Send the order to klayer
-            const result = await ctx.call('klayer.createOrder', {
-              order: data
-            });
-
-            // Clearing order list action(API) cache
-            this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
-
-            // Update products sales quantity
-            ctx.call('products-list.updateSaleQuantity', {
-              products: products.map(product => ({
-                _id: product._id,
-                sales_qty: product.sales_qty
-              }))
-            });
-
-            /* Prepare the response message in case of success or warnings */
-            const order = result.data;
-            const message = {
-              status: 'success',
-              data: {
-                id: order.id,
-                status: order.status,
-                items: order.line_items,
-                billing: order.billing,
-                shipping: order.shipping,
-                createDate: order.date_created
-              }
-            };
-            const outOfStock = orderItems.filter(item => !inStock.map(i => i.sku).includes(item));
-            const notEnoughStock = inStock.filter(
-              item => !enoughStock.map(i => i.sku).includes(item.sku)
-            );
-
-            // Intiallizing warnings array if we have a Warning
-            if (outOfStock.length > 0 || notEnoughStock.length > 0) message.warnings = [];
-            if (outOfStock.length > 0)
-              message.warnings.push({
-                message: `This items are out of stock ${outOfStock}`,
-                skus: outOfStock,
-                code: 1102
-              });
-            if (notEnoughStock.length > 0)
-              message.warnings.push({
-                message: `This items quantities are not enough stock ${outOfStock}`,
-                skus: notEnoughStock,
-                code: 1103
-              });
-            return message;
-          } catch (err) {
-            throw new MoleculerClientError(err, 500);
+        ctx.params.id = uuidv1();
+        try {
+          // @TODO: transformation needed.
+          const data = ctx.params;
+          if (ctx.params.invoice_url) {
+            data.pdf_invoice_url = ctx.params.invoice_url;
           }
-        } else {
-          throw new MoleculerClientError('User not authenticated');
+          const [instance] = await ctx.call('stores.findInstance', {
+            consumerKey: ctx.meta.user
+          });
+          if (
+            !instance.address ||
+            !instance.address.first_name ||
+            !instance.address.last_name ||
+            !instance.address.address_1 ||
+            !instance.address.country ||
+            !instance.address.email
+          ) {
+            ctx.meta.$statusCode = 428;
+            ctx.meta.$statusMessage = 'Missing billing data';
+            return {
+              errors: [
+                {
+                  status: 'fail',
+                  message: 'No Billing Address Or Address Missing Data. Your order failed!',
+                  solution: 'Please fill on your store billing address'
+                }
+              ]
+            };
+          }
+          const orderItems = data.items.map(item => item.sku);
+          const products = await ctx.call('products-list.getProductsByVariationSku', {
+            skus: orderItems
+          });
+          const found = [];
+          products.forEach(product =>
+            found.push(
+              ...product._source.variations
+                .filter(variation => orderItems.includes(variation.sku))
+                .map(item => ({ sku: item.sku, quantity: item.quantity }))
+            )
+          );
+          const inStock = found.filter(item => item.quantity > 0);
+          const enoughStock = found.filter(
+            item => item.quantity > data.items.find(i => i.sku === item.sku).quantity
+          );
+
+          // Return warning response if no Item available
+          if (enoughStock.length === 0)
+            return {
+              warnings: [
+                {
+                  status: 'fail',
+                  message:
+                    'The products you ordered is not in-stock, The order has not been created!',
+                  code: 1101
+                }
+              ]
+            };
+
+          // Filtering availabe variations
+          data.items = data.items.filter(item => enoughStock.map(i => i.sku).includes(item.sku));
+
+          // Getting the user Information to check subscription
+          const [user] = await fetch(
+            `${process.env.KLAYER_URL}/api/Partners?filter=${JSON.stringify({
+              where: {
+                contact_email: instance.users.filter(usr => usr.roles.includes('owner'))[0].email
+              }
+            })}&access_token=dbbf3cb7-f7ad-46ce-bee3-4fd7477951c4`,
+            { method: 'get' }
+          ).then(res => res.json());
+
+          // Getting the current user subscription
+          const subscription = this.currentSubscriptions(user.subscriptions);
+
+          // Checking for processing fees
+          if (
+            subscription.attr_order_processing_fees &&
+            subscription.attr_order_processing_fees > 0
+          )
+            data.items.push({
+              sku: 'PROCESSING-FEE',
+              quantity: 1
+            });
+
+          // Prepering billing data
+          data.billing = {
+            first_name: instance.address.first_name,
+            last_name: instance.address.last_name,
+            company: instance.company ? instance.company : '',
+            address_1: instance.address.address_1,
+            address_2: instance.address.address_2 ? instance.address.address_2 : '',
+            city: instance.address.city ? instance.address.city : '',
+            state: instance.address.state ? instance.address.state : '',
+            postcode: instance.address.postcode ? instance.address.postcode : '',
+            country: instance.address.country,
+            phone: instance.address.phone ? instance.address.phone : '',
+            email: instance.address.email
+          };
+
+          // Send the order to klayer
+          const result = await ctx.call('klayer.createOrder', {
+            order: data
+          });
+
+          // Clearing order list action(API) cache
+          this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
+
+          // Update products sales quantity
+          ctx.call('products-list.updateSaleQuantity', {
+            products: products.map(product => ({
+              _id: product._id,
+              sales_qty: product.sales_qty
+            }))
+          });
+
+          /* Prepare the response message in case of success or warnings */
+          const order = result.data;
+          const message = {
+            status: 'success',
+            data: {
+              id: order.id,
+              status: order.status,
+              items: order.line_items,
+              billing: order.billing,
+              shipping: order.shipping,
+              createDate: order.date_created
+            }
+          };
+          const outOfStock = orderItems.filter(item => !inStock.map(i => i.sku).includes(item));
+          const notEnoughStock = inStock.filter(
+            item => !enoughStock.map(i => i.sku).includes(item.sku)
+          );
+
+          // Intiallizing warnings array if we have a Warning
+          if (outOfStock.length > 0 || notEnoughStock.length > 0) message.warnings = [];
+          if (outOfStock.length > 0)
+            message.warnings.push({
+              message: `This items are out of stock ${outOfStock}`,
+              skus: outOfStock,
+              code: 1102
+            });
+          if (notEnoughStock.length > 0)
+            message.warnings.push({
+              message: `This items quantities are not enough stock ${outOfStock}`,
+              skus: notEnoughStock,
+              code: 1103
+            });
+          return message;
+        } catch (err) {
+          throw new MoleculerClientError(err, 500);
         }
       }
     },
