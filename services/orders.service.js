@@ -397,20 +397,5 @@ module.exports = {
       });
       return max.pop();
     }
-  },
-
-  /**
-   * Service created lifecycle event handler
-   */
-  created() {},
-
-  /**
-   * Service started lifecycle event handler
-   */
-  started() {},
-
-  /**
-   * Service stopped lifecycle event handler
-   */
-  stopped() {}
+  }
 };
