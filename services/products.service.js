@@ -218,6 +218,7 @@ module.exports = {
       },
       handler(ctx) {
         const skus = ctx.params.products.map(i => i.sku);
+
         return ctx
           .call('products.search', {
             index: 'products',
@@ -259,6 +260,7 @@ module.exports = {
                 });
               });
             }
+
             return ctx
               .call('products.bulk', {
                 index: 'products-instances',
@@ -267,6 +269,15 @@ module.exports = {
               })
               .then(response => {
                 this.broker.cacher.clean(`products.list:${ctx.meta.user}**`);
+
+                // Update products import quantity
+                ctx.call('products-list.updateQuantityAttributes', {
+                  products: res.hits.hits.map(product => ({
+                    _id: product._id,
+                    qty: product._source.import_qty || 0,
+                    attribute: 'import_qty'
+                  }))
+                });
 
                 // Responses
                 if (response.errors) {
@@ -277,11 +288,10 @@ module.exports = {
                     ]
                   };
                 }
-                  return {
-                    success: newSKUs,
-                    outOfStock: outOfStock
-                  };
-                throw new MoleculerClientError('error');
+                return {
+                  success: newSKUs,
+                  outOfStock: outOfStock
+                };
               });
           });
       }
