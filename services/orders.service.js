@@ -51,10 +51,12 @@ module.exports = {
     entityValidator
   },
 
-  /**
-   * Service dependencies
-   */
-  // dependencies: [],
+  settings: {
+    app_url:
+      process.env.NODE_ENV === 'development'
+        ? 'https://dev.app.knawat.com'
+        : 'https://app.knawat.com'
+  },
 
   /**
    * Actions
@@ -94,7 +96,9 @@ module.exports = {
                 {
                   status: 'fail',
                   message: 'No Billing Address Or Address Missing Data. Your order failed!',
-                  solution: 'Please fill on your store billing address'
+                  solution: `Please fill on your store billing address from here: ${
+                    this.settings.app_url
+                  }/stores/settings/${encodeURIComponent(encodeURIComponent(instance.url))}`
                 }
               ]
             };
