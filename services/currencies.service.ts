@@ -1,8 +1,8 @@
-import { Currency } from './../types/currency.d';
 import { ServiceSchema } from 'moleculer';
 import * as Cron from 'moleculer-cron';
 import * as DbService from 'moleculer-db';
 import fetch from 'node-fetch';
+import { Currency } from './../types/currency.d';
 
 const TheService: ServiceSchema = {
   name: 'currencies',
