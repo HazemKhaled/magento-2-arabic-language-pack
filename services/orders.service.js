@@ -183,10 +183,11 @@ module.exports = {
           this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
 
           // Update products sales quantity
-          ctx.call('products-list.updateSaleQuantity', {
+          ctx.call('products-list.updateQuantityAttributes', {
             products: products.map(product => ({
               _id: product._id,
-              sales_qty: product.sales_qty
+              qty: product._source.sales_qty || 0,
+              attribute: 'sales_qty'
             }))
           });
 
