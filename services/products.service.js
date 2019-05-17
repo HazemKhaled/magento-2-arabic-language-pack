@@ -267,7 +267,16 @@ module.exports = {
               })
               .then(response => {
                 this.broker.cacher.clean(`products.list:${ctx.meta.user}**`);
-                if (!response.errors)
+
+                // Responses
+                if (response.errors) {
+                  ctx.meta.$statusCode = 500;
+                  return {
+                    errors: [
+                      { message: 'There was an error with importing your products', skus: skus }
+                    ]
+                  };
+                }
                   return {
                     success: newSKUs,
                     outOfStock: outOfStock
