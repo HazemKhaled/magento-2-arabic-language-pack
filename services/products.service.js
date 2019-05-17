@@ -269,15 +269,24 @@ module.exports = {
               })
               .then(response => {
                 this.broker.cacher.clean(`products.list:${ctx.meta.user}**`);
-
                 // Update products import quantity
-                ctx.call('products-list.updateQuantityAttributes', {
-                  products: res.hits.hits.map(product => ({
-                    _id: product._id,
-                    qty: product._source.import_qty || 0,
-                    attribute: 'import_qty'
-                  }))
-                });
+                if (response.items) {
+                  const firstImport = response.items
+                    .filter(item => item.index._version === 1)
+                    .map(item => item.index._id);
+                  const update = res.hits.hits.filter(product =>
+                    firstImport.includes(`${instance.consumer_key}-${product._id}`)
+                  );
+                  if (update.length > 0) {
+                    ctx.call('products-list.updateQuantityAttributes', {
+                      products: update.map(product => ({
+                        _id: product._id,
+                        qty: product._source.import_qty || 0,
+                        attribute: 'import_qty'
+                      }))
+                    });
+                  }
+                }
 
                 // Responses
                 if (response.errors) {
