@@ -16,7 +16,7 @@ const TheService: ServiceSchema = {
       },
       cache: {
         key: ['currencyCode'],
-        ttl: 30 * 60 // 1 hour
+        ttl: 60 * 60 // 1 hour
       },
       handler(ctx: any) {
         return ctx
@@ -45,7 +45,7 @@ const TheService: ServiceSchema = {
     getCurrencies: {
       auth: 'Basic',
       cache: {
-        ttl: 30 * 60 // 1 hour
+        ttl: 60 * 60 // 1 hour
       },
       handler(ctx) {
         return ctx.call('currencies.find').then((currencies: Currency[]) => {
