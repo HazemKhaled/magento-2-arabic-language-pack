@@ -213,20 +213,21 @@ module.exports = {
           .then(response => response.hits.hits);
       }
     },
-    updateSaleQuantity: {
+    updateQuantityAttributes: {
       params: {
         products: {
           type: 'array',
           items: {
             type: 'object',
             props: {
-              _id: { type: 'string' },
-              sales_qty: { type: 'number', convert: true }
+              _id: { type: 'string', convert: true },
+              qty: { type: 'number', convert: true },
+              attribute: { type: 'string', convert: true }
             }
           }
         }
       },
-      handler() {
+      handler(ctx) {
         const bulk = [];
         ctx.params.products.forEach(product => {
           bulk.push({
@@ -238,7 +239,7 @@ module.exports = {
           });
           bulk.push({
             doc: {
-              sales_qty: product.sales_qty ? parseInt(product.sales_qty) + 1 : 1
+              [product.attribute]: parseInt(product.qty) + 1
             }
           });
         });
