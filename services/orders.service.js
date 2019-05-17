@@ -163,14 +163,14 @@ module.exports = {
           data.billing = {
             first_name: instance.address.first_name,
             last_name: instance.address.last_name,
-            company: instance.company ? instance.company : '',
+            company: instance.company || '',
             address_1: instance.address.address_1,
-            address_2: instance.address.address_2 ? instance.address.address_2 : '',
-            city: instance.address.city ? instance.address.city : '',
-            state: instance.address.state ? instance.address.state : '',
-            postcode: instance.address.postcode ? instance.address.postcode : '',
+            address_2: instance.address.address_2 || '',
+            city: instance.address.city || '',
+            state: instance.address.state || '',
+            postcode: instance.address.postcode || '',
             country: instance.address.country,
-            phone: instance.address.phone ? instance.address.phone : '',
+            phone: instance.address.phone || '',
             email: instance.address.email
           };
 
