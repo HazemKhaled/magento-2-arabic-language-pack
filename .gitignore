@@ -10,3 +10,4 @@ acme.json
 deployDev.sh
 *.js
 *.js.map
+currency.db
