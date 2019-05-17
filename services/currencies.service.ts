@@ -25,7 +25,7 @@ const TheService: ServiceSchema = {
           })
           .then(async (currency: Currency[]) => {
             if (currency.length === 0) {
-              ctx.meta.statusCode = 404;
+              ctx.meta.$statusCode = 404;
               return { warning: 'Currency code could not be found!' };
             }
             if (new Date(currency[0].lastUpdate).getTime() - Date.now() > 3600 * 1000) {
