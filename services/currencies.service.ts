@@ -7,7 +7,7 @@ import { Currency } from './../types/currency.d';
 const TheService: ServiceSchema = {
   name: 'currencies',
   mixins: [Cron, DbService],
-  adapter: new DbService.MemoryAdapter({ filename: 'data/currency.db' }),
+  adapter: new DbService.MemoryAdapter({ filename: './data/currency.db' }),
   actions: {
     getCurrency: {
       auth: 'Basic',
