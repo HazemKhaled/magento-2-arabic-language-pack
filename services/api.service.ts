@@ -55,7 +55,7 @@ const TheService: ServiceSchema = {
           'GET catalog/categories': 'categories.list',
 
           // Currencies
-          'GET currencies:currencyCode': 'currencies.getCurrency',
+          'GET currencies/:currencyCode': 'currencies.getCurrency',
           'GET currencies': 'currencies.getCurrencies'
         },
 
