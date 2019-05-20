@@ -51,19 +51,20 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 // 1 hour
       },
       handler(ctx) {
-        return ctx.call('currencies.find').then((currencies: Currency[]) => {
+        return ctx.call('currencies.find').then(async (currencies: Currency[]) => {
           // If rates are more than 1 hour
+          let rates = currencies;
           if (
             currencies.length === 0 ||
             new Date(currencies[0].lastUpdate).getTime() - Date.now() > 3600 * 1000
           ) {
             // Get new rates
-            return fetch(`https://openexchangerates.org/api/latest.json`, {
+            rates = await fetch(`https://openexchangerates.org/api/latest.json`, {
               method: 'get',
               headers: { Authorization: `Token ${process.env.OPENEXCHANGE_TOKEN}` }
             })
               .then(res => res.json())
-              .then(async newCurrencies => {
+              .then(newCurrencies => {
                 const currenciesObj = Object.keys(newCurrencies.rates).map(currency => ({
                   _id: currency,
                   rate: newCurrencies.rates[currency],
@@ -71,12 +72,12 @@ const TheService: ServiceSchema = {
                 }));
 
                 // Push the new rates into the DB
-                currencies = await ctx.call('currencies.insert', { entities: currenciesObj });
+                return ctx.call('currencies.insert', { entities: currenciesObj });
               });
           }
 
           // Return the currencies rates
-          return currencies.map((currency: Currency) => ({
+          return rates.map((currency: Currency) => ({
             currencyCode: currency._id,
             rate: currency.rate
           }));
