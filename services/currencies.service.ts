@@ -24,10 +24,6 @@ const TheService: ServiceSchema = {
             query: { _id: ctx.params.currencyCode.toUpperCase() }
           })
           .then(async (currency: Currency[]) => {
-            if (currency.length === 0) {
-              ctx.meta.$statusCode = 404;
-              return { warning: 'Currency code could not be found!' };
-            }
             if (
               currency.length === 0 ||
               new Date(currency[0].lastUpdate).getTime() - Date.now() > 3600 * 1000
@@ -37,6 +33,10 @@ const TheService: ServiceSchema = {
                   query: { _id: ctx.params.currencyCode.toUpperCase() }
                 })
               );
+            }
+            if (currency.length === 0) {
+              ctx.meta.$statusCode = 404;
+              return { warning: 'Currency code could not be found!' };
             }
             delete currency[0].lastUpdate;
             currency[0].currencyCode = currency[0]._id;
