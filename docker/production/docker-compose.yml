@@ -108,6 +108,8 @@ services:
     env_file: .env
     environment:
       SERVICES: currencies
+    volumes:
+      - ../../data:/app/data
 
   elastic-update:
     build:
