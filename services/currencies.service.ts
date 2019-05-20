@@ -28,7 +28,10 @@ const TheService: ServiceSchema = {
               ctx.meta.$statusCode = 404;
               return { warning: 'Currency code could not be found!' };
             }
-            if (new Date(currency[0].lastUpdate).getTime() - Date.now() > 3600 * 1000) {
+            if (
+              currency.length === 0 ||
+              new Date(currency[0].lastUpdate).getTime() - Date.now() > 3600 * 1000
+            ) {
               currency = await ctx.call('currencies.getCurrencies').then(() =>
                 ctx.call('currencies.find', {
                   query: { _id: ctx.params.currencyCode.toUpperCase() }
@@ -50,7 +53,10 @@ const TheService: ServiceSchema = {
       handler(ctx) {
         return ctx.call('currencies.find').then((currencies: Currency[]) => {
           // If rates are more than 1 hour
-          if (new Date(currencies[0].lastUpdate).getTime() - Date.now() > 3600 * 1000) {
+          if (
+            currencies.length === 0 ||
+            new Date(currencies[0].lastUpdate).getTime() - Date.now() > 3600 * 1000
+          ) {
             // Get new rates
             return fetch(`https://openexchangerates.org/api/latest.json`, {
               method: 'get',
