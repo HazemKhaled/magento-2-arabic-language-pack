@@ -218,6 +218,7 @@ module.exports = {
       },
       handler(ctx) {
         const skus = ctx.params.products.map(i => i.sku);
+
         return ctx
           .call('products.search', {
             index: 'products',
@@ -259,6 +260,7 @@ module.exports = {
                 });
               });
             }
+
             return ctx
               .call('products.bulk', {
                 index: 'products-instances',
@@ -267,12 +269,38 @@ module.exports = {
               })
               .then(response => {
                 this.broker.cacher.clean(`products.list:${ctx.meta.user}**`);
-                if (!response.errors)
+                // Update products import quantity
+                if (response.items) {
+                  const firstImport = response.items
+                    .filter(item => item.index._version === 1)
+                    .map(item => item.index._id);
+                  const update = res.hits.hits.filter(product =>
+                    firstImport.includes(`${instance.consumer_key}-${product._id}`)
+                  );
+                  if (update.length > 0) {
+                    ctx.call('products-list.updateQuantityAttributes', {
+                      products: update.map(product => ({
+                        _id: product._id,
+                        qty: product._source.import_qty || 0,
+                        attribute: 'import_qty'
+                      }))
+                    });
+                  }
+                }
+
+                // Responses
+                if (response.errors) {
+                  ctx.meta.$statusCode = 500;
                   return {
-                    success: newSKUs,
-                    outOfStock: outOfStock
+                    errors: [
+                      { message: 'There was an error with importing your products', skus: skus }
+                    ]
                   };
-                throw new MoleculerClientError('error');
+                }
+                return {
+                  success: newSKUs,
+                  outOfStock: outOfStock
+                };
               });
           });
       }
@@ -435,7 +463,7 @@ module.exports = {
         if (result.hits.total === 0) {
           throw new MoleculerClientError('Product not found', 404, sku);
         }
-        const rate = await this.broker.call('currencies.getCurrency', {
+        const [currencyRate] = await this.broker.call('currencies.getCurrency', {
           currencyCode: instance.currency
         });
         const source = result.hits.hits[0]._source;
@@ -451,7 +479,7 @@ module.exports = {
           variations: this.formatVariations(
             source.variations,
             instance,
-            rate.exchange_rate,
+            currencyRate.rate,
             source.archive
           )
         };
@@ -517,7 +545,7 @@ module.exports = {
         });
         const results = search.docs;
 
-        const rate = await this.broker.call('currencies.getCurrency', {
+        const [currencyRate] = await this.broker.call('currencies.getCurrency', {
           currencyCode: currency || instance.currency
         });
         try {
@@ -536,7 +564,7 @@ module.exports = {
                 variations: this.formatVariations(
                   source.variations,
                   instance,
-                  rate.exchange_rate,
+                  currencyRate.rate,
                   source.archive,
                   instanceProductsFull.page[n]._source.variations
                 )

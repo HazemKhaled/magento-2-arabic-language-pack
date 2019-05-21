@@ -78,9 +78,6 @@ services:
     env_file: .env
     environment:
       SERVICES: orders
-    networks:
-      - elastic
-      - default
 
   currencies:
     build:
@@ -90,6 +87,8 @@ services:
     env_file: .env
     environment:
       SERVICES: currencies
+    volumes:
+      - ../../data:/app/data
 
   elastic-update:
     build:
