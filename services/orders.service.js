@@ -267,7 +267,13 @@ module.exports = {
           max: 50,
           optional: true
         },
-        page: { type: 'number', convert: true, integer: true, min: 1, optional: true }
+        page: {
+          type: 'number',
+          convert: true,
+          integer: true,
+          min: 1,
+          optional: true
+        }
       },
       cache: {
         keys: ['#user', 'page', 'limit'],
@@ -289,7 +295,10 @@ module.exports = {
       auth: 'Bearer',
       params: {
         id: { type: 'string', empty: false },
-        status: { type: 'enum', values: ['pending', 'processing', 'cancelled'] },
+        status: {
+          type: 'enum',
+          values: ['pending', 'processing', 'cancelled']
+        },
         items: {
           type: 'array',
           optional: true,
