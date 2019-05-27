@@ -112,6 +112,11 @@ const TheService: ServiceSchema = {
         .then((token: string) => {
           // Verify JWT token
           if (type === 'Bearer') {
+            if (req.$action.auth !== 'Bearer') {
+              return this.Promise.reject(
+                new UnAuthorizedError(ERR_NO_TOKEN, req.headers.authorization)
+              );
+            }
             return (
               ctx
                 .call('users.resolveBearerToken', { token })
@@ -131,6 +136,11 @@ const TheService: ServiceSchema = {
 
           // Verify Base64 Basic auth
           if (type === 'Basic') {
+            if (req.$action.auth !== 'Basic') {
+              return this.Promise.reject(
+                new UnAuthorizedError(ERR_NO_TOKEN, req.headers.authorization)
+              );
+            }
             return (
               ctx
                 .call('users.resolveBasicToken', { token })
