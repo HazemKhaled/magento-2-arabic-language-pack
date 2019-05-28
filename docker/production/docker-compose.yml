@@ -111,6 +111,15 @@ services:
     volumes:
       - ../../data:/app/data
 
+  shipment:
+    build:
+      context: ../../
+    image: microes
+    restart: always
+    env_file: .env
+    environment:
+      SERVICES: shipment
+
   elastic-update:
     build:
       context: ../../

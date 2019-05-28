@@ -79,6 +79,15 @@ services:
     environment:
       SERVICES: orders
 
+  shipment:
+    build:
+      context: ../../
+    image: microes
+    restart: always
+    env_file: .env
+    environment:
+      SERVICES: shipment
+
   currencies:
     build:
       context: ../../
