@@ -56,7 +56,14 @@ const TheService: ServiceSchema = {
 
           // Currencies
           'GET currencies/:currencyCode': 'currencies.getCurrency',
-          'GET currencies': 'currencies.getCurrencies'
+          'GET currencies': 'currencies.getCurrencies',
+
+          // Shipment
+          'POST shipment': 'shipment.insertShipment',
+          'PUT shipment': 'shipment.updateShipment',
+          'PATCH shipment': 'shipment.patchShipment',
+          'GET shipment/calc': 'shipment.calcByCountry',
+          'GET shipment/couriers': 'shipment.getCouriers'
         },
 
         // Disable to call not-mapped actions
