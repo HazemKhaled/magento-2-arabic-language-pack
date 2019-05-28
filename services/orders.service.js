@@ -146,6 +146,34 @@ module.exports = {
             { method: 'get' }
           ).then(res => res.json());
 
+          // Shipping
+          let shipmentWieght = 0;
+          products.forEach(
+            product =>
+              (shipmentWieght = product._source.variations
+                .filter(variation => enoughStock.map(i => i.sku).includes(variation.sku))
+                .reduce((previous, current) => (previous = previous + current.weight), 0))
+          );
+          const shipmentRules = await ctx.call('shipment.calcByCountry', {
+            country: ctx.params.shipping.country,
+            unit: shipmentWieght,
+            delivery_items: enoughStock.reduce(
+              (previous, current) => (previous = previous + current.quantity),
+              0
+            ),
+            type: 'kilogram'
+          });
+          let shipment_id = 9;
+          if (instance.shipping_methods && instance.shipping_methods.length > 0) {
+            const sortedShippingMethods = instance.shipping_methods.sort((a, b) => a.sort - b.sort);
+            const shipmentMethod = sortedShippingMethods.reduceRight(
+              (accumulator, method) =>
+                accumulator.concat(shipmentRules.find(rule => rule.courier === method.name) || []),
+              []
+            );
+            shipment_id = shipmentMethod.length > 0 ? shipmentMethod[0].odoo_id : 9;
+          }
+          data.delivery_method = shipment_id;
           // Getting the current user subscription
           const subscription = this.currentSubscriptions(user.subscriptions);
 
