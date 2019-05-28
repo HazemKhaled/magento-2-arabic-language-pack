@@ -12,6 +12,7 @@ const Shipment = {
      * @returns
      */
     insertShipment: {
+      auth: 'Basic',
       params: {
         id: { type: 'string' },
         countries: { type: 'array', items: { type: 'string', max: 2, min: 2 } },
@@ -53,6 +54,7 @@ const Shipment = {
      * @returns
      */
     updateShipment: {
+      auth: 'Basic',
       params: {
         id: { type: 'string' },
         countries: { type: 'array', items: { type: 'string', max: 2, min: 2 } },
@@ -92,6 +94,7 @@ const Shipment = {
      * @returns
      */
     patchShipment: {
+      auth: 'Basic',
       params: {
         entries: {
           type: 'array',
@@ -141,6 +144,7 @@ const Shipment = {
      * @returns
      */
     calcByCountry: {
+      auth: 'Basic',
       params: {
         country: { type: 'string' },
         unit: { type: 'number', convert: true },
@@ -197,6 +201,7 @@ const Shipment = {
      * @returns {string[]} string array of couriers
      */
     getCouriers: {
+      auth: 'Basic',
       params: {
         country: { type: 'string', optional: true, min: 2, max: 2 }
       },
