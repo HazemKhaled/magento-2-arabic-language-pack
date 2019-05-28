@@ -87,6 +87,9 @@ services:
     env_file: .env
     environment:
       SERVICES: shipment
+    networks:
+      - mongo
+      - default
 
   currencies:
     build:
@@ -138,3 +141,6 @@ networks:
   elastic:
     external:
       name: elk-dev_default
+  mongo:
+    external:
+      name: mongodb_default

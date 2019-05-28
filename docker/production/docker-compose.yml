@@ -119,6 +119,9 @@ services:
     env_file: .env
     environment:
       SERVICES: shipment
+    networks:
+      - mongo
+      - default
 
   elastic-update:
     build:
@@ -162,3 +165,6 @@ networks:
   elastic:
     external:
       name: dockerelk_elk
+  mongo:
+    external:
+      name: mongodb_default
