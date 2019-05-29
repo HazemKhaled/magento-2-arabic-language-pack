@@ -33,4 +33,5 @@ export interface Order {
  */
 export interface OrderLine {
   sku: string;
+  quantity: number;
 }
