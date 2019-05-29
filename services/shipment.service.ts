@@ -15,7 +15,7 @@ const Shipment = {
       auth: 'Basic',
       params: { id: { type: 'string', optional: true } },
       handler(ctx: any) {
-        const query = ctx.params.country ? { countries: ctx.params.country } : {};
+        const query = ctx.params.id ? { _id: ctx.params.id } : {};
         return this.adapter.find({ query });
       }
     },
