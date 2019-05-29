@@ -16,9 +16,10 @@ const Shipment = {
       params: { id: { type: 'string', optional: true } },
       handler(ctx: any) {
         const query = ctx.params.id ? { _id: ctx.params.id } : {};
-        return this.adapter
-          .find({ query })
-          .then((data: ShipmentPolicy[]) => this.shipmentTransform(data));
+        return (ctx.params.id
+          ? this.adapter.findById(ctx.params.name)
+          : this.adapter.find({ query })
+        ).then((data: ShipmentPolicy[]) => this.shipmentTransform(data));
       }
     },
     /**
@@ -56,14 +57,15 @@ const Shipment = {
         // insert to DB
         return this.adapter
           .insert({
-            entity: {
-              _id: ctx.params.name,
-              countries: ctx.params.countries,
-              odoo_id: ctx.params.odoo_id,
-              rules: ctx.params.rules
-            }
+            _id: ctx.params.name,
+            countries: ctx.params.countries,
+            odoo_id: ctx.params.odoo_id,
+            rules: ctx.params.rules
           })
-          .then((data: ShipmentPolicy[]) => this.shipmentTransform(data));
+          .then(() => {
+            return this.adapter.findById(ctx.params.name);
+          })
+          .then((data: ShipmentPolicy) => this.shipmentTransform(data));
       }
     },
     /**
@@ -75,7 +77,6 @@ const Shipment = {
     updateShipment: {
       auth: 'Basic',
       params: {
-        name: { type: 'string' },
         countries: { type: 'array', items: { type: 'string', max: 2, min: 2, pattern: '[A-Z]' } },
         odoo_id: { type: 'number', convert: true },
         rules: {
@@ -97,12 +98,20 @@ const Shipment = {
       handler(ctx: any) {
         // update DB
         return this.adapter
-          .updateById(ctx.params.name, {
-            odoo_id: ctx.params.odoo_id,
-            countries: ctx.params.countries,
-            rules: ctx.params.rules
+          .updateMany(
+            { id: ctx.params.id },
+            {
+              $set: {
+                odoo_id: ctx.params.odoo_id,
+                countries: ctx.params.countries,
+                rules: ctx.params.rules
+              }
+            }
+          )
+          .then(() => {
+            return this.adapter.findById(ctx.params.id);
           })
-          .then((data: ShipmentPolicy[]) => this.shipmentTransform(data));
+          .then((data: ShipmentPolicy) => this.shipmentTransform(data));
       }
     },
     /**
@@ -189,7 +198,7 @@ const Shipment = {
      * @param {ShipmentPolicy[]} data
      * @returns
      */
-    shipmentTransform(data: ShipmentPolicy[]) {
+    shipmentTransform(data: ShipmentPolicy[] | ShipmentPolicy) {
       if (Array.isArray(data)) {
         return data.map((item: ShipmentPolicy) => ({
           name: item._id,
@@ -197,6 +206,11 @@ const Shipment = {
           countries: item.countries,
           rules: item.rules
         }));
+      }
+      if (!Array.isArray(data) && typeof data === 'object') {
+        data.name = data._id;
+        delete data._id;
+        return data;
       }
       return [];
     }

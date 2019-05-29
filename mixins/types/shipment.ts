@@ -6,6 +6,7 @@
  */
 export interface ShipmentPolicy {
   _id: string;
+  name?: string;
   countries: string[];
   odoo_id: number;
   rules: Rule[];
