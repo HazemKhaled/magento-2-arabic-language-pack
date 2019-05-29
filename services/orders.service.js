@@ -152,15 +152,14 @@ module.exports = {
             product =>
               (shipmentWieght = product._source.variations
                 .filter(variation => enoughStock.map(i => i.sku).includes(variation.sku))
-                .reduce((previous, current) => (previous = previous + current.weight), 0))
+                .reduce(
+                  (previous, current) => (previous = previous + current.weight * current.quantity),
+                  0
+                ))
           );
-          const shipmentRules = await ctx.call('shipment.calcByCountry', {
+          const shipmentRules = await ctx.call('shipment.ruleByCountry', {
             country: ctx.params.shipping.country,
             unit: shipmentWieght,
-            delivery_items: enoughStock.reduce(
-              (previous, current) => (previous = previous + current.quantity),
-              0
-            ),
             type: 'kilogram'
           });
           let shipment_id = 9;

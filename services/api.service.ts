@@ -61,8 +61,8 @@ const TheService: ServiceSchema = {
           // Shipment
           'POST shipment': 'shipment.insertShipment',
           'PUT shipment': 'shipment.updateShipment',
-          'PATCH shipment': 'shipment.patchShipment',
-          'GET shipment/calc': 'shipment.calcByCountry',
+          'GET shipment': 'shipment.getShipments',
+          'GET shipment/rules': 'shipment.ruleByCountry',
           'GET shipment/couriers': 'shipment.getCouriers'
         },
 
