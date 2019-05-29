@@ -97,8 +97,7 @@ const Shipment = {
       handler(ctx: any) {
         // update DB
         return this.adapter
-          .update({
-            _id: ctx.params.name,
+          .updateById(ctx.params.name, {
             odoo_id: ctx.params.odoo_id,
             countries: ctx.params.countries,
             rules: ctx.params.rules
@@ -184,6 +183,12 @@ const Shipment = {
     }
   },
   methods: {
+    /**
+     * change _id to name
+     *
+     * @param {ShipmentPolicy[]} data
+     * @returns
+     */
     shipmentTransform(data: ShipmentPolicy[]) {
       if (Array.isArray(data)) {
         return data.map((item: ShipmentPolicy) => ({
