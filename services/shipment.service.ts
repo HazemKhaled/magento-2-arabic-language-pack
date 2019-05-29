@@ -16,7 +16,9 @@ const Shipment = {
       params: { id: { type: 'string', optional: true } },
       handler(ctx: any) {
         const query = ctx.params.id ? { _id: ctx.params.id } : {};
-        return this.adapter.find({ query });
+        return this.adapter
+          .find({ query })
+          .then((data: ShipmentPolicy[]) => this.shipmentTransform(data));
       }
     },
     /**
@@ -28,7 +30,7 @@ const Shipment = {
     insertShipment: {
       auth: 'Basic',
       params: {
-        id: { type: 'string' },
+        name: { type: 'string' },
         countries: {
           type: 'array',
           items: { type: 'string', max: 2, min: 2, pattern: '[A-Z]' }
@@ -52,14 +54,16 @@ const Shipment = {
       },
       handler(ctx: any) {
         // insert to DB
-        return this.adapter.insert({
-          entity: {
-            _id: ctx.params.id,
-            countries: ctx.params.countries,
-            odoo_id: ctx.params.odoo_id,
-            rules: ctx.params.rules
-          }
-        });
+        return this.adapter
+          .insert({
+            entity: {
+              _id: ctx.params.name,
+              countries: ctx.params.countries,
+              odoo_id: ctx.params.odoo_id,
+              rules: ctx.params.rules
+            }
+          })
+          .then((data: ShipmentPolicy[]) => this.shipmentTransform(data));
       }
     },
     /**
@@ -71,7 +75,7 @@ const Shipment = {
     updateShipment: {
       auth: 'Basic',
       params: {
-        id: { type: 'string' },
+        name: { type: 'string' },
         countries: { type: 'array', items: { type: 'string', max: 2, min: 2, pattern: '[A-Z]' } },
         odoo_id: { type: 'number', convert: true },
         rules: {
@@ -92,12 +96,14 @@ const Shipment = {
       },
       handler(ctx: any) {
         // update DB
-        return this.adapter.update({
-          _id: ctx.params.id,
-          odoo_id: ctx.params.odoo_id,
-          countries: ctx.params.countries,
-          rules: ctx.params.rules
-        });
+        return this.adapter
+          .update({
+            _id: ctx.params.name,
+            odoo_id: ctx.params.odoo_id,
+            countries: ctx.params.countries,
+            rules: ctx.params.rules
+          })
+          .then((data: ShipmentPolicy[]) => this.shipmentTransform(data));
       }
     },
     /**
@@ -175,6 +181,19 @@ const Shipment = {
             )
         );
       }
+    }
+  },
+  methods: {
+    shipmentTransform(data: ShipmentPolicy[]) {
+      if (Array.isArray(data)) {
+        return data.map((item: ShipmentPolicy) => ({
+          name: item._id,
+          odoo_id: item.odoo_id,
+          countries: item.countries,
+          rules: item.rules
+        }));
+      }
+      return [];
     }
   }
 };
