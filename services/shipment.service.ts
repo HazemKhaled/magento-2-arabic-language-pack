@@ -118,8 +118,8 @@ const Shipment = {
           .find({
             query: {
               countries: ctx.params.country,
-              'rules.units_max': { $gte: parseInt(ctx.params.unit, 10) },
-              'rules.units_min': { $lte: parseInt(ctx.params.unit, 10) }
+              'rules.units_max': { $gte: parseInt(ctx.params.weight, 10) },
+              'rules.units_min': { $lte: parseInt(ctx.params.weight, 10) }
             }
           })
           .then((policies: ShipmentPolicy[]) => {
@@ -136,7 +136,7 @@ const Shipment = {
                 // Filter rules
                 .filter(
                   (rule: Rule) =>
-                    rule.units_max >= ctx.params.unit && rule.units_min <= ctx.params.unit
+                    rule.units_max >= ctx.params.weight && rule.units_min <= ctx.params.weight
                 )
                 // Reformat the rules
                 .map(rule => ({
