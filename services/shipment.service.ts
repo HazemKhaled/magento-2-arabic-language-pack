@@ -44,7 +44,7 @@ const Shipment = {
               delivery_days_max: { type: 'number', convert: true },
               units_min: { type: 'number', convert: true },
               units_max: { type: 'number', convert: true },
-              type: { type: 'string' },
+              type: { type: 'enum', values: ['weight', 'price'] },
               cost: { type: 'number', convert: true }
             }
           }
@@ -84,7 +84,7 @@ const Shipment = {
               delivery_days_max: { type: 'number', convert: true },
               units_min: { type: 'number', convert: true },
               units_max: { type: 'number', convert: true },
-              type: { type: 'string' },
+              type: { type: 'enum', values: ['weight', 'price'] },
               cost: { type: 'number', convert: true }
             }
           }
