@@ -62,9 +62,9 @@ const TheService: ServiceSchema = {
           'POST shipment': 'shipment.insertShipment',
           'PUT shipment/:id': 'shipment.updateShipment',
           'GET shipment': 'shipment.getShipments',
-          'GET shipment/:id': 'shipment.getShipments',
           'GET shipment/rules': 'shipment.ruleByCountry',
-          'GET shipment/couriers': 'shipment.getCouriers'
+          'GET shipment/couriers': 'shipment.getCouriers',
+          'GET shipment/:id': 'shipment.getShipments'
         },
 
         // Disable to call not-mapped actions

@@ -14,12 +14,11 @@ const Shipment = {
     getShipments: {
       auth: 'Basic',
       params: { id: { type: 'string', optional: true } },
+      cache: { keys: ['id'], ttl: 60 },
       handler(ctx: any) {
-        const query = ctx.params.id ? { _id: ctx.params.id } : {};
-        return (ctx.params.id
-          ? this.adapter.findById(ctx.params.name)
-          : this.adapter.find({ query })
-        ).then((data: ShipmentPolicy[]) => this.shipmentTransform(data));
+        return (ctx.params.id ? this.adapter.findById(ctx.params.id) : this.adapter.find()).then(
+          (data: ShipmentPolicy[]) => this.shipmentTransform(data)
+        );
       }
     },
     /**
@@ -63,6 +62,7 @@ const Shipment = {
             rules: ctx.params.rules
           })
           .then(() => {
+            this.broker.cacher.clean(`shipment.**`);
             return this.adapter.findById(ctx.params.name);
           })
           .then((data: ShipmentPolicy) => this.shipmentTransform(data));
@@ -77,6 +77,7 @@ const Shipment = {
     updateShipment: {
       auth: 'Basic',
       params: {
+        id: { type: 'string' },
         countries: { type: 'array', items: { type: 'string', max: 2, min: 2, pattern: '[A-Z]' } },
         odoo_id: { type: 'number', convert: true },
         rules: {
@@ -99,7 +100,7 @@ const Shipment = {
         // update DB
         return this.adapter
           .updateMany(
-            { id: ctx.params.id },
+            { _id: ctx.params.id },
             {
               $set: {
                 odoo_id: ctx.params.odoo_id,
@@ -109,6 +110,7 @@ const Shipment = {
             }
           )
           .then(() => {
+            this.broker.cacher.clean(`shipment.*`);
             return this.adapter.findById(ctx.params.id);
           })
           .then((data: ShipmentPolicy) => this.shipmentTransform(data));
@@ -127,6 +129,7 @@ const Shipment = {
         weight: { type: 'number', convert: true },
         price: { type: 'number', convert: true }
       },
+      cache: { keys: ['country', 'weight', 'price'], ttl: 60 },
       handler(ctx: any) {
         return this.adapter // find policies with matched rules
           .find({
@@ -175,18 +178,20 @@ const Shipment = {
       params: {
         country: { type: 'string', optional: true, min: 2, max: 2 }
       },
+      cache: { keys: ['country'], ttl: 60 },
       handler(ctx: any) {
         const query = ctx.params.country ? { countries: ctx.params.country } : {};
         return this.adapter.find({ query }).then(
           // Get couriers and filter repeated couriers
-          (polices: ShipmentPolicy[]) =>
-            new Set(
+          (polices: ShipmentPolicy[]) => {
+            return new Set(
               polices.reduceRight(
                 (accumulator: string[], policy: ShipmentPolicy): string[] =>
                   accumulator.concat(policy.rules.map((rule: Rule) => rule.courier)),
                 []
               )
-            )
+            );
+          }
         );
       }
     }
@@ -199,6 +204,9 @@ const Shipment = {
      * @returns
      */
     shipmentTransform(data: ShipmentPolicy[] | ShipmentPolicy) {
+      if (data === null) {
+        return { message: 'No Shipment Policy with This ID Found' };
+      }
       if (Array.isArray(data)) {
         return data.map((item: ShipmentPolicy) => ({
           name: item._id,
