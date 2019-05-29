@@ -319,7 +319,7 @@ module.exports = {
       async handler(ctx) {
         try {
           const orderBeforeUpdate = await ctx.call('orders.getOrder', { order_id: ctx.params.id });
-          if (!orderBeforeUpdate.status) {
+          if (orderBeforeUpdate.id === -1) {
             return { message: 'Order Not Found!' };
           }
           if (!['processing', 'pending'].includes(orderBeforeUpdate.status)) {
