@@ -110,7 +110,7 @@ const Shipment = {
       auth: 'Basic',
       params: {
         country: { type: 'string' },
-        wieght: { type: 'number', convert: true },
+        weight: { type: 'number', convert: true },
         price: { type: 'number', convert: true }
       },
       handler(ctx: any) {
