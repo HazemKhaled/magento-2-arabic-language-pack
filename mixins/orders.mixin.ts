@@ -1,7 +1,9 @@
+import { ServiceSchema } from 'moleculer';
+
 import { OrderLine, Product, Store, Variation } from './types';
 import { Rule } from './types/shipment';
 
-export const OrdersOperations = {
+export const OrdersOperations: ServiceSchema = {
   name: 'orders-operations',
   methods: {
     /**

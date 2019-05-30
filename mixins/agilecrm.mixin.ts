@@ -1,6 +1,7 @@
 import AgileCRMManager, { Contact } from 'agile_crm';
+import { ServiceSchema } from 'moleculer';
 
-export const AgileCRM = {
+export const AgileCRM: ServiceSchema = {
   name: 'agilecrm',
 
   /**
