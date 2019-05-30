@@ -1,4 +1,4 @@
-import { ServiceSchema } from 'moleculer';
+import { Context, ServiceSchema } from 'moleculer';
 import ApiGateway from 'moleculer-web';
 
 const { UnAuthorizedError, ERR_NO_TOKEN, ERR_INVALID_TOKEN } = ApiGateway.Errors;
@@ -99,7 +99,7 @@ const TheService: ServiceSchema = {
      * @param {IncomingRequest} req
      * @returns {Promise}
      */
-    authorize(ctx, route, req) {
+    authorize(ctx: Context, route, req) {
       // Pass if no auth required
       if (!req.$endpoint.action.auth) {
         return;
@@ -125,21 +125,15 @@ const TheService: ServiceSchema = {
                 new UnAuthorizedError(ERR_NO_TOKEN, req.headers.authorization)
               );
             }
-            return (
-              ctx
-                .call('users.resolveBearerToken', { token })
-                .then((user: { id: string }) => {
-                  if (user) {
-                    this.logger.info('Authenticated via JWT: ', user.id);
-                    // Reduce user fields (it will be transferred to other nodes)
-                    ctx.meta.user = user.id;
-                    ctx.meta.token = token;
-                  }
-                  return user;
-                })
-                // Ignored because we continue processing if user is not exist
-                .catch()
-            );
+            return ctx.call('users.resolveBearerToken', { token }).then((user: { id: string }) => {
+              if (user) {
+                this.logger.info('Authenticated via JWT: ', user.id);
+                // Reduce user fields (it will be transferred to other nodes)
+                ctx.meta.user = user.id;
+                ctx.meta.token = token;
+              }
+              return user;
+            });
           }
 
           // Verify Base64 Basic auth
@@ -149,20 +143,14 @@ const TheService: ServiceSchema = {
                 new UnAuthorizedError(ERR_NO_TOKEN, req.headers.authorization)
               );
             }
-            return (
-              ctx
-                .call('users.resolveBasicToken', { token })
-                .then((user: any) => {
-                  if (user) {
-                    this.logger.info('Authenticated via Basic');
+            return ctx.call('users.resolveBasicToken', { token }).then((user: any) => {
+              if (user) {
+                this.logger.info('Authenticated via Basic');
 
-                    ctx.meta.token = token;
-                  }
-                  return user;
-                })
-                // Ignored because we continue processing if user is not exist
-                .catch()
-            );
+                ctx.meta.token = token;
+              }
+              return user;
+            });
           }
         })
         .then((user: any) => {

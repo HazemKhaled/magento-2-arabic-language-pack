@@ -1,7 +1,8 @@
+import { Context, ServiceSchema } from 'moleculer';
 import DbService from '../mixins/mongo.mixin';
 import { Rule, ShipmentPolicy } from '../mixins/types/shipment';
 
-const Shipment = {
+const Shipment: ServiceSchema = {
   name: 'shipment',
   mixins: [DbService('shipment')],
   actions: {
@@ -15,7 +16,7 @@ const Shipment = {
       auth: 'Basic',
       params: { id: { type: 'string', optional: true } },
       cache: { keys: ['id'], ttl: 60 },
-      handler(ctx: any) {
+      handler(ctx: Context) {
         return (ctx.params.id ? this.adapter.findById(ctx.params.id) : this.adapter.find()).then(
           (data: ShipmentPolicy[]) => this.shipmentTransform(data)
         );
@@ -52,7 +53,7 @@ const Shipment = {
           }
         }
       },
-      handler(ctx: any) {
+      handler(ctx: Context) {
         // insert to DB
         return this.adapter
           .insert({
@@ -96,7 +97,7 @@ const Shipment = {
           }
         }
       },
-      handler(ctx: any) {
+      handler(ctx: Context) {
         // update DB
         return this.adapter
           .updateMany(
@@ -130,7 +131,7 @@ const Shipment = {
         price: { type: 'number', convert: true }
       },
       cache: { keys: ['country', 'weight', 'price'], ttl: 60 },
-      handler(ctx: any) {
+      handler(ctx: Context) {
         return this.adapter // find policies with matched rules
           .find({
             query: {
@@ -179,7 +180,7 @@ const Shipment = {
         country: { type: 'string', optional: true, min: 2, max: 2 }
       },
       cache: { keys: ['country'], ttl: 60 },
-      handler(ctx: any) {
+      handler(ctx: Context) {
         const query = ctx.params.country ? { countries: ctx.params.country } : {};
         return this.adapter.find({ query }).then(
           // Get couriers and filter repeated couriers
