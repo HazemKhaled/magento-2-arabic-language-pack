@@ -15,7 +15,7 @@ const TheService: ServiceSchema = {
         currencyCode: { type: 'string', min: 3, max: 3 }
       },
       cache: {
-        key: ['currencyCode'],
+        keys: ['currencyCode'],
         ttl: 60 * 60 // 1 hour
       },
       handler(ctx: Context) {
