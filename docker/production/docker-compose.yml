@@ -119,9 +119,10 @@ services:
     env_file: .env
     environment:
       SERVICES: shipment
-    networks:
-      - mongo
-      - default
+    depends_on:
+      - mongodb
+    links:
+      - mongodb
 
   elastic-update:
     build:
@@ -142,6 +143,16 @@ services:
     networks:
       - elastic
       - default
+
+  mongodb:
+    image: mongo:4
+    restart: always
+    env_file: .env
+    volumes:
+      - ~/data/db/mp:/data/db
+      - ../docker-mongodb-init/:/docker-entrypoint-initdb.d/
+    ports:
+      - '21985:27017'
 
   redis:
     image: redis:alpine
@@ -165,6 +176,3 @@ networks:
   elastic:
     external:
       name: dockerelk_elk
-  mongo:
-    external:
-      name: mongodb_default
