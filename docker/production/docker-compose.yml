@@ -109,7 +109,20 @@ services:
     environment:
       SERVICES: currencies
     volumes:
-      - ../../data:/app/data
+      - ~/data/mp-nedb:/app/data
+
+  shipment:
+    build:
+      context: ../../
+    image: microes
+    restart: always
+    env_file: .env
+    environment:
+      SERVICES: shipment
+    depends_on:
+      - mongodb
+    links:
+      - mongodb
 
   elastic-update:
     build:
@@ -126,10 +139,20 @@ services:
       - nats
       - redis
     volumes:
-      - ../../data:/app/data
+      - ~/data/mp-nedb:/app/data
     networks:
       - elastic
       - default
+
+  mongodb:
+    image: mongo:4
+    restart: always
+    env_file: .env
+    volumes:
+      - ~/data/db/mp:/data/db
+      - ../docker-mongodb-init/:/docker-entrypoint-initdb.d/
+    ports:
+      - '21985:27017'
 
   redis:
     image: redis:alpine

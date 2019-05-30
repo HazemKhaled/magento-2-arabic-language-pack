@@ -1,4 +1,4 @@
-import { ServiceSchema } from 'moleculer';
+import { Context, ServiceSchema } from 'moleculer';
 import * as Cron from 'moleculer-cron';
 import * as DbService from 'moleculer-db';
 import fetch from 'node-fetch';
@@ -15,10 +15,10 @@ const TheService: ServiceSchema = {
         currencyCode: { type: 'string', min: 3, max: 3 }
       },
       cache: {
-        key: ['currencyCode'],
+        keys: ['currencyCode'],
         ttl: 60 * 60 // 1 hour
       },
-      handler(ctx: any) {
+      handler(ctx: Context) {
         return ctx
           .call('currencies.find', {
             query: { _id: ctx.params.currencyCode.toUpperCase() }
@@ -50,7 +50,7 @@ const TheService: ServiceSchema = {
       cache: {
         ttl: 60 * 60 // 1 hour
       },
-      handler(ctx) {
+      handler(ctx: Context) {
         return ctx.call('currencies.find').then(async (currencies: Currency[]) => {
           // If rates are more than 1 hour
           let rates = currencies;

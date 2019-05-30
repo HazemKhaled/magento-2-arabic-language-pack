@@ -1,6 +1,7 @@
 const uuidv1 = require('uuid/v1');
 const fetch = require('node-fetch');
 const { MoleculerClientError } = require('moleculer').Errors;
+const { OrdersOperations } = require('../mixins/orders.mixin');
 
 const entityValidator = {
   id: { type: 'string', empty: false },
@@ -50,7 +51,7 @@ module.exports = {
   metadata: {
     entityValidator
   },
-
+  mixins: [OrdersOperations],
   settings: {
     app_url:
       process.env.NODE_ENV === 'development'
@@ -73,7 +74,6 @@ module.exports = {
       async handler(ctx) {
         if (ctx.params.shipping.company !== 'ebay') ctx.params.id = uuidv1();
         try {
-          // @TODO: transformation needed.
           const data = ctx.params;
           if (ctx.params.invoice_url) {
             data.pdf_invoice_url = ctx.params.invoice_url;
@@ -103,25 +103,11 @@ module.exports = {
               ]
             };
           }
-          const orderItems = data.items.map(item => item.sku);
-          const products = await ctx.call('products-list.getProductsByVariationSku', {
-            skus: orderItems
-          });
-          const found = [];
-          products.forEach(product =>
-            found.push(
-              ...product._source.variations
-                .filter(variation => orderItems.includes(variation.sku))
-                .map(item => ({ sku: item.sku, quantity: item.quantity }))
-            )
-          );
-          const inStock = found.filter(item => item.quantity > 0);
-          const enoughStock = found.filter(
-            item => item.quantity > data.items.find(i => i.sku === item.sku).quantity
-          );
 
+          // Check the available products and quantities return object with inStock products info
+          const stock = await this.stockProducts(data.items);
           // Return warning response if no Item available
-          if (enoughStock.length === 0)
+          if (stock.enoughStock.length === 0)
             return {
               warnings: [
                 {
@@ -133,21 +119,19 @@ module.exports = {
               ]
             };
 
-          // Filtering availabe variations
-          data.items = data.items.filter(item => enoughStock.map(i => i.sku).includes(item.sku));
+          // Update Order Items
+          data.items = stock.items;
 
-          // Getting the user Information to check subscription
-          const [user] = await fetch(
-            `${process.env.KLAYER_URL}/api/Partners?filter=${JSON.stringify({
-              where: {
-                contact_email: instance.users.filter(usr => usr.roles.includes('owner'))[0].email
-              }
-            })}&access_token=dbbf3cb7-f7ad-46ce-bee3-4fd7477951c4`,
-            { method: 'get' }
-          ).then(res => res.json());
+          // Shipping
+          const shipment = await this.shipment(
+            stock.products,
+            stock.enoughStock,
+            ctx.params.shipping.country,
+            instance
+          );
 
           // Getting the current user subscription
-          const subscription = this.currentSubscriptions(user.subscriptions);
+          const subscription = this.currentSubscriptions(instance);
 
           // Checking for processing fees
           if (
@@ -176,7 +160,8 @@ module.exports = {
 
           // Send the order to klayer
           const result = await ctx.call('klayer.createOrder', {
-            order: data
+            order: data,
+            shipment: shipment
           });
 
           // Clearing order list action(API) cache
@@ -184,7 +169,7 @@ module.exports = {
 
           // Update products sales quantity
           ctx.call('products-list.updateQuantityAttributes', {
-            products: products.map(product => ({
+            products: stock.products.map(product => ({
               _id: product._id,
               qty: product._source.sales_qty || 0,
               attribute: 'sales_qty'
@@ -204,9 +189,11 @@ module.exports = {
               createDate: order.date_created
             }
           };
-          const outOfStock = orderItems.filter(item => !inStock.map(i => i.sku).includes(item));
-          const notEnoughStock = inStock.filter(
-            item => !enoughStock.map(i => i.sku).includes(item.sku)
+          const outOfStock = stock.orderItems.filter(
+            item => !stock.inStock.map(i => i.sku).includes(item)
+          );
+          const notEnoughStock = stock.inStock.filter(
+            item => !stock.enoughStock.map(i => i.sku).includes(item.sku)
           );
 
           // Intiallizing warnings array if we have a Warning
@@ -222,6 +209,14 @@ module.exports = {
               message: `This items quantities are not enough stock ${outOfStock}`,
               skus: notEnoughStock,
               code: 1103
+            });
+          if (!shipment || shipment.courier !== instance.shipping_methods[0].name)
+            message.warnings.push({
+              message: `Can’t ship to ${ctx.params.shipping.country} with ${
+                instance.shipping_methods[0].name
+              }, It’ll be shipped with ${shipment.courier ||
+                'PTT'}, Contact our customer support for more info`,
+              code: 2101
             });
           return message;
         } catch (err) {
@@ -331,7 +326,13 @@ module.exports = {
       },
       async handler(ctx) {
         try {
-          // @TODO: transformation needed.
+          const orderBeforeUpdate = await ctx.call('orders.getOrder', { order_id: ctx.params.id });
+          if (orderBeforeUpdate.id === -1) {
+            return { message: 'Order Not Found!' };
+          }
+          if (!['processing', 'pending'].includes(orderBeforeUpdate.status)) {
+            return { message: 'The Order Is Now Processed With Knawat You Can Not Update It' };
+          }
           const data = ctx.params;
           if (ctx.params.invoice_url) {
             data.pdf_invoice_url = ctx.params.invoice_url;
@@ -341,9 +342,76 @@ module.exports = {
               this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
               return res;
             });
+
+          const message = {};
+          let shipment = 'No Items';
+          // If there is items
+          if (ctx.params.items) {
+            const [instance] = await ctx.call('stores.findInstance', {
+              consumerKey: ctx.meta.user
+            });
+            // Check the available products and quantities return object with inStock products info
+            const stock = await this.stockProducts(data.items);
+            // Return warning response if no Item available
+            if (stock.enoughStock.length === 0)
+              return {
+                warnings: [
+                  {
+                    status: 'fail',
+                    message:
+                      'The products you ordered is not in-stock, The order has not been created!',
+                    code: 1101
+                  }
+                ]
+              };
+
+            // Update Order Items
+            data.items = stock.items;
+
+            // Get Shipping Country
+            let country = orderBeforeUpdate.shipping.country;
+            if (ctx.params.shipping && ctx.params.shipping.country) {
+              country = ctx.params.shipping.country;
+            }
+
+            // Shipping
+            shipment = await this.shipment(stock.products, stock.enoughStock, country, instance);
+
+            // Prepare response message
+            const outOfStock = stock.orderItems.filter(
+              item => !stock.inStock.map(i => i.sku).includes(item)
+            );
+            const notEnoughStock = stock.inStock.filter(
+              item => !stock.enoughStock.map(i => i.sku).includes(item.sku)
+            );
+
+            // Intiallizing warnings array if we have a Warning
+            if (outOfStock.length > 0 || notEnoughStock.length > 0) message.warnings = [];
+            if (outOfStock.length > 0)
+              message.warnings.push({
+                message: `This items are out of stock ${outOfStock}`,
+                skus: outOfStock,
+                code: 1102
+              });
+            if (notEnoughStock.length > 0)
+              message.warnings.push({
+                message: `This items quantities are not enough stock ${outOfStock}`,
+                skus: notEnoughStock,
+                code: 1103
+              });
+            if (!shipment || shipment.courier !== instance.shipping_methods[0].name)
+              message.warnings.push({
+                message: `Can’t ship to ${ctx.params.shipping.country} with ${
+                  instance.shipping_methods[0].name
+                }, It’ll be shipped with ${shipment.courier ||
+                  'PTT'}, Contact our customer support for more info`,
+                code: 2101
+              });
+          }
+          // Update order
           const result = await ctx.call('klayer.updateOrder', {
             order: data,
-            consumerKey: ctx.meta.user
+            shipment: shipment
           });
           if (result.statusCode && result.statusCode === 404) {
             return {
@@ -354,16 +422,17 @@ module.exports = {
           }
           const order = result.data;
           this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
-          return {
-            status: 'success',
-            data: {
-              id: order.id,
-              status: order.status,
-              billing: order.billing,
-              shipping: order.shipping,
-              updateDate: new Date()
-            }
+
+          message.status = 'success';
+          message.data = {
+            id: order.id,
+            status: order.status,
+            items: order.line_items,
+            billing: order.billing,
+            shipping: order.shipping,
+            createDate: order.date_created
           };
+          return message;
         } catch (err) {
           return new MoleculerClientError(err);
         }
@@ -400,10 +469,19 @@ module.exports = {
    * Methods
    */
   methods: {
-    currentSubscriptions(subscriptions) {
+    async currentSubscriptions(instance) {
+      // Getting the user Information to check subscription
+      const [user] = await fetch(
+        `${process.env.KLAYER_URL}/api/Partners?filter=${JSON.stringify({
+          where: {
+            contact_email: instance.users.filter(usr => usr.roles.includes('owner'))[0].email
+          }
+        })}&access_token=dbbf3cb7-f7ad-46ce-bee3-4fd7477951c4`,
+        { method: 'get' }
+      ).then(res => res.json());
       const max = [];
       let lastDate = new Date(0);
-      subscriptions.forEach(subscription => {
+      user.subscriptions.forEach(subscription => {
         if (new Date(subscription.expire_date) > lastDate) {
           max.push(subscription);
           lastDate = new Date(subscription.expire_date);

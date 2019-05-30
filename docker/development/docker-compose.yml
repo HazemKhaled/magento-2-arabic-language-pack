@@ -79,6 +79,19 @@ services:
     environment:
       SERVICES: orders
 
+  shipment:
+    build:
+      context: ../../
+    image: microes
+    restart: always
+    env_file: .env
+    depends_on:
+      - mongodb
+    links:
+      - mongodb
+    environment:
+      SERVICES: shipment
+
   currencies:
     build:
       context: ../../
@@ -88,7 +101,7 @@ services:
     environment:
       SERVICES: currencies
     volumes:
-      - ../../data:/app/data
+      - ~/data/mp-nedb:/app/data
 
   elastic-update:
     build:
@@ -98,8 +111,7 @@ services:
     env_file: .env
     environment:
       SERVICES: elastic-update
-    volumes:
-      - ../../data:/app/data
+      - ~/data/mp-nedb:/app/data
     networks:
       - elastic
       - default
@@ -109,6 +121,16 @@ services:
 
   nats:
     image: nats
+
+  mongodb:
+    image: mongo:4
+    restart: always
+    env_file: .env
+    volumes:
+      - ~/data/db/mp-dev:/data/db
+      - ../docker-mongodb-init/:/docker-entrypoint-initdb.d/
+    ports:
+      - '21985:27017'
 
   traefik:
     image: traefik

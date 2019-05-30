@@ -1,6 +1,7 @@
 import AgileCRMManager, { Contact } from 'agile_crm';
+import { ServiceSchema } from 'moleculer';
 
-export const AgileCRM = {
+export const AgileCRM: ServiceSchema = {
   name: 'agilecrm',
 
   /**
@@ -20,9 +21,9 @@ export const AgileCRM = {
      * Get Contact ID by Email
      *
      * @param {string} email
-     * @returns contact
+     * @returns {Promise<string>}
      */
-    async getContactIdByEmail(email: string) {
+    async getContactIdByEmail(email: string): Promise<string> {
       try {
         const contact: Contact = await new Promise((resolve, reject) => {
           this.agile.contactAPI.getContactByEmail(
@@ -48,14 +49,13 @@ export const AgileCRM = {
      * Agile Update Last Sync Date on agile CRM
      *
      * @param {string} userEmail
-     * @returns
+     * @returns {Promise<void>}
      */
-    async updateLastSyncDate(userEmail: string) {
+    async updateLastSyncDate(userEmail: string): Promise<void> {
       if (userEmail !== '') {
         const contactId = await this.getContactIdByEmail(userEmail);
         if (typeof contactId === 'undefined') {
-          this.logger.error('[Agile][UpdateLastSync]', 'User not Found on agileCRM');
-          return false;
+          throw new Error('[Agile][UpdateLastSync] User not Found on agileCRM');
         }
 
         let today = new Date()
@@ -100,9 +100,9 @@ export const AgileCRM = {
   },
 
   /**
-   * Service created lifecycle event handler
+   * Service created life cycle event handler
    */
-  created() {
+  created(): void {
     this.agile = new AgileCRMManager(
       this.settings.agileDomain,
       this.settings.agileKey,

@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
-import { Errors, ServiceSchema } from 'moleculer';
+import { Context, Errors, ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
+
 import { Store } from './../mixins/types';
 import { StoreUser } from './../mixins/types/store';
 
@@ -44,7 +45,7 @@ const TheService: ServiceSchema = {
         consumerKey: { type: 'string' },
         consumerSecret: { type: 'string' }
       },
-      handler(ctx) {
+      handler(ctx: Context) {
         const { consumerKey, consumerSecret } = ctx.params;
 
         return this.Promise.resolve(
@@ -95,7 +96,7 @@ const TheService: ServiceSchema = {
       params: {
         token: 'string'
       },
-      handler(ctx) {
+      handler(ctx: Context) {
         return new this.Promise((resolve: any) => {
           jwt.verify(
             ctx.params.token,
@@ -142,7 +143,7 @@ const TheService: ServiceSchema = {
       params: {
         token: 'string'
       },
-      handler(ctx) {
+      handler(ctx: Context) {
         return fetch(`${process.env.AUTH_BASEURL}/login`, {
           headers: {
             Authorization: `Basic ${ctx.params.token}`

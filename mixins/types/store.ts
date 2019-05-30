@@ -15,6 +15,7 @@ export interface Store {
   compared_at_price: number;
   compared_at_price_operator: number;
   users: StoreUser[];
+  shipping_methods: ShippingMethod[];
 }
 
 /**
@@ -26,4 +27,15 @@ export interface Store {
 export interface StoreUser {
   email: string;
   roles: string[];
+}
+
+/**
+ * Shipment methods priority
+ *
+ * @export
+ * @interface ShippingMethod
+ */
+export interface ShippingMethod {
+  name: string;
+  sort: number;
 }
