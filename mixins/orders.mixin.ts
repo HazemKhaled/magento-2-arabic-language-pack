@@ -7,12 +7,20 @@ export const OrdersOperations: ServiceSchema = {
   name: 'orders-operations',
   methods: {
     /**
-     *
+     * Check Ordered Items Status inStock And Quatities ...
      *
      * @param {OrderLine[]} items
-     * @returns {products, inStock, enoughStock}
+     * @returns {products, inStock, enoughStock, items, orderItems}
      */
-    async stockProducts(items: OrderLine[]) {
+    async stockProducts(
+      items: OrderLine[]
+    ): Promise<{
+      products: Product[];
+      inStock: OrderLine[];
+      enoughStock: OrderLine[];
+      items: OrderLine[];
+      orderItems: string[];
+    }> {
       const orderItems = items.map(item => item.sku);
       const products = await this.broker.call('products-list.getProductsByVariationSku', {
         skus: orderItems
@@ -33,20 +41,20 @@ export const OrdersOperations: ServiceSchema = {
       return { products, inStock, enoughStock, items: dataItems, orderItems };
     },
     /**
-     *
+     * Calculates the shipment cost according to the store priority
      *
      * @param {Array<{ _source: Product }>} products
      * @param {OrderLine[]} enoughStock
      * @param {string} country
      * @param {Store} instance
-     * @returns {shipment}
+     * @returns {Rule | false}
      */
     async shipment(
       products: Array<{ _source: Product }>,
       enoughStock: OrderLine[],
       country: string,
       instance: Store
-    ) {
+    ): Promise<Rule | boolean> {
       let shipmentWeight = 0;
       products.forEach(
         product =>

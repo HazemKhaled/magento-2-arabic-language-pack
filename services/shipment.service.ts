@@ -16,7 +16,7 @@ const Shipment: ServiceSchema = {
       auth: 'Basic',
       params: { id: { type: 'string', optional: true } },
       cache: { keys: ['id'], ttl: 60 },
-      handler(ctx: Context) {
+      handler(ctx: Context): ShipmentPolicy | ShipmentPolicy[] {
         return (ctx.params.id ? this.adapter.findById(ctx.params.id) : this.adapter.find()).then(
           (data: ShipmentPolicy[]) => this.shipmentTransform(data)
         );
@@ -53,7 +53,7 @@ const Shipment: ServiceSchema = {
           }
         }
       },
-      handler(ctx: Context) {
+      handler(ctx: Context): ShipmentPolicy {
         // insert to DB
         return this.adapter
           .insert({
@@ -97,7 +97,7 @@ const Shipment: ServiceSchema = {
           }
         }
       },
-      handler(ctx: Context) {
+      handler(ctx: Context): ShipmentPolicy {
         // update DB
         return this.adapter
           .updateMany(
@@ -131,7 +131,7 @@ const Shipment: ServiceSchema = {
         price: { type: 'number', convert: true }
       },
       cache: { keys: ['country', 'weight', 'price'], ttl: 60 },
-      handler(ctx: Context) {
+      handler(ctx: Context): Rule[] {
         return this.adapter // find policies with matched rules
           .find({
             query: {
@@ -180,7 +180,7 @@ const Shipment: ServiceSchema = {
         country: { type: 'string', optional: true, min: 2, max: 2 }
       },
       cache: { keys: ['country'], ttl: 60 },
-      handler(ctx: Context) {
+      handler(ctx: Context): string[] {
         const query = ctx.params.country ? { countries: ctx.params.country } : {};
         return this.adapter.find({ query }).then(
           // Get couriers and filter repeated couriers
@@ -205,7 +205,7 @@ const Shipment: ServiceSchema = {
      * @param {ShipmentPolicy[]} data
      * @returns
      */
-    shipmentTransform(data: ShipmentPolicy[] | ShipmentPolicy) {
+    shipmentTransform(data: ShipmentPolicy[] | ShipmentPolicy): ShipmentPolicy[] | {} {
       if (data === null) {
         return { message: 'No Shipment Policy with This ID Found' };
       }
