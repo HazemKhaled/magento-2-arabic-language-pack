@@ -13,7 +13,7 @@ export default (collection: string): ServiceSchema => {
     adapter: new DbService.MemoryAdapter({ filename: `./data/${collection}.db` }),
 
     methods: {
-      entityChanged(type: string, json: object, ctx: any) {
+      entityChanged(type: string, json: object, ctx: any): void {
         return this.clearCache().then(() => {
           const eventName = `${this.name}.entity.${type}`;
           this.broker.emit(eventName, { meta: ctx.meta, entity: json });
