@@ -184,15 +184,16 @@ const Shipment: ServiceSchema = {
         const query = ctx.params.country ? { countries: ctx.params.country } : {};
         return this.adapter.find({ query }).then(
           // Get couriers and filter repeated couriers
-          (polices: ShipmentPolicy[]) => {
-            return new Set(
-              polices.reduceRight(
-                (accumulator: string[], policy: ShipmentPolicy): string[] =>
-                  accumulator.concat(policy.rules.map((rule: Rule) => rule.courier)),
-                []
+          (polices: ShipmentPolicy[]) =>
+            Array.from(
+              new Set(
+                polices.reduceRight(
+                  (accumulator: string[], policy: ShipmentPolicy): string[] =>
+                    accumulator.concat(policy.rules.map((rule: Rule) => rule.courier)),
+                  []
+                )
               )
-            );
-          }
+            )
         );
       }
     }
