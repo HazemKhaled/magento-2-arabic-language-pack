@@ -82,7 +82,13 @@ export const OrdersOperations: ServiceSchema = {
             ),
           []
         );
-        shipment = shipmentMethod.length > 0 ? shipmentMethod[0] : false;
+        shipment =
+          shipmentMethod.length > 0
+            ? shipmentMethod[shipmentMethod.length - 1]
+            : shipmentRules.length > 0
+            ? shipmentRules.sort((a: Rule, b: Rule) => a.cost - b.cost)[0]
+            : false;
+        this.logger.info(shipmentMethod);
       }
       return shipment;
     }

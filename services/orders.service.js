@@ -210,11 +210,11 @@ module.exports = {
               skus: notEnoughStock,
               code: 1103
             });
-          if (!shipment || shipment.courier !== instance.shipping_methods[0])
+          if (!shipment || shipment.courier !== instance.shipping_methods[0].name)
             message.warnings.push({
               message: `Can’t ship to ${ctx.params.shipping.country} with ${
                 instance.shipping_methods[0].name
-              }, it’ll be shipped with ${shipment.courier ||
+              }, It’ll be shipped with ${shipment.courier ||
                 'PTT'}, Contact our customer support for more info`,
               code: 2101
             });
@@ -399,11 +399,11 @@ module.exports = {
                 skus: notEnoughStock,
                 code: 1103
               });
-            if (!shipment || shipment.courier !== instance.shipping_methods[0])
+            if (!shipment || shipment.courier !== instance.shipping_methods[0].name)
               message.warnings.push({
                 message: `Can’t ship to ${ctx.params.shipping.country} with ${
                   instance.shipping_methods[0].name
-                }, it’ll be shipped with ${shipment.courier ||
+                }, It’ll be shipped with ${shipment.courier ||
                   'PTT'}, Contact our customer support for more info`,
                 code: 2101
               });
