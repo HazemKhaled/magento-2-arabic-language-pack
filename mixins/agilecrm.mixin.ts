@@ -101,7 +101,7 @@ export const AgileCRM: ServiceSchema = {
   },
 
   /**
-   * Service created lifecycle event handler
+   * Service created life cycle event handler
    */
   created() {
     this.agile = new AgileCRMManager(

@@ -47,10 +47,10 @@ export const OrdersOperations: ServiceSchema = {
       country: string,
       instance: Store
     ) {
-      let shipmentWieght = 0;
+      let shipmentWeight = 0;
       products.forEach(
         product =>
-          (shipmentWieght = product._source.variations
+          (shipmentWeight = product._source.variations
             .filter(variation => enoughStock.map(i => i.sku).includes(variation.sku))
             .reduce(
               (previous, current) => (previous = previous + current.weight * current.quantity),
@@ -59,7 +59,7 @@ export const OrdersOperations: ServiceSchema = {
       );
       const shipmentRules = await this.broker.call('shipment.ruleByCountry', {
         country,
-        weight: shipmentWieght,
+        weight: shipmentWeight,
         price: 1
       });
 

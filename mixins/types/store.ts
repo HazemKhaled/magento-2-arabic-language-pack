@@ -30,7 +30,7 @@ export interface StoreUser {
 }
 
 /**
- * Shipment methods periority
+ * Shipment methods priority
  *
  * @export
  * @interface ShippingMethod
