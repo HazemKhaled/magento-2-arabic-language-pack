@@ -49,7 +49,7 @@ const TheService: ServiceSchema = {
             delete currency[0].lastUpdate;
             currency[0].currencyCode = currency[0]._id;
             delete currency[0]._id;
-            return currency;
+            return currency[0];
           });
       }
     },
@@ -69,7 +69,7 @@ const TheService: ServiceSchema = {
           let rates = currencies;
           if (
             currencies.length === 0 ||
-            new Date(currencies[0].lastUpdate).getTime() - Date.now() > 3600 * 1000
+            Date.now() - new Date(currencies[0].lastUpdate).getTime() > 3600 * 1000
           ) {
             // Get new rates
             rates = await fetch(`https://openexchangerates.org/api/latest.json`, {
@@ -85,7 +85,9 @@ const TheService: ServiceSchema = {
                 }));
 
                 // Push the new rates into the DB
-                return ctx.call('currencies.insert', { entities: currenciesObj });
+                return Promise.all(
+                  currenciesObj.map(currencyObj => ctx.call('currencies.update', currencyObj))
+                );
               });
             // clean the cache after db update
             this.broker.cacher.clean(`currencies.**`);
