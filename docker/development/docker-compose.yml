@@ -100,8 +100,6 @@ services:
     env_file: .env
     environment:
       SERVICES: currencies
-    volumes:
-      - ~/data/mp-nedb:/app/data
 
   elastic-update:
     build:
