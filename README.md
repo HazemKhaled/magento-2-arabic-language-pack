@@ -25,6 +25,9 @@ npm run lint-fix
 npm run prettier
 ```
 
+### Configure DB for the first time
+1.  `cp docker/docker-mongodb-init/createuser.js.example docker/docker-mongodb-init/createuser.js && nano docker/docker-mongodb-init/createuser.js` update db info
+
 ### Run without Docker (Development)
 
 1.  `cp ./docker/development/docker-compose.example.env ./docker/development/docker-compose.env` and update your vars

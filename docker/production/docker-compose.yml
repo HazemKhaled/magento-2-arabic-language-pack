@@ -22,17 +22,6 @@ services:
       - 'traefik.port=80'
       - 'traefik.frontend.entryPoints=http,https'
       - 'traefik.frontend.rule=Host:mp.knawat.io'
-  es:
-    build:
-      context: ../../
-    image: microes
-    restart: always
-    env_file: .env
-    environment:
-      SERVICES: es
-    networks:
-      - elastic
-      - default
 
   klayer:
     build:
@@ -109,6 +98,19 @@ services:
     environment:
       SERVICES: currencies
 
+  shipment:
+    build:
+      context: ../../
+    image: microes
+    restart: always
+    env_file: .env
+    environment:
+      SERVICES: shipment
+    depends_on:
+      - mongodb
+    links:
+      - mongodb
+
   elastic-update:
     build:
       context: ../../
@@ -124,10 +126,20 @@ services:
       - nats
       - redis
     volumes:
-      - ../../data:/app/data
+      - ~/data/mp-nedb:/app/data
     networks:
       - elastic
       - default
+
+  mongodb:
+    image: mongo:4
+    restart: always
+    env_file: .env
+    volumes:
+      - ~/data/db/mp:/data/db
+      - ../docker-mongodb-init/:/docker-entrypoint-initdb.d/
+    ports:
+      - '21985:27017'
 
   redis:
     image: redis:alpine

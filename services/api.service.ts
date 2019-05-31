@@ -1,4 +1,4 @@
-import { ServiceSchema } from 'moleculer';
+import { Context, ServiceSchema } from 'moleculer';
 import ApiGateway from 'moleculer-web';
 
 const { UnAuthorizedError, ERR_NO_TOKEN, ERR_INVALID_TOKEN } = ApiGateway.Errors;
@@ -55,8 +55,16 @@ const TheService: ServiceSchema = {
           'GET catalog/categories': 'categories.list',
 
           // Currencies
-          'GET currencies:currencyCode': 'currencies.getCurrency',
-          'GET currencies': 'currencies.getCurrencies'
+          'GET currencies/:currencyCode': 'currencies.getCurrency',
+          'GET currencies': 'currencies.getCurrencies',
+
+          // Shipment
+          'POST shipment': 'shipment.insertShipment',
+          'PUT shipment/:id': 'shipment.updateShipment',
+          'GET shipment': 'shipment.getShipments',
+          'GET shipment/rules': 'shipment.ruleByCountry',
+          'GET shipment/couriers': 'shipment.getCouriers',
+          'GET shipment/:id': 'shipment.getShipments'
         },
 
         // Disable to call not-mapped actions
@@ -91,7 +99,7 @@ const TheService: ServiceSchema = {
      * @param {IncomingRequest} req
      * @returns {Promise}
      */
-    authorize(ctx, route, req) {
+    authorize(ctx: Context, route: any, req: any) {
       // Pass if no auth required
       if (!req.$endpoint.action.auth) {
         return;
@@ -112,39 +120,37 @@ const TheService: ServiceSchema = {
         .then((token: string) => {
           // Verify JWT token
           if (type === 'Bearer') {
-            return (
-              ctx
-                .call('users.resolveBearerToken', { token })
-                .then((user: { id: string }) => {
-                  if (user) {
-                    this.logger.info('Authenticated via JWT: ', user.id);
-                    // Reduce user fields (it will be transferred to other nodes)
-                    ctx.meta.user = user.id;
-                    ctx.meta.token = token;
-                  }
-                  return user;
-                })
-                // Ignored because we continue processing if user is not exist
-                .catch()
-            );
+            if (req.$action.auth !== 'Bearer') {
+              return this.Promise.reject(
+                new UnAuthorizedError(ERR_NO_TOKEN, req.headers.authorization)
+              );
+            }
+            return ctx.call('users.resolveBearerToken', { token }).then((user: { id: string }) => {
+              if (user) {
+                this.logger.info('Authenticated via JWT: ', user.id);
+                // Reduce user fields (it will be transferred to other nodes)
+                ctx.meta.user = user.id;
+                ctx.meta.token = token;
+              }
+              return user;
+            });
           }
 
           // Verify Base64 Basic auth
           if (type === 'Basic') {
-            return (
-              ctx
-                .call('users.resolveBasicToken', { token })
-                .then((user: any) => {
-                  if (user) {
-                    this.logger.info('Authenticated via Basic');
+            if (req.$action.auth !== 'Basic') {
+              return this.Promise.reject(
+                new UnAuthorizedError(ERR_NO_TOKEN, req.headers.authorization)
+              );
+            }
+            return ctx.call('users.resolveBasicToken', { token }).then((user: any) => {
+              if (user) {
+                this.logger.info('Authenticated via Basic');
 
-                    ctx.meta.token = token;
-                  }
-                  return user;
-                })
-                // Ignored because we continue processing if user is not exist
-                .catch()
-            );
+                ctx.meta.token = token;
+              }
+              return user;
+            });
           }
         })
         .then((user: any) => {

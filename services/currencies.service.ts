@@ -1,41 +1,60 @@
-import { ServiceSchema } from 'moleculer';
+import { Context, ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
+import { Currency } from './../types/currency.d';
 
 const TheService: ServiceSchema = {
   name: 'currencies',
-  settings: {
-    AUTH: Buffer.from(`${process.env.BASIC_USER}:${process.env.BASIC_PASS}`).toString('base64')
-  },
   actions: {
+    /**
+     * Gets the rates of asked currency according to the dollar as a base
+     *
+     * @param {string} currencyCode
+     * @returns {Currency}
+     */
     getCurrency: {
+      auth: 'Basic',
       params: {
         currencyCode: { type: 'string', min: 3, max: 3 }
       },
       cache: {
-        key: ['currencyCode'],
-        ttl: 30 * 60 // 1 hour
+        keys: ['currencyCode'],
+        ttl: 60 * 60 // 1 hour
       },
-      handler(ctx: any) {
-        return fetch(`${process.env.OMS_URL}/currencies/${ctx.params.currency}`, {
-          method: 'get',
-          headers: {
-            Authorization: `Basic ${this.settings.AUTH}`
+      handler(ctx: Context) {
+        return ctx.call('currencies.getCurrencies').then(curruncies => {
+          const currency = curruncies.find(
+            (currencyObj: Currency) => currencyObj.currencyCode === ctx.params.currencyCode
+          );
+          if (currency === undefined) {
+            ctx.meta.$statusCode = 404;
+            return { warning: 'Currency code could not be found!' };
           }
-        }).then(res => res.json());
-        // TODO: transform currency before response
+          return currency;
+        });
       }
     },
+    /**
+     * Fetch all currencies rates from openexchange api
+     *
+     * @returns {Currency[]}
+     */
     getCurrencies: {
+      auth: 'Basic',
       cache: {
-        ttl: 30 * 60 // 1 hour
+        ttl: 60 * 60 // 1 hour
       },
       handler() {
-        return fetch(`${process.env.OMS_URL}/currencies`, {
+        return fetch(`https://openexchangerates.org/api/latest.json`, {
           method: 'get',
-          headers: {
-            Authorization: `Basic ${this.settings.AUTH}`
-          }
-        }).then(res => res.json());
+          headers: { Authorization: `Token ${process.env.OPENEXCHANGE_TOKEN}` }
+        })
+          .then(res => res.json())
+          .then(newCurrencies =>
+            Object.keys(newCurrencies.rates).map(currency => ({
+              currencyCode: currency,
+              rate: newCurrencies.rates[currency]
+            }))
+          );
       }
     }
   }

@@ -177,6 +177,78 @@ module.exports = {
       handler() {
         throw new MoleculerClientError('Not Implemented Yet!!');
       }
+    },
+    getProductsByVariationSku: {
+      params: {
+        skus: { type: 'array', items: { type: 'string' } }
+      },
+      handler(ctx) {
+        return ctx
+          .call('products-list.search', {
+            index: 'products',
+            type: 'Product',
+            body: {
+              query: {
+                bool: {
+                  filter: [
+                    {
+                      nested: {
+                        path: 'variations',
+                        query: {
+                          bool: {
+                            filter: {
+                              terms: {
+                                'variations.sku': ctx.params.skus
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          })
+          .then(response => response.hits.hits);
+      }
+    },
+    updateQuantityAttributes: {
+      params: {
+        products: {
+          type: 'array',
+          items: {
+            type: 'object',
+            props: {
+              _id: { type: 'string', convert: true },
+              qty: { type: 'number', convert: true },
+              attribute: { type: 'string', convert: true }
+            }
+          }
+        }
+      },
+      handler(ctx) {
+        const bulk = [];
+        ctx.params.products.forEach(product => {
+          bulk.push({
+            update: {
+              _index: 'products',
+              _type: 'Product',
+              _id: product._id
+            }
+          });
+          bulk.push({
+            doc: {
+              [product.attribute]: parseInt(product.qty) + 1
+            }
+          });
+        });
+        ctx.call('products-list.bulk', {
+          index: 'products',
+          type: 'Product',
+          body: bulk
+        });
+      }
     }
   },
   methods: {

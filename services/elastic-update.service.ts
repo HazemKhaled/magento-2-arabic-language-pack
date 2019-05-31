@@ -1,7 +1,8 @@
 import Loop from 'bluebird';
-import { Errors, ServiceSchema } from 'moleculer';
+import { Context, Errors, ServiceSchema } from 'moleculer';
 import * as Cron from 'moleculer-cron';
 import ESService, { SearchResponse } from 'moleculer-elasticsearch';
+
 import { AgileCRM } from '../mixins/agilecrm.mixin';
 import DbService from '../mixins/db.mixin';
 import { Product } from '../mixins/types';
@@ -60,7 +61,7 @@ const TheService: ServiceSchema = {
      * @returns {Array} Categories
      */
     run: {
-      async handler(ctx: any) {
+      async handler(ctx: Context) {
         // Don't run if another cron not completed
         if (this.settings.isRunning) {
           this.logger.info('Update instance Products is already running');

@@ -40,7 +40,7 @@ const TheService: ServiceSchema = {
       cache: {
         ttl: 60 * 60 // 1 hour
       },
-      handler() {
+      handler(): Category[] {
         return this.fetchCategories();
       }
     }

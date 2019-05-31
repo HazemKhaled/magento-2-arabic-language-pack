@@ -1,4 +1,4 @@
-import { Errors, ServiceSchema } from 'moleculer';
+import { Context, Errors, ServiceSchema } from 'moleculer';
 import request from 'request-promise';
 
 import { Order } from '../mixins/types';
@@ -14,9 +14,11 @@ const TheService: ServiceSchema = {
   actions: {
     createOrder: {
       params: {
-        order: { type: 'object' }
+        order: { type: 'object' },
+        shipment: [{ type: 'object', optional: true }, { type: 'boolean', optional: true }]
       },
-      handler(ctx) {
+      handler(ctx: Context) {
+        ctx.params.order.delivery_method = ctx.params.shipment ? ctx.params.shipment.odoo_id : 9;
         return request({
           method: 'POST',
           uri: this.getUrl(`webhook/orders/create/${ctx.meta.user}`),
@@ -43,9 +45,13 @@ const TheService: ServiceSchema = {
      */
     updateOrder: {
       params: {
-        order: { type: 'object' }
+        order: { type: 'object' },
+        shipment: [{ type: 'object' }, { type: 'boolean' }, { type: 'string' }]
       },
-      handler(ctx) {
+      handler(ctx: Context) {
+        if (ctx.params.shipment !== 'No Items') {
+          ctx.params.order.delivery_method = ctx.params.shipment ? ctx.params.shipment.odoo_id : 9;
+        }
         return request({
           method: 'POST',
           uri: this.getUrl(`webhook/orders/update/${ctx.meta.user}`),
@@ -78,7 +84,7 @@ const TheService: ServiceSchema = {
         limit: { type: 'number', convert: true, integer: true, optional: true },
         orderId: { type: 'string', optional: true }
       },
-      async handler(ctx) {
+      async handler(ctx: Context) {
         const { page = 1, limit = 10, orderId } = ctx.params;
         const query = !orderId
           ? { webhook_hash: ctx.meta.user }
@@ -149,7 +155,7 @@ const TheService: ServiceSchema = {
       params: {
         id: { type: 'string', convert: true }
       },
-      handler(ctx) {
+      handler(ctx: Context) {
         return request({
           method: 'POST',
           uri: this.getUrl(`webhook/orders/cancel/${ctx.meta.user}`),

@@ -1,4 +1,4 @@
-import { Errors, ServiceSchema } from 'moleculer';
+import { Context, Errors, ServiceSchema } from 'moleculer';
 import request from 'request-promise';
 
 const { MoleculerClientError } = Errors;
@@ -19,7 +19,7 @@ const TheService: ServiceSchema = {
       params: {
         consumerKey: { type: 'string', convert: true }
       },
-      handler(ctx) {
+      handler(ctx: Context) {
         return request({
           method: 'get',
           uri: this.getUrl(
@@ -40,7 +40,11 @@ const TheService: ServiceSchema = {
     },
     me: {
       auth: 'Bearer',
-      handler(ctx) {
+      cache: {
+        keys: ['#user'],
+        ttl: 60 * 60 // 1 hour
+      },
+      handler(ctx: Context) {
         return request({
           method: 'get',
           uri: this.getUrl(
@@ -64,7 +68,11 @@ const TheService: ServiceSchema = {
       params: {
         id: { type: 'string' }
       },
-      handler(ctx) {
+      cache: {
+        keys: ['id'],
+        ttl: 60 * 60 // 1 hour
+      },
+      handler(ctx: Context) {
         return request({
           method: 'get',
           uri: this.getUrl(`stores/${encodeURIComponent(ctx.params.id)}`),
@@ -79,7 +87,11 @@ const TheService: ServiceSchema = {
       params: {
         filter: { type: 'string' }
       },
-      handler(ctx) {
+      cache: {
+        keys: ['filter'],
+        ttl: 60 * 60 // 1 hour
+      },
+      handler(ctx: Context) {
         return request({
           method: 'get',
           uri: this.getUrl(`stores?filter=${ctx.params.filter}`),
@@ -165,7 +177,9 @@ const TheService: ServiceSchema = {
           optional: true
         }
       },
-      handler(ctx) {
+      handler(ctx: Context) {
+        this.broker.cacher.clean(`stores.get:**`);
+        this.broker.cacher.clean(`stores.list:**`);
         return request({
           method: 'post',
           uri: this.getUrl('stores'),
@@ -259,9 +273,10 @@ const TheService: ServiceSchema = {
           optional: true
         }
       },
-      handler(ctx) {
+      handler(ctx: Context) {
         const { id } = ctx.params;
         delete ctx.params.id;
+        this.broker.cacher.clean(`stores.**`);
         return request({
           method: 'put',
           uri: this.getUrl(`stores/${encodeURIComponent(id)}`),
