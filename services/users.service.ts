@@ -97,13 +97,13 @@ const TheService: ServiceSchema = {
         token: 'string'
       },
       handler(ctx: Context) {
-        return new this.Promise((resolve: any) => {
+        return new this.Promise((resolve: any, reject: any) => {
           jwt.verify(
             ctx.params.token,
             this.settings.JWT_SECRET,
             (error: Error, decoded: object) => {
               if (error) {
-                throw new MoleculerClientError('', 401, '', error);
+                reject(false);
               }
 
               resolve(decoded);
@@ -122,7 +122,7 @@ const TheService: ServiceSchema = {
             }
           })
           .catch((error: any) => {
-            throw new MoleculerClientError('', 401, '', error);
+            return false;
           });
       }
     },
@@ -154,7 +154,7 @@ const TheService: ServiceSchema = {
               return res.json();
             }
 
-            throw new MoleculerClientError('Unknown error');
+            return false;
           })
           .catch(error => {
             throw new MoleculerClientError(error);

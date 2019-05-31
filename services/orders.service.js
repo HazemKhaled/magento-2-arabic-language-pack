@@ -32,7 +32,8 @@ const entityValidator = {
     }
   },
   invoice_url: { type: 'string', optional: true },
-  notes: { type: 'string', optional: true }
+  notes: { type: 'string', optional: true },
+  shipping_method: { type: 'string', optional: true }
 };
 
 module.exports = {
@@ -127,7 +128,8 @@ module.exports = {
             stock.products,
             stock.enoughStock,
             ctx.params.shipping.country,
-            instance
+            instance,
+            ctx.params.shipping_method
           );
 
           // Getting the current user subscription
@@ -198,26 +200,46 @@ module.exports = {
 
           // Intiallizing warnings array if we have a Warning
           if (outOfStock.length > 0 || notEnoughStock.length > 0) message.warnings = [];
-          if (outOfStock.length > 0)
-            message.warnings.push({
-              message: `This items are out of stock ${outOfStock}`,
-              skus: outOfStock,
-              code: 1102
-            });
-          if (notEnoughStock.length > 0)
-            message.warnings.push({
-              message: `This items quantities are not enough stock ${outOfStock}`,
-              skus: notEnoughStock,
-              code: 1103
-            });
-          if (!shipment || shipment.courier !== instance.shipping_methods[0].name)
-            message.warnings.push({
-              message: `Can’t ship to ${ctx.params.shipping.country} with ${
-                instance.shipping_methods[0].name
-              }, It’ll be shipped with ${shipment.courier ||
-                'PTT'}, Contact our customer support for more info`,
-              code: 2101
-            });
+          try {
+            if (outOfStock.length > 0)
+              message.warnings.push({
+                message: `This items are out of stock ${outOfStock}`,
+                skus: outOfStock,
+                code: 1102
+              });
+            if (notEnoughStock.length > 0)
+              message.warnings.push({
+                message: `This items quantities are not enough stock ${outOfStock}`,
+                skus: notEnoughStock,
+                code: 1103
+              });
+            if (
+              (!instance.shipping_methods || !instance.shipping_methods[0].name) &&
+              !ctx.params.shipping_method
+            ) {
+              message.warnings.push({
+                message: `There is no default shipping method for your store, It’ll be shipped with ${shipment.courier ||
+                  'PTT'}, Contact our customer support for more info`,
+                code: 2102
+              });
+            }
+            if (
+              (shipment.courier !== ctx.params.shipping_method && ctx.params.shipping_method) ||
+              (instance.shipping_methods &&
+                instance.shipping_methods[0].name &&
+                shipment.courier !== instance.shipping_methods[0].name)
+            ) {
+              message.warnings.push({
+                message: `Can’t ship to ${
+                  ctx.params.shipping.country
+                } with provided courier, It’ll be shipped with ${shipment.courier ||
+                  'PTT'}, Contact our customer support for more info`,
+                code: 2101
+              });
+            }
+          } catch (err) {
+            this.logger.error(err);
+          }
           return message;
         } catch (err) {
           throw new MoleculerClientError(err, 500);
@@ -322,7 +344,8 @@ module.exports = {
           }
         },
         invoice_url: { type: 'string', optional: true },
-        notes: { type: 'string', optional: true }
+        notes: { type: 'string', optional: true },
+        shipping_method: { type: 'string', optional: true }
       },
       async handler(ctx) {
         try {
@@ -375,7 +398,13 @@ module.exports = {
             }
 
             // Shipping
-            shipment = await this.shipment(stock.products, stock.enoughStock, country, instance);
+            shipment = await this.shipment(
+              stock.products,
+              stock.enoughStock,
+              country,
+              instance,
+              ctx.params.shipping_method
+            );
 
             // Prepare response message
             const outOfStock = stock.orderItems.filter(
@@ -387,26 +416,46 @@ module.exports = {
 
             // Intiallizing warnings array if we have a Warning
             if (outOfStock.length > 0 || notEnoughStock.length > 0) message.warnings = [];
-            if (outOfStock.length > 0)
-              message.warnings.push({
-                message: `This items are out of stock ${outOfStock}`,
-                skus: outOfStock,
-                code: 1102
-              });
-            if (notEnoughStock.length > 0)
-              message.warnings.push({
-                message: `This items quantities are not enough stock ${outOfStock}`,
-                skus: notEnoughStock,
-                code: 1103
-              });
-            if (!shipment || shipment.courier !== instance.shipping_methods[0].name)
-              message.warnings.push({
-                message: `Can’t ship to ${ctx.params.shipping.country} with ${
-                  instance.shipping_methods[0].name
-                }, It’ll be shipped with ${shipment.courier ||
-                  'PTT'}, Contact our customer support for more info`,
-                code: 2101
-              });
+            try {
+              if (outOfStock.length > 0)
+                message.warnings.push({
+                  message: `This items are out of stock ${outOfStock}`,
+                  skus: outOfStock,
+                  code: 1102
+                });
+              if (notEnoughStock.length > 0)
+                message.warnings.push({
+                  message: `This items quantities are not enough stock ${outOfStock}`,
+                  skus: notEnoughStock,
+                  code: 1103
+                });
+              if (
+                (!instance.shipping_methods || !instance.shipping_methods[0].name) &&
+                !ctx.params.shipping_method
+              ) {
+                message.warnings.push({
+                  message: `There is no default shipping method for your store, It’ll be shipped with ${shipment.courier ||
+                    'PTT'}, Contact our customer support for more info`,
+                  code: 2102
+                });
+              }
+              if (
+                (shipment.courier !== ctx.params.shipping_method && ctx.params.shipping_method) ||
+                (instance.shipping_methods &&
+                  instance.shipping_methods[0].name &&
+                  shipment.courier !== instance.shipping_methods[0].name)
+              ) {
+                message.warnings.push({
+                  message: `Can’t ship to ${
+                    ctx.params.shipping.country
+                  } with provided courier, It’ll be shipped with ${shipment.courier ||
+                    'PTT'}, Contact our customer support for more info`,
+                  code: 2101
+                });
+              }
+            } catch (err) {
+              this.logger.error(err);
+            }
           }
           // Update order
           const result = await ctx.call('klayer.updateOrder', {
