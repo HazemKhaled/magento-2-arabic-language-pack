@@ -40,6 +40,10 @@ const TheService: ServiceSchema = {
     },
     me: {
       auth: 'Bearer',
+      cache: {
+        keys: ['#user'],
+        ttl: 60 * 60 // 1 hour
+      },
       handler(ctx: Context) {
         return request({
           method: 'get',
@@ -64,6 +68,10 @@ const TheService: ServiceSchema = {
       params: {
         id: { type: 'string' }
       },
+      cache: {
+        keys: ['id'],
+        ttl: 60 * 60 // 1 hour
+      },
       handler(ctx: Context) {
         return request({
           method: 'get',
@@ -78,6 +86,10 @@ const TheService: ServiceSchema = {
       auth: 'Basic',
       params: {
         filter: { type: 'string' }
+      },
+      cache: {
+        keys: ['filter'],
+        ttl: 60 * 60 // 1 hour
       },
       handler(ctx: Context) {
         return request({
@@ -166,6 +178,7 @@ const TheService: ServiceSchema = {
         }
       },
       handler(ctx: Context) {
+        this.broker.cacher.clean(`stores.**`);
         return request({
           method: 'post',
           uri: this.getUrl('stores'),
@@ -262,6 +275,7 @@ const TheService: ServiceSchema = {
       handler(ctx: Context) {
         const { id } = ctx.params;
         delete ctx.params.id;
+        this.broker.cacher.clean(`stores.**`);
         return request({
           method: 'put',
           uri: this.getUrl(`stores/${encodeURIComponent(id)}`),
