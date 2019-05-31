@@ -25,32 +25,16 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 // 1 hour
       },
       handler(ctx: Context) {
-        return ctx
-          .call('currencies.find', {
-            query: { _id: ctx.params.currencyCode.toUpperCase() }
-          })
-          .then(async (currency: Currency[]) => {
-            if (
-              currency.length === 0 ||
-              new Date(currency[0].lastUpdate).getTime() - Date.now() > 3600 * 1000
-            ) {
-              // clean the cache before asking getCurrencies to update db
-              this.broker.cacher.clean(`currencies.**`);
-              currency = await ctx.call('currencies.getCurrencies').then(() =>
-                ctx.call('currencies.find', {
-                  query: { _id: ctx.params.currencyCode.toUpperCase() }
-                })
-              );
-            }
-            if (currency.length === 0) {
-              ctx.meta.$statusCode = 404;
-              return { warning: 'Currency code could not be found!' };
-            }
-            delete currency[0].lastUpdate;
-            currency[0].currencyCode = currency[0]._id;
-            delete currency[0]._id;
-            return currency[0];
-          });
+        return ctx.call('currencies.getCurrencies').then(curruncies => {
+          const currency = curruncies.find(
+            (currencyObj: Currency) => currencyObj.currencyCode === ctx.params.currencyCode
+          );
+          if (currency === undefined) {
+            ctx.meta.$statusCode = 404;
+            return { warning: 'Currency code could not be found!' };
+          }
+          return currency;
+        });
       }
     },
     /**
