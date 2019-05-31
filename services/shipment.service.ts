@@ -111,7 +111,7 @@ const Shipment: ServiceSchema = {
             }
           )
           .then(() => {
-            this.broker.cacher.clean(`shipment.*`);
+            this.broker.cacher.clean(`shipment.**`);
             return this.adapter.findById(ctx.params.id);
           })
           .then((data: ShipmentPolicy) => this.shipmentTransform(data));
