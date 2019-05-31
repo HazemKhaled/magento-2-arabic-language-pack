@@ -49,12 +49,6 @@ services:
     env_file: .env
     environment:
       SERVICES: users
-    links:
-      - nats
-      - redis
-    depends_on:
-      - nats
-      - redis
 
   catalog:
     build:
@@ -63,31 +57,22 @@ services:
     restart: always
     env_file: .env
     environment:
-      SERVICES: products,categories
-    links:
-      - nats
-      - redis
-    depends_on:
-      - nats
-      - redis
+      SERVICES: products
     networks:
       - elastic
       - default
 
-  orders:
+  list:
     build:
       context: ../../
     image: microes
     restart: always
     env_file: .env
     environment:
-      SERVICES: orders
-    links:
-      - nats
-      - redis
-    depends_on:
-      - nats
-      - redis
+      SERVICES: categories,products-list
+    networks:
+      - elastic
+      - default
 
   currencies:
     build:
@@ -97,6 +82,15 @@ services:
     env_file: .env
     environment:
       SERVICES: currencies
+
+  orders:
+    build:
+      context: ../../
+    image: microes
+    restart: always
+    env_file: .env
+    environment:
+      SERVICES: orders
 
   shipment:
     build:
@@ -108,8 +102,6 @@ services:
       SERVICES: shipment
     depends_on:
       - mongodb
-    links:
-      - mongodb
 
   elastic-update:
     build:
@@ -119,17 +111,17 @@ services:
     env_file: .env
     environment:
       SERVICES: elastic-update
-    links:
-      - nats
-      - redis
-    depends_on:
-      - nats
-      - redis
     volumes:
       - ~/data/mp-nedb:/app/data
     networks:
       - elastic
       - default
+
+  redis:
+    image: redis:alpine
+
+  nats:
+    image: nats
 
   mongodb:
     image: mongo:4
@@ -140,12 +132,6 @@ services:
       - ../docker-mongodb-init/:/docker-entrypoint-initdb.d/
     ports:
       - '21985:27017'
-
-  redis:
-    image: redis:alpine
-
-  nats:
-    image: nats
 
   traefik:
     image: traefik
