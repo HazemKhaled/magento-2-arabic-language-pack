@@ -88,7 +88,6 @@ export const OrdersOperations: ServiceSchema = {
             : shipmentRules.length > 0
             ? shipmentRules.sort((a: Rule, b: Rule) => a.cost - b.cost)[0]
             : false;
-        this.logger.info(shipmentMethod);
       }
       return shipment;
     }
