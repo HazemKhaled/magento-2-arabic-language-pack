@@ -109,7 +109,7 @@ services:
     environment:
       SERVICES: currencies
     volumes:
-      - ../../data:/app/data
+      - ~/data/mp-nedb:/app/data
 
   shipment:
     build:
@@ -139,7 +139,7 @@ services:
       - nats
       - redis
     volumes:
-      - ../../data:/app/data
+      - ~/data/mp-nedb:/app/data
     networks:
       - elastic
       - default

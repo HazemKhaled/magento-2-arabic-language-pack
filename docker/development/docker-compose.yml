@@ -101,7 +101,7 @@ services:
     environment:
       SERVICES: currencies
     volumes:
-      - ../../data:/app/data
+      - ~/data/mp-nedb:/app/data
 
   elastic-update:
     build:
@@ -111,8 +111,7 @@ services:
     env_file: .env
     environment:
       SERVICES: elastic-update
-    volumes:
-      - ../../data:/app/data
+      - ~/data/mp-nedb:/app/data
     networks:
       - elastic
       - default
