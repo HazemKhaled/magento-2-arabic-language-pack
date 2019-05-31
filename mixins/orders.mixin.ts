@@ -53,7 +53,8 @@ export const OrdersOperations: ServiceSchema = {
       products: Array<{ _source: Product }>,
       enoughStock: OrderLine[],
       country: string,
-      instance: Store
+      instance: Store,
+      providedMethod: string | boolean = false
     ): Promise<Rule | boolean> {
       let shipmentWeight = 0;
       products.forEach(
@@ -65,15 +66,19 @@ export const OrdersOperations: ServiceSchema = {
               0
             ))
       );
-      const shipmentRules = await this.broker.call('shipment.ruleByCountry', {
-        country,
-        weight: shipmentWeight,
-        price: 1
-      });
-
+      const shipmentRules = await this.broker
+        .call('shipment.ruleByCountry', {
+          country,
+          weight: shipmentWeight,
+          price: 1
+        })
+        .then((rules: Rule[]) => rules.sort((a: Rule, b: Rule) => a.cost - b.cost));
       // find shipment policy according to store priorities
       let shipment = false;
-      if (instance.shipping_methods && instance.shipping_methods.length > 0) {
+      if (providedMethod) {
+        shipment = shipmentRules.find((rule: Rule) => rule.courier === providedMethod) || false;
+      }
+      if (instance.shipping_methods && instance.shipping_methods.length > 0 && !shipment) {
         const sortedShippingMethods = instance.shipping_methods.sort((a, b) => a.sort - b.sort);
         const shipmentMethod = sortedShippingMethods.reduceRight(
           (accumulator, method) =>
@@ -88,6 +93,9 @@ export const OrdersOperations: ServiceSchema = {
             : shipmentRules.length > 0
             ? shipmentRules.sort((a: Rule, b: Rule) => a.cost - b.cost)[0]
             : false;
+      }
+      if (!shipment) {
+        shipment = shipmentRules[0] || false;
       }
       return shipment;
     }
