@@ -126,6 +126,11 @@ const TheService: ServiceSchema = {
               );
             }
             return ctx.call('users.resolveBearerToken', { token }).then((user: { id: string }) => {
+              if (!user) {
+                return this.Promise.reject(
+                  new UnAuthorizedError(ERR_INVALID_TOKEN, req.headers.authorization)
+                );
+              }
               if (user) {
                 this.logger.info('Authenticated via JWT: ', user.id);
                 // Reduce user fields (it will be transferred to other nodes)
