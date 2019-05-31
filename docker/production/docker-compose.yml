@@ -22,17 +22,6 @@ services:
       - 'traefik.port=80'
       - 'traefik.frontend.entryPoints=http,https'
       - 'traefik.frontend.rule=Host:mp.knawat.io'
-  es:
-    build:
-      context: ../../
-    image: microes
-    restart: always
-    env_file: .env
-    environment:
-      SERVICES: es
-    networks:
-      - elastic
-      - default
 
   klayer:
     build:
