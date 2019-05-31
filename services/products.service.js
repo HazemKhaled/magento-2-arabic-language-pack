@@ -463,7 +463,7 @@ module.exports = {
         if (result.hits.total === 0) {
           throw new MoleculerClientError('Product not found', 404, sku);
         }
-        const [currencyRate] = await this.broker.call('currencies.getCurrency', {
+        const currencyRate = await this.broker.call('currencies.getCurrency', {
           currencyCode: instance.currency
         });
         const source = result.hits.hits[0]._source;
@@ -545,7 +545,7 @@ module.exports = {
         });
         const results = search.docs;
 
-        const [currencyRate] = await this.broker.call('currencies.getCurrency', {
+        const currencyRate = await this.broker.call('currencies.getCurrency', {
           currencyCode: currency || instance.currency
         });
         try {
