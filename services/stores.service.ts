@@ -178,7 +178,8 @@ const TheService: ServiceSchema = {
         }
       },
       handler(ctx: Context) {
-        this.broker.cacher.clean(`stores.**`);
+        this.broker.cacher.clean(`stores.get:**`);
+        this.broker.cacher.clean(`stores.list:**`);
         return request({
           method: 'post',
           uri: this.getUrl('stores'),
