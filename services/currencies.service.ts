@@ -9,6 +9,12 @@ const TheService: ServiceSchema = {
   mixins: [Cron, DbService],
   adapter: new DbService.MemoryAdapter({ filename: './data/currency.db' }),
   actions: {
+    /**
+     * Gets the rates of asked currency according to the dollar as a base
+     *
+     * @param {string} currencyCode
+     * @returns {Currency}
+     */
     getCurrency: {
       auth: 'Basic',
       params: {
@@ -28,6 +34,8 @@ const TheService: ServiceSchema = {
               currency.length === 0 ||
               new Date(currency[0].lastUpdate).getTime() - Date.now() > 3600 * 1000
             ) {
+              // clean the cache before asking getCurrencies to update db
+              this.broker.cacher.clean(`currencies.**`);
               currency = await ctx.call('currencies.getCurrencies').then(() =>
                 ctx.call('currencies.find', {
                   query: { _id: ctx.params.currencyCode.toUpperCase() }
@@ -45,6 +53,11 @@ const TheService: ServiceSchema = {
           });
       }
     },
+    /**
+     * Fetch all currencies rates from openexchange api then saves it to local db
+     *
+     * @returns {Currency[]}
+     */
     getCurrencies: {
       auth: 'Basic',
       cache: {
@@ -74,6 +87,8 @@ const TheService: ServiceSchema = {
                 // Push the new rates into the DB
                 return ctx.call('currencies.insert', { entities: currenciesObj });
               });
+            // clean the cache after db update
+            this.broker.cacher.clean(`currencies.**`);
           }
 
           // Return the currencies rates
