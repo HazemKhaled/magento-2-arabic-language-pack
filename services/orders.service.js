@@ -108,9 +108,11 @@ module.exports = {
           // Check the available products and quantities return object with inStock products info
           const stock = await this.stockProducts(data.items);
           // Return warning response if no Item available
-          if (stock.enoughStock.length === 0)
+          if (stock.enoughStock.length === 0) {
+            ctx.meta.$statusCode = 404;
+            ctx.meta.$statusMessage = 'Not Found';
             return {
-              warnings: [
+              errors: [
                 {
                   status: 'fail',
                   message:
@@ -119,7 +121,7 @@ module.exports = {
                 }
               ]
             };
-
+          }
           // Update Order Items
           data.items = stock.items;
 
@@ -376,9 +378,11 @@ module.exports = {
             // Check the available products and quantities return object with inStock products info
             const stock = await this.stockProducts(data.items);
             // Return warning response if no Item available
-            if (stock.enoughStock.length === 0)
+            if (stock.enoughStock.length === 0) {
+              ctx.meta.$statusCode = 404;
+              ctx.meta.$statusMessage = 'Not Found';
               return {
-                warnings: [
+                errors: [
                   {
                     status: 'fail',
                     message:
@@ -387,7 +391,7 @@ module.exports = {
                   }
                 ]
               };
-
+            }
             // Update Order Items
             data.items = stock.items;
 
