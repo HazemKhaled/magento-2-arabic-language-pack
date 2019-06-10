@@ -50,7 +50,7 @@
     "moleculer-cron": "0.0.2",
     "moleculer-db": "^0.7.9",
     "moleculer-db-adapter-mongo": "^0.4.2",
-    "moleculer-elasticsearch": "^1.1.1",
+    "moleculer-elasticsearch": "^1.1.2",
     "moleculer-web": "^0.8.5",
     "nats": "^1.2.10",
     "node-fetch": "^2.5.0",
