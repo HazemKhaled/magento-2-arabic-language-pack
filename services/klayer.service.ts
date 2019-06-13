@@ -158,17 +158,13 @@ const TheService: ServiceSchema = {
       handler(ctx: Context) {
         return request({
           method: 'POST',
-          uri: this.getUrl(`webhook/orders/cancel/${ctx.meta.user}`),
+          uri: this.getUrl(`webhook/orders/cancel/${ctx.params.id}`),
           qs: {
             access_token: this.settings.access_token
           },
           headers: {
             'User-Agent': 'Request-MicroES',
             'x-shopify-topic': 'orders/cancelled'
-          },
-          body: {
-            id: ctx.params.id,
-            status: 'cancelled'
           },
           json: true
         }).catch(error => {
