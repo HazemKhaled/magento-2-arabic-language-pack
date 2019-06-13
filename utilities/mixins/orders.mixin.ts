@@ -1,7 +1,7 @@
 import { ServiceSchema } from 'moleculer';
 
-import { OrderLine, Product, Store, Variation } from './types';
-import { Rule } from './types/shipment';
+import { OrderLine, Product, Store, Variation } from '../types';
+import { Rule } from '../types/shipment.type';
 
 export const OrdersOperations: ServiceSchema = {
   name: 'orders-operations',

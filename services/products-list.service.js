@@ -1,7 +1,7 @@
 const ESService = require('moleculer-elasticsearch');
 const { MoleculerClientError } = require('moleculer').Errors;
 
-const Transformation = require('../mixins/product-transformation.mixin');
+const Transformation = require('../utilities/mixins/product-transformation.mixin');
 
 module.exports = {
   name: 'products-list',

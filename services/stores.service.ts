@@ -1,7 +1,7 @@
-import { Context, Errors, ServiceSchema } from 'moleculer';
-import request from 'request-promise';
+import DbService from '../utilities/mixins/mongo.mixin';
 
-const { MoleculerClientError } = Errors;
+import { Store } from '../utilities/types/store.type';
+import { createValidation, updateValidation } from '../utilities/validations/stores.validate';
 
 const TheService: ServiceSchema = {
   name: 'stores',

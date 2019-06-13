@@ -1,6 +1,6 @@
 import { ServiceSchema } from 'moleculer';
 
-import { I18nText } from './../mixins/types';
+import { I18nText } from '../types';
 
 export const I18nService: ServiceSchema = {
   name: 'i18n',

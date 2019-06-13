@@ -1,7 +1,7 @@
 const { MoleculerClientError } = require('moleculer').Errors;
 const ESService = require('moleculer-elasticsearch');
-const { AgileCRM } = require('../mixins/agilecrm.mixin');
-const { ProductTransformation } = require('../mixins/product-transformation.mixin');
+const { AgileCRM } = require('../utilities/mixins/agilecrm.mixin');
+const { ProductTransformation } = require('../utilities/mixins/product-transformation.mixin');
 
 module.exports = {
   name: 'products',

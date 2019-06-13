@@ -1,7 +1,7 @@
 import { Context, Errors, ServiceSchema } from 'moleculer';
 import request from 'request-promise';
 
-import { Order } from '../mixins/types';
+import { Order } from '../utilities/types';
 
 const { MoleculerClientError } = Errors;
 

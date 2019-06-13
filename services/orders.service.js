@@ -1,7 +1,7 @@
 const uuidv1 = require('uuid/v1');
 const fetch = require('node-fetch');
 const { MoleculerClientError } = require('moleculer').Errors;
-const { OrdersOperations } = require('../mixins/orders.mixin');
+const { OrdersOperations } = require('../utilities/mixins/orders.mixin');
 
 const entityValidator = {
   id: { type: 'string', empty: false },
