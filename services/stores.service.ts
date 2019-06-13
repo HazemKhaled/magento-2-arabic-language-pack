@@ -84,7 +84,16 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 // 1 hour
       },
       handler(ctx: Context) {
-        return this.adapter.find(ctx.params.filter.where, { limit: ctx.params.filter.limit || 10 });
+        let params: { filter: { where: {}; limit: {} } } | any = {};
+        try {
+          params = JSON.parse(ctx.params.filter);
+        } catch (err) {
+          return 'Inputs Error!';
+        }
+        return this.adapter.find({
+          query: params.where,
+          limit: params.limit || 10
+        });
       }
     },
     create: {
