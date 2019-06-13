@@ -41,7 +41,7 @@
     "**/yarn-error.log": true,
     "**/data/": true,
     "**/acme.json": true,
-    "**/.env": true,
+    "**/.env": false,
     "**/deployDev.sh": true,
     "utilities/*/*.js": true,
     "utilities/*/*.js.map": true,
