@@ -79,7 +79,7 @@ module.exports = {
           if (ctx.params.invoice_url) {
             data.pdf_invoice_url = ctx.params.invoice_url;
           }
-          const [instance] = await ctx.call('stores.findInstance', {
+          const instance = await ctx.call('stores.findInstance', {
             consumerKey: ctx.meta.user
           });
           if (
@@ -372,7 +372,7 @@ module.exports = {
           let shipment = 'No Items';
           // If there is items
           if (ctx.params.items) {
-            const [instance] = await ctx.call('stores.findInstance', {
+            const instance = await ctx.call('stores.findInstance', {
               consumerKey: ctx.meta.user
             });
             // Check the available products and quantities return object with inStock products info

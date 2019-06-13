@@ -235,7 +235,7 @@ module.exports = {
           .then(async res => {
             const newSKUs = res.hits.hits.map(product => product._id);
             const outOfStock = skus.filter(sku => !newSKUs.includes(sku));
-            const [instance] = await this.broker.call('stores.findInstance', {
+            const instance = await this.broker.call('stores.findInstance', {
               consumerKey: ctx.meta.user
             });
             const bulk = [];
@@ -421,7 +421,7 @@ module.exports = {
      * @memberof ElasticLib
      */
     async fetchProduct(sku, id, _source) {
-      const [instance] = await this.broker.call('stores.findInstance', { consumerKey: id });
+      const instance = await this.broker.call('stores.findInstance', { consumerKey: id });
       try {
         const result = await this.broker
           .call('products.search', {
@@ -510,7 +510,7 @@ module.exports = {
       keyword,
       currency
     ) {
-      const [instance] = await this.broker.call('stores.findInstance', {
+      const instance = await this.broker.call('stores.findInstance', {
         consumerKey: instanceId,
         lastUpdated: lastupdate
       });
@@ -788,7 +788,7 @@ module.exports = {
     'list.afterRemote': {
       async handler(payload) {
         if (payload.meta && payload.meta.user) {
-          const [instance] = await this.broker.call('stores.findInstance', {
+          const instance = await this.broker.call('stores.findInstance', {
             consumerKey: payload.meta.user
           });
           const [myUser] = instance.users.filter(user => user.roles.includes('owner'));

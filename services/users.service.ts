@@ -51,7 +51,7 @@ const TheService: ServiceSchema = {
         return this.Promise.resolve(
           this.broker.call('stores.findInstance', { consumerKey, consumerSecret })
         )
-          .then(([instance]: Store[]) => {
+          .then((instance: Store) => {
             if (
               consumerKey === instance.consumer_key &&
               consumerSecret === instance.consumer_secret
@@ -113,7 +113,7 @@ const TheService: ServiceSchema = {
           .then(async (decoded: { id: any }) => {
             if (decoded.id) {
               // Get instance info
-              const [instance] = await this.broker.call('stores.findInstance', {
+              const instance = await this.broker.call('stores.findInstance', {
                 consumerKey: decoded.id
               });
               if (instance.status) {

@@ -302,7 +302,7 @@ module.exports = {
           maxScroll
         );
       }
-      const [instance] = await this.broker.call('stores.findInstance', { consumerKey: user });
+      const instance = await this.broker.call('stores.findInstance', { consumerKey: user });
       const rate = await this.broker.call('currencies.getCurrency', {
         currencyCode: instance.currency
       });
