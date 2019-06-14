@@ -31,9 +31,13 @@ const TheService: ServiceSchema = {
       handler(ctx: Context) {
         return this.adapter
           .findOne({ consumer_key: ctx.params.consumerKey })
-          .then((res: Store | boolean) => {
+          .then((res: Store | null) => {
             // If the DB response not null will return the data
-            if (res !== null) return res;
+            if (res !== null) {
+              res.url = res._id;
+              delete res._id;
+              return res;
+            }
             // If null return Not Found error
             ctx.meta.$statusMessage = 'Not Found';
             ctx.meta.$statusCode = 404;
@@ -54,16 +58,18 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 // 1 hour
       },
       handler(ctx: Context) {
-        return this.adapter
-          .findOne({ consumer_key: ctx.meta.user })
-          .then((res: Store | boolean) => {
-            // If the DB response not null will return the data
-            if (res !== null) return res;
-            // If null return Not Found error
-            ctx.meta.$statusMessage = 'Not Found';
-            ctx.meta.$statusCode = 404;
-            return { error: [{ message: 'Store Not Found' }] };
-          });
+        return this.adapter.findOne({ consumer_key: ctx.meta.user }).then((res: Store | null) => {
+          // If the DB response not null will return the data
+          if (res !== null) {
+            res.url = res._id;
+            delete res._id;
+            return res;
+          }
+          // If null return Not Found error
+          ctx.meta.$statusMessage = 'Not Found';
+          ctx.meta.$statusCode = 404;
+          return { error: [{ message: 'Store Not Found' }] };
+        });
       }
     },
     /**
@@ -82,9 +88,13 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 // 1 hour
       },
       handler(ctx: Context) {
-        return this.adapter.findById(ctx.params.id).then((res: Store | boolean) => {
+        return this.adapter.findById(ctx.params.id).then((res: Store | null) => {
           // If the DB response not null will return the data
-          if (res !== null) return res;
+          if (res !== null) {
+            res.url = res._id;
+            delete res._id;
+            return res;
+          }
           // If null return Not Found error
           ctx.meta.$statusMessage = 'Not Found';
           ctx.meta.$statusCode = 404;
@@ -119,9 +129,14 @@ const TheService: ServiceSchema = {
             query: params.where,
             limit: params.limit || 10
           })
-          .then((res: Store[] | boolean) => {
+          .then((res: Store[] | null) => {
             // If the DB response not null will return the data
-            if (res !== null) return res;
+            if (res !== null)
+              return res.map(store => {
+                store.url = store._id;
+                delete store._id;
+                return store;
+              });
             // If null return Not Found error
             ctx.meta.$statusMessage = 'Not Found';
             ctx.meta.$statusCode = 404;
@@ -147,7 +162,11 @@ const TheService: ServiceSchema = {
         // Intial response variable
         let mReq: Store | {} = {};
         try {
-          mReq = await this.adapter.insert(store);
+          mReq = await this.adapter.insert(store).then((res: Store) => {
+            res.url = res._id;
+            delete res._id;
+            return res;
+          });
         } catch (err) {
           // Errors Handling
           ctx.meta.$statusMessage = 'Internal Server Error';
@@ -177,7 +196,11 @@ const TheService: ServiceSchema = {
         // Intial response variable
         let mReq: { [key: string]: {} } = {};
         try {
-          mReq = await this.adapter.updateById(id, { $set: store });
+          mReq = await this.adapter.updateById(id, { $set: store }).then((res: Store) => {
+            res.url = res._id;
+            delete res._id;
+            return res;
+          });
           // If the store not found return Not Found error
           if (mReq === null) {
             ctx.meta.$statusMessage = 'Not Found';
