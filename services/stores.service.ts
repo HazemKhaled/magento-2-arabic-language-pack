@@ -13,6 +13,12 @@ const TheService: ServiceSchema = {
     AUTH: Buffer.from(`${process.env.BASIC_USER}:${process.env.BASIC_PASS}`).toString('base64')
   },
   actions: {
+    /**
+     * This function is used locally by mp to get an instance with conumerKey
+     *
+     * @param {String} consumerKey
+     * @returns {Store}
+     */
     findInstance: {
       auth: 'Basic',
       cache: {
@@ -26,15 +32,21 @@ const TheService: ServiceSchema = {
         return this.adapter
           .findOne({ consumer_key: ctx.params.consumerKey })
           .then((res: Store | boolean) => {
-            if (res !== null) {
-              return res;
-            }
+            // If the DB response not null will return the data
+            if (res !== null) return res;
+            // If null return Not Found error
             ctx.meta.$statusMessage = 'Not Found';
             ctx.meta.$statusCode = 404;
             return { error: [{ message: 'Store Not Found' }] };
           });
       }
     },
+    /**
+     * Get the store for the authanticated token
+     *
+     * @param {}
+     * @returns {Store}
+     */
     me: {
       auth: 'Bearer',
       cache: {
@@ -45,15 +57,21 @@ const TheService: ServiceSchema = {
         return this.adapter
           .findOne({ consumer_key: ctx.meta.user })
           .then((res: Store | boolean) => {
-            if (res !== null) {
-              return res;
-            }
+            // If the DB response not null will return the data
+            if (res !== null) return res;
+            // If null return Not Found error
             ctx.meta.$statusMessage = 'Not Found';
             ctx.meta.$statusCode = 404;
             return { error: [{ message: 'Store Not Found' }] };
           });
       }
     },
+    /**
+     * Get store with it's url
+     *
+     * @param {string} id
+     * @returns {Store}
+     */
     get: {
       auth: 'Basic',
       params: {
@@ -65,15 +83,21 @@ const TheService: ServiceSchema = {
       },
       handler(ctx: Context) {
         return this.adapter.findById(ctx.params.id).then((res: Store | boolean) => {
-          if (res !== null) {
-            return res;
-          }
+          // If the DB response not null will return the data
+          if (res !== null) return res;
+          // If null return Not Found error
           ctx.meta.$statusMessage = 'Not Found';
           ctx.meta.$statusCode = 404;
           return { error: [{ message: 'Store Not Found' }] };
         });
       }
     },
+    /**
+     * Search in stores for stores that matches the filter query
+     *
+     * @param {Object} filter
+     * @returns {Store[]}
+     */
     list: {
       auth: 'Basic',
       params: {
@@ -90,23 +114,42 @@ const TheService: ServiceSchema = {
         } catch (err) {
           return 'Inputs Error!';
         }
-        return this.adapter.find({
-          query: params.where,
-          limit: params.limit || 10
-        });
+        return this.adapter
+          .find({
+            query: params.where,
+            limit: params.limit || 10
+          })
+          .then((res: Store[] | boolean) => {
+            // If the DB response not null will return the data
+            if (res !== null) return res;
+            // If null return Not Found error
+            ctx.meta.$statusMessage = 'Not Found';
+            ctx.meta.$statusCode = 404;
+            return { error: [{ message: 'Store Not Found' }] };
+          });
       }
     },
+    /**
+     * Create new store
+     *
+     * @param {Store} createValidation
+     * @returns {Store}
+     */
     create: {
       auth: 'Basic',
       params: createValidation,
       async handler(ctx: Context) {
+        // Clear cache
         this.broker.cacher.clean(`stores.get:**`);
         this.broker.cacher.clean(`stores.list:**`);
+        // Sanitize request params
         const store: Store = this.sanitizeStoreParams(ctx.params, true);
-        let mReq: {} = {};
+        // Intial response variable
+        let mReq: Store | {} = {};
         try {
           mReq = await this.adapter.insert(store);
         } catch (err) {
+          // Errors Handling
           ctx.meta.$statusMessage = 'Internal Server Error';
           ctx.meta.$statusCode = 500;
           mReq = {
@@ -116,17 +159,26 @@ const TheService: ServiceSchema = {
         return mReq;
       }
     },
+    /**
+     * Update store
+     *
+     * @param {Store} updateValidation
+     * @returns {Store}
+     */
     update: {
       auth: 'Basic',
       params: updateValidation,
       async handler(ctx: Context) {
+        // Save the ID seprate into variable to use it to find the store
         const { id } = ctx.params;
         delete ctx.params.id;
-        this.broker.cacher.clean(`stores.**`);
+        // Sanitize request params
         const store: Store = this.sanitizeStoreParams(ctx.params);
+        // Intial response variable
         let mReq: { [key: string]: {} } = {};
         try {
           mReq = await this.adapter.updateById(id, { $set: store });
+          // If the store not found return Not Found error
           if (mReq === null) {
             ctx.meta.$statusMessage = 'Not Found';
             ctx.meta.$statusCode = 404;
@@ -134,7 +186,9 @@ const TheService: ServiceSchema = {
               errors: [{ message: 'Store Not Found' }]
             };
           }
+          // Clean cache if store updated
           if (mReq.consumer_key) {
+            this.broker.cacher.clean(`stores.**`);
             this.broker.cacher.clean(`products.list:${mReq.consumer_key}**`);
             this.broker.cacher.clean(`products.getInstanceProduct:${mReq.consumer_key}**`);
           }
@@ -150,8 +204,16 @@ const TheService: ServiceSchema = {
     }
   },
   methods: {
+    /**
+     * Sanitizing the store params before saving it to DB
+     *
+     * @param {Store} params
+     * @param {boolean} [create=false]
+     * @returns
+     */
     sanitizeStoreParams(params, create = false) {
       const store: Store | any = {};
+      // Some intial data when creating store
       if (create) {
         store._id = params.url;
         store.consumer_key = uuidv1();
@@ -182,6 +244,7 @@ const TheService: ServiceSchema = {
           }
         ];
       }
+      // Sanitized params keys
       const keys = [
         'name',
         'status',
