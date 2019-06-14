@@ -33,7 +33,7 @@ const TheService: ServiceSchema = {
           .findOne({ consumer_key: ctx.params.consumerKey })
           .then((res: Store | null) => {
             // If the DB response not null will return the data
-            if (res !== null) this.sanitizeResponse(res);
+            if (res !== null) return this.sanitizeResponse(res);
             // If null return Not Found error
             ctx.meta.$statusMessage = 'Not Found';
             ctx.meta.$statusCode = 404;
@@ -56,7 +56,7 @@ const TheService: ServiceSchema = {
       handler(ctx: Context) {
         return this.adapter.findOne({ consumer_key: ctx.meta.user }).then((res: Store | null) => {
           // If the DB response not null will return the data
-          if (res !== null) this.sanitizeResponse(res);
+          if (res !== null) return this.sanitizeResponse(res);
           // If null return Not Found error
           ctx.meta.$statusMessage = 'Not Found';
           ctx.meta.$statusCode = 404;
@@ -82,7 +82,7 @@ const TheService: ServiceSchema = {
       handler(ctx: Context) {
         return this.adapter.findById(ctx.params.id).then((res: Store | null) => {
           // If the DB response not null will return the data
-          if (res !== null) this.sanitizeResponse(res);
+          if (res !== null) return this.sanitizeResponse(res);
           // If null return Not Found error
           ctx.meta.$statusMessage = 'Not Found';
           ctx.meta.$statusCode = 404;
