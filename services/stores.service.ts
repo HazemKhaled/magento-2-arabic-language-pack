@@ -84,7 +84,7 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 // 1 hour
       },
       handler(ctx: Context) {
-        let params: { filter: { where: {}; limit: {} } } | any = {};
+        let params: { where?: {}; limit?: {} } = {};
         try {
           params = JSON.parse(ctx.params.filter);
         } catch (err) {
@@ -103,7 +103,7 @@ const TheService: ServiceSchema = {
         this.broker.cacher.clean(`stores.get:**`);
         this.broker.cacher.clean(`stores.list:**`);
         const store: Store = this.sanitizeStoreParams(ctx.params, true);
-        let mReq: [] | {} = [];
+        let mReq: {} = {};
         try {
           mReq = await this.adapter.insert(store);
         } catch (err) {
@@ -124,7 +124,7 @@ const TheService: ServiceSchema = {
         delete ctx.params.id;
         this.broker.cacher.clean(`stores.**`);
         const store: Store = this.sanitizeStoreParams(ctx.params);
-        let mReq: { [key: string]: any } = [];
+        let mReq: { [key: string]: {} } = {};
         try {
           mReq = await this.adapter.updateById(id, { $set: store });
           if (mReq === null) {
