@@ -112,10 +112,14 @@ const TheService: ServiceSchema = {
         } catch (err) {
           return 'Inputs Error!';
         }
+        if (params.limit && params.limit > 100) {
+          params.limit = 100;
+          this.logger.info('The maximum store respone limit is 100');
+        }
         return this.adapter
           .find({
             query: params.where,
-            limit: params.limit || 10
+            limit: params.limit || 100
           })
           .then((res: Store[] | null) => {
             // If the DB response not null will return the data
