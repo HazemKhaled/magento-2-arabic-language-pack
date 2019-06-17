@@ -291,6 +291,7 @@ module.exports = {
                 // Responses
                 if (response.errors) {
                   ctx.meta.$statusCode = 500;
+                  ctx.meta.$statusMessage = 'Internal Server Error';
                   return {
                     errors: [
                       { message: 'There was an error with importing your products', skus: skus }
@@ -346,9 +347,40 @@ module.exports = {
             id: `${ctx.meta.user}-${ctx.params.sku}`,
             body: { doc: body }
           })
-          .then(() => 'Updated Successfully!')
+          .then(res => {
+            if (res.result === 'updated')
+              return { status: 'success', message: 'Updated successfully!', sku: ctx.params.sku };
+            ctx.meta.$statusCode = 500;
+            ctx.meta.$statusMessage = 'Internal Server Error';
+            return {
+              errors: [
+                {
+                  message: 'Something went wrong!'
+                }
+              ]
+            };
+          })
           .catch(err => {
-            throw new MoleculerClientError(err.message, 500, err.type, ctx.params);
+            if (err.message.includes('document_missing_exception')) {
+              ctx.meta.$statusCode = 404;
+              ctx.meta.$statusMessage = 'Not Found';
+              return {
+                errors: [
+                  {
+                    message: 'Not Found!'
+                  }
+                ]
+              };
+            }
+            ctx.meta.$statusCode = 500;
+            ctx.meta.$statusMessage = 'Internal Server Error';
+            return {
+              errors: [
+                {
+                  message: 'Something went wrong!'
+                }
+              ]
+            };
           });
       }
     },
@@ -753,9 +785,9 @@ module.exports = {
      * @returns {Object} Status of delete product
      * @memberof ElasticLib
      */
-    async deleteProduct(sku, id) {
-      try {
-        const result = await this.broker.call('products.update', {
+    deleteProduct(sku, id) {
+      return this.broker
+        .call('products.update', {
           index: 'products-instances',
           type: 'product',
           id: `${id}-${sku}`,
@@ -765,21 +797,35 @@ module.exports = {
               delete_date: new Date()
             }
           }
-        });
-        if (result._shards.successful > 0) {
+        })
+        .then(response => {
+          if (response._shards.successful > 0)
+            return {
+              status: 'success',
+              message: 'Product has been deleted.',
+              sku: sku
+            };
+          ctx.meta.$statusCode = 404;
+          ctx.meta.$statusMessage = 'Not Found';
           return {
-            status: 'success',
-            message: 'Product has been deleted.',
-            sku: sku
+            errors: [
+              {
+                message: 'Not Found!'
+              }
+            ]
           };
-        }
-        return {};
-      } catch (err) {
-        if (err.message) {
-          throw new MoleculerClientError(err.message, 404, sku);
-        }
-        return new Error(err);
-      }
+        })
+        .catch(() => {
+          ctx.meta.$statusCode = 500;
+          ctx.meta.$statusMessage = 'Internal Server Error';
+          return {
+            errors: [
+              {
+                message: 'Internal server error!'
+              }
+            ]
+          };
+        });
     }
   },
 
