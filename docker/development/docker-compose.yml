@@ -34,6 +34,10 @@ services:
     image: microes
     restart: always
     env_file: .env
+    depends_on:
+      - mongodb
+    links:
+      - mongodb
     environment:
       SERVICES: stores
 

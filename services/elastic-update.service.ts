@@ -3,9 +3,9 @@ import { Context, Errors, ServiceSchema } from 'moleculer';
 import * as Cron from 'moleculer-cron';
 import ESService, { SearchResponse } from 'moleculer-elasticsearch';
 
-import { AgileCRM } from '../mixins/agilecrm.mixin';
-import DbService from '../mixins/db.mixin';
-import { Product } from '../mixins/types';
+import { AgileCRM } from '../utilities/mixins/agilecrm.mixin';
+import DbService from '../utilities/mixins/db.mixin';
+import { Product } from '../utilities/types';
 
 const { MoleculerClientError } = Errors;
 const TheService: ServiceSchema = {

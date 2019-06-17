@@ -1,15 +1,24 @@
-import { Context, Errors, ServiceSchema } from 'moleculer';
-import request from 'request-promise';
+import { Context, ServiceSchema } from 'moleculer';
+import DbService from '../utilities/mixins/mongo.mixin';
 
-const { MoleculerClientError } = Errors;
+import { v1 as uuidv1, v4 as uuidv4 } from 'uuid';
+import { Store } from '../utilities/types/store.type';
+import { createValidation, updateValidation } from '../utilities/validations/stores.validate';
 
 const TheService: ServiceSchema = {
   name: 'stores',
+  mixins: [DbService('stores')],
   settings: {
     API_URL: process.env.STORES_URL,
     AUTH: Buffer.from(`${process.env.BASIC_USER}:${process.env.BASIC_PASS}`).toString('base64')
   },
   actions: {
+    /**
+     * This function is used locally by mp to get an instance with conumerKey
+     *
+     * @param {String} consumerKey
+     * @returns {Store}
+     */
     findInstance: {
       auth: 'Basic',
       cache: {
@@ -20,24 +29,24 @@ const TheService: ServiceSchema = {
         consumerKey: { type: 'string', convert: true }
       },
       handler(ctx: Context) {
-        return request({
-          method: 'get',
-          uri: this.getUrl(
-            `stores?filter=${JSON.stringify({
-              where: {
-                consumer_key: ctx.params.consumerKey
-              }
-            })}`
-          ),
-          headers: {
-            Authorization: `Basic ${this.settings.AUTH}`
-          },
-          json: true
-        }).catch(error => {
-          throw new MoleculerClientError(error.message, error.code, error.type, ctx.params);
-        });
+        return this.adapter
+          .findOne({ consumer_key: ctx.params.consumerKey })
+          .then((res: Store | null) => {
+            // If the DB response not null will return the data
+            if (res !== null) return this.sanitizeResponse(res);
+            // If null return Not Found error
+            ctx.meta.$statusMessage = 'Not Found';
+            ctx.meta.$statusCode = 404;
+            return { error: [{ message: 'Store Not Found' }] };
+          });
       }
     },
+    /**
+     * Get the store for the authanticated token
+     *
+     * @param {}
+     * @returns {Store}
+     */
     me: {
       auth: 'Bearer',
       cache: {
@@ -45,24 +54,22 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 // 1 hour
       },
       handler(ctx: Context) {
-        return request({
-          method: 'get',
-          uri: this.getUrl(
-            `stores?filter=${JSON.stringify({
-              where: {
-                consumer_key: ctx.meta.user
-              }
-            })}`
-          ),
-          headers: {
-            Authorization: `Basic ${this.settings.AUTH}`
-          },
-          json: true
-        }).catch(error => {
-          throw new MoleculerClientError(error.message, error.code, error.type, ctx.params);
+        return this.adapter.findOne({ consumer_key: ctx.meta.user }).then((res: Store | null) => {
+          // If the DB response not null will return the data
+          if (res !== null) return this.sanitizeResponse(res);
+          // If null return Not Found error
+          ctx.meta.$statusMessage = 'Not Found';
+          ctx.meta.$statusCode = 404;
+          return { error: [{ message: 'Store Not Found' }] };
         });
       }
     },
+    /**
+     * Get store with it's url
+     *
+     * @param {string} id
+     * @returns {Store}
+     */
     get: {
       auth: 'Basic',
       params: {
@@ -73,15 +80,22 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 // 1 hour
       },
       handler(ctx: Context) {
-        return request({
-          method: 'get',
-          uri: this.getUrl(`stores/${encodeURIComponent(ctx.params.id)}`),
-          headers: {
-            Authorization: `Basic ${this.settings.AUTH}`
-          }
-        }).then(res => JSON.parse(res));
+        return this.adapter.findById(ctx.params.id).then((res: Store | null) => {
+          // If the DB response not null will return the data
+          if (res !== null) return this.sanitizeResponse(res);
+          // If null return Not Found error
+          ctx.meta.$statusMessage = 'Not Found';
+          ctx.meta.$statusCode = 404;
+          return { error: [{ message: 'Store Not Found' }] };
+        });
       }
     },
+    /**
+     * Search in stores for stores that matches the filter query
+     *
+     * @param {Object} filter
+     * @returns {Store[]}
+     */
     list: {
       auth: 'Basic',
       params: {
@@ -92,223 +106,187 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 // 1 hour
       },
       handler(ctx: Context) {
-        return request({
-          method: 'get',
-          uri: this.getUrl(`stores?filter=${ctx.params.filter}`),
-          headers: {
-            Authorization: `Basic ${this.settings.AUTH}`
-          }
-        }).then(res => JSON.parse(res));
+        let params: { where?: {}; limit?: {} } = {};
+        try {
+          params = JSON.parse(ctx.params.filter);
+        } catch (err) {
+          return 'Inputs Error!';
+        }
+        if (params.limit && params.limit > 100) {
+          params.limit = 100;
+          this.logger.info('The maximum store respone limit is 100');
+        }
+        return this.adapter
+          .find({
+            query: params.where,
+            limit: params.limit || 100
+          })
+          .then((res: Store[] | null) => {
+            // If the DB response not null will return the data
+            if (res !== null) return res.map(store => this.sanitizeResponse(store));
+            // If null return Not Found error
+            ctx.meta.$statusMessage = 'Not Found';
+            ctx.meta.$statusCode = 404;
+            return { error: [{ message: 'Store Not Found' }] };
+          });
       }
     },
+    /**
+     * Create new store
+     *
+     * @param {Store} createValidation
+     * @returns {Store}
+     */
     create: {
       auth: 'Basic',
-      params: {
-        url: { type: 'url' },
-        name: { type: 'string' },
-        status: { type: 'enum', values: ['confirmed', 'unconfirmed', 'archived', 'error'] },
-        type: {
-          type: 'enum',
-          values: [
-            'woocommerce',
-            'magento1',
-            'magento2',
-            'salla',
-            'expandcart',
-            'opencart',
-            'shopify',
-            'csv',
-            'ebay',
-            'api',
-            'other'
-          ]
-        },
-        stock_date: { type: 'date', optional: true, convert: true },
-        stock_status: { type: 'enum', values: ['idle', 'in-progress'], optional: true },
-        price_date: { type: 'date', optional: true, convert: true },
-        price_status: { type: 'enum', values: ['idle', 'in-progress'], optional: true },
-        sale_price: { type: 'number', optional: true },
-        sale_price_operator: { type: 'number', optional: true },
-        compared_at_price: { type: 'number', optional: true },
-        compared_at_price_operator: { type: 'enum', values: [1, 2], optional: true },
-        currency: { type: 'string', max: 3, optional: true },
-        external_data: { type: 'object', optional: true },
-        users: {
-          type: 'array',
-          items: {
-            type: 'object',
-            props: {
-              email: { type: 'email' },
-              roles: {
-                type: 'array',
-                items: { type: 'enum', values: ['owner', 'accounting', 'products', 'orders'] }
-              }
-            }
-          }
-        },
-        languages: { type: 'array', min: 1, max: 10, items: 'string' },
-        logs: {
-          type: 'array',
-          items: {
-            type: 'object',
-            props: {
-              message: { type: 'string' },
-              level: { type: 'string' },
-              date: { type: 'date', optional: true, convert: true }
-            }
-          },
-          optional: true
-        },
-        address: {
-          type: 'object',
-          props: {
-            first_name: { type: 'string' },
-            last_name: { type: 'string' },
-            company: { type: 'string', optional: true },
-            address_1: { type: 'string' },
-            address_2: { type: 'string', optional: true },
-            city: { type: 'string', optional: true },
-            state: { type: 'string', optional: true },
-            postcode: { type: 'number', optional: true },
-            country: { type: 'string', max: 2 },
-            email: { type: 'email', optional: true },
-            phone: { type: 'string', optional: true, convert: true }
-          },
-          optional: true
-        }
-      },
-      handler(ctx: Context) {
+      params: createValidation,
+      async handler(ctx: Context) {
+        // Clear cache
         this.broker.cacher.clean(`stores.get:**`);
         this.broker.cacher.clean(`stores.list:**`);
-        return request({
-          method: 'post',
-          uri: this.getUrl('stores'),
-          headers: {
-            Authorization: `Basic ${this.settings.AUTH}`
-          },
-          body: ctx.params,
-          json: true
-        });
+        // Sanitize request params
+        const store: Store = this.sanitizeStoreParams(ctx.params, true);
+        // Intial response variable
+        let mReq: Store | {} = {};
+        try {
+          mReq = await this.adapter.insert(store).then((res: Store) => this.sanitizeResponse(res));
+        } catch (err) {
+          // Errors Handling
+          ctx.meta.$statusMessage = 'Internal Server Error';
+          ctx.meta.$statusCode = 500;
+          mReq = {
+            errors: [{ message: err.code === 11000 ? 'Duplicated entry!' : 'Internal Error!' }]
+          };
+        }
+        return mReq;
       }
     },
+    /**
+     * Update store
+     *
+     * @param {Store} updateValidation
+     * @returns {Store}
+     */
     update: {
       auth: 'Basic',
-      params: {
-        id: { type: 'url' },
-        name: { type: 'string', optional: true },
-        status: {
-          type: 'enum',
-          values: ['confirmed', 'unconfirmed', 'archived', 'error'],
-          optional: true
-        },
-        type: {
-          type: 'enum',
-          values: [
-            'woocommerce',
-            'magento1',
-            'magento2',
-            'salla',
-            'expandcart',
-            'opencart',
-            'shopify',
-            'csv',
-            'ebay',
-            'api',
-            'other'
-          ],
-          optional: true
-        },
-        stock_date: { type: 'date', optional: true, convert: true },
-        stock_status: { type: 'enum', values: ['idle', 'in-progress'], optional: true },
-        price_date: { type: 'date', optional: true, convert: true },
-        price_status: { type: 'enum', values: ['idle', 'in-progress'], optional: true },
-        sale_price: { type: 'number', optional: true },
-        sale_price_operator: { type: 'number', optional: true },
-        compared_at_price: { type: 'number', optional: true },
-        compared_at_price_operator: { type: 'enum', values: [1, 2], optional: true },
-        currency: { type: 'string', max: 3, optional: true },
-        external_data: { type: 'object', optional: true },
-        users: {
-          type: 'array',
-          items: {
-            type: 'object',
-            props: {
-              email: { type: 'email' },
-              roles: {
-                type: 'array',
-                items: { type: 'enum', values: ['owner', 'accounting', 'products', 'orders'] }
-              }
-            }
-          },
-          optional: true
-        },
-        languages: { type: 'array', min: 1, max: 10, items: 'string', optional: true },
-        logs: {
-          type: 'array',
-          items: {
-            type: 'object',
-            props: {
-              message: { type: 'string' },
-              level: { type: 'string' },
-              date: { type: 'date', optional: true, convert: true }
-            }
-          },
-          optional: true
-        },
-        address: {
-          type: 'object',
-          props: {
-            first_name: { type: 'string' },
-            last_name: { type: 'string' },
-            company: { type: 'string', optional: true },
-            address_1: { type: 'string' },
-            address_2: { type: 'string', optional: true },
-            city: { type: 'string', optional: true },
-            state: { type: 'string', optional: true },
-            postcode: { type: 'number', optional: true },
-            country: { type: 'string', max: 2 },
-            email: { type: 'email', optional: true },
-            phone: { type: 'string', optional: true, convert: true }
-          },
-          optional: true
-        }
-      },
-      handler(ctx: Context) {
+      params: updateValidation,
+      async handler(ctx: Context) {
+        // Save the ID seprate into variable to use it to find the store
         const { id } = ctx.params;
         delete ctx.params.id;
-        this.broker.cacher.clean(`stores.**`);
-        return request({
-          method: 'put',
-          uri: this.getUrl(`stores/${encodeURIComponent(id)}`),
-          headers: {
-            Authorization: `Basic ${this.settings.AUTH}`
-          },
-          body: ctx.params,
-          json: true
-        }).then(res => {
-          this.broker.cacher.clean(`products.list:${res.consumer_key}**`);
-          this.broker.cacher.clean(`products.getInstanceProduct:${res.consumer_key}**`);
-          this.broker.cacher.clean(`stores.findInstance:${res.consumer_key}`);
-          return res;
-        });
+        // Sanitize request params
+        const store: Store = this.sanitizeStoreParams(ctx.params);
+        // Intial response variable
+        let mReq: { [key: string]: {} } = {};
+        try {
+          mReq = await this.adapter
+            .updateById(id, { $set: store })
+            .then((res: Store) => this.sanitizeResponse(res));
+          // If the store not found return Not Found error
+          if (mReq === null) {
+            ctx.meta.$statusMessage = 'Not Found';
+            ctx.meta.$statusCode = 404;
+            mReq = {
+              errors: [{ message: 'Store Not Found' }]
+            };
+          }
+          // Clean cache if store updated
+          if (mReq.consumer_key) {
+            this.broker.cacher.clean(`stores.**`);
+            this.broker.cacher.clean(`products.list:${mReq.consumer_key}**`);
+            this.broker.cacher.clean(`products.getInstanceProduct:${mReq.consumer_key}**`);
+          }
+        } catch (err) {
+          ctx.meta.$statusMessage = 'Internal Server Error';
+          ctx.meta.$statusCode = 500;
+          mReq = {
+            errors: [{ message: 'Internal Error' }]
+          };
+        }
+        return mReq;
       }
     }
   },
   methods: {
     /**
-     * Get Formatted URL
+     * Sanitizing the store params before saving it to DB
      *
-     * @param {String} endpoint
+     * @param {Store} params
+     * @param {boolean} [create=false]
      * @returns
      */
-    getUrl(endpoint) {
-      // if URL doesn't have / at the end add it
-      const url =
-        this.settings.API_URL.slice(-1) === '/'
-          ? this.settings.API_URL
-          : `${this.settings.API_URL}/`;
-      // Concat the final URL
-      return url + endpoint;
+    sanitizeStoreParams(params, create = false) {
+      const store: Store | any = {};
+      // Some intial data when creating store
+      if (create) {
+        store._id = params.url;
+        store.consumer_key = uuidv1();
+        store.consumer_secret = uuidv4();
+        store.created = new Date();
+        store.updated = new Date();
+        store.stock_date = new Date();
+        store.stock_status = 'idle';
+        store.price_date = new Date();
+        store.price_status = 'idle';
+        store.sale_price = 1.7;
+        store.sale_price_operator = 1;
+        store.compared_at_price = 1.7;
+        store.compared_at_price_operator = 1;
+        store.currency = 'USD';
+        store.shipping_methods = [
+          {
+            name: 'Standerd',
+            sort: 0
+          },
+          {
+            name: 'TNT',
+            sort: 1
+          },
+          {
+            name: 'DHL',
+            sort: 2
+          }
+        ];
+      }
+      // Sanitized params keys
+      const keys = [
+        'name',
+        'status',
+        'type',
+        'updated',
+        'stock_date',
+        'stock_status',
+        'price_date',
+        'price_status',
+        'sale_price',
+        'sale_price_operator',
+        'compared_at_price',
+        'compared_at_price_operator',
+        'currency',
+        'external_data',
+        'internal_data',
+        'users',
+        'languages',
+        'shipping_methods',
+        'logs',
+        'address'
+      ];
+      Object.keys(params).forEach(key => {
+        if (!keys.includes(key)) return;
+        store[key] = params[key];
+      });
+      return store;
+    },
+    /**
+     * Sanitize store delete _id add url
+     *
+     * @param {Store} store
+     * @returns {Store}
+     */
+    sanitizeResponse(store: Store) {
+      store.url = store._id;
+      delete store._id;
+      return store;
     }
   }
 };

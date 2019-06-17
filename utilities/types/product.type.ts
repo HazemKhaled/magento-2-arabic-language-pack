@@ -1,4 +1,4 @@
-import { I18nText } from './i18ntext';
+import { I18nText } from './i18ntext.type';
 
 /**
  * Product Type definition
@@ -14,7 +14,7 @@ export interface Product {
   variations?: Variation[];
 }
 
-import { Attribute } from './';
+import { Attribute } from '../types';
 /**
  * Variation Type definition
  *

@@ -1,8 +1,8 @@
 import { Errors, ServiceSchema } from 'moleculer';
 import ESService, { SearchResponse } from 'moleculer-elasticsearch';
 
-import { I18nService } from './../mixins/i18n.mixin';
-import { Category, I18nText } from './../mixins/types';
+import { I18nService } from '../utilities/mixins/i18n.mixin';
+import { Category, I18nText } from '../utilities/types';
 
 const { MoleculerClientError } = Errors;
 
