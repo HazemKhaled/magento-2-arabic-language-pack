@@ -97,7 +97,17 @@ module.exports = {
             }
           })
           .then(res => {
-            if (typeof res.count !== 'number') return new MoleculerClientError('Error', 500);
+            if (typeof res.count !== 'number') {
+              ctx.meta.$statusCode = 500;
+              ctx.meta.$statusMessage = 'Internal Server Error';
+              return {
+                errors: [
+                  {
+                    message: 'Something went wrong!'
+                  }
+                ]
+              };
+            }
             return { total: res.count };
           });
       }
@@ -196,8 +206,16 @@ module.exports = {
             this.broker.cacher.clean(`products.list:${ctx.meta.user}**`);
             return { product };
           })
-          .catch(error => {
-            throw new MoleculerClientError(error);
+          .catch(() => {
+            ctx.meta.$statusCode = 500;
+            ctx.meta.$statusMessage = 'Internal Server Error';
+            return {
+              errors: [
+                {
+                  message: 'Something went wrong!'
+                }
+              ]
+            };
           });
       }
     },
@@ -436,10 +454,26 @@ module.exports = {
               })
               .then(res => {
                 if (res.errors === false) return { status: 'success' };
-                throw new MoleculerClientError('Error', 500, 'Update Error');
+                ctx.meta.$statusCode = 500;
+                ctx.meta.$statusMessage = 'Internal Server Error';
+                return {
+                  errors: [
+                    {
+                      message: 'Update Error!'
+                    }
+                  ]
+                };
               })
               .catch(() => {
-                throw new MoleculerClientError('Error', 500);
+                ctx.meta.$statusCode = 500;
+                ctx.meta.$statusMessage = 'Internal Server Error';
+                return {
+                  errors: [
+                    {
+                      message: 'Something went wrong!'
+                    }
+                  ]
+                };
               });
       }
     }
