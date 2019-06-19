@@ -135,6 +135,18 @@ services:
       - elastic
       - default
 
+  logs:
+    build:
+      context: ../../
+    image: microes
+    restart: always
+    env_file: .env
+    environment:
+      SERVICES: logs
+    networks:
+      - elastic
+      - default
+
   mongodb:
     image: mongo:4
     restart: always
