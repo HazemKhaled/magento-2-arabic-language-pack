@@ -24,8 +24,9 @@ const TheService: ServiceSchema = {
         timestamp: { type: 'date', convert: true },
         logLevel: { type: 'enum', values: ['info', 'debug', 'error', 'warning'] },
         storeId: { type: 'string', optional: true },
-        topicId: { type: 'string', optional: true },
-        $$strict: true
+        topicId: { type: 'string', optional: true }
+        // Remove until it's added to index.d
+        // $$strict: true
       },
       handler(ctx: Context) {
         if (!ctx.params.storeId && !ctx.params.topicId) {
@@ -85,8 +86,9 @@ const TheService: ServiceSchema = {
         storeId: { type: 'string', optional: true },
         topicId: { type: 'string', optional: true },
         limit: { type: 'number', optional: true, min: 1, max: 500, convert: true },
-        page: { type: 'number', optional: true, min: 1, convert: true },
-        $$strict: true
+        page: { type: 'number', optional: true, min: 1, convert: true }
+        // Remove until it's added to index.d
+        // $$strict: true
       },
       handler(ctx: Context) {
         if (!ctx.params.storeId && !ctx.params.topicId) {
