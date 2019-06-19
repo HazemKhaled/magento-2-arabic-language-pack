@@ -1,0 +1,171 @@
+import { Context, ServiceSchema } from 'moleculer';
+import ESService from 'moleculer-elasticsearch';
+import { v1 as uuidv1 } from 'uuid';
+import { Log } from '../utilities/types/log.type';
+
+const TheService: ServiceSchema = {
+  name: 'logs',
+  /**
+   * Service settings
+   */
+  settings: {
+    elasticsearch: {
+      host: `http://${process.env.ELASTIC_AUTH}@${process.env.ELASTIC_HOST}:${
+        process.env.ELASTIC_PORT
+      }`
+    }
+  },
+  mixins: [ESService],
+  actions: {
+    add: {
+      params: {
+        topic: { type: 'string' },
+        message: { type: 'string' },
+        timestamp: { type: 'date', convert: true },
+        logLevel: { type: 'enum', values: ['info', 'debug', 'error', 'warning'] },
+        storeId: { type: 'string', optional: true },
+        topicId: { type: 'string', optional: true },
+        $$strict: true
+      },
+      handler(ctx: Context) {
+        if (!ctx.params.storeId && !ctx.params.topicId) {
+          ctx.meta.$statusCode = 422;
+          ctx.meta.$statusMessage = 'Missing Entity';
+          return {
+            name: 'ValidationError',
+            message: 'Parameters validation error!',
+            code: 422,
+            type: 'VALIDATION_ERROR',
+            data: [
+              {
+                type: 'required',
+                field: 'topicId | storeId',
+                message: "At least one of 'topicId | storeId' fields is required!"
+              }
+            ]
+          };
+        }
+        const date = new Date();
+        return ctx
+          .call('logs.create', {
+            index: `logs-${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`,
+            type: '_doc',
+            id: uuidv1(),
+            body: {
+              topic: ctx.params.topic,
+              topicId: ctx.params.topicId,
+              '@timestamp': ctx.params.timestamp,
+              logLevel: ctx.params.logLevel,
+              storeId: ctx.params.storeId,
+              message: ctx.params.message
+            }
+          })
+          .then(res => {
+            if (res.result === 'created')
+              return {
+                status: 'sccuess',
+                message: 'created',
+                id: res._id
+              };
+            ctx.meta.$statusCode = 500;
+            ctx.meta.$statusMessage = 'Internal Server Error';
+            return {
+              status: 'failed',
+              message: 'Something went wrong! Please contact customer support with the error code.',
+              code: res.code || 999
+            };
+          });
+      }
+    },
+    getLogs: {
+      params: {
+        topic: { type: 'string', optional: true },
+        sort: { type: 'enum', values: ['asc', 'desc'], optional: true },
+        logLevel: { type: 'enum', values: ['info', 'debug', 'error', 'warning'], optional: true },
+        storeId: { type: 'string', optional: true },
+        topicId: { type: 'string', optional: true },
+        limit: { type: 'number', optional: true, min: 1, max: 500, convert: true },
+        page: { type: 'number', optional: true, min: 1, convert: true },
+        $$strict: true
+      },
+      handler(ctx: Context) {
+        if (!ctx.params.storeId && !ctx.params.topicId) {
+          ctx.meta.$statusCode = 422;
+          ctx.meta.$statusMessage = 'Missing Entity';
+          return {
+            name: 'ValidationError',
+            message: 'Parameters validation error!',
+            code: 422,
+            type: 'VALIDATION_ERROR',
+            data: [
+              {
+                type: 'required',
+                field: 'topicId | storeId',
+                message: "At least one of 'topicId | storeId' fields is required!"
+              }
+            ]
+          };
+        }
+        if (ctx.params.topicId && !ctx.params.topic) {
+          ctx.meta.$statusCode = 422;
+          ctx.meta.$statusMessage = 'Unprocessable Entity';
+          return {
+            name: 'ValidationError',
+            message: 'Parameters validation error!',
+            code: 422,
+            type: 'VALIDATION_ERROR',
+            data: [
+              {
+                type: 'required',
+                field: 'topic',
+                message: "The 'topic' field is required!"
+              }
+            ]
+          };
+        }
+        const body: {
+          size?: number;
+          from?: number;
+          query?: { [key: string]: {} };
+          sort?: { [key: string]: string };
+        } = {};
+        const query: { bool?: { filter?: Array<{}> } } = { bool: { filter: [] } };
+        if (ctx.params.topicId) query.bool.filter.push({ term: { topicId: ctx.params.topicId } });
+        if (ctx.params.topic) query.bool.filter.push({ term: { topic: ctx.params.topic } });
+        if (ctx.params.storeId) query.bool.filter.push({ term: { storeId: ctx.params.storeId } });
+        if (ctx.params.logLevel)
+          query.bool.filter.push({ term: { logLevel: ctx.params.logLevel } });
+        if (ctx.params.sort) body.sort = { '@timestamp': ctx.params.sort };
+        if (ctx.params.limit) body.size = parseInt(ctx.params.limit, 10);
+        if (ctx.params.from)
+          body.from = parseInt(ctx.params.page, 10) * parseInt(ctx.params.limit, 10);
+        body.query = query;
+        this.logger.info(JSON.stringify(body));
+        return ctx
+          .call('logs.search', {
+            index: 'logs-*',
+            body
+          })
+          .then(res => {
+            if (res.hits.total > 0)
+              return res.hits.hits.map((item: { _source: Log }) => item._source);
+            if (res.hit.total === 0) {
+              ctx.meta.$statusCode = 404;
+              ctx.meta.$statusMessage = 'Not Found';
+              return {
+                message: 'No record found!'
+              };
+            }
+            ctx.meta.$statusCode = 500;
+            ctx.meta.$statusMessage = 'Internal Server Error';
+            return {
+              message: 'Something went wrong! Please contact customer support with the error code.',
+              code: res.code || 999
+            };
+          });
+      }
+    }
+  }
+};
+
+export = TheService;
