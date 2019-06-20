@@ -22,7 +22,6 @@ const TheService: ServiceSchema = {
       params: {
         topic: { type: 'string' },
         message: { type: 'string' },
-        timestamp: { type: 'date', convert: true },
         logLevel: { type: 'enum', values: ['info', 'debug', 'error', 'warning'] },
         storeId: { type: 'string', optional: true },
         topicId: { type: 'string', optional: true }
@@ -56,7 +55,7 @@ const TheService: ServiceSchema = {
             body: {
               topic: ctx.params.topic,
               topicId: ctx.params.topicId,
-              '@timestamp': ctx.params.timestamp,
+              '@timestamp': new Date(),
               logLevel: ctx.params.logLevel,
               storeId: ctx.params.storeId,
               message: ctx.params.message
