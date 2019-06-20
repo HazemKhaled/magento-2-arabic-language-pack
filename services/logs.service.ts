@@ -18,6 +18,7 @@ const TheService: ServiceSchema = {
   mixins: [ESService],
   actions: {
     add: {
+      auth: 'Basic',
       params: {
         topic: { type: 'string' },
         message: { type: 'string' },
@@ -79,6 +80,7 @@ const TheService: ServiceSchema = {
       }
     },
     getLogs: {
+      auth: 'Basic',
       params: {
         topic: { type: 'string', optional: true },
         sort: { type: 'enum', values: ['asc', 'desc'], optional: true },
