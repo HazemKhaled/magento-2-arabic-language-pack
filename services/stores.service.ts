@@ -2,7 +2,7 @@ import { Context, ServiceSchema } from 'moleculer';
 import DbService from '../utilities/mixins/mongo.mixin';
 
 import { v1 as uuidv1, v4 as uuidv4 } from 'uuid';
-import { Store } from '../utilities/types/store.type';
+import { Store, StoreUser } from '../utilities/types/store.type';
 import { createValidation, updateValidation } from '../utilities/validations/stores.validate';
 
 const TheService: ServiceSchema = {
@@ -106,7 +106,7 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 // 1 hour
       },
       handler(ctx: Context) {
-        let params: { where?: {}; limit?: {} } = {};
+        let params: { where?: {}; limit?: {}; order?: string; sort?: {} } = {};
         try {
           params = JSON.parse(ctx.params.filter);
         } catch (err) {
@@ -116,19 +116,25 @@ const TheService: ServiceSchema = {
           params.limit = 100;
           this.logger.info('The maximum store respone limit is 100');
         }
-        return this.adapter
-          .find({
-            query: params.where,
-            limit: params.limit || 100
-          })
-          .then((res: Store[] | null) => {
-            // If the DB response not null will return the data
-            if (res !== null) return res.map(store => this.sanitizeResponse(store));
-            // If null return Not Found error
-            ctx.meta.$statusMessage = 'Not Found';
-            ctx.meta.$statusCode = 404;
-            return { error: [{ message: 'Store Not Found' }] };
-          });
+        const query = {
+          query: params.where || {},
+          limit: params.limit || 100,
+          sort: params.sort
+        };
+        if (params.order) {
+          const sortArray = params.order.split(' ');
+          if (sortArray.length === 2 && ['asc', 'desc'].includes(sortArray[1].toLowerCase())) {
+            query.sort = { [sortArray[0]]: sortArray[1] === 'asc' ? 1 : -1 };
+          }
+        }
+        return this.adapter.find(query).then((res: Store[] | null) => {
+          // If the DB response not null will return the data
+          if (res !== null) return res.map(store => this.sanitizeResponse(store));
+          // If null return Not Found error
+          ctx.meta.$statusMessage = 'Not Found';
+          ctx.meta.$statusCode = 404;
+          return { error: [{ message: 'Store Not Found' }] };
+        });
       }
     },
     /**
@@ -219,7 +225,7 @@ const TheService: ServiceSchema = {
       const store: Store | any = {};
       // Some intial data when creating store
       if (create) {
-        store._id = params.url;
+        store._id = params.url.toLowerCase();
         store.consumer_key = uuidv1();
         store.consumer_secret = uuidv4();
         store.created = new Date();
@@ -247,6 +253,12 @@ const TheService: ServiceSchema = {
             sort: 2
           }
         ];
+      }
+      if (params.users) {
+        params.users = params.users.map((user: StoreUser) => ({
+          email: user.email.toLowerCase(),
+          roles: user.roles
+        }));
       }
       // Sanitized params keys
       const keys = [

@@ -121,6 +121,17 @@ services:
       - elastic
       - default
 
+  logs:
+    build:
+      context: ../../
+    image: microes
+    restart: always
+    env_file: .env
+    environment:
+      SERVICES: logs
+    networks:
+      - elastic
+      - default
   redis:
     image: redis:alpine
 
