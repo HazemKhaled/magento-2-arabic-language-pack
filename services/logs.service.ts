@@ -64,7 +64,7 @@ const TheService: ServiceSchema = {
           .then(res => {
             if (res.result === 'created')
               return {
-                status: 'sccuess',
+                status: 'success',
                 message: 'created',
                 id: res._id
               };
@@ -143,7 +143,6 @@ const TheService: ServiceSchema = {
         if (ctx.params.from)
           body.from = parseInt(ctx.params.page, 10) * parseInt(ctx.params.limit, 10);
         body.query = query;
-        this.logger.info(JSON.stringify(body));
         return ctx
           .call('logs.search', {
             index: 'logs-*',
