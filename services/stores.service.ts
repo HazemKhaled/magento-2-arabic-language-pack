@@ -37,7 +37,7 @@ const TheService: ServiceSchema = {
             // If null return Not Found error
             ctx.meta.$statusMessage = 'Not Found';
             ctx.meta.$statusCode = 404;
-            return { error: [{ message: 'Store Not Found' }] };
+            return { errors: [{ message: 'Store Not Found' }] };
           });
       }
     },
@@ -60,7 +60,7 @@ const TheService: ServiceSchema = {
           // If null return Not Found error
           ctx.meta.$statusMessage = 'Not Found';
           ctx.meta.$statusCode = 404;
-          return { error: [{ message: 'Store Not Found' }] };
+          return { errors: [{ message: 'Store Not Found' }] };
         });
       }
     },
@@ -86,7 +86,7 @@ const TheService: ServiceSchema = {
           // If null return Not Found error
           ctx.meta.$statusMessage = 'Not Found';
           ctx.meta.$statusCode = 404;
-          return { error: [{ message: 'Store Not Found' }] };
+          return { errors: [{ message: 'Store Not Found' }] };
         });
       }
     },
@@ -133,7 +133,7 @@ const TheService: ServiceSchema = {
           // If null return Not Found error
           ctx.meta.$statusMessage = 'Not Found';
           ctx.meta.$statusCode = 404;
-          return { error: [{ message: 'Store Not Found' }] };
+          return { errors: [{ message: 'Store Not Found' }] };
         });
       }
     },
