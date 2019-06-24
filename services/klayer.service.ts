@@ -1,7 +1,7 @@
 import { Context, Errors, ServiceSchema } from 'moleculer';
 import request from 'request-promise';
 
-import { Order } from '../mixins/types';
+import { Order } from '../utilities/types';
 
 const { MoleculerClientError } = Errors;
 
@@ -120,8 +120,8 @@ const TheService: ServiceSchema = {
               total: order.total,
               createDate: order.date_created,
               knawat_order_status:
-                order.knawat_status || order.state
-                  ? this.getStatusName(order.knawat_status || order.state)
+                order.knawat_status || order.state || order.status
+                  ? this.getStatusName(order.knawat_status || order.state || order.status)
                   : ''
             };
             if (order.meta_data && order.meta_data.length > 0) {
@@ -158,17 +158,13 @@ const TheService: ServiceSchema = {
       handler(ctx: Context) {
         return request({
           method: 'POST',
-          uri: this.getUrl(`webhook/orders/cancel/${ctx.meta.user}`),
+          uri: this.getUrl(`webhook/orders/cancel/${ctx.params.id}`),
           qs: {
             access_token: this.settings.access_token
           },
           headers: {
             'User-Agent': 'Request-MicroES',
             'x-shopify-topic': 'orders/cancelled'
-          },
-          body: {
-            id: ctx.params.id,
-            status: 'cancelled'
           },
           json: true
         }).catch(error => {
@@ -213,6 +209,7 @@ const TheService: ServiceSchema = {
         shipped: 'Shipped',
         done: 'Shipped',
         cancel: 'Cancelled',
+        cancelled: 'Cancelled',
         error: '...'
       };
 

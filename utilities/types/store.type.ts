@@ -5,6 +5,7 @@
  * @interface Store
  */
 export interface Store {
+  _id: string;
   currency: string;
   status: 'confirmed' | 'unconfirmed' | 'archived' | 'error';
   url: string;

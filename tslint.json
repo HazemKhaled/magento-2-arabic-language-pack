@@ -3,6 +3,7 @@
   "rules": {
     "object-literal-sort-keys": false,
     "interface-name": false,
+    "curly": false,
     "completed-docs": [
       true,
       "classes",

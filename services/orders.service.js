@@ -1,7 +1,7 @@
 const uuidv1 = require('uuid/v1');
 const fetch = require('node-fetch');
 const { MoleculerClientError } = require('moleculer').Errors;
-const { OrdersOperations } = require('../mixins/orders.mixin');
+const { OrdersOperations } = require('../utilities/mixins/orders.mixin');
 
 const entityValidator = {
   id: { type: 'string', empty: false },
@@ -79,7 +79,7 @@ module.exports = {
           if (ctx.params.invoice_url) {
             data.pdf_invoice_url = ctx.params.invoice_url;
           }
-          const [instance] = await ctx.call('stores.findInstance', {
+          const instance = await ctx.call('stores.findInstance', {
             consumerKey: ctx.meta.user
           });
           if (
@@ -108,9 +108,11 @@ module.exports = {
           // Check the available products and quantities return object with inStock products info
           const stock = await this.stockProducts(data.items);
           // Return warning response if no Item available
-          if (stock.enoughStock.length === 0)
+          if (stock.enoughStock.length === 0) {
+            ctx.meta.$statusCode = 404;
+            ctx.meta.$statusMessage = 'Not Found';
             return {
-              warnings: [
+              errors: [
                 {
                   status: 'fail',
                   message:
@@ -119,7 +121,7 @@ module.exports = {
                 }
               ]
             };
-
+          }
           // Update Order Items
           data.items = stock.items;
 
@@ -370,15 +372,17 @@ module.exports = {
           let shipment = 'No Items';
           // If there is items
           if (ctx.params.items) {
-            const [instance] = await ctx.call('stores.findInstance', {
+            const instance = await ctx.call('stores.findInstance', {
               consumerKey: ctx.meta.user
             });
             // Check the available products and quantities return object with inStock products info
             const stock = await this.stockProducts(data.items);
             // Return warning response if no Item available
-            if (stock.enoughStock.length === 0)
+            if (stock.enoughStock.length === 0) {
+              ctx.meta.$statusCode = 404;
+              ctx.meta.$statusMessage = 'Not Found';
               return {
-                warnings: [
+                errors: [
                   {
                     status: 'fail',
                     message:
@@ -387,7 +391,7 @@ module.exports = {
                   }
                 ]
               };
-
+            }
             // Update Order Items
             data.items = stock.items;
 

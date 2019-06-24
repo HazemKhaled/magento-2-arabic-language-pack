@@ -1,7 +1,7 @@
 import { ServiceSchema } from 'moleculer';
 
+import { Attribute, Category, Store, Variation } from '../types';
 import { I18nService } from './i18n.mixin';
-import { Attribute, Category, Store, Variation } from './types';
 
 export const ProductTransformation: ServiceSchema = {
   name: 'transformation',

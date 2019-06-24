@@ -1,6 +1,6 @@
 import { Context, ServiceSchema } from 'moleculer';
-import DbService from '../mixins/mongo.mixin';
-import { Rule, ShipmentPolicy } from '../mixins/types/shipment';
+import DbService from '../utilities/mixins/mongo.mixin';
+import { Rule, ShipmentPolicy } from '../utilities/types/shipment.type';
 
 const Shipment: ServiceSchema = {
   name: 'shipment',
