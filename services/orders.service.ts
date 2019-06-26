@@ -2,7 +2,7 @@ import { Context, ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
 import { v1 as uuidv1 } from 'uuid';
 import { OrdersOperations } from '../utilities/mixins/orders.mixin';
-import { OMSResponse, OrderItem } from '../utilities/types/order.type';
+import { OMSResponse, OrderItem, Order } from '../utilities/types/order.type';
 import { Product, Variation } from '../utilities/types/product.type';
 import { StoreUser } from '../utilities/types/store.type';
 import { Subscription } from '../utilities/types/user.type';
@@ -19,7 +19,8 @@ const TheService: ServiceSchema = {
       auth: 'Bearer',
       params: createOrderValidation,
       async handler(ctx: Context) {
-        if (ctx.params.shipping.company !== 'ebay') ctx.params.id = uuidv1();
+        ctx.params.externalId = uuidv1();
+        if (ctx.params.shipping.company === 'ebay') ctx.params.externalId = ctx.params.id;
 
         const data = ctx.params;
         data.externalInvoice = 'https://www.example.com';
@@ -205,6 +206,188 @@ const TheService: ServiceSchema = {
         }
         return message;
       }
+    },
+    getOrder: {
+      auth: 'Bearer',
+      params: {
+        order_id: { type: 'string' }
+      },
+      async handler(ctx) {
+        const instance = await ctx.call('stores.findInstance', {
+          consumerKey: ctx.meta.user
+        });
+        if (!instance.internal_data) {
+          if (!instance.internal_data.omsId) {
+            ctx.meta.$statusCode = 404;
+            ctx.meta.$statusMessage = 'Not Found';
+            return {
+              message: 'There is no orders for this store!'
+            };
+          }
+        }
+
+        let order = await fetch(
+          `${process.env.OMS_BASEURL}/orders/${instance.internal_data.omsId}/${
+            ctx.params.order_id
+          }`,
+          {
+            method: 'get',
+            headers: {
+              Authorization: `Basic ${this.settings.AUTH}`
+            }
+          }
+        ).then(response => response.json());
+        if (order.error) {
+          if (order.error.statusCode === 404) {
+            ctx.meta.$statusCode = 404;
+            ctx.meta.$statusMessage = 'Not Found';
+            return {
+              message: 'Order Not Found!'
+            };
+          }
+          ctx.meta.$statusCode = 400;
+          ctx.meta.$statusMessage = 'Bad Request';
+          return {
+            message: 'There is an error'
+          };
+        }
+        order = order.salesorder;
+        const orderResponse: { [key: string]: string } = {
+          id: order.id,
+          status: order.status,
+          items: order.line_items,
+          billing: order.billing,
+          shipping: order.shipping,
+          total: order.total,
+          createDate: order.date_created,
+          knawat_order_status:
+            order.knawat_status || order.state || order.status
+              ? this.getStatusName(order.knawat_status || order.state || order.status)
+              : ''
+        };
+        if (order.meta_data && order.meta_data.length > 0) {
+          order.meta_data.forEach((meta: any) => {
+            if (
+              meta.key === '_shipment_tracking_number' ||
+              meta.key === '_shipment_provider_name' ||
+              meta.key === '_knawat_order_status'
+            ) {
+              orderResponse[meta.key.substring(1)] = meta.value || '';
+              if (meta.key === '_knawat_order_status') {
+                orderResponse[meta.key.substring(1)] = this.getStatusName(meta.value) || '';
+              }
+            }
+          });
+        }
+        if (order.notes) orderResponse.notes = order.notes;
+        return orderResponse;
+      }
+    },
+    list: {
+      auth: 'Bearer',
+      params: {
+        limit: {
+          type: 'number',
+          convert: true,
+          integer: true,
+          min: 1,
+          max: 50,
+          optional: true
+        },
+        page: {
+          type: 'number',
+          convert: true,
+          integer: true,
+          min: 1,
+          optional: true
+        },
+        sort: {
+          type: 'enum',
+          values: [
+            'created_time',
+            'customer_name',
+            'salesorder_number',
+            'shipment_date',
+            'total',
+            'date'
+          ],
+          optional: true
+        },
+        sortOrder: { type: 'enum', values: ['A', 'D'], optional: true },
+        status: {
+          type: 'enum',
+          values: ['draft', 'open', 'invoiced', 'partially_invoiced', 'void', 'overdue'],
+          optional: true
+        },
+        externalId: { type: 'string', optional: true },
+        date: { type: 'date', convert: true, optional: true },
+        dateStart: { type: 'date', convert: true, optional: true },
+        dateEnd: { type: 'date', convert: true, optional: true },
+        dateAfter: { type: 'date', convert: true, optional: true },
+        shipmentDate: { type: 'date', convert: true, optional: true },
+        shipmentDateStart: { type: 'date', convert: true, optional: true },
+        shipmentDateEnd: { type: 'date', convert: true, optional: true },
+        shipmentDateBefore: { type: 'date', convert: true, optional: true },
+        shipmentDateAfter: { type: 'date', convert: true, optional: true }
+      },
+      /* cache: {
+        keys: ['#user', 'page', 'limit'],
+        ttl: 15 * 60 // 15 mins
+      }, */
+      async handler(ctx) {
+        const instance = await ctx.call('stores.findInstance', {
+          consumerKey: ctx.meta.user
+        });
+        if (!instance.internal_data) {
+          if (!instance.internal_data.omsId) {
+            ctx.meta.$statusCode = 404;
+            ctx.meta.$statusMessage = 'Not Found';
+            return {
+              message: 'There is no orders for this store!'
+            };
+          }
+        }
+        const url = new URL(`${process.env.OMS_BASEURL}/orders/${instance.internal_data.omsId}`);
+        if (ctx.params.limit) url.searchParams.append('perPage', ctx.params.limit);
+        const keys = [
+          'page',
+          'sort',
+          'sortOrder',
+          'status',
+          'externalId',
+          'date',
+          'dateStart',
+          'dateEnd',
+          'dateAfter',
+          'shipmentDate',
+          'shipmentDateStart',
+          'shipmentDateEnd',
+          'shipmentDateBefore',
+          'shipmentDateAfter'
+        ];
+        Object.keys(ctx.params).forEach(key => {
+          if (!keys.includes(key)) return;
+          url.searchParams.append(key, ctx.params[key]);
+        });
+        this.logger.info(url);
+        const orders = await fetch(url.href, {
+          method: 'get',
+          headers: {
+            Authorization: `Basic ${this.settings.AUTH}`
+          }
+        }).then(response => response.json());
+        return orders.salesorders.map((order: Order) => ({
+          id: order.id,
+          status: order.status,
+          createDate: order.createDate,
+          updateDate: order.updateDate,
+          total: order.total,
+          knawat_order_status:
+            order.knawat_status || order.state || order.status
+              ? this.getStatusName(order.knawat_status || order.state || order.status)
+              : ''
+        }));
+      }
     }
   },
   methods: {
@@ -228,6 +411,27 @@ const TheService: ServiceSchema = {
         }
       });
       return max.pop();
+    },
+    /**
+     * Get Status Name
+     *
+     * @param {string} status
+     * @returns {string}Status Name
+     */
+    getStatusName(status: string = 'Order Placed'): string {
+      const stateNames: { [key: string]: string } = {
+        draft: 'Order Placed',
+        sent: 'Sent',
+        on_hold: 'On-hold',
+        sale: 'Processing',
+        shipped: 'Shipped',
+        done: 'Shipped',
+        cancel: 'Cancelled',
+        cancelled: 'Cancelled',
+        error: '...'
+      };
+
+      return stateNames[status];
     }
   }
 };
