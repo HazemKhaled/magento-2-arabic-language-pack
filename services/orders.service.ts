@@ -104,7 +104,6 @@ const TheService: ServiceSchema = {
         data.billing = { ...instance.address };
 
         data.externalId = uuidv1();
-        this.logger.info(JSON.stringify(data));
         const result: OMSResponse = await fetch(`${process.env.OMS_BASEURL}/orders`, {
           method: 'POST',
           body: JSON.stringify(data),
@@ -136,7 +135,6 @@ const TheService: ServiceSchema = {
         });
 
         /* Prepare the response message in case of success or warnings */
-        this.logger.info(JSON.stringify(result));
         const order = result.order;
         const message: {
           status?: string;
@@ -369,7 +367,6 @@ const TheService: ServiceSchema = {
           if (!keys.includes(key)) return;
           url.searchParams.append(key, ctx.params[key]);
         });
-        this.logger.info(url);
         const orders = await fetch(url.href, {
           method: 'get',
           headers: {
