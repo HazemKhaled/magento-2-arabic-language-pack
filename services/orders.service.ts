@@ -84,6 +84,22 @@ const TheService: ServiceSchema = {
           instance,
           ctx.params.shipping_method
         );
+
+        if (!shipment) {
+          ctx.meta.$statusCode = 400;
+          ctx.meta.$statusMessage = 'Not Found';
+          return {
+            errors: [
+              {
+                status: 'fail',
+                message:
+                  'Sorry the order is not created as there is no shipment method to your country!',
+                code: 1107
+              }
+            ]
+          };
+        }
+
         data.shipmentCourier = shipment.courier;
         data.shippingCharge = shipment.cost;
         // Getting the current user subscription
