@@ -116,7 +116,7 @@ const TheService: ServiceSchema = {
           this.logger.info('The maximum store response limit is 100');
         }
         const query = {
-          query: params.where || {},
+          query: { ...params.where } || {},
           limit: params.limit || 100,
           sort: params.sort
         };
@@ -126,7 +126,7 @@ const TheService: ServiceSchema = {
             query.sort = { [sortArray[0]]: sortArray[1] === 'asc' ? 1 : -1 };
           }
         }
-        return this.adapter.find(query).then((res: Store[] | null) => {
+        return this.adapter.find({ ...query }).then((res: Store[] | null) => {
           // If the DB response not null will return the data
           if (res !== null) return res.map(store => this.sanitizeResponse(store));
           // If null return Not Found error
