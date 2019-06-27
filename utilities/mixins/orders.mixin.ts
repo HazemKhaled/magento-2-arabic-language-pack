@@ -48,7 +48,6 @@ export const OrdersOperations: ServiceSchema = {
         item => item.quantity > items.find(i => i.sku === item.sku).quantity
       );
       const dataItems = items.filter(item => enoughStock.map(i => i.sku).includes(item.sku));
-      this.logger.info(JSON.stringify(inStock));
       return { products, inStock, enoughStock, items: dataItems, orderItems };
     },
 
