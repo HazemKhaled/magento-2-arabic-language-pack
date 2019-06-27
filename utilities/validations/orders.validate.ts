@@ -1,5 +1,5 @@
 export const createOrderValidation = {
-  id: { type: 'string', empty: false },
+  id: { type: 'string', empty: false, optional: true },
   status: { type: 'enum', values: ['draft', 'processing', 'cancelled'] },
   items: {
     type: 'array',
