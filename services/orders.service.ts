@@ -54,7 +54,7 @@ const TheService: ServiceSchema = {
         }
         data.store =
           instance.internal_data && instance.internal_data.omsId
-            ? { id: instance.internalData.omsId }
+            ? { id: instance.internal_data.omsId }
             : { url: instance.url, name: instance.name };
         // Check the available products and quantities return object with inStock products info
         const stock = await this.stockProducts(data.items);
