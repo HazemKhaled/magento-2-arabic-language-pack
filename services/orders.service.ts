@@ -130,6 +130,18 @@ const TheService: ServiceSchema = {
           }
         }).then(createResponse => createResponse.json());
 
+        if (!result.order) {
+          ctx.meta.$statusCode = 500;
+          ctx.meta.$statusMessage = 'Internal Error';
+          return {
+            errors: [
+              {
+                status: 'fail',
+                name: 'Internal Server Error'
+              }
+            ]
+          };
+        }
         if (result.order && (!instance.internal_data || !instance.internal_data.omsId)) {
           ctx.call('stores.update', {
             id: instance.url,
@@ -344,10 +356,10 @@ const TheService: ServiceSchema = {
         shipmentDateBefore: { type: 'date', convert: true, optional: true },
         shipmentDateAfter: { type: 'date', convert: true, optional: true }
       },
-      /* cache: {
+      cache: {
         keys: ['#user', 'page', 'limit'],
         ttl: 15 * 60 // 15 mins
-      }, */
+      },
       async handler(ctx) {
         const instance = await ctx.call('stores.findInstance', {
           consumerKey: ctx.meta.user
