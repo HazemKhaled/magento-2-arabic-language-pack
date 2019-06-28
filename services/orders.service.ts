@@ -281,7 +281,7 @@ const TheService: ServiceSchema = {
         const orderResponse: { [key: string]: string } = {
           id: order.id,
           status: order.status,
-          items: order.line_items,
+          items: order.items,
           billing: order.billing,
           shipping: order.shipping,
           total: order.total,
