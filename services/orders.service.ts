@@ -289,7 +289,8 @@ const TheService: ServiceSchema = {
           knawat_order_status:
             order.knawat_status || order.state || order.status
               ? this.getStatusName(order.knawat_status || order.state || order.status)
-              : ''
+              : '',
+          notes: order.notes
         };
         if (order.meta_data && order.meta_data.length > 0) {
           order.meta_data.forEach((meta: any) => {
