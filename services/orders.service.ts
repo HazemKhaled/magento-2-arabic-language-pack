@@ -75,7 +75,7 @@ const TheService: ServiceSchema = {
         }
 
         // Update Order Items
-        data.items = stock.inStock;
+        data.items = stock.items;
         // Shipping
         const shipment = await this.shipment(
           stock.products,
