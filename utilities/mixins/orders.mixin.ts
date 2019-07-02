@@ -49,6 +49,7 @@ export const OrdersOperations: ServiceSchema = {
       );
       const dataItems = items.map(item => {
         const [p] = enoughStock.filter(i => i.sku === item.sku);
+        item.quantity = p.quantity > item.quantity ? item.quantity : p.quantity;
         delete p.quantity;
         return { ...p, quantity: item.quantity };
       });
