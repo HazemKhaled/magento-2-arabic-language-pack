@@ -47,7 +47,11 @@ export const OrdersOperations: ServiceSchema = {
       const enoughStock = found.filter(
         item => item.quantity > items.find(i => i.sku === item.sku).quantity
       );
-      const dataItems = items.filter(item => enoughStock.map(i => i.sku).includes(item.sku));
+      const dataItems = items.map(item => {
+        const [p] = enoughStock.filter(i => i.sku === item.sku);
+        delete p.quantity;
+        return { ...p, quantity: item.quantity };
+      });
       return { products, inStock, enoughStock, items: dataItems, orderItems };
     },
 
