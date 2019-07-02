@@ -49,10 +49,11 @@ export const OrdersOperations: ServiceSchema = {
       );
       const dataItems = items.map(item => {
         const [p] = enoughStock.filter(i => i.sku === item.sku);
+        this.logger.info(p.quantity, item.quantity);
         item.quantity = p.quantity > item.quantity ? item.quantity : p.quantity;
-        delete p.quantity;
         return { ...p, quantity: item.quantity };
       });
+      this.logger.info(JSON.stringify(dataItems), '<<><>>>>>');
       return { products, inStock, enoughStock, items: dataItems, orderItems };
     },
 
