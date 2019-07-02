@@ -4,9 +4,13 @@ import { v1 as uuidv1 } from 'uuid';
 import { OrdersOperations } from '../utilities/mixins/orders.mixin';
 import { OMSResponse, Order, OrderItem } from '../utilities/types/order.type';
 import { Product } from '../utilities/types/product.type';
+import { Rule } from '../utilities/types/shipment.type';
 import { StoreUser } from '../utilities/types/store.type';
 import { Subscription } from '../utilities/types/user.type';
-import { createOrderValidation } from '../utilities/validations/orders.validate';
+import {
+  createOrderValidation,
+  updateOrderValidation
+} from '../utilities/validations/orders.validate';
 
 const TheService: ServiceSchema = {
   name: 'orders',
@@ -120,6 +124,7 @@ const TheService: ServiceSchema = {
         data.billing = { ...instance.address };
 
         data.externalId = uuidv1();
+        this.logger.info(JSON.stringify(data));
         const result: OMSResponse = await fetch(`${process.env.OMS_BASEURL}/orders`, {
           method: 'POST',
           body: JSON.stringify(data),
@@ -130,6 +135,7 @@ const TheService: ServiceSchema = {
           }
         }).then(createResponse => createResponse.json());
 
+        this.logger.info(JSON.stringify(result));
         if (!result.order) {
           ctx.meta.$statusCode = 500;
           ctx.meta.$statusMessage = 'Internal Error';
@@ -178,7 +184,9 @@ const TheService: ServiceSchema = {
             billing: order.billing,
             shipping: order.shipping,
             createDate: order.createDate,
-            notes: order.notes || ''
+            notes: order.notes || '',
+            shipping_method: order.shipmentCourier,
+            shippingCharge: order.shippingCharge
           }
         };
         const outOfStock = stock.orderItems.filter(
@@ -231,6 +239,184 @@ const TheService: ServiceSchema = {
           this.logger.error(err);
         }
         return message;
+      }
+    },
+    updateOrder: {
+      auth: 'Bearer',
+      params: updateOrderValidation,
+      async handler(ctx) {
+        try {
+          const orderBeforeUpdate = await ctx.call('orders.getOrder', { order_id: ctx.params.id });
+          if (orderBeforeUpdate.id === -1) {
+            return { message: 'Order Not Found!' };
+          }
+          // Change here
+          if (!['processing', 'pending'].includes(orderBeforeUpdate.status)) {
+            return { message: 'The Order Is Now Processed With Knawat You Can Not Update It' };
+          }
+
+          const data = ctx.params;
+          if (ctx.params.invoice_url) {
+            data.externalInvoice = ctx.params.invoice_url;
+          }
+
+          // Change
+          if (data.status === 'cancelled')
+            return ctx.call('orders.delete', { id: data.id }).then(res => {
+              this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
+              return res;
+            });
+
+          const message: {
+            status?: string;
+            data?: OMSResponse['order'] | any; // Remove any after
+            warnings?: Array<{}>;
+            errors?: Array<{}>;
+          } = {};
+          let shipment: any = 'No Items';
+          // If there is items
+          if (ctx.params.items) {
+            const instance = await ctx.call('stores.findInstance', {
+              consumerKey: ctx.meta.user
+            });
+            // Check the available products and quantities return object with inStock products info
+            const stock = await this.stockProducts(data.items);
+            // Return warning response if no Item available
+            if (stock.enoughStock.length === 0) {
+              ctx.meta.$statusCode = 404;
+              ctx.meta.$statusMessage = 'Not Found';
+              return {
+                errors: [
+                  {
+                    status: 'fail',
+                    message:
+                      'The products you ordered is not in-stock, The order has not been created!',
+                    code: 1101
+                  }
+                ]
+              };
+            }
+            // Update Order Items
+            data.items = stock.items;
+
+            // Get Shipping Country
+            let country = orderBeforeUpdate.shipping.country;
+            if (ctx.params.shipping && ctx.params.shipping.country) {
+              country = ctx.params.shipping.country;
+            }
+
+            // Shipping
+            shipment = await this.shipment(
+              stock.products,
+              stock.enoughStock,
+              country,
+              instance,
+              ctx.params.shipping_method
+            );
+
+            // Prepare response message
+            const outOfStock = stock.orderItems.filter(
+              (item: OrderItem) => !stock.inStock.map((i: OrderItem) => i.sku).includes(item)
+            );
+            const notEnoughStock = stock.inStock.filter(
+              (item: OrderItem) =>
+                !stock.enoughStock.map((i: OrderItem) => i.sku).includes(item.sku)
+            );
+
+            // Initializing warnings array if we have a Warning
+            if (outOfStock.length > 0 || notEnoughStock.length > 0) message.warnings = [];
+            try {
+              if (outOfStock.length > 0)
+                message.warnings.push({
+                  message: `This items are out of stock ${outOfStock}`,
+                  skus: outOfStock,
+                  code: 1102
+                });
+              if (notEnoughStock.length > 0)
+                message.warnings.push({
+                  message: `This items quantities are not enough stock ${outOfStock}`,
+                  skus: notEnoughStock,
+                  code: 1103
+                });
+              if (
+                (!instance.shipping_methods || !instance.shipping_methods[0].name) &&
+                !ctx.params.shipping_method
+              ) {
+                message.warnings.push({
+                  message: `There is no default shipping method for your store, It’ll be shipped with ${shipment.courier ||
+                    'PTT'}, Contact our customer support for more info`,
+                  code: 2102
+                });
+              }
+              if (
+                (shipment.courier !== ctx.params.shipping_method && ctx.params.shipping_method) ||
+                (instance.shipping_methods &&
+                  instance.shipping_methods[0].name &&
+                  shipment.courier !== instance.shipping_methods[0].name)
+              ) {
+                message.warnings.push({
+                  message: `Can’t ship to ${
+                    ctx.params.shipping.country
+                  } with provided courier, It’ll be shipped with ${shipment.courier ||
+                    'PTT'}, Contact our customer support for more info`,
+                  code: 2101
+                });
+              }
+            } catch (err) {
+              this.logger.error(err);
+            }
+          }
+          // Update order
+          this.logger.info(JSON.stringify(data));
+          const result: OMSResponse = await fetch(`${process.env.OMS_BASEURL}/orders`, {
+            method: 'POST',
+            body: JSON.stringify(data),
+            headers: {
+              Authorization: `Basic ${this.settings.AUTH}`,
+              'Content-Type': 'application/json',
+              Accept: 'application/json'
+            }
+          }).then(createResponse => createResponse.json());
+
+          this.logger.info(JSON.stringify(result));
+          if (!result.order) {
+            ctx.meta.$statusCode = 500;
+            ctx.meta.$statusMessage = 'Internal Error';
+            return {
+              errors: [
+                {
+                  status: 'fail',
+                  name: 'Internal Server Error'
+                }
+              ]
+            };
+          }
+          const order = result.order;
+          this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
+
+          message.status = 'success';
+          message.data = {
+            id: order.id,
+            status: order.status,
+            items: order.items,
+            billing: order.billing,
+            shipping: order.shipping,
+            createDate: order.createDate,
+            notes: order.notes || '',
+            shipping_method: order.shipmentCourier,
+            shippingCharge: order.shippingCharge
+          };
+          return message;
+        } catch (err) {
+          return {
+            errors: [
+              {
+                status: 'fail',
+                name: 'Internal Server Error'
+              }
+            ]
+          };
+        }
       }
     },
     getOrder: {
