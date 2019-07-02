@@ -527,7 +527,9 @@ module.exports = {
               : res
           );
         if (result.hits.total === 0) {
-          throw new MoleculerClientError('Product not found', 404, sku);
+          ctx.meta.$statusMessage = 'Not Found';
+          ctx.meta.$statusCode = 404;
+          return { errors: [{ message: 'Product not found', sku }] };
         }
         const currencyRate = await this.broker.call('currencies.getCurrency', {
           currencyCode: instance.currency
@@ -550,7 +552,9 @@ module.exports = {
           )
         };
       } catch (err) {
-        throw new MoleculerClientError(err.message, 404, sku);
+        ctx.meta.$statusMessage = 'Internal Server Error';
+        ctx.meta.$statusCode = 500;
+        return { errors: [{ message: 'Internal Server Error', sku, code: err.code }] };
       }
     },
 

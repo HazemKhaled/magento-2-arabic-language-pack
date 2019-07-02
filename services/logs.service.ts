@@ -64,7 +64,7 @@ const TheService: ServiceSchema = {
           .then(res => {
             if (res.result === 'created')
               return {
-                status: 'sccuess',
+                status: 'success',
                 message: 'created',
                 id: res._id
               };
@@ -135,7 +135,8 @@ const TheService: ServiceSchema = {
         const query: { bool?: { filter?: Array<{}> } } = { bool: { filter: [] } };
         if (ctx.params.topicId) query.bool.filter.push({ term: { topicId: ctx.params.topicId } });
         if (ctx.params.topic) query.bool.filter.push({ term: { topic: ctx.params.topic } });
-        if (ctx.params.storeId) query.bool.filter.push({ term: { storeId: ctx.params.storeId } });
+        if (ctx.params.storeId)
+          query.bool.filter.push({ term: { 'storeId.keyword': ctx.params.storeId } });
         if (ctx.params.logLevel)
           query.bool.filter.push({ term: { logLevel: ctx.params.logLevel } });
         if (ctx.params.sort) body.sort = { '@timestamp': ctx.params.sort };
@@ -143,16 +144,16 @@ const TheService: ServiceSchema = {
         if (ctx.params.from)
           body.from = parseInt(ctx.params.page, 10) * parseInt(ctx.params.limit, 10);
         body.query = query;
-        this.logger.info(JSON.stringify(body));
         return ctx
           .call('logs.search', {
             index: 'logs-*',
             body
           })
           .then(res => {
+            this.logger.info(res);
             if (res.hits.total > 0)
               return res.hits.hits.map((item: { _source: Log }) => item._source);
-            if (res.hit.total === 0) {
+            if (res.hits.total === 0) {
               ctx.meta.$statusCode = 404;
               ctx.meta.$statusMessage = 'Not Found';
               return {
