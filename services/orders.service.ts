@@ -251,7 +251,7 @@ const TheService: ServiceSchema = {
             return { message: 'Order Not Found!' };
           }
           // Change here
-          if (!['processing', 'pending'].includes(orderBeforeUpdate.status)) {
+          if (!['draft', 'processing', 'pending'].includes(orderBeforeUpdate.status)) {
             return { message: 'The Order Is Now Processed With Knawat You Can Not Update It' };
           }
 
