@@ -24,7 +24,8 @@ const TheService: ServiceSchema = {
         message: { type: 'string' },
         logLevel: { type: 'enum', values: ['info', 'debug', 'error', 'warning'] },
         storeId: { type: 'string', optional: true },
-        topicId: { type: 'string', optional: true }
+        topicId: { type: 'string', optional: true },
+        payload: { type: 'object', optional: true }
         // Remove until it's added to index.d
         // $$strict: true
       },
@@ -49,7 +50,7 @@ const TheService: ServiceSchema = {
         const date = new Date();
         return ctx
           .call('logs.create', {
-            index: `logs-${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`,
+            index: `logsmp-${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`,
             type: '_doc',
             id: uuidv1(),
             body: {
@@ -146,7 +147,7 @@ const TheService: ServiceSchema = {
         body.query = query;
         return ctx
           .call('logs.search', {
-            index: 'logs-*',
+            index: 'logsmp-*',
             body
           })
           .then(res => {
