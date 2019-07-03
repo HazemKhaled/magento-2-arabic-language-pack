@@ -59,7 +59,8 @@ const TheService: ServiceSchema = {
               '@timestamp': new Date(),
               logLevel: ctx.params.logLevel,
               storeId: ctx.params.storeId,
-              message: ctx.params.message
+              message: ctx.params.message,
+              payload: ctx.params.payload
             }
           })
           .then(res => {
