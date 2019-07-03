@@ -258,6 +258,8 @@ const TheService: ServiceSchema = {
           }
 
           const data = ctx.params;
+          if (data.shipping) data.shipping = this.normalizeAddress(data.shipping);
+          if (data.billing) data.billing = this.normalizeAddress(data.billing);
           if (ctx.params.invoice_url) {
             data.externalInvoice = ctx.params.invoice_url;
           }
@@ -418,6 +420,9 @@ const TheService: ServiceSchema = {
           };
           return message;
         } catch (err) {
+          this.logger.info(err);
+          ctx.meta.$statusCode = 500;
+          ctx.meta.$statusMessage = 'Internal Error';
           return {
             errors: [
               {
@@ -670,6 +675,12 @@ const TheService: ServiceSchema = {
           status = 'draft';
       }
       return status;
+    },
+    normalizeAddress(address) {
+      Object.keys(address).forEach(key => {
+        if (address[key] === '' || undefined) delete address[key];
+      });
+      return address;
     }
   }
 };
