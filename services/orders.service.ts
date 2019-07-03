@@ -277,10 +277,10 @@ const TheService: ServiceSchema = {
           } = {};
           let shipment: any = 'No Items';
           // If there is items
+          const instance = await ctx.call('stores.findInstance', {
+            consumerKey: ctx.meta.user
+          });
           if (ctx.params.items) {
-            const instance = await ctx.call('stores.findInstance', {
-              consumerKey: ctx.meta.user
-            });
             // Check the available products and quantities return object with inStock products info
             const stock = await this.stockProducts(data.items);
             // Return warning response if no Item available
@@ -375,15 +375,18 @@ const TheService: ServiceSchema = {
 
           // Update order
           this.logger.info(JSON.stringify(data));
-          const result: OMSResponse = await fetch(`${process.env.OMS_BASEURL}/orders`, {
-            method: 'PUT',
-            body: JSON.stringify(data),
-            headers: {
-              Authorization: `Basic ${this.settings.AUTH}`,
-              'Content-Type': 'application/json',
-              Accept: 'application/json'
+          const result: OMSResponse = await fetch(
+            `${process.env.OMS_BASEURL}/orders/${instance.internal_data.omsId}/${ctx.params.id}`,
+            {
+              method: 'PUT',
+              body: JSON.stringify(data),
+              headers: {
+                Authorization: `Basic ${this.settings.AUTH}`,
+                'Content-Type': 'application/json',
+                Accept: 'application/json'
+              }
             }
-          }).then(createResponse => createResponse.json());
+          ).then(createResponse => createResponse.json());
 
           this.logger.info(JSON.stringify(result), '>>>>>>>>');
           if (!result.order) {
