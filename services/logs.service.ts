@@ -26,8 +26,9 @@ const TheService: ServiceSchema = {
         storeId: { type: 'string', optional: true },
         topicId: { type: 'string', optional: true },
         payload: { type: 'object', optional: true },
-        code: { type: 'number', convert: true, integer: true },
-        $$strict: true
+        code: { type: 'number', convert: true, integer: true }
+        // Remove until it's added to index.d
+        // $$strict: true
       },
       handler(ctx: Context) {
         if (!ctx.params.storeId && !ctx.params.topicId) {
@@ -90,8 +91,9 @@ const TheService: ServiceSchema = {
         storeId: { type: 'string', optional: true },
         topicId: { type: 'string', optional: true },
         limit: { type: 'number', optional: true, min: 1, max: 500, convert: true },
-        page: { type: 'number', optional: true, min: 1, convert: true },
-        $$strict: true
+        page: { type: 'number', optional: true, min: 1, convert: true }
+        // Remove until it's added to index.d
+        // $$strict: true
       },
       handler(ctx: Context) {
         if (!ctx.params.storeId && !ctx.params.topicId) {
