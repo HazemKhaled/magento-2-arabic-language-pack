@@ -4,14 +4,12 @@ import { v1 as uuidv1 } from 'uuid';
 import { OrdersOperations } from '../utilities/mixins/orders.mixin';
 import { OMSResponse, Order, OrderItem } from '../utilities/types/order.type';
 import { Product } from '../utilities/types/product.type';
-import { Rule } from '../utilities/types/shipment.type';
 import { StoreUser } from '../utilities/types/store.type';
 import { Subscription } from '../utilities/types/user.type';
 import {
   createOrderValidation,
   updateOrderValidation
 } from '../utilities/validations/orders.validate';
-import { stat } from 'fs';
 
 const TheService: ServiceSchema = {
   name: 'orders',
