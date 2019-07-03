@@ -11,6 +11,7 @@ import {
   createOrderValidation,
   updateOrderValidation
 } from '../utilities/validations/orders.validate';
+import { stat } from 'fs';
 
 const TheService: ServiceSchema = {
   name: 'orders',
@@ -125,6 +126,9 @@ const TheService: ServiceSchema = {
 
         data.externalId = uuidv1();
         this.logger.info(JSON.stringify(data));
+        data.status = ['pending', 'processing', 'cancelled'].includes(data.status)
+          ? this.normalizeStatus(data.status)
+          : data.status;
         const result: OMSResponse = await fetch(`${process.env.OMS_BASEURL}/orders`, {
           method: 'POST',
           body: JSON.stringify(data),
@@ -251,7 +255,7 @@ const TheService: ServiceSchema = {
             return { message: 'Order Not Found!' };
           }
           // Change here
-          if (!['draft', 'processing', 'pending'].includes(orderBeforeUpdate.status)) {
+          if (!['open', 'draft', 'void'].includes(orderBeforeUpdate.status)) {
             return { message: 'The Order Is Now Processed With Knawat You Can Not Update It' };
           }
 
@@ -366,6 +370,11 @@ const TheService: ServiceSchema = {
               this.logger.error(err);
             }
           }
+          // Convert status
+          data.status = ['pending', 'processing', 'cancelled'].includes(data.status)
+            ? this.normalizeStatus(data.status)
+            : data.status;
+
           // Update order
           this.logger.info(JSON.stringify(data));
           const result: OMSResponse = await fetch(`${process.env.OMS_BASEURL}/orders`, {
@@ -644,6 +653,22 @@ const TheService: ServiceSchema = {
       };
 
       return stateNames[status];
+    },
+    normalizeStatus(status: string) {
+      switch (status) {
+        case 'pending':
+          status = 'draft';
+          break;
+        case 'processing':
+          status = 'open';
+          break;
+        case 'cancelled':
+          status = 'void';
+          break;
+        default:
+          status = 'draft';
+      }
+      return status;
     }
   }
 };

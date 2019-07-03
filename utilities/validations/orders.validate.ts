@@ -1,6 +1,6 @@
 export const createOrderValidation = {
   id: { type: 'string', empty: false, optional: true },
-  status: { type: 'enum', values: ['draft', 'processing', 'cancelled'] },
+  status: { type: 'enum', values: ['draft', 'open', 'void', 'pending', 'processing', 'cancelled'] },
   items: {
     type: 'array',
     items: 'object',
@@ -35,7 +35,7 @@ export const updateOrderValidation = {
   id: { type: 'string', empty: false },
   status: {
     type: 'enum',
-    values: ['draft', 'processing', 'cancelled']
+    values: ['draft', 'open', 'void', 'pending', 'processing', 'cancelled']
   },
   items: {
     type: 'array',
