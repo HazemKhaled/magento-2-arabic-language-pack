@@ -15,7 +15,7 @@ export interface Product {
   sales_qty?: number;
   seller_id?: number;
   source_url?: string;
-  images: string[];
+  images?: string[];
 }
 
 import { Attribute } from '../types';
