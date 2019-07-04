@@ -39,7 +39,14 @@ export const OrdersOperations: ServiceSchema = {
               url: product._source.source_url,
               rate: item.sale,
               purchase_rate: item.cost,
-              vendor_id: product._source.seller_id
+              vendor_id: product._source.seller_id,
+              image: product._source.images[0],
+              weight: item.weight,
+              description: `${item.attributes.reduce(
+                (accumulator, attribute) =>
+                  accumulator.concat(`${attribute.name.tr}: ${attribute.option.tr}\n`),
+                ''
+              )}`
             }))
         )
       );
