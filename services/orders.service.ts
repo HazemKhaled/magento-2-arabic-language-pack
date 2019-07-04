@@ -675,13 +675,13 @@ const TheService: ServiceSchema = {
     normalizeResponseStatus(status: string) {
       switch (status) {
         case 'draft':
-          status = 'pending';
+          status = 'Order Placed';
           break;
         case 'open':
-          status = 'processing';
+          status = 'Processing';
           break;
         case 'void':
-          status = 'cancelled';
+          status = 'Cancelled';
           break;
         default:
           status = status;
