@@ -188,7 +188,7 @@ const TheService: ServiceSchema = {
             createDate: order.createDate,
             notes: order.notes || '',
             shipping_method: order.shipmentCourier,
-            shippingCharge: order.shippingCharge
+            shipping_charge: order.shippingCharge
           }
         };
         const outOfStock = stock.orderItems.filter(
@@ -416,7 +416,7 @@ const TheService: ServiceSchema = {
             createDate: order.createDate,
             notes: order.notes || '',
             shipping_method: order.shipmentCourier,
-            shippingCharge: order.shippingCharge
+            shipping_charge: order.shippingCharge
           };
           return message;
         } catch (err) {
@@ -491,7 +491,9 @@ const TheService: ServiceSchema = {
             order.knawat_status || order.state || order.status
               ? this.getStatusName(order.knawat_status || order.state || order.status)
               : '',
-          notes: order.notes
+          notes: order.notes,
+          shipping_method: order.shipmentCourier,
+          shipping_charge: order.shippingCharge
         };
         if (order.meta_data && order.meta_data.length > 0) {
           order.meta_data.forEach((meta: any) => {
