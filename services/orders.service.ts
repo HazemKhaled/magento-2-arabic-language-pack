@@ -181,7 +181,7 @@ const TheService: ServiceSchema = {
           status: 'success',
           data: {
             id: order.id,
-            status: order.status,
+            status: this.normalizeResponseStatus(order.status),
             items: order.items,
             billing: order.billing,
             shipping: order.shipping,
@@ -409,7 +409,7 @@ const TheService: ServiceSchema = {
           message.status = 'success';
           message.data = {
             id: order.id,
-            status: order.status,
+            status: this.normalizeResponseStatus(order.status),
             items: order.items,
             billing: order.billing,
             shipping: order.shipping,
@@ -481,16 +481,13 @@ const TheService: ServiceSchema = {
         order = order.salesorder;
         const orderResponse: { [key: string]: string } = {
           id: order.id,
-          status: order.status,
+          status: this.normalizeResponseStatus(order.status),
           items: order.items,
           billing: order.billing,
           shipping: order.shipping,
           total: order.total,
           createDate: order.date_created,
-          knawat_order_status:
-            order.knawat_status || order.state || order.status
-              ? this.getStatusName(order.knawat_status || order.state || order.status)
-              : '',
+          knawat_order_status: order.status ? this.normalizeResponseStatus(order.status) : '',
           notes: order.notes,
           shipping_method: order.shipmentCourier,
           shipping_charge: order.shippingCharge
@@ -607,14 +604,11 @@ const TheService: ServiceSchema = {
         }).then(response => response.json());
         return orders.salesorders.map((order: Order) => ({
           id: order.id,
-          status: order.status,
+          status: this.normalizeResponseStatus(order.status),
           createDate: order.createDate,
           updateDate: order.updateDate,
           total: order.total,
-          knawat_order_status:
-            order.knawat_status || order.state || order.status
-              ? this.getStatusName(order.knawat_status || order.state || order.status)
-              : ''
+          knawat_order_status: order.status ? this.normalizeResponseStatus(order.status) : ''
         }));
       }
     }
@@ -675,6 +669,22 @@ const TheService: ServiceSchema = {
           break;
         default:
           status = 'draft';
+      }
+      return status;
+    },
+    normalizeResponseStatus(status: string) {
+      switch (status) {
+        case 'draft':
+          status = 'pending';
+          break;
+        case 'open':
+          status = 'processing';
+          break;
+        case 'void':
+          status = 'cancelled';
+          break;
+        default:
+          status = status;
       }
       return status;
     },
