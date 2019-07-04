@@ -155,7 +155,6 @@ const TheService: ServiceSchema = {
             case 'warn':
               logLevel.push('warn');
           }
-          this.logger.info(logLevel, ctx.params.logLevel);
           query.bool.filter.push({ terms: { logLevel } });
         }
         body.query = query;
@@ -165,7 +164,6 @@ const TheService: ServiceSchema = {
             body
           })
           .then(res => {
-            this.logger.info(res);
             if (res.hits.total > 0)
               return res.hits.hits.map((item: { _source: Log }) => item._source);
             if (res.hits.total === 0) {
