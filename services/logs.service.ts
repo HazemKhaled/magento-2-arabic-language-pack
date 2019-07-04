@@ -51,13 +51,14 @@ const TheService: ServiceSchema = {
         const date = new Date();
         return ctx
           .call('logs.create', {
-            index: `logsmp-${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`,
+            index: `logsmp-${date.getFullYear()}-${date.getMonth() < 9 ? 0 : ''}${date.getMonth() +
+              1}-${date.getDate() < 10 ? 0 : ''}${date.getDate()}`,
             type: '_doc',
             id: uuidv1(),
             body: {
               topic: ctx.params.topic,
               topicId: ctx.params.topicId,
-              '@timestamp': new Date(),
+              '@timestamp': date,
               logLevel: ctx.params.logLevel,
               storeId: ctx.params.storeId,
               message: ctx.params.message,
