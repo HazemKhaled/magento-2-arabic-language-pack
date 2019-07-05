@@ -44,7 +44,10 @@ export const OrdersOperations: ServiceSchema = {
               weight: item.weight,
               description: `${item.attributes.reduce(
                 (accumulator, attribute) =>
-                  accumulator.concat(`${attribute.name.tr}: ${attribute.option.tr}\n`),
+                  accumulator.concat(
+                    `${attribute.name.en || attribute.name.tr}: ${attribute.option.en ||
+                      attribute.option.tr}\n`
+                  ),
                 ''
               )}`
             }))
