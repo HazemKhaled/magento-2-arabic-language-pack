@@ -53,6 +53,14 @@ const TheService: ServiceSchema = {
           !instance.address.country ||
           !instance.address.email
         ) {
+          this.sendLogs({
+            topic: 'order',
+            topicId: data.externalId,
+            message: `No Billing Address Or Address Missing Data. Your order failed!`,
+            storeId: instance.url,
+            logLevel: 'error',
+            code: 428
+          });
           ctx.meta.$statusCode = 428;
           ctx.meta.$statusMessage = 'Missing billing data';
           return {
@@ -78,6 +86,14 @@ const TheService: ServiceSchema = {
         const stock = await this.stockProducts(data.items);
         // Return warning response if no Item available
         if (stock.enoughStock.length === 0) {
+          this.sendLogs({
+            topic: 'order',
+            topicId: data.externalId,
+            message: `The products you ordered is not in-stock, The order has not been created!`,
+            storeId: instance.url,
+            logLevel: 'error',
+            code: 1101
+          });
           ctx.meta.$statusCode = 404;
           ctx.meta.$statusMessage = 'Not Found';
           return {
@@ -104,6 +120,14 @@ const TheService: ServiceSchema = {
         );
 
         if (!shipment) {
+          this.sendLogs({
+            topic: 'order',
+            topicId: data.externalId,
+            message: `Sorry the order is not created as there is no shipment method to your country!`,
+            storeId: instance.url,
+            logLevel: 'error',
+            code: 400
+          });
           ctx.meta.$statusCode = 400;
           ctx.meta.$statusMessage = 'Not Found';
           return {
@@ -153,7 +177,16 @@ const TheService: ServiceSchema = {
         }).then(createResponse => createResponse.json());
 
         this.logger.info(JSON.stringify(result));
-        if (!result.order) {
+        if (!result.salesorder) {
+          this.sendLogs({
+            topic: 'order',
+            topicId: data.externalId,
+            message: `Internal Server Error`,
+            storeId: instance.url,
+            logLevel: 'error',
+            code: 500,
+            payload: { errors: result }
+          });
           ctx.meta.$statusCode = 500;
           ctx.meta.$statusMessage = 'Internal Error';
           return {
@@ -165,11 +198,11 @@ const TheService: ServiceSchema = {
             ]
           };
         }
-        if (result.order && (!instance.internal_data || !instance.internal_data.omsId)) {
+        if (result.salesorder && (!instance.internal_data || !instance.internal_data.omsId)) {
           ctx.call('stores.update', {
             id: instance.url,
             internal_data: {
-              omsId: result.order.store.id
+              omsId: result.salesorder.store.id
             }
           });
         }
@@ -186,10 +219,10 @@ const TheService: ServiceSchema = {
         });
 
         /* Prepare the response message in case of success or warnings */
-        const order = result.order;
+        const order = result.salesorder;
         const message: {
           status?: string;
-          data?: OMSResponse['order'] | any; // Remove any after
+          data?: OMSResponse['salesorder'] | any; // Remove any after
           warnings?: Array<{}>;
           errors?: Array<{}>;
         } = {
@@ -216,18 +249,36 @@ const TheService: ServiceSchema = {
         // Initializing warnings array if we have a Warning
         if (outOfStock.length > 0 || notEnoughStock.length > 0) message.warnings = [];
         try {
-          if (outOfStock.length > 0)
+          if (outOfStock.length > 0) {
             message.warnings.push({
               message: `This items are out of stock ${outOfStock}`,
               skus: outOfStock,
               code: 1102
             });
-          if (notEnoughStock.length > 0)
+            this.sendLogs({
+              topic: 'order',
+              topicId: data.externalId,
+              message: `This items are out of stock ${outOfStock}`,
+              storeId: instance.url,
+              logLevel: 'warn',
+              code: 1102
+            });
+          }
+          if (notEnoughStock.length > 0) {
             message.warnings.push({
               message: `This items quantities are not enough stock ${outOfStock}`,
               skus: notEnoughStock,
               code: 1103
             });
+            this.sendLogs({
+              topic: 'order',
+              topicId: data.externalId,
+              message: `This items quantities are not enough stock ${outOfStock}`,
+              storeId: instance.url,
+              logLevel: 'warn',
+              code: 1103
+            });
+          }
           if (
             (!instance.shipping_methods || !instance.shipping_methods[0].name) &&
             !ctx.params.shipping_method
@@ -235,6 +286,15 @@ const TheService: ServiceSchema = {
             message.warnings.push({
               message: `There is no default shipping method for your store, It’ll be shipped with ${shipment.courier ||
                 'PTT'}, Contact our customer support for more info`,
+              code: 2102
+            });
+            this.sendLogs({
+              topic: 'order',
+              topicId: data.externalId,
+              message: `There is no default shipping method for your store, It’ll be shipped with ${shipment.courier ||
+                'PTT'}`,
+              storeId: instance.url,
+              logLevel: 'warn',
               code: 2102
             });
           }
@@ -251,6 +311,17 @@ const TheService: ServiceSchema = {
                 'PTT'}, Contact our customer support for more info`,
               code: 2101
             });
+            this.sendLogs({
+              topic: 'order',
+              topicId: data.externalId,
+              message: `Can’t ship to ${
+                ctx.params.shipping.country
+              } with provided courier, It’ll be shipped with ${shipment.courier ||
+                'PTT'}, Contact our customer support for more info`,
+              storeId: instance.url,
+              logLevel: 'warn',
+              code: 2101
+            });
           }
         } catch (err) {
           this.logger.error(err);
@@ -262,45 +333,54 @@ const TheService: ServiceSchema = {
       auth: 'Bearer',
       params: updateOrderValidation,
       async handler(ctx) {
-        try {
-          const orderBeforeUpdate = await ctx.call('orders.getOrder', { order_id: ctx.params.id });
-          if (orderBeforeUpdate.id === -1) {
-            return { message: 'Order Not Found!' };
-          }
-          // Change here
-          if (!['open', 'draft', 'void'].includes(orderBeforeUpdate.status)) {
-            return { message: 'The Order Is Now Processed With Knawat You Can Not Update It' };
-          }
+        const orderBeforeUpdate = await ctx.call('orders.getOrder', { order_id: ctx.params.id });
+        if (orderBeforeUpdate.id === -1) {
+          return { message: 'Order Not Found!' };
+        }
+        // Change here
+        if (!['open', 'draft', 'void'].includes(orderBeforeUpdate.status)) {
+          return { message: 'The Order Is Now Processed With Knawat You Can Not Update It' };
+        }
 
-          const data = ctx.params;
-          if (data.shipping) data.shipping = this.normalizeAddress(data.shipping);
-          if (data.billing) data.billing = this.normalizeAddress(data.billing);
-          if (ctx.params.invoice_url) data.externalInvoice = ctx.params.invoice_url;
+        const data = ctx.params;
+        if (data.shipping) data.shipping = this.normalizeAddress(data.shipping);
+        if (data.billing) data.billing = this.normalizeAddress(data.billing);
+        if (ctx.params.invoice_url) data.externalInvoice = ctx.params.invoice_url;
 
-          // Change
-          if (data.status === 'cancelled') {
-            return ctx.call('orders.delete', { id: data.id }).then(res => {
-              this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
-              return res;
-            });
-          }
-
-          const message: {
-            status?: string;
-            data?: OMSResponse['order'] | any; // Remove any after
-            warnings?: Array<{}>;
-            errors?: Array<{}>;
-          } = {};
-          let shipment: any = 'No Items';
-          // If there is items
-          const instance = await ctx.call('stores.findInstance', {
-            consumerKey: ctx.meta.user
+        // Change
+        if (data.status === 'cancelled') {
+          return ctx.call('orders.delete', { id: data.id }).then(res => {
+            this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
+            return res;
           });
+        }
+
+        const message: {
+          status?: string;
+          data?: OMSResponse['salesorder'] | any; // Remove any after
+          warnings?: Array<{}>;
+          errors?: Array<{}>;
+        } = {};
+        let shipment: any = 'No Items';
+        // If there is items
+        const instance = await ctx.call('stores.findInstance', {
+          consumerKey: ctx.meta.user
+        });
+
+        try {
           if (ctx.params.items) {
             // Check the available products and quantities return object with inStock products info
             const stock = await this.stockProducts(data.items);
-            // Return warning response if no Item available
+            // Return error response if no Item available
             if (stock.enoughStock.length === 0) {
+              this.sendLogs({
+                topic: 'order',
+                topicId: orderBeforeUpdate.externalId,
+                message: `The products you ordered is not in-stock, The order has not been created!`,
+                storeId: instance.url,
+                logLevel: 'error',
+                code: 1101
+              });
               ctx.meta.$statusCode = 404;
               ctx.meta.$statusMessage = 'Not Found';
               return {
@@ -344,22 +424,49 @@ const TheService: ServiceSchema = {
             // Initializing warnings array if we have a Warning
             if (outOfStock.length > 0 || notEnoughStock.length > 0) message.warnings = [];
             try {
-              if (outOfStock.length > 0)
+              if (outOfStock.length > 0) {
+                this.sendLogs({
+                  topic: 'order',
+                  topicId: orderBeforeUpdate.externalId,
+                  message: `This items are out of stock ${outOfStock}`,
+                  storeId: instance.url,
+                  logLevel: 'warn',
+                  code: 1102
+                });
                 message.warnings.push({
                   message: `This items are out of stock ${outOfStock}`,
                   skus: outOfStock,
                   code: 1102
                 });
-              if (notEnoughStock.length > 0)
+              }
+              if (notEnoughStock.length > 0) {
+                this.sendLogs({
+                  topic: 'order',
+                  topicId: orderBeforeUpdate.externalId,
+                  message: `This items quantities are not enough stock ${outOfStock}`,
+                  storeId: instance.url,
+                  logLevel: 'warn',
+                  code: 1103
+                });
                 message.warnings.push({
                   message: `This items quantities are not enough stock ${outOfStock}`,
                   skus: notEnoughStock,
                   code: 1103
                 });
+              }
               if (
                 (!instance.shipping_methods || !instance.shipping_methods[0].name) &&
                 !ctx.params.shipping_method
               ) {
+                this.sendLogs({
+                  topic: 'order',
+                  topicId: orderBeforeUpdate.externalId,
+                  message: `There is no default shipping method for your store, It’ll be shipped with ${shipment.courier ||
+                    'PTT'}, Contact our customer support for more info`,
+                  storeId: instance.url,
+                  logLevel: 'warn',
+                  code: 2102
+                });
                 message.warnings.push({
                   message: `There is no default shipping method for your store, It’ll be shipped with ${shipment.courier ||
                     'PTT'}, Contact our customer support for more info`,
@@ -372,6 +479,17 @@ const TheService: ServiceSchema = {
                   instance.shipping_methods[0].name &&
                   shipment.courier !== instance.shipping_methods[0].name)
               ) {
+                this.sendLogs({
+                  topic: 'order',
+                  topicId: orderBeforeUpdate.externalId,
+                  message: `Can’t ship to ${
+                    ctx.params.shipping.country
+                  } with provided courier, It’ll be shipped with ${shipment.courier ||
+                    'PTT'}, Contact our customer support for more info`,
+                  storeId: instance.url,
+                  logLevel: 'warn',
+                  code: 2101
+                });
                 message.warnings.push({
                   message: `Can’t ship to ${
                     ctx.params.shipping.country
@@ -405,7 +523,16 @@ const TheService: ServiceSchema = {
           ).then(createResponse => createResponse.json());
 
           this.logger.info(JSON.stringify(result), '>>>>>>>>');
-          if (!result.order) {
+          if (!result.salesorder) {
+            this.sendLogs({
+              topic: 'order',
+              topicId: orderBeforeUpdate.externalId,
+              message: `Internal Server Error`,
+              storeId: instance.url,
+              logLevel: 'error',
+              code: 500,
+              payload: { errors: result }
+            });
             ctx.meta.$statusCode = 500;
             ctx.meta.$statusMessage = 'Internal Error';
             return {
@@ -417,7 +544,7 @@ const TheService: ServiceSchema = {
               ]
             };
           }
-          const order = result.order;
+          const order = result.salesorder;
           this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
 
           message.status = 'success';
@@ -435,6 +562,15 @@ const TheService: ServiceSchema = {
           return message;
         } catch (err) {
           this.logger.info(err);
+          this.sendLogs({
+            topic: 'order',
+            topicId: orderBeforeUpdate.externalId,
+            message: `Internal Server Error`,
+            storeId: instance.url,
+            logLevel: 'error',
+            code: 500,
+            payload: { errors: err }
+          });
           ctx.meta.$statusCode = 500;
           ctx.meta.$statusMessage = 'Internal Error';
           return {
@@ -709,7 +845,7 @@ const TheService: ServiceSchema = {
       return address;
     },
     sendLogs({ topic, topicId, message, storeId, logLevel, code, payload }) {
-      const body = JSON.stringify({
+      const body = {
         topic,
         topicId: JSON.stringify(topicId),
         message,
@@ -717,15 +853,8 @@ const TheService: ServiceSchema = {
         logLevel,
         code,
         payload
-      });
-      fetch(`${process.env.MP_BASEURL}/logs`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Basic ${Buffer.from(process.env.APP_AUTH).toString('base64')}`,
-          'Content-Type': 'application/json'
-        },
-        body
-      }).then(res => res.json());
+      };
+      return this.broker.call('logs.add', { ...body });
     }
   }
 };

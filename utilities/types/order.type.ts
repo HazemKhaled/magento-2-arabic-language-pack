@@ -54,7 +54,7 @@ export interface OrderItem {
  * @interface OMSResponse
  */
 export interface OMSResponse {
-  order: {
+  salesorder: {
     id?: string;
     store?: {
       id: string;
