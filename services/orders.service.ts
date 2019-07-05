@@ -85,7 +85,7 @@ const TheService: ServiceSchema = {
         // Check the available products and quantities return object with inStock products info
         const stock = await this.stockProducts(data.items);
         // Return warning response if no Item available
-        if (stock.enoughStock.length === 0) {
+        if (stock.items.length === 0) {
           this.sendLogs({
             topic: 'order',
             topicId: data.externalId,
@@ -246,85 +246,17 @@ const TheService: ServiceSchema = {
         );
 
         // Initializing warnings array if we have a Warning
-        if (outOfStock.length > 0 || notEnoughStock.length > 0) message.warnings = [];
-        try {
-          if (outOfStock.length > 0) {
-            message.warnings.push({
-              message: `This items are out of stock ${outOfStock}`,
-              skus: outOfStock,
-              code: 1102
-            });
-            this.sendLogs({
-              topic: 'order',
-              topicId: data.externalId,
-              message: `This items are out of stock ${outOfStock}`,
-              storeId: instance.url,
-              logLevel: 'warn',
-              code: 1102
-            });
-          }
-          if (notEnoughStock.length > 0) {
-            message.warnings.push({
-              message: `This items quantities are not enough stock ${outOfStock}`,
-              skus: notEnoughStock,
-              code: 1103
-            });
-            this.sendLogs({
-              topic: 'order',
-              topicId: data.externalId,
-              message: `This items quantities are not enough stock ${outOfStock}`,
-              storeId: instance.url,
-              logLevel: 'warn',
-              code: 1103
-            });
-          }
-          if (
-            (!instance.shipping_methods || !instance.shipping_methods[0].name) &&
-            !ctx.params.shipping_method
-          ) {
-            message.warnings.push({
-              message: `There is no default shipping method for your store, It’ll be shipped with ${shipment.courier ||
-                'PTT'}, Contact our customer support for more info`,
-              code: 2102
-            });
-            this.sendLogs({
-              topic: 'order',
-              topicId: data.externalId,
-              message: `There is no default shipping method for your store, It’ll be shipped with ${shipment.courier ||
-                'PTT'}`,
-              storeId: instance.url,
-              logLevel: 'warn',
-              code: 2102
-            });
-          }
-          if (
-            (shipment.courier !== ctx.params.shipping_method && ctx.params.shipping_method) ||
-            (instance.shipping_methods &&
-              instance.shipping_methods[0].name &&
-              shipment.courier !== instance.shipping_methods[0].name)
-          ) {
-            message.warnings.push({
-              message: `Can’t ship to ${
-                ctx.params.shipping.country
-              } with provided courier, It’ll be shipped with ${shipment.courier ||
-                'PTT'}, Contact our customer support for more info`,
-              code: 2101
-            });
-            this.sendLogs({
-              topic: 'order',
-              topicId: data.externalId,
-              message: `Can’t ship to ${
-                ctx.params.shipping.country
-              } with provided courier, It’ll be shipped with ${shipment.courier ||
-                'PTT'}, Contact our customer support for more info`,
-              storeId: instance.url,
-              logLevel: 'warn',
-              code: 2101
-            });
-          }
-        } catch (err) {
-          this.logger.error(err);
-        }
+        const warnings = this.warningsMessenger(
+          outOfStock,
+          notEnoughStock,
+          data,
+          instance,
+          ctx.params.shipping_method,
+          ctx.params.shipping,
+          shipment
+        );
+        if (warnings.length > 0) message.warnings = warnings;
+
         return message;
       }
     },
@@ -421,85 +353,16 @@ const TheService: ServiceSchema = {
             );
 
             // Initializing warnings array if we have a Warning
-            if (outOfStock.length > 0 || notEnoughStock.length > 0) message.warnings = [];
-            try {
-              if (outOfStock.length > 0) {
-                this.sendLogs({
-                  topic: 'order',
-                  topicId: orderBeforeUpdate.externalId,
-                  message: `This items are out of stock ${outOfStock}`,
-                  storeId: instance.url,
-                  logLevel: 'warn',
-                  code: 1102
-                });
-                message.warnings.push({
-                  message: `This items are out of stock ${outOfStock}`,
-                  skus: outOfStock,
-                  code: 1102
-                });
-              }
-              if (notEnoughStock.length > 0) {
-                this.sendLogs({
-                  topic: 'order',
-                  topicId: orderBeforeUpdate.externalId,
-                  message: `This items quantities are not enough stock ${outOfStock}`,
-                  storeId: instance.url,
-                  logLevel: 'warn',
-                  code: 1103
-                });
-                message.warnings.push({
-                  message: `This items quantities are not enough stock ${outOfStock}`,
-                  skus: notEnoughStock,
-                  code: 1103
-                });
-              }
-              if (
-                (!instance.shipping_methods || !instance.shipping_methods[0].name) &&
-                !ctx.params.shipping_method
-              ) {
-                this.sendLogs({
-                  topic: 'order',
-                  topicId: orderBeforeUpdate.externalId,
-                  message: `There is no default shipping method for your store, It’ll be shipped with ${shipment.courier ||
-                    'PTT'}, Contact our customer support for more info`,
-                  storeId: instance.url,
-                  logLevel: 'warn',
-                  code: 2102
-                });
-                message.warnings.push({
-                  message: `There is no default shipping method for your store, It’ll be shipped with ${shipment.courier ||
-                    'PTT'}, Contact our customer support for more info`,
-                  code: 2102
-                });
-              }
-              if (
-                (shipment.courier !== ctx.params.shipping_method && ctx.params.shipping_method) ||
-                (instance.shipping_methods &&
-                  instance.shipping_methods[0].name &&
-                  shipment.courier !== instance.shipping_methods[0].name)
-              ) {
-                this.sendLogs({
-                  topic: 'order',
-                  topicId: orderBeforeUpdate.externalId,
-                  message: `Can’t ship to ${
-                    ctx.params.shipping.country
-                  } with provided courier, It’ll be shipped with ${shipment.courier ||
-                    'PTT'}, Contact our customer support for more info`,
-                  storeId: instance.url,
-                  logLevel: 'warn',
-                  code: 2101
-                });
-                message.warnings.push({
-                  message: `Can’t ship to ${
-                    ctx.params.shipping.country
-                  } with provided courier, It’ll be shipped with ${shipment.courier ||
-                    'PTT'}, Contact our customer support for more info`,
-                  code: 2101
-                });
-              }
-            } catch (err) {
-              this.logger.error(err);
-            }
+            const warnings = this.warningsMessenger(
+              outOfStock,
+              notEnoughStock,
+              data,
+              instance,
+              ctx.params.shipping_method,
+              ctx.params.shipping,
+              shipment
+            );
+            if (warnings.length > 0) message.warnings = warnings;
           }
           // Convert status
           data.status = ['pending', 'processing', 'cancelled'].includes(data.status)
@@ -760,6 +623,79 @@ const TheService: ServiceSchema = {
           knawat_order_status: order.status ? this.normalizeResponseStatus(order.status) : ''
         }));
       }
+    },
+    deleteOrder: {
+      auth: 'Bearer',
+      params: {
+        id: { type: 'string', convert: true }
+      },
+      async handler(ctx) {
+        const instance = await ctx.call('stores.findInstance', {
+          consumerKey: ctx.meta.user
+        });
+        return fetch(
+          `${process.env.OMS_BASEURL}/orders/${instance.internal_data.omsId}/${ctx.params.id}`,
+          {
+            method: 'delete',
+            headers: {
+              Authorization: `Basic ${this.settings.AUTH}`
+            }
+          }
+        )
+          .then(async response => {
+            const result = await response.json();
+            this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
+            if (result.salesorder) {
+              return {
+                status: 'success',
+                data: {
+                  order_id: ctx.params.id
+                }
+              };
+            }
+            this.logger.info(result);
+            this.sendLogs({
+              topic: 'order',
+              topicId: ctx.params.id,
+              message: `Internal Server Error`,
+              storeId: instance.url,
+              logLevel: 'error',
+              code: 500,
+              payload: { errors: result }
+            });
+            ctx.meta.$statusCode = 500;
+            ctx.meta.$statusMessage = 'Internal Error';
+            return {
+              errors: [
+                {
+                  status: 'fail',
+                  name: 'Internal Server Error'
+                }
+              ]
+            };
+          })
+          .catch(err => {
+            this.sendLogs({
+              topic: 'order',
+              topicId: ctx.params.id,
+              message: `Internal Server Error`,
+              storeId: instance.url,
+              logLevel: 'error',
+              code: 500,
+              payload: { errors: err }
+            });
+            ctx.meta.$statusCode = 500;
+            ctx.meta.$statusMessage = 'Internal Error';
+            return {
+              errors: [
+                {
+                  status: 'fail',
+                  name: 'Internal Server Error'
+                }
+              ]
+            };
+          });
+      }
     }
   },
   methods: {
@@ -854,6 +790,93 @@ const TheService: ServiceSchema = {
         payload
       };
       return this.broker.call('logs.add', { ...body });
+    },
+    warningsMessenger(
+      outOfStock,
+      notEnoughStock,
+      data,
+      instance,
+      shippingMethod,
+      shipping,
+      shipment
+    ) {
+      const warnings = [];
+      try {
+        if (outOfStock.length > 0) {
+          warnings.push({
+            message: `This items are out of stock ${outOfStock}`,
+            skus: outOfStock,
+            code: 1102
+          });
+          this.sendLogs({
+            topic: 'order',
+            topicId: data.externalId,
+            message: `This items are out of stock ${outOfStock}`,
+            storeId: instance.url,
+            logLevel: 'warn',
+            code: 1102
+          });
+        }
+        if (notEnoughStock.length > 0) {
+          warnings.push({
+            message: `This items quantities are not enough stock ${outOfStock}`,
+            skus: notEnoughStock,
+            code: 1103
+          });
+          this.sendLogs({
+            topic: 'order',
+            topicId: data.externalId,
+            message: `This items quantities are not enough stock ${outOfStock}`,
+            storeId: instance.url,
+            logLevel: 'warn',
+            code: 1103
+          });
+        }
+        if ((!instance.shipping_methods || !instance.shipping_methods[0].name) && !shippingMethod) {
+          warnings.push({
+            message: `There is no default shipping method for your store, It’ll be shipped with ${shipment.courier ||
+              'PTT'}, Contact our customer support for more info`,
+            code: 2102
+          });
+          this.sendLogs({
+            topic: 'order',
+            topicId: data.externalId,
+            message: `There is no default shipping method for your store, It’ll be shipped with ${shipment.courier ||
+              'PTT'}`,
+            storeId: instance.url,
+            logLevel: 'warn',
+            code: 2102
+          });
+        }
+        if (
+          (shipment.courier !== shippingMethod && shippingMethod) ||
+          (instance.shipping_methods &&
+            instance.shipping_methods[0].name &&
+            shipment.courier !== instance.shipping_methods[0].name)
+        ) {
+          warnings.push({
+            message: `Can’t ship to ${
+              shipping.country
+            } with provided courier, It’ll be shipped with ${shipment.courier ||
+              'PTT'}, Contact our customer support for more info`,
+            code: 2101
+          });
+          this.sendLogs({
+            topic: 'order',
+            topicId: data.externalId,
+            message: `Can’t ship to ${
+              shipping.country
+            } with provided courier, It’ll be shipped with ${shipment.courier ||
+              'PTT'}, Contact our customer support for more info`,
+            storeId: instance.url,
+            logLevel: 'warn',
+            code: 2101
+          });
+        }
+      } catch (err) {
+        this.logger.error(err);
+      }
+      return warnings;
     }
   }
 };
