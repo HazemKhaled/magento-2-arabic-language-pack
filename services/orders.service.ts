@@ -15,24 +15,36 @@ const TheService: ServiceSchema = {
   name: 'orders',
   mixins: [OrdersOperations],
   settings: {
-    AUTH: Buffer.from(`${process.env.BASIC_USER}:${process.env.BASIC_PASS}`).toString('base64')
+    AUTH: Buffer.from(`${process.env.BASIC_USER}:${process.env.BASIC_PASS}`).toString('base64'),
+    BASEURL:
+      process.env.NODE_ENV === 'production'
+        ? 'https://mp.knawat.io/api'
+        : 'https://dev.mp.knawat.io/api'
   },
   actions: {
     createOrder: {
       auth: 'Bearer',
       params: createOrderValidation,
       async handler(ctx: Context) {
+        // TODO it should be assigned directly to data
         ctx.params.externalId = uuidv1();
         if (ctx.params.shipping.company === 'ebay') ctx.params.externalId = ctx.params.id;
 
+        // TODO this assignment should be changed to specific fields (Sanitize inputs)
         const data = ctx.params;
-        data.externalInvoice = 'https://www.example.com';
-        if (ctx.params.invoice_url) {
-          data.externalInvoice = ctx.params.invoice_url;
-        }
+
+        // Add externalInvoice url
+        data.externalInvoice =
+          ctx.params.invoice_url ||
+          `${this.settings.BASEURL}/invoice/external/${ctx.params.externalId}`;
+
+        // Get the Store instance
         const instance = await ctx.call('stores.findInstance', {
           consumerKey: ctx.meta.user
         });
+
+        // Check required store info. availability
+        // TODO change to method...
         if (
           !instance.address ||
           !instance.address.first_name ||
@@ -55,10 +67,13 @@ const TheService: ServiceSchema = {
             ]
           };
         }
+
+        // Order store data
         data.store =
           instance.internal_data && instance.internal_data.omsId
             ? { id: instance.internal_data.omsId }
             : { url: instance.url, name: instance.name };
+
         // Check the available products and quantities return object with inStock products info
         const stock = await this.stockProducts(data.items);
         // Return warning response if no Item available
@@ -123,10 +138,10 @@ const TheService: ServiceSchema = {
         data.billing = { ...instance.address };
 
         data.externalId = uuidv1();
-        this.logger.info(JSON.stringify(data));
         data.status = ['pending', 'processing', 'cancelled'].includes(data.status)
           ? this.normalizeStatus(data.status)
           : data.status;
+        this.logger.info(JSON.stringify(data));
         const result: OMSResponse = await fetch(`${process.env.OMS_BASEURL}/orders`, {
           method: 'POST',
           body: JSON.stringify(data),
@@ -260,16 +275,15 @@ const TheService: ServiceSchema = {
           const data = ctx.params;
           if (data.shipping) data.shipping = this.normalizeAddress(data.shipping);
           if (data.billing) data.billing = this.normalizeAddress(data.billing);
-          if (ctx.params.invoice_url) {
-            data.externalInvoice = ctx.params.invoice_url;
-          }
+          if (ctx.params.invoice_url) data.externalInvoice = ctx.params.invoice_url;
 
           // Change
-          if (data.status === 'cancelled')
+          if (data.status === 'cancelled') {
             return ctx.call('orders.delete', { id: data.id }).then(res => {
               this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
               return res;
             });
+          }
 
           const message: {
             status?: string;
@@ -693,6 +707,25 @@ const TheService: ServiceSchema = {
         if (address[key] === '' || undefined) delete address[key];
       });
       return address;
+    },
+    sendLogs({ topic, topicId, message, storeId, logLevel, code, payload }) {
+      const body = JSON.stringify({
+        topic,
+        topicId: JSON.stringify(topicId),
+        message,
+        storeId,
+        logLevel,
+        code,
+        payload
+      });
+      fetch(`${process.env.MP_BASEURL}/logs`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Basic ${Buffer.from(process.env.APP_AUTH).toString('base64')}`,
+          'Content-Type': 'application/json'
+        },
+        body
+      }).then(res => res.json());
     }
   }
 };
