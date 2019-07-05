@@ -75,22 +75,16 @@ export const OrdersOperations: ServiceSchema = {
      * @returns {Rule | false}
      */
     async shipment(
-      products: Array<{ _source: Product }>,
-      enoughStock: OrderItem[],
+      items: OrderItem[],
       country: string,
       instance: Store,
       providedMethod: string | boolean = false
     ): Promise<Rule | boolean> {
-      let shipmentWeight = 0;
-      products.forEach(
-        product =>
-          (shipmentWeight = product._source.variations
-            .filter(variation => enoughStock.map(i => i.sku).includes(variation.sku))
-            .reduce(
-              (previous, current) => (previous = previous + current.weight * current.quantity),
-              0
-            ))
-      );
+      const shipmentWeight =
+        items.reduce(
+          (accumulator, item) => (accumulator = accumulator + item.weight * item.quantity),
+          0
+        ) * 1000;
       const shipmentRules = await this.broker
         .call('shipment.ruleByCountry', {
           country,

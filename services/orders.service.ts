@@ -112,8 +112,7 @@ const TheService: ServiceSchema = {
         data.items = stock.items;
         // Shipping
         const shipment = await this.shipment(
-          stock.products,
-          stock.enoughStock,
+          stock.items,
           ctx.params.shipping.country,
           instance,
           ctx.params.shipping_method

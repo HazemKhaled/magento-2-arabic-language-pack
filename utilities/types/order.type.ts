@@ -45,6 +45,7 @@ export interface OrderItem {
   discount?: string;
   discountAmount?: number;
   total?: number;
+  weight?: number;
 }
 
 /**
