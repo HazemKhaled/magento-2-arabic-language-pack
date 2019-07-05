@@ -35,7 +35,8 @@ export const updateOrderValidation = {
   id: { type: 'string', empty: false },
   status: {
     type: 'enum',
-    values: ['draft', 'open', 'void', 'pending', 'processing', 'cancelled']
+    values: ['draft', 'open', 'void', 'pending', 'processing', 'cancelled'],
+    optional: true
   },
   items: {
     type: 'array',
