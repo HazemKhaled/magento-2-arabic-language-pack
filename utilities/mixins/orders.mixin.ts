@@ -43,10 +43,10 @@ export const OrdersOperations: ServiceSchema = {
               image: product._source.images[0],
               weight: item.weight,
               description: `${item.attributes.reduce(
-                (accumulator, attribute) =>
+                (accumulator, attribute, n) =>
                   accumulator.concat(
-                    `${attribute.name.en || attribute.name.tr}: ${attribute.option.en ||
-                      attribute.option.tr}\n`
+                    `${n > 0 ? `\n` : ``}${attribute.name.en || attribute.name.tr}: ${attribute
+                      .option.en || attribute.option.tr}`
                   ),
                 ''
               )}`
