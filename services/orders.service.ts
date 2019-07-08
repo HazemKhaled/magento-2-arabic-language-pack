@@ -192,7 +192,7 @@ const TheService: ServiceSchema = {
             errors: [
               {
                 status: 'fail',
-                name: 'Internal Server Error'
+                message: 'Internal Server Error'
               }
             ]
           };
@@ -402,7 +402,7 @@ const TheService: ServiceSchema = {
               errors: [
                 {
                   status: 'fail',
-                  name: 'Internal Server Error'
+                  message: 'Internal Server Error'
                 }
               ]
             };
@@ -440,7 +440,7 @@ const TheService: ServiceSchema = {
             errors: [
               {
                 status: 'fail',
-                name: 'Internal Server Error'
+                message: 'Internal Server Error'
               }
             ]
           };
@@ -670,7 +670,7 @@ const TheService: ServiceSchema = {
               errors: [
                 {
                   status: 'fail',
-                  name: 'Internal Server Error'
+                  message: 'Internal Server Error'
                 }
               ]
             };
@@ -691,7 +691,7 @@ const TheService: ServiceSchema = {
               errors: [
                 {
                   status: 'fail',
-                  name: 'Internal Server Error'
+                  message: 'Internal Server Error'
                 }
               ]
             };
