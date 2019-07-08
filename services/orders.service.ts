@@ -278,8 +278,9 @@ const TheService: ServiceSchema = {
         if (data.billing) data.billing = this.normalizeAddress(data.billing);
         if (ctx.params.invoice_url) data.externalInvoice = ctx.params.invoice_url;
 
+        data.status = this.normalizeUpdateRequestStatus(data.status);
         // Change
-        if (data.status === 'cancelled') {
+        if (data.status === 'cancelled' || data.status === 'void') {
           return ctx.call('orders.delete', { id: data.id }).then(res => {
             this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
             return res;
@@ -645,6 +646,7 @@ const TheService: ServiceSchema = {
           .then(async response => {
             const result = await response.json();
             this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
+            this.logger.info(result);
             if (result.salesorder) {
               return {
                 status: 'success',
@@ -653,7 +655,6 @@ const TheService: ServiceSchema = {
                 }
               };
             }
-            this.logger.info(result);
             this.sendLogs({
               topic: 'order',
               topicId: ctx.params.id,
@@ -767,6 +768,22 @@ const TheService: ServiceSchema = {
           break;
         case 'void':
           status = 'Cancelled';
+          break;
+        default:
+          status = status;
+      }
+      return status;
+    },
+    normalizeUpdateRequestStatus(status) {
+      switch (status) {
+        case 'Order Placed':
+          status = 'draft';
+          break;
+        case 'Processing':
+          status = 'open';
+          break;
+        case 'Cancelled':
+          status = 'void';
           break;
         default:
           status = status;
