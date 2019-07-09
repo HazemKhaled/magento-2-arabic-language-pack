@@ -1,6 +1,5 @@
 const { MoleculerClientError } = require('moleculer').Errors;
 const ESService = require('moleculer-elasticsearch');
-const { AgileCRM } = require('../utilities/mixins/agilecrm.mixin');
 const { ProductTransformation } = require('../utilities/mixins/product-transformation.mixin');
 
 module.exports = {
@@ -864,23 +863,6 @@ module.exports = {
             ]
           };
         });
-    }
-  },
-
-  events: {
-    // Subscribe 'list.afterRemote' which will get emit after list action called.
-    'list.afterRemote': {
-      async handler(payload) {
-        if (payload.meta && payload.meta.user) {
-          const instance = await this.broker.call('stores.findInstance', {
-            consumerKey: payload.meta.user
-          });
-          const [myUser] = instance.users.filter(user => user.roles.includes('owner'));
-          if (instance && myUser) {
-            this.updateLastSyncDate(myUser.email);
-          }
-        }
-      }
     }
   }
 };
