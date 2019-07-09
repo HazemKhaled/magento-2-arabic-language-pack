@@ -3,7 +3,6 @@ import { Context, Errors, ServiceSchema } from 'moleculer';
 import * as Cron from 'moleculer-cron';
 import ESService, { SearchResponse } from 'moleculer-elasticsearch';
 
-import { AgileCRM } from '../utilities/mixins/agilecrm.mixin';
 import DbService from '../utilities/mixins/db.mixin';
 import { Product } from '../utilities/types';
 
@@ -32,7 +31,7 @@ const TheService: ServiceSchema = {
   /**
    * Service Mixins
    */
-  mixins: [DbService('elastic-update'), Cron, ESService, AgileCRM],
+  mixins: [DbService('elastic-update'), Cron, ESService],
 
   /**
    * Service settings
