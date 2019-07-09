@@ -526,8 +526,8 @@ module.exports = {
               : res
           );
         if (result.hits.total === 0) {
-          ctx.meta.$statusMessage = 'Not Found';
-          ctx.meta.$statusCode = 404;
+          // ctx.meta.$statusMessage = 'Not Found';
+          // ctx.meta.$statusCode = 404;
           return { errors: [{ message: 'Product not found', sku }] };
         }
         const currencyRate = await this.broker.call('currencies.getCurrency', {
@@ -551,8 +551,8 @@ module.exports = {
           )
         };
       } catch (err) {
-        ctx.meta.$statusMessage = 'Internal Server Error';
-        ctx.meta.$statusCode = 500;
+        // ctx.meta.$statusMessage = 'Internal Server Error';
+        // ctx.meta.$statusCode = 500;
         return { errors: [{ message: 'Internal Server Error', sku, code: err.code }] };
       }
     },
@@ -842,8 +842,8 @@ module.exports = {
               message: 'Product has been deleted.',
               sku: sku
             };
-          ctx.meta.$statusCode = 404;
-          ctx.meta.$statusMessage = 'Not Found';
+          // ctx.meta.$statusCode = 404;
+          // ctx.meta.$statusMessage = 'Not Found';
           return {
             errors: [
               {
@@ -853,8 +853,8 @@ module.exports = {
           };
         })
         .catch(() => {
-          ctx.meta.$statusCode = 500;
-          ctx.meta.$statusMessage = 'Internal Server Error';
+          // ctx.meta.$statusCode = 500;
+          // ctx.meta.$statusMessage = 'Internal Server Error';
           return {
             errors: [
               {
