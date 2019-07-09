@@ -22,7 +22,7 @@ module.exports = {
   /**
    * Service Mixins
    */
-  mixins: [AgileCRM, ProductTransformation, ESService],
+  mixins: [ProductTransformation, ESService],
 
   /**
    * Actions
