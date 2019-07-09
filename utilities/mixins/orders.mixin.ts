@@ -42,6 +42,7 @@ export const OrdersOperations: ServiceSchema = {
               vendor_id: product._source.seller_id,
               image: product._source.images[0],
               weight: item.weight,
+              barcode: product._source.barcode,
               description: `${item.attributes.reduce(
                 (accumulator, attribute, n) =>
                   accumulator.concat(
