@@ -529,7 +529,8 @@ const TheService: ServiceSchema = {
             ) {
               orderResponse[meta.key.substring(1)] = meta.value || '';
               if (meta.key === '_knawat_order_status') {
-                orderResponse[meta.key.substring(1)] = this.getStatusName(meta.value) || '';
+                orderResponse[meta.key.substring(1)] =
+                  this.normalizeResponseStatus(meta.value) || '';
               }
             }
           });
@@ -735,27 +736,6 @@ const TheService: ServiceSchema = {
         }
       });
       return max.pop();
-    },
-    /**
-     * Get Status Name
-     *
-     * @param {string} status
-     * @returns {string}Status Name
-     */
-    getStatusName(status: string = 'Order Placed'): string {
-      const stateNames: { [key: string]: string } = {
-        draft: 'Order Placed',
-        sent: 'Sent',
-        on_hold: 'On-hold',
-        sale: 'Processing',
-        shipped: 'Shipped',
-        done: 'Shipped',
-        cancel: 'Cancelled',
-        cancelled: 'Cancelled',
-        error: '...'
-      };
-
-      return stateNames[status];
     },
     normalizeStatus(status: string) {
       switch (status) {
