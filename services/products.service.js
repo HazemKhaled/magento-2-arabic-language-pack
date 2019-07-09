@@ -1,6 +1,5 @@
 const { MoleculerClientError } = require('moleculer').Errors;
 const ESService = require('moleculer-elasticsearch');
-const { AgileCRM } = require('../utilities/mixins/agilecrm.mixin');
 const { ProductTransformation } = require('../utilities/mixins/product-transformation.mixin');
 
 module.exports = {
@@ -23,7 +22,7 @@ module.exports = {
   /**
    * Service Mixins
    */
-  mixins: [AgileCRM, ProductTransformation, ESService],
+  mixins: [ProductTransformation, ESService],
 
   /**
    * Actions
@@ -60,6 +59,16 @@ module.exports = {
           _source = fields.includes(_source) ? _source : null;
         }
         const product = await this.fetchProduct(sku, ctx.meta.user, _source);
+        if (product === 404) {
+          ctx.meta.$statusCode = 404;
+          ctx.meta.$statusMessage = 'Not Found';
+          return { errors: [{ message: 'Product not found!' }] };
+        }
+        if (product === 500) {
+          ctx.meta.$statusCode = 500;
+          ctx.meta.$statusMessage = 'Internal Error';
+          return { errors: [{ message: 'Internal server error!' }] };
+        }
         return { product };
       }
     },
@@ -204,6 +213,16 @@ module.exports = {
         return this.deleteProduct(sku, ctx.meta.user)
           .then(product => {
             this.broker.cacher.clean(`products.list:${ctx.meta.user}**`);
+            if (product === 404) {
+              ctx.meta.$statusCode = 404;
+              ctx.meta.$statusMessage = 'Not Found';
+              return { errors: [{ message: 'Product not found!' }] };
+            }
+            if (product === 500) {
+              ctx.meta.$statusCode = 500;
+              ctx.meta.$statusMessage = 'Internal Error';
+              return { errors: [{ message: 'Internal Server Error!' }] };
+            }
             return { product };
           })
           .catch(() => {
@@ -527,9 +546,7 @@ module.exports = {
               : res
           );
         if (result.hits.total === 0) {
-          ctx.meta.$statusMessage = 'Not Found';
-          ctx.meta.$statusCode = 404;
-          return { errors: [{ message: 'Product not found', sku }] };
+          return 404;
         }
         const currencyRate = await this.broker.call('currencies.getCurrency', {
           currencyCode: instance.currency
@@ -552,9 +569,7 @@ module.exports = {
           )
         };
       } catch (err) {
-        ctx.meta.$statusMessage = 'Internal Server Error';
-        ctx.meta.$statusCode = 500;
-        return { errors: [{ message: 'Internal Server Error', sku, code: err.code }] };
+        return 500;
       }
     },
 
@@ -843,44 +858,11 @@ module.exports = {
               message: 'Product has been deleted.',
               sku: sku
             };
-          ctx.meta.$statusCode = 404;
-          ctx.meta.$statusMessage = 'Not Found';
-          return {
-            errors: [
-              {
-                message: 'Not Found!'
-              }
-            ]
-          };
+          return 404;
         })
         .catch(() => {
-          ctx.meta.$statusCode = 500;
-          ctx.meta.$statusMessage = 'Internal Server Error';
-          return {
-            errors: [
-              {
-                message: 'Internal server error!'
-              }
-            ]
-          };
+          return 500;
         });
-    }
-  },
-
-  events: {
-    // Subscribe 'list.afterRemote' which will get emit after list action called.
-    'list.afterRemote': {
-      async handler(payload) {
-        if (payload.meta && payload.meta.user) {
-          const instance = await this.broker.call('stores.findInstance', {
-            consumerKey: payload.meta.user
-          });
-          const [myUser] = instance.users.filter(user => user.roles.includes('owner'));
-          if (instance && myUser) {
-            this.updateLastSyncDate(myUser.email);
-          }
-        }
-      }
     }
   }
 };

@@ -41,7 +41,6 @@
     "typescript": "^3.4.5"
   },
   "dependencies": {
-    "agile_crm": "^1.2.5",
     "bluebird": "^3.5.4",
     "elasticsearch": "^16.0.0",
     "ioredis": "^4.9.0",
