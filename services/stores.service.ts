@@ -8,10 +8,6 @@ import { createValidation, updateValidation } from '../utilities/validations/sto
 const TheService: ServiceSchema = {
   name: 'stores',
   mixins: [DbService('stores')],
-  settings: {
-    API_URL: process.env.STORES_URL,
-    AUTH: Buffer.from(`${process.env.BASIC_USER}:${process.env.BASIC_PASS}`).toString('base64')
-  },
   actions: {
     /**
      * This function is used locally by mp to get an instance with conumerKey

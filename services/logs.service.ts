@@ -22,9 +22,11 @@ const TheService: ServiceSchema = {
       params: {
         topic: { type: 'string' },
         message: { type: 'string' },
-        logLevel: { type: 'enum', values: ['info', 'debug', 'error', 'warning'] },
+        logLevel: { type: 'enum', values: ['info', 'debug', 'error', 'warn'] },
         storeId: { type: 'string', optional: true },
-        topicId: { type: 'string', optional: true }
+        topicId: { type: 'string', optional: true },
+        payload: { type: 'object', optional: true },
+        code: { type: 'number', convert: true, integer: true }
         // Remove until it's added to index.d
         // $$strict: true
       },
@@ -49,22 +51,25 @@ const TheService: ServiceSchema = {
         const date = new Date();
         return ctx
           .call('logs.create', {
-            index: `logs-${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`,
+            index: `logsmp-${date.getFullYear()}-${date.getMonth() < 9 ? 0 : ''}${date.getMonth() +
+              1}-${date.getDate() < 10 ? 0 : ''}${date.getDate()}`,
             type: '_doc',
             id: uuidv1(),
             body: {
               topic: ctx.params.topic,
               topicId: ctx.params.topicId,
-              '@timestamp': new Date(),
+              '@timestamp': date,
               logLevel: ctx.params.logLevel,
               storeId: ctx.params.storeId,
-              message: ctx.params.message
+              message: ctx.params.message,
+              payload: ctx.params.payload,
+              code: ctx.params.code
             }
           })
           .then(res => {
             if (res.result === 'created')
               return {
-                status: 'sccuess',
+                status: 'success',
                 message: 'created',
                 id: res._id
               };
@@ -83,7 +88,7 @@ const TheService: ServiceSchema = {
       params: {
         topic: { type: 'string', optional: true },
         sort: { type: 'enum', values: ['asc', 'desc'], optional: true },
-        logLevel: { type: 'enum', values: ['info', 'debug', 'error', 'warning'], optional: true },
+        logLevel: { type: 'enum', values: ['info', 'debug', 'error', 'warn'], optional: true },
         storeId: { type: 'string', optional: true },
         topicId: { type: 'string', optional: true },
         limit: { type: 'number', optional: true, min: 1, max: 500, convert: true },
@@ -133,26 +138,36 @@ const TheService: ServiceSchema = {
           sort?: { [key: string]: string };
         } = {};
         const query: { bool?: { filter?: Array<{}> } } = { bool: { filter: [] } };
-        if (ctx.params.topicId) query.bool.filter.push({ term: { topicId: ctx.params.topicId } });
-        if (ctx.params.topic) query.bool.filter.push({ term: { topic: ctx.params.topic } });
-        if (ctx.params.storeId) query.bool.filter.push({ term: { storeId: ctx.params.storeId } });
-        if (ctx.params.logLevel)
-          query.bool.filter.push({ term: { logLevel: ctx.params.logLevel } });
-        if (ctx.params.sort) body.sort = { '@timestamp': ctx.params.sort };
         if (ctx.params.limit) body.size = parseInt(ctx.params.limit, 10);
+        if (ctx.params.sort) body.sort = { '@timestamp': ctx.params.sort };
+        if (ctx.params.topic) query.bool.filter.push({ term: { topic: ctx.params.topic } });
+        if (ctx.params.topicId) query.bool.filter.push({ term: { topicId: ctx.params.topicId } });
+        if (ctx.params.storeId)
+          query.bool.filter.push({ term: { 'storeId.keyword': ctx.params.storeId } });
         if (ctx.params.from)
           body.from = parseInt(ctx.params.page, 10) * parseInt(ctx.params.limit, 10);
+        if (ctx.params.logLevel) {
+          const logLevel: string[] = ['error'];
+          switch (ctx.params.logLevel) {
+            case 'debug':
+              logLevel.push('debug');
+            case 'info':
+              logLevel.push('info');
+            case 'warn':
+              logLevel.push('warn');
+          }
+          query.bool.filter.push({ terms: { logLevel } });
+        }
         body.query = query;
-        this.logger.info(JSON.stringify(body));
         return ctx
           .call('logs.search', {
-            index: 'logs-*',
+            index: 'logsmp-*',
             body
           })
           .then(res => {
             if (res.hits.total > 0)
               return res.hits.hits.map((item: { _source: Log }) => item._source);
-            if (res.hit.total === 0) {
+            if (res.hits.total === 0) {
               ctx.meta.$statusCode = 404;
               ctx.meta.$statusMessage = 'Not Found';
               return {
