@@ -12,6 +12,10 @@ export interface Product {
   updated: Date;
   archive: boolean;
   variations?: Variation[];
+  sales_qty?: number;
+  seller_id?: number;
+  source_url?: string;
+  images?: string[];
 }
 
 import { Attribute } from '../types';
@@ -32,6 +36,7 @@ export interface Variation {
   quantity: number;
   attributes: Attribute[];
   logs?: object[];
+  cost?: number;
 }
 
 /**
@@ -42,6 +47,6 @@ export interface Variation {
  */
 export interface Attribute {
   id: string;
-  name: string;
-  option: string;
+  name: { [key: string]: string };
+  option: { [key: string]: string };
 }

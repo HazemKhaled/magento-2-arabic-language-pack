@@ -8,9 +8,12 @@ import { createValidation, updateValidation } from '../utilities/validations/sto
 const TheService: ServiceSchema = {
   name: 'stores',
   mixins: [DbService('stores')],
+  settings: {
+    AUTH: Buffer.from(`${process.env.BASIC_USER}:${process.env.BASIC_PASS}`).toString('base64')
+  },
   actions: {
     /**
-     * This function is used locally by mp to get an instance with conumerKey
+     * This function is used locally by mp to get an instance with consumerKey
      *
      * @param {String} consumerKey
      * @returns {Store}
@@ -38,7 +41,7 @@ const TheService: ServiceSchema = {
       }
     },
     /**
-     * Get the store for the authanticated token
+     * Get the store for the authenticated token
      *
      * @param {}
      * @returns {Store}
@@ -110,10 +113,10 @@ const TheService: ServiceSchema = {
         }
         if (params.limit && params.limit > 100) {
           params.limit = 100;
-          this.logger.info('The maximum store respone limit is 100');
+          this.logger.info('The maximum store response limit is 100');
         }
         const query = {
-          query: params.where || {},
+          query: { ...params.where } || {},
           limit: params.limit || 100,
           sort: params.sort
         };
@@ -123,7 +126,7 @@ const TheService: ServiceSchema = {
             query.sort = { [sortArray[0]]: sortArray[1] === 'asc' ? 1 : -1 };
           }
         }
-        return this.adapter.find(query).then((res: Store[] | null) => {
+        return this.adapter.find({ ...query }).then((res: Store[] | null) => {
           // If the DB response not null will return the data
           if (res !== null) return res.map(store => this.sanitizeResponse(store));
           // If null return Not Found error
@@ -148,7 +151,7 @@ const TheService: ServiceSchema = {
         this.broker.cacher.clean(`stores.list:**`);
         // Sanitize request params
         const store: Store = this.sanitizeStoreParams(ctx.params, true);
-        // Intial response variable
+        // Initial response variable
         let mReq: Store | {} = {};
         try {
           mReq = await this.adapter.insert(store).then((res: Store) => this.sanitizeResponse(res));
@@ -173,12 +176,12 @@ const TheService: ServiceSchema = {
       auth: 'Basic',
       params: updateValidation,
       async handler(ctx: Context) {
-        // Save the ID seprate into variable to use it to find the store
+        // Save the ID separate into variable to use it to find the store
         const { id } = ctx.params;
         delete ctx.params.id;
         // Sanitize request params
         const store: Store = this.sanitizeStoreParams(ctx.params);
-        // Intial response variable
+        // Initial response variable
         let mReq: { [key: string]: {} } = {};
         try {
           mReq = await this.adapter
@@ -219,7 +222,7 @@ const TheService: ServiceSchema = {
      */
     sanitizeStoreParams(params, create = false) {
       const store: Store | any = {};
-      // Some intial data when creating store
+      // Some initial data when creating store
       if (create) {
         store._id = params.url.toLowerCase();
         store.consumer_key = uuidv1();
