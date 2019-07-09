@@ -256,7 +256,14 @@ const TheService: ServiceSchema = {
           shipment
         );
         if (warnings.length > 0) message.warnings = warnings;
-
+        this.sendLogs({
+          topic: 'order',
+          topicId: data.externalId,
+          message: `Order ${data.id} created successfully`,
+          storeId: instance.url,
+          logLevel: 'info',
+          code: 200
+        });
         return message;
       }
     },
@@ -422,6 +429,14 @@ const TheService: ServiceSchema = {
             shipping_method: order.shipmentCourier,
             shipping_charge: order.shippingCharge
           };
+          this.sendLogs({
+            topic: 'order',
+            topicId: data.externalId,
+            message: `Order ${data.id} updated successfully`,
+            storeId: instance.url,
+            logLevel: 'info',
+            code: 200
+          });
           return message;
         } catch (err) {
           this.logger.info(err);
