@@ -31,7 +31,7 @@ const TheService: ServiceSchema = {
         if (ctx.params.shipping.company === 'ebay') ctx.params.externalId = ctx.params.id;
 
         // TODO this assignment should be changed to specific fields (Sanitize inputs)
-        const data = ctx.params;
+        const data = this.orderData(ctx.params);
 
         // Add externalInvoice url
         data.externalInvoice =
@@ -280,10 +280,8 @@ const TheService: ServiceSchema = {
           return { message: 'The Order Is Now Processed With Knawat You Can Not Update It' };
         }
 
-        const data = ctx.params;
+        const data = this.orderData(ctx.params);
         if (data.shipping) data.shipping = this.normalizeAddress(data.shipping);
-        if (data.billing) data.billing = this.normalizeAddress(data.billing);
-        if (ctx.params.invoice_url) data.externalInvoice = ctx.params.invoice_url;
 
         data.status = this.normalizeUpdateRequestStatus(data.status);
         // Change
@@ -889,6 +887,18 @@ const TheService: ServiceSchema = {
         this.logger.error(err);
       }
       return warnings;
+    },
+    orderData(params) {
+      const data: Order = {
+        id: params.id,
+        status: params.status,
+        items: params.items,
+        shipping: params.shipping,
+        externalInvoice: params.invoice_url,
+        notes: params.notes,
+        shipping_method: params.shipping_method || params.shipmentCourier
+      };
+      return { ...data };
     }
   }
 };
