@@ -38,8 +38,8 @@ export interface OrderItem {
   url: string;
   rate: number;
   quantity: number;
-  purchase_rate: number;
-  vendor_id: number;
+  purchaseRate: number;
+  vendorId: number;
   description?: string;
   productType?: string;
   discount?: string;

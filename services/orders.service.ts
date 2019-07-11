@@ -76,6 +76,7 @@ const TheService: ServiceSchema = {
           };
         }
 
+        data.users = instance.users;
         // Order store data
         data.store =
           instance.internal_data && instance.internal_data.omsId

@@ -38,8 +38,8 @@ export const OrdersOperations: ServiceSchema = {
                 : product._source.name.tr.text,
               url: product._source.source_url,
               rate: item.sale,
-              purchase_rate: item.cost,
-              vendor_id: product._source.seller_id,
+              purchaseRate: item.cost,
+              vendorId: product._source.seller_id,
               image: product._source.images[0],
               weight: item.weight,
               barcode: product._source.barcode,
@@ -60,7 +60,7 @@ export const OrdersOperations: ServiceSchema = {
       );
       const dataItems = items.map(item => {
         const [p] = enoughStock.filter(i => i.sku === item.sku);
-        item.quantity = p.quantity > item.quantity ? item.quantity : p.quantity;
+        item.quantity = p.quantity > item.quantity ? Number(item.quantity) : Number(p.quantity);
         return { ...p, quantity: item.quantity };
       });
       return { products, inStock, enoughStock, items: dataItems, orderItems };
