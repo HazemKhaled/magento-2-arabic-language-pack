@@ -725,9 +725,9 @@ const TheService: ServiceSchema = {
      * Get store subscription from KLayer
      *
      * @param {Store} instance
-     * @returns
+     * @returns {Promise<Subscription>}
      */
-    async currentSubscriptions(instance: Store) {
+    async currentSubscriptions(instance: Store): Promise<Subscription> {
       // Getting the user Information to check subscription
       const [user] = await fetch(
         `${process.env.KLAYER_URL}/api/Partners?filter=${JSON.stringify({
@@ -738,6 +738,8 @@ const TheService: ServiceSchema = {
         })}&access_token=${process.env.KLAYER_TOKEN}`,
         { method: 'get' }
       ).then(res => res.json());
+
+      // Calculate active subscription
       const max: Subscription[] = [];
       let lastDate = new Date(0);
       user.subscriptions.forEach((subscription: Subscription) => {
