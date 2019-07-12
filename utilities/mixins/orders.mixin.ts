@@ -59,7 +59,7 @@ export const OrdersOperations: ServiceSchema = {
 
       const enoughStock = found.filter(item => {
         const myItem = items.find(i => i.sku === item.sku);
-        return myItem && item.quantity > myItem.quantity;
+        return myItem && item && item.quantity > myItem.quantity;
       });
 
       const dataItems = items.map(item => {
