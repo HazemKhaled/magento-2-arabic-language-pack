@@ -19,7 +19,6 @@ export interface Product {
   barcode?: string;
 }
 
-import { Attribute } from '../types';
 /**
  * Variation Type definition
  *
