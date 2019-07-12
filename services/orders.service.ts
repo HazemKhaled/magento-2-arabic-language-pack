@@ -893,7 +893,7 @@ const TheService: ServiceSchema = {
       const data: Order = {
         id: params.id,
         status: params.status,
-        items: params.items,
+        items: params.items || params.line_items,
         shipping: params.shipping,
         externalInvoice: params.invoice_url,
         notes: params.notes,
