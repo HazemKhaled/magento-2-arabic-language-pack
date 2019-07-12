@@ -54,10 +54,14 @@ export const OrdersOperations: ServiceSchema = {
             }))
         )
       );
+
       const inStock = found.filter(item => item.quantity > 0);
-      const enoughStock = found.filter(
-        item => item.quantity > items.find(i => i.sku === item.sku).quantity
-      );
+
+      const enoughStock = found.filter(item => {
+        const myItem = items.find(i => i.sku === item.sku);
+        return myItem && item.quantity > myItem.quantity;
+      });
+
       const dataItems = items.map(item => {
         const [p] = enoughStock.filter(i => i.sku === item.sku);
         item.quantity = p.quantity > item.quantity ? Number(item.quantity) : Number(p.quantity);
