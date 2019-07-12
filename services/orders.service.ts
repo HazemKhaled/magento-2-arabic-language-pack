@@ -207,7 +207,7 @@ const TheService: ServiceSchema = {
             ]
           };
         }
-        if (result.salesorder && (!instance.internal_data || !instance.internal_data.omsId)) {
+        if (result.salesorder && !(instance.internal_data && instance.internal_data.omsId)) {
           ctx.call('stores.update', {
             id: instance.url,
             internal_data: {
@@ -479,14 +479,12 @@ const TheService: ServiceSchema = {
         const instance = await ctx.call('stores.findInstance', {
           consumerKey: ctx.meta.user
         });
-        if (!instance.internal_data) {
-          if (!instance.internal_data.omsId) {
-            ctx.meta.$statusCode = 404;
-            ctx.meta.$statusMessage = 'Not Found';
-            return {
-              message: 'There is no orders for this store!'
-            };
-          }
+        if (!(instance.internal_data && instance.internal_data.omsId)) {
+          ctx.meta.$statusCode = 404;
+          ctx.meta.$statusMessage = 'Not Found';
+          return {
+            message: 'There is no orders for this store!'
+          };
         }
 
         let order = await fetch(
@@ -602,14 +600,12 @@ const TheService: ServiceSchema = {
         const instance = await ctx.call('stores.findInstance', {
           consumerKey: ctx.meta.user
         });
-        if (!instance.internal_data) {
-          if (!instance.internal_data.omsId) {
-            ctx.meta.$statusCode = 404;
-            ctx.meta.$statusMessage = 'Not Found';
-            return {
-              message: 'There is no orders for this store!'
-            };
-          }
+        if (!(instance.internal_data && instance.internal_data.omsId)) {
+          ctx.meta.$statusCode = 404;
+          ctx.meta.$statusMessage = 'Not Found';
+          return {
+            message: 'There is no orders for this store!'
+          };
         }
         const url = new URL(`${process.env.OMS_BASEURL}/orders/${instance.internal_data.omsId}`);
         if (ctx.params.limit) url.searchParams.append('perPage', ctx.params.limit);
