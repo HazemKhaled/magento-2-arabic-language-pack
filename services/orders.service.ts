@@ -82,12 +82,15 @@ const TheService: ServiceSchema = {
           };
         }
 
-        data.users = instance.users;
         // Order store data
         data.store =
           instance.internal_data && instance.internal_data.omsId
             ? { id: instance.internal_data.omsId }
-            : { url: instance.url, name: instance.name };
+            : {
+                url: instance.url,
+                name: instance.name,
+                users: instance.users
+              };
 
         // Check the available products and quantities return object with inStock products info
         const stock = await this.stockProducts(data.items);
