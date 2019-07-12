@@ -2,10 +2,16 @@ import { Context, ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
 import { v1 as uuidv1 } from 'uuid';
 import { OrdersOperations } from '../utilities/mixins/orders.mixin';
-import { OMSResponse, Order, OrderItem } from '../utilities/types/order.type';
-import { Product } from '../utilities/types/product.type';
-import { StoreUser } from '../utilities/types/store.type';
-import { Subscription } from '../utilities/types/user.type';
+import {
+  OMSResponse,
+  Order,
+  OrderAddress,
+  OrderItem,
+  Product,
+  Store,
+  StoreUser,
+  Subscription
+} from '../utilities/types';
 import {
   createOrderValidation,
   updateOrderValidation

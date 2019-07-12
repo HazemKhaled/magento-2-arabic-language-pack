@@ -1,7 +1,7 @@
 import { Context, ServiceSchema } from 'moleculer';
 import ESService from 'moleculer-elasticsearch';
 import { v1 as uuidv1 } from 'uuid';
-import { Log } from '../utilities/types/log.type';
+import { Log } from '../utilities/types';
 
 const TheService: ServiceSchema = {
   name: 'logs',

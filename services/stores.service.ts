@@ -2,7 +2,7 @@ import { Context, ServiceSchema } from 'moleculer';
 import DbService from '../utilities/mixins/mongo.mixin';
 
 import { v1 as uuidv1, v4 as uuidv4 } from 'uuid';
-import { Store, StoreUser } from '../utilities/types/store.type';
+import { Store, StoreUser } from '../utilities/types';
 import { createValidation, updateValidation } from '../utilities/validations/stores.validate';
 
 const TheService: ServiceSchema = {
