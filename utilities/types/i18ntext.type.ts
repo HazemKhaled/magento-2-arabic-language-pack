@@ -5,5 +5,5 @@
  * @interface I18nText
  */
 export interface I18nText {
-  [key: string]: string;
+  [key: string]: { text: string };
 }

@@ -8,14 +8,14 @@ export interface Order {
   id: string;
   status: string;
   state?: string;
-  knawat_order_status: string;
-  line_items?: OrderLine[];
-  items: OrderLine[];
-  billing: object;
+  knawat_order_status?: string;
+  line_items?: OrderItem[];
+  items?: OrderItem[];
+  billing?: object;
   shipping: object;
-  total: number;
+  total?: number;
   date_created?: Date;
-  createDate: Date;
+  createDate?: Date;
   knawat_status?: Date;
   meta_data?: {
     length: number;
@@ -26,12 +26,71 @@ export interface Order {
 }
 
 /**
- * OrderLine Type definition
+ * OrderItem Type definition
  *
  * @export
- * @interface OrderLine
+ * @interface OrderItem
  */
-export interface OrderLine {
+export interface OrderItem {
+  id?: string;
   sku: string;
+  name: string;
+  url: string;
+  rate: number;
   quantity: number;
+  purchaseRate: number;
+  vendorId: number;
+  description?: string;
+  productType?: string;
+  discount?: string;
+  discountAmount?: number;
+  total?: number;
+  weight?: number;
+}
+
+/**
+ * Definition for oms create order response
+ *
+ * @export
+ * @interface OMSResponse
+ */
+export interface OMSResponse {
+  salesorder: {
+    id?: string;
+    store?: {
+      id: string;
+      url: string;
+    };
+    status: string;
+    subStatuses?: [];
+    createDate: Date;
+    updateDate?: Date;
+    items: OrderItem[];
+    shipping: OrderAddress;
+    billing: OrderAddress;
+    shipmentCourier?: string;
+    shippingCharge: number;
+    total: number;
+    hasQtyCancelled: boolean;
+    notes?: string;
+  };
+}
+
+/**
+ * Order address schema
+ *
+ * @export
+ * @interface OrderAddress
+ */
+export interface OrderAddress {
+  first_name: string;
+  last_name: string;
+  address_1: string;
+  address_2?: string;
+  city?: string;
+  state?: string;
+  postcode?: string;
+  country: string;
+  phone?: string;
+  email?: string;
 }

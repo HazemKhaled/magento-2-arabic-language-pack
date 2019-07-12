@@ -8,7 +8,7 @@ export interface Log {
   topic: string;
   topicId: string;
   '@timestamp': Date;
-  logLevel: 'info' | 'debug' | 'warning' | 'error';
+  logLevel: 'info' | 'debug' | 'warn' | 'error';
   storeId: string;
   message: string;
 }
