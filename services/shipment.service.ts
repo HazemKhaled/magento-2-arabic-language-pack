@@ -169,7 +169,7 @@ const Shipment: ServiceSchema = {
       }
     },
     /**
-     * Returns curiers could be filtered with country
+     * Returns currencies could be filtered with country
      *
      * @param {string} country optional
      * @returns {string[]} string array of couriers

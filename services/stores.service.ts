@@ -237,7 +237,7 @@ const TheService: ServiceSchema = {
         store.currency = 'USD';
         store.shipping_methods = [
           {
-            name: 'Standerd',
+            name: 'Standard',
             sort: 0
           },
           {
