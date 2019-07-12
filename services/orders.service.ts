@@ -721,6 +721,12 @@ const TheService: ServiceSchema = {
     }
   },
   methods: {
+    /**
+     * Get store subscription from KLayer
+     *
+     * @param {Store} instance
+     * @returns
+     */
     async currentSubscriptions(instance: Store) {
       // Getting the user Information to check subscription
       const [user] = await fetch(
@@ -742,6 +748,13 @@ const TheService: ServiceSchema = {
       });
       return max.pop();
     },
+
+    /**
+     * Convert order status from MP status to OMS status
+     *
+     * @param {string} status
+     * @returns
+     */
     normalizeStatus(status: string) {
       switch (status) {
         case 'pending':
@@ -758,6 +771,12 @@ const TheService: ServiceSchema = {
       }
       return status;
     },
+    /**
+     * Convert order status from OMS status to ZApp status
+     *
+     * @param {string} status
+     * @returns
+     */
     normalizeResponseStatus(status: string) {
       switch (status) {
         case 'draft':
@@ -774,6 +793,12 @@ const TheService: ServiceSchema = {
       }
       return status;
     },
+    /**
+     * Convert order status from ZApp status to OMS Status
+     *
+     * @param {string} status
+     * @returns
+     */
     normalizeUpdateRequestStatus(status: string) {
       switch (status) {
         case 'Order Placed':
@@ -790,12 +815,24 @@ const TheService: ServiceSchema = {
       }
       return status;
     },
+    /**
+     * Clean any empty fields in OrdersAddress
+     *
+     * @param {*} address
+     * @returns {OrderAddress}
+     */
     normalizeAddress(address): OrderAddress {
       Object.keys(address).forEach(key => {
         if (address[key] === '' || undefined) delete address[key];
       });
       return address;
     },
+    /**
+     * Log order errors
+     *
+     * @param {*} { topic, topicId, message, storeId, logLevel, code, payload }
+     * @returns {ServiceSchema}
+     */
     sendLogs({ topic, topicId, message, storeId, logLevel, code, payload }): ServiceSchema {
       const body = {
         topic,
@@ -808,6 +845,18 @@ const TheService: ServiceSchema = {
       };
       return this.broker.call('logs.add', { ...body });
     },
+    /**
+     * Inspect order warning into order body
+     *
+     * @param {*} outOfStock
+     * @param {*} notEnoughStock
+     * @param {*} data
+     * @param {*} instance
+     * @param {*} shippingMethod
+     * @param {*} shipping
+     * @param {*} shipment
+     * @returns
+     */
     warningsMessenger(
       outOfStock,
       notEnoughStock,
@@ -895,6 +944,12 @@ const TheService: ServiceSchema = {
       }
       return warnings;
     },
+    /**
+     * Transform order to OMS format
+     *
+     * @param {Order} params
+     * @returns
+     */
     orderData(params: Order) {
       const data: Order = {
         id: params.id,
