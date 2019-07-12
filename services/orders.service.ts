@@ -721,7 +721,7 @@ const TheService: ServiceSchema = {
     }
   },
   methods: {
-    async currentSubscriptions(instance) {
+    async currentSubscriptions(instance: Store) {
       // Getting the user Information to check subscription
       const [user] = await fetch(
         `${process.env.KLAYER_URL}/api/Partners?filter=${JSON.stringify({
@@ -774,7 +774,7 @@ const TheService: ServiceSchema = {
       }
       return status;
     },
-    normalizeUpdateRequestStatus(status) {
+    normalizeUpdateRequestStatus(status: string) {
       switch (status) {
         case 'Order Placed':
           status = 'draft';
@@ -790,13 +790,13 @@ const TheService: ServiceSchema = {
       }
       return status;
     },
-    normalizeAddress(address) {
+    normalizeAddress(address): OrderAddress {
       Object.keys(address).forEach(key => {
         if (address[key] === '' || undefined) delete address[key];
       });
       return address;
     },
-    sendLogs({ topic, topicId, message, storeId, logLevel, code, payload }) {
+    sendLogs({ topic, topicId, message, storeId, logLevel, code, payload }): ServiceSchema {
       const body = {
         topic,
         topicId: JSON.stringify(topicId),
@@ -895,7 +895,7 @@ const TheService: ServiceSchema = {
       }
       return warnings;
     },
-    orderData(params) {
+    orderData(params: Order) {
       const data: Order = {
         id: params.id,
         status: params.status,
