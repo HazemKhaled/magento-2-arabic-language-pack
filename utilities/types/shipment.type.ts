@@ -8,7 +8,6 @@ export interface ShipmentPolicy {
   _id: string;
   name?: string;
   countries: string[];
-  odoo_id: number;
   rules: Rule[];
 }
 
@@ -26,5 +25,4 @@ export interface Rule {
   units_max: number;
   type: string;
   cost: number;
-  odoo_id?: number; // for rules action return
 }
