@@ -729,7 +729,7 @@ const TheService: ServiceSchema = {
             contact_email: instance.users.filter((usr: StoreUser) => usr.roles.includes('owner'))[0]
               .email
           }
-        })}&access_token=dbbf3cb7-f7ad-46ce-bee3-4fd7477951c4`,
+        })}&access_token=${process.env.KLAYER_TOKEN}`,
         { method: 'get' }
       ).then(res => res.json());
       const max: Subscription[] = [];
