@@ -28,6 +28,7 @@ export const createValidation = {
   compared_at_price_operator: { type: 'enum', values: [1, 2], optional: true },
   currency: { type: 'string', max: 3, optional: true },
   external_data: { type: 'object', optional: true },
+  internal_data: { type: 'object', optional: true },
   users: {
     type: 'array',
     items: {
@@ -108,6 +109,7 @@ export const updateValidation = {
   compared_at_price_operator: { type: 'enum', values: [1, 2], optional: true },
   currency: { type: 'string', max: 3, optional: true },
   external_data: { type: 'object', optional: true },
+  internal_data: { type: 'object', optional: true },
   users: {
     type: 'array',
     items: {

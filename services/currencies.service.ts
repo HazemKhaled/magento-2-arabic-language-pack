@@ -21,8 +21,8 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 // 1 hour
       },
       handler(ctx: Context) {
-        return ctx.call('currencies.getCurrencies').then(curruncies => {
-          const currency = curruncies.find(
+        return ctx.call('currencies.getCurrencies').then(currencies => {
+          const currency = currencies.find(
             (currencyObj: Currency) => currencyObj.currencyCode === ctx.params.currencyCode
           );
           if (currency === undefined) {

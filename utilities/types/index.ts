@@ -3,3 +3,6 @@ export * from './i18ntext.type';
 export * from './order.type';
 export * from './product.type';
 export * from './store.type';
+export * from './user.type';
+export * from './log.type';
+export * from './shipment.type';

@@ -2,8 +2,7 @@ import jwt from 'jsonwebtoken';
 import { Context, Errors, ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
 
-import { Store } from '../utilities/types';
-import { StoreUser } from '../utilities/types/store.type';
+import { Store, StoreUser } from '../utilities/types';
 
 const { MoleculerClientError } = Errors;
 
