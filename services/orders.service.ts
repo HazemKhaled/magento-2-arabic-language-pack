@@ -927,8 +927,7 @@ const TheService: ServiceSchema = {
         notes: params.notes,
         shipping_method: params.shipping_method || params.shipmentCourier
       };
-      data.externalId = uuidv1();
-      if (params.shipping.company === 'ebay') data.externalId = params.id;
+      data.externalId = params.id ? params.id : uuidv1();
       data.externalInvoice =
         params.invoice_url || `${this.settings.BASEURL}/invoice/external/${data.externalId}`;
       return data;
