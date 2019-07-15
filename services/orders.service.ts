@@ -215,7 +215,7 @@ const TheService: ServiceSchema = {
           }
         };
         const outOfStock = stock.orderItems.filter(
-          (item: OrderItem) => !stock.inStock.map((i: OrderItem) => i.sku).includes(item)
+          (item: OrderItem) => !stock.inStock.map((i: OrderItem) => i.sku).includes(item.sku)
         );
         const notEnoughStock = stock.inStock.filter(
           (item: OrderItem) => !stock.enoughStock.map((i: OrderItem) => i.sku).includes(item.sku)
@@ -853,7 +853,7 @@ const TheService: ServiceSchema = {
         if (notEnoughStock.length > 0) {
           warnings.push({
             message: `This items quantities are not enough stock ${outOfStock}`,
-            skus: notEnoughStock,
+            skus: [...new Set(notEnoughStock.map((i: OrderItem) => i.sku))],
             code: 1103
           });
           this.sendLogs({
