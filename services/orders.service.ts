@@ -135,8 +135,6 @@ const TheService: ServiceSchema = {
           });
         // Preparing billing data
         data.billing = { ...instance.address };
-
-        data.externalId = uuidv1();
         data.status = ['pending', 'processing', 'cancelled'].includes(data.status)
           ? this.normalizeStatus(data.status)
           : data.status;
@@ -486,6 +484,7 @@ const TheService: ServiceSchema = {
           billing: order.billing,
           shipping: order.shipping,
           total: order.total,
+          externalId: order.externalId,
           createDate: order.date_created,
           knawat_order_status: order.status ? this.normalizeResponseStatus(order.status) : '',
           notes: order.notes,
@@ -603,6 +602,7 @@ const TheService: ServiceSchema = {
         }).then(response => response.json());
         return orders.salesorders.map((order: Order) => ({
           id: order.id,
+          externalId: order.externalId,
           status: this.normalizeResponseStatus(order.status),
           createDate: order.createDate,
           updateDate: order.updateDate,
