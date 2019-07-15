@@ -600,6 +600,7 @@ const TheService: ServiceSchema = {
             Authorization: `Basic ${this.settings.AUTH}`
           }
         }).then(response => response.json());
+        this.logger.info(orders);
         return orders.salesorders.map((order: Order) => ({
           id: order.id,
           externalId: order.externalId,
@@ -926,7 +927,7 @@ const TheService: ServiceSchema = {
         shipping_method: params.shipping_method || params.shipmentCourier
       };
       if (create) {
-        data.externalId = params.id ? params.id : uuidv1();
+        data.externalId = params.id ? String(params.id) : uuidv1();
         data.externalInvoice =
           params.invoice_url || `${this.settings.BASEURL}/invoice/external/${data.externalId}`;
       }
