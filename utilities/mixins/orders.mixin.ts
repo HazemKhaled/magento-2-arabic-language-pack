@@ -54,18 +54,15 @@ export const OrdersOperations: ServiceSchema = {
             }))
         )
       );
-
       const inStock = found.filter(item => item.quantity > 0);
-
-      const enoughStock = found.filter(item => {
-        const myItem = items.find(i => i.sku === item.sku);
-        return myItem && item && item.quantity > myItem.quantity;
-      });
-
-      const dataItems = items.map(item => {
+      const enoughStock = found.filter(
+        item => item.quantity > items.find(i => i.sku === item.sku).quantity
+      );
+      const dataItems: OrderItem[] = [];
+      items.forEach(item => {
         const [p] = enoughStock.filter(i => i.sku === item.sku);
-        item.quantity = p.quantity > item.quantity ? Number(item.quantity) : Number(p.quantity);
-        return { ...p, quantity: item.quantity };
+        if (!p) return;
+        dataItems.push({ ...p, quantity: Number(item.quantity) });
       });
       return { products, inStock, enoughStock, items: dataItems, orderItems };
     },
