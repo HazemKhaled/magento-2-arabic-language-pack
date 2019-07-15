@@ -26,17 +26,7 @@ const TheService: ServiceSchema = {
       auth: 'Bearer',
       params: createOrderValidation,
       async handler(ctx: Context) {
-        // TODO it should be assigned directly to data
-        ctx.params.externalId = uuidv1();
-        if (ctx.params.shipping.company === 'ebay') ctx.params.externalId = ctx.params.id;
-
-        // TODO this assignment should be changed to specific fields (Sanitize inputs)
         const data = this.orderData(ctx.params);
-
-        // Add externalInvoice url
-        data.externalInvoice =
-          ctx.params.invoice_url ||
-          `${this.settings.BASEURL}/invoice/external/${ctx.params.externalId}`;
 
         // Get the Store instance
         const instance = await ctx.call('stores.findInstance', {
@@ -44,36 +34,12 @@ const TheService: ServiceSchema = {
         });
 
         // Check required store info. availability
-        // TODO change to method...
-        if (
-          !instance.address ||
-          !instance.address.first_name ||
-          !instance.address.last_name ||
-          !instance.address.address_1 ||
-          !instance.address.country ||
-          !instance.address.email
-        ) {
-          this.sendLogs({
-            topic: 'order',
-            topicId: data.externalId,
-            message: `No Billing Address Or Address Missing Data. Your order failed!`,
-            storeId: instance.url,
-            logLevel: 'error',
-            code: 428
-          });
-          ctx.meta.$statusCode = 428;
-          ctx.meta.$statusMessage = 'Missing billing data';
-          return {
-            errors: [
-              {
-                status: 'fail',
-                message: 'No Billing Address Or Address Missing Data. Your order failed!',
-                solution: `Please fill on your store billing address from here: ${
-                  this.settings.app_url
-                }/stores/settings/${encodeURIComponent(encodeURIComponent(instance.url))}`
-              }
-            ]
-          };
+        try {
+          this.checkAddress(instance, data.externalId);
+        } catch (err) {
+          ctx.meta.$statusCode = err.status;
+          ctx.meta.$statusMessage = err.statusMessage;
+          return err.errors;
         }
 
         data.users = instance.users;
@@ -899,7 +865,43 @@ const TheService: ServiceSchema = {
         notes: params.notes,
         shipping_method: params.shipping_method || params.shipmentCourier
       };
-      return { ...data };
+      data.externalId = uuidv1();
+      if (params.shipping.company === 'ebay') data.externalId = params.id;
+      data.externalInvoice =
+        params.invoice_url || `${this.settings.BASEURL}/invoice/external/${data.externalId}`;
+      return data;
+    },
+    checkAddress(instance, externalId) {
+      if (
+        !instance.address ||
+        !instance.address.first_name ||
+        !instance.address.last_name ||
+        !instance.address.address_1 ||
+        !instance.address.country ||
+        !instance.address.email
+      ) {
+        this.sendLogs({
+          topic: 'order',
+          topicId: externalId,
+          message: `No Billing Address Or Address Missing Data. Your order failed!`,
+          storeId: instance.url,
+          logLevel: 'error',
+          code: 428
+        });
+        throw {
+          status: 428,
+          statusMessage: 'Missing billing data',
+          errors: [
+            {
+              status: 'fail',
+              message: 'No Billing Address Or Address Missing Data. Your order failed!',
+              solution: `Please fill on your store billing address from here: ${
+                this.settings.app_url
+              }/stores/settings/${encodeURIComponent(encodeURIComponent(instance.url))}`
+            }
+          ]
+        };
+      }
     }
   }
 };
