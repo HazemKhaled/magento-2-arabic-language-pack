@@ -923,7 +923,6 @@ const TheService: ServiceSchema = {
         status: params.status,
         items: params.items || params.line_items,
         shipping: params.shipping,
-        externalInvoice: params.invoice_url,
         notes: params.notes,
         shipping_method: params.shipping_method || params.shipmentCourier
       };
