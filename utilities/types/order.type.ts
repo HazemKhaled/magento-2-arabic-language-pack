@@ -5,7 +5,7 @@
  * @interface Order
  */
 export interface Order {
-  id: string;
+  id?: string;
   status: string;
   state?: string;
   knawat_order_status?: string;

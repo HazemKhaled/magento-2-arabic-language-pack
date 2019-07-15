@@ -919,7 +919,6 @@ const TheService: ServiceSchema = {
      */
     orderData(params: Order, create = false) {
       const data: Order = {
-        id: params.id,
         status: params.status,
         items: params.items || params.line_items,
         shipping: params.shipping,
