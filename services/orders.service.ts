@@ -32,7 +32,7 @@ const TheService: ServiceSchema = {
       auth: 'Bearer',
       params: createOrderValidation,
       async handler(ctx: Context) {
-        const data = this.orderData(ctx.params);
+        const data = this.orderData(ctx.params, true);
 
         // Get the Store instance
         const instance = await ctx.call('stores.findInstance', {
@@ -917,7 +917,7 @@ const TheService: ServiceSchema = {
      * @param {Order} params
      * @returns
      */
-    orderData(params: Order) {
+    orderData(params: Order, create = false) {
       const data: Order = {
         id: params.id,
         status: params.status,
@@ -926,9 +926,11 @@ const TheService: ServiceSchema = {
         notes: params.notes,
         shipping_method: params.shipping_method || params.shipmentCourier
       };
-      data.externalId = params.id ? params.id : uuidv1();
-      data.externalInvoice =
-        params.invoice_url || `${this.settings.BASEURL}/invoice/external/${data.externalId}`;
+      if (create) {
+        data.externalId = params.id ? params.id : uuidv1();
+        data.externalInvoice =
+          params.invoice_url || `${this.settings.BASEURL}/invoice/external/${data.externalId}`;
+      }
       return data;
     },
     checkAddress(instance, externalId) {
