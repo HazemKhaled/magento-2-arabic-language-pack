@@ -144,7 +144,7 @@ const TheService: ServiceSchema = {
         if (ctx.params.topicId) query.bool.filter.push({ term: { topicId: ctx.params.topicId } });
         if (ctx.params.storeId)
           query.bool.filter.push({ term: { 'storeId.keyword': ctx.params.storeId } });
-        if (ctx.params.from)
+        if (ctx.params.page)
           body.from = parseInt(ctx.params.page, 10) * parseInt(ctx.params.limit, 10);
         if (ctx.params.logLevel) {
           const logLevel: string[] = ['error'];
