@@ -39,15 +39,6 @@ const TheService: ServiceSchema = {
           consumerKey: ctx.meta.user
         });
 
-        // Check required store info. availability
-        try {
-          this.checkAddress(instance, data.externalId);
-        } catch (err) {
-          ctx.meta.$statusCode = err.status;
-          ctx.meta.$statusMessage = err.statusMessage;
-          return err.errors;
-        }
-
         // Order store data
         data.store =
           instance.internal_data && instance.internal_data.omsId
@@ -155,11 +146,10 @@ const TheService: ServiceSchema = {
             vendor_id: 0
           });
         // Preparing billing data
-        data.billing = { ...instance.address };
+        data.billing = this.checkAddress(instance, data.externalId) ? instance.address : undefined;
         data.status = ['pending', 'processing', 'cancelled'].includes(data.status)
           ? this.normalizeStatus(data.status)
           : data.status;
-
         data.notes = `${stock.outOfStock.reduce(
           (accumulator, item) =>
             `${accumulator} SKU: ${item.sku} Required Qty: ${
@@ -973,23 +963,12 @@ const TheService: ServiceSchema = {
           topicId: externalId,
           message: `No Billing Address Or Address Missing Data. Your order failed!`,
           storeId: instance.url,
-          logLevel: 'error',
+          logLevel: 'warn',
           code: 428
         });
-        throw {
-          status: 428,
-          statusMessage: 'Missing billing data',
-          errors: [
-            {
-              status: 'fail',
-              message: 'No Billing Address Or Address Missing Data. Your order failed!',
-              solution: `Please fill on your store billing address from here: ${
-                this.settings.app_url
-              }/stores/settings/${encodeURIComponent(encodeURIComponent(instance.url))}`
-            }
-          ]
-        };
+        return false;
       }
+      return true;
     }
   }
 };
