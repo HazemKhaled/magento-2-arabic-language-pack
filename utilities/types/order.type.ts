@@ -46,6 +46,8 @@ export interface OrderItem {
   discountAmount?: number;
   total?: number;
   weight?: number;
+  archive?: boolean;
+  quantityRequired?: number;
 }
 
 /**
@@ -74,6 +76,7 @@ export interface OMSResponse {
     hasQtyCancelled: boolean;
     notes?: string;
   };
+  error?: { [key: string]: any };
 }
 
 /**

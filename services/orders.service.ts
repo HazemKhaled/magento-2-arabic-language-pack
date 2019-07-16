@@ -59,16 +59,31 @@ const TheService: ServiceSchema = {
               };
 
         // Check the available products and quantities return object with inStock products info
-        const stock = await this.stockProducts(data.items);
+        const stock: {
+          products: Array<{ _source: Product; _id: string }>;
+          inStock: OrderItem[];
+          enoughStock: OrderItem[];
+          items: OrderItem[];
+          orderItems: string[];
+          outOfStock: OrderItem[];
+          notEnoughStock: OrderItem[];
+          notKnawat: OrderItem[];
+        } = await this.stockProducts(data.items);
         // Return warning response if no Item available
         if (stock.items.length === 0) {
           this.sendLogs({
             topic: 'order',
             topicId: data.externalId,
-            message: `The products you ordered is not in-stock, The order has not been created!`,
+            message: `The products you ordered are not Knawat products, The order has not been created!`,
             storeId: instance.url,
             logLevel: 'error',
-            code: 1101
+            code: 1101,
+            payload: {
+              errors: {
+                products: stock.notKnawat
+              },
+              params: ctx.params
+            }
           });
           ctx.meta.$statusCode = 404;
           ctx.meta.$statusMessage = 'Not Found';
@@ -77,7 +92,7 @@ const TheService: ServiceSchema = {
               {
                 status: 'fail',
                 message:
-                  'The products you ordered is not in-stock, The order has not been created!',
+                  'The products you ordered are not Knawat products, The order has not been created!',
                 code: 1101
               }
             ]
@@ -101,7 +116,13 @@ const TheService: ServiceSchema = {
             message: `Sorry the order is not created as there is no shipment method to your country!`,
             storeId: instance.url,
             logLevel: 'error',
-            code: 400
+            code: 400,
+            payload: {
+              errors: {
+                data: shipment
+              },
+              params: ctx.params
+            }
           });
           ctx.meta.$statusCode = 400;
           ctx.meta.$statusMessage = 'Not Found';
@@ -138,6 +159,21 @@ const TheService: ServiceSchema = {
         data.status = ['pending', 'processing', 'cancelled'].includes(data.status)
           ? this.normalizeStatus(data.status)
           : data.status;
+
+        data.notes = `${stock.outOfStock.reduce(
+          (accumulator, item) =>
+            `${accumulator} SKU: ${item.sku} Required Qty: ${
+              item.quantityRequired
+            } Available Qty: ${item.quantity}\n`,
+          ''
+        )}${stock.notEnoughStock.reduce(
+          (accumulator, item) =>
+            `${accumulator} SKU: ${item.sku} Required Qty: ${
+              item.quantityRequired
+            } Available Qty: ${item.quantity}\n`,
+          ''
+        )}${data.notes}`;
+
         this.logger.info(JSON.stringify(data));
         const result: OMSResponse = await fetch(`${process.env.OMS_BASEURL}/orders`, {
           method: 'POST',
@@ -154,30 +190,33 @@ const TheService: ServiceSchema = {
           this.sendLogs({
             topic: 'order',
             topicId: data.externalId,
-            message: `Internal Server Error`,
+            message: result.error.message,
             storeId: instance.url,
             logLevel: 'error',
-            code: 500,
-            payload: { errors: result }
+            code: result.error.statusCode,
+            payload: { errors: result, params: ctx.params }
           });
-          ctx.meta.$statusCode = 500;
-          ctx.meta.$statusMessage = 'Internal Error';
+          ctx.meta.$statusCode = result.error.statusCode;
+          ctx.meta.$statusMessage = result.error.name;
           return {
             errors: [
               {
                 status: 'fail',
-                message: 'Internal Server Error'
+                message: result.error.message
               }
             ]
           };
         }
+        this.logger.info(instance);
         if (result.salesorder && !(instance.internal_data && instance.internal_data.omsId)) {
-          ctx.call('stores.update', {
-            id: instance.url,
-            internal_data: {
-              omsId: result.salesorder.store.id
-            }
-          });
+          ctx
+            .call('stores.update', {
+              id: instance.url,
+              internal_data: {
+                omsId: result.salesorder.store.id
+              }
+            })
+            .then(r => this.logger.info(r));
         }
         // Clearing order list action(API) cache
         this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
@@ -212,17 +251,11 @@ const TheService: ServiceSchema = {
             shipping_charge: order.shippingCharge
           }
         };
-        const outOfStock = stock.orderItems.filter(
-          (item: OrderItem) => !stock.inStock.map((i: OrderItem) => i.sku).includes(item.sku)
-        );
-        const notEnoughStock = stock.inStock.filter(
-          (item: OrderItem) => !stock.enoughStock.map((i: OrderItem) => i.sku).includes(item.sku)
-        );
 
         // Initializing warnings array if we have a Warning
         const warnings = this.warningsMessenger(
-          outOfStock,
-          notEnoughStock,
+          stock.outOfStock,
+          stock.notEnoughStock,
           data,
           instance,
           ctx.params.shipping_method,
@@ -233,7 +266,7 @@ const TheService: ServiceSchema = {
         this.sendLogs({
           topic: 'order',
           topicId: data.externalId,
-          message: `Order ${data.id} created successfully`,
+          message: `Order created successfully`,
           storeId: instance.url,
           logLevel: 'info',
           code: 200
@@ -287,10 +320,16 @@ const TheService: ServiceSchema = {
               this.sendLogs({
                 topic: 'order',
                 topicId: orderBeforeUpdate.externalId,
-                message: `The products you ordered is not in-stock, The order has not been created!`,
+                message: `The products you ordered are not Knawat products, The order has not been created!`,
                 storeId: instance.url,
                 logLevel: 'error',
-                code: 1101
+                code: 1101,
+                payload: {
+                  errors: {
+                    products: stock.notKnawat
+                  },
+                  params: ctx.params
+                }
               });
               ctx.meta.$statusCode = 404;
               ctx.meta.$statusMessage = 'Not Found';
@@ -299,7 +338,7 @@ const TheService: ServiceSchema = {
                   {
                     status: 'fail',
                     message:
-                      'The products you ordered is not in-stock, The order has not been created!',
+                      'The products you ordered are not Knawat products, The order has not been created!',
                     code: 1101
                   }
                 ]
@@ -323,19 +362,10 @@ const TheService: ServiceSchema = {
               ctx.params.shipping_method
             );
 
-            // Prepare response message
-            const outOfStock = stock.orderItems.filter(
-              (item: OrderItem) => !stock.inStock.map((i: OrderItem) => i.sku).includes(item)
-            );
-            const notEnoughStock = stock.inStock.filter(
-              (item: OrderItem) =>
-                !stock.enoughStock.map((i: OrderItem) => i.sku).includes(item.sku)
-            );
-
             // Initializing warnings array if we have a Warning
             const warnings = this.warningsMessenger(
-              outOfStock,
-              notEnoughStock,
+              stock.outOfStock,
+              stock.notEnoughStock,
               data,
               instance,
               ctx.params.shipping_method,
@@ -369,19 +399,19 @@ const TheService: ServiceSchema = {
             this.sendLogs({
               topic: 'order',
               topicId: orderBeforeUpdate.externalId,
-              message: `Internal Server Error`,
+              message: result.error.message,
               storeId: instance.url,
               logLevel: 'error',
-              code: 500,
-              payload: { errors: result }
+              code: result.error.statusCode,
+              payload: { errors: result, params: ctx.params }
             });
-            ctx.meta.$statusCode = 500;
-            ctx.meta.$statusMessage = 'Internal Error';
+            ctx.meta.$statusCode = result.error.statusCode;
+            ctx.meta.$statusMessage = result.error.name;
             return {
               errors: [
                 {
                   status: 'fail',
-                  message: 'Internal Server Error'
+                  message: result.error.message
                 }
               ]
             };
@@ -404,7 +434,7 @@ const TheService: ServiceSchema = {
           this.sendLogs({
             topic: 'order',
             topicId: data.externalId,
-            message: `Order ${data.id} updated successfully`,
+            message: `Order updated successfully`,
             storeId: instance.url,
             logLevel: 'info',
             code: 200
@@ -633,7 +663,6 @@ const TheService: ServiceSchema = {
           .then(async response => {
             const result = await response.json();
             this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
-            this.logger.info(result);
             if (result.salesorder) {
               return {
                 status: 'success',
@@ -826,8 +855,8 @@ const TheService: ServiceSchema = {
      * @returns
      */
     warningsMessenger(
-      outOfStock,
-      notEnoughStock,
+      outOfStock: OrderItem[],
+      notEnoughStock: OrderItem[],
       data,
       instance,
       shippingMethod,
@@ -838,14 +867,14 @@ const TheService: ServiceSchema = {
       try {
         if (outOfStock.length > 0) {
           warnings.push({
-            message: `This items are out of stock ${outOfStock}`,
-            skus: outOfStock,
+            message: `This items are out of stock ${outOfStock.map(e => e.sku)}`,
+            skus: outOfStock.map(e => e.sku),
             code: 1102
           });
           this.sendLogs({
             topic: 'order',
             topicId: data.externalId,
-            message: `This items are out of stock ${outOfStock}`,
+            message: `This items are out of stock ${outOfStock.map(e => e.sku)}`,
             storeId: instance.url,
             logLevel: 'warn',
             code: 1102
@@ -853,14 +882,14 @@ const TheService: ServiceSchema = {
         }
         if (notEnoughStock.length > 0) {
           warnings.push({
-            message: `This items quantities are not enough stock ${outOfStock}`,
-            skus: [...new Set(notEnoughStock.map((i: OrderItem) => i.sku))],
+            message: `This items quantities are not enough stock ${notEnoughStock.map(e => e.sku)}`,
+            skus: notEnoughStock.map(e => e.sku),
             code: 1103
           });
           this.sendLogs({
             topic: 'order',
             topicId: data.externalId,
-            message: `This items quantities are not enough stock ${outOfStock}`,
+            message: `This items quantities are not enough stock ${outOfStock.map(e => e.sku)}`,
             storeId: instance.url,
             logLevel: 'warn',
             code: 1103
