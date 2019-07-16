@@ -923,6 +923,20 @@ const TheService: ServiceSchema = {
             code: 2101
           });
         }
+        if (!this.checkAddress(instance, data.externalId)) {
+          warnings.push({
+            message: `Billing address not found`,
+            code: 1105
+          });
+          this.sendLogs({
+            topic: 'order',
+            topicId: data.externalId,
+            message: `Billing address not found`,
+            storeId: instance.url,
+            logLevel: 'warn',
+            code: 1105
+          });
+        }
       } catch (err) {
         this.logger.error(err);
       }
