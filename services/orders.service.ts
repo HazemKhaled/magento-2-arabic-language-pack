@@ -174,7 +174,6 @@ const TheService: ServiceSchema = {
           ''
         )}${data.notes}`;
 
-        this.logger.info(JSON.stringify(data));
         const result: OMSResponse = await fetch(`${process.env.OMS_BASEURL}/orders`, {
           method: 'POST',
           body: JSON.stringify(data),
@@ -185,7 +184,6 @@ const TheService: ServiceSchema = {
           }
         }).then(createResponse => createResponse.json());
 
-        this.logger.info(JSON.stringify(result));
         if (!result.salesorder) {
           this.sendLogs({
             topic: 'order',
@@ -207,7 +205,6 @@ const TheService: ServiceSchema = {
             ]
           };
         }
-        this.logger.info(instance);
         if (result.salesorder && !(instance.internal_data && instance.internal_data.omsId)) {
           ctx
             .call('stores.update', {

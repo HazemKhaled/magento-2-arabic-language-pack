@@ -92,13 +92,6 @@ export const OrdersOperations: ServiceSchema = {
         ...notEnoughStockObject[key],
         quantityRequired: items.find(i => i.sku === key).quantity
       }));
-      this.logger.info(
-        found.map(e => e.sku),
-        notKnawat.map(e => e.sku),
-        inStock.map(e => e.sku),
-        outOfStock.map(e => e.sku),
-        notEnoughStock
-      );
       return {
         products,
         inStock,
