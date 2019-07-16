@@ -65,6 +65,12 @@ export const OrdersOperations: ServiceSchema = {
       const enoughStock = inStock.filter(
         item => item.quantity > items.find(i => i.sku === item.sku && !item.archive).quantity
       );
+
+      const outOfStockObject: { [key: string]: OrderItem } = {};
+      found.forEach((item: OrderItem) => {
+        if (item.archive) outOfStockObject[item.sku] = item;
+      });
+
       const dataItems: OrderItem[] = [];
       items.forEach(item => {
         const [p] = found.filter(i => i.sku === item.sku);
@@ -73,10 +79,6 @@ export const OrdersOperations: ServiceSchema = {
         dataItems.push({ ...p, quantity: Number(item.quantity) });
       });
 
-      const outOfStockObject: { [key: string]: OrderItem } = {};
-      found.forEach((item: OrderItem) => {
-        if (item.archive) outOfStockObject[item.sku] = item;
-      });
       const outOfStock = Object.keys(outOfStockObject).map(key => ({
         ...outOfStockObject[key],
         quantityRequired: items.find(i => i.sku === key).quantity
