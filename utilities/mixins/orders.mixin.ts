@@ -34,13 +34,18 @@ export const OrdersOperations: ServiceSchema = {
       notKnawat: OrderItem[];
     }> {
       const orderItems = items.map(item => item.sku);
+
+      // get the products from DB
       const products: [{ _source: Product; _id: string }] = await this.broker.call(
         'products-list.getProductsByVariationSku',
         {
           skus: orderItems
         }
       );
+
       const found: OrderItem[] = [];
+
+      // Filter Knawat products and reformat the items data
       products.forEach(product => {
         found.push(
           ...product._source.variations
@@ -70,19 +75,27 @@ export const OrdersOperations: ServiceSchema = {
             }))
         );
       });
+
+      // Filter not Knawat products alone
       const notKnawat = items.filter(
         (item: OrderItem) => !found.map((i: OrderItem) => i.sku).includes(item.sku)
       );
+
+      // filter not archived products
       const inStock = found.filter(item => item.quantity > 0 && !item.archive);
+
+      // filter products with enough stock
       const enoughStock = inStock.filter(
         item => item.quantity > items.find(i => i.sku === item.sku && !item.archive).quantity
       );
 
+      // Filter products with out of stock put it into Object with sku is the key for every item to remove duplicated data
       const outOfStockObject: { [key: string]: OrderItem } = {};
       found.forEach((item: OrderItem) => {
         if (item.archive) outOfStockObject[item.sku] = item;
       });
 
+      // filter the data will be sent to oms
       const dataItems: OrderItem[] = [];
       items.forEach(item => {
         const [p] = found.filter(i => i.sku === item.sku);
@@ -91,21 +104,27 @@ export const OrdersOperations: ServiceSchema = {
         dataItems.push({ ...p, quantity: Number(item.quantity) });
       });
 
+      // reform outOfStock to array of {}
       const outOfStock = Object.keys(outOfStockObject).map(key => ({
         ...outOfStockObject[key],
         quantityRequired: items.find(i => i.sku === key).quantity
       }));
 
+      // Filter products with not enough qty it into Object with sku is the key for every item to remove duplicated data
       const notEnoughStockObject: { [key: string]: OrderItem } = {};
       inStock.forEach((item: OrderItem) => {
         if (!enoughStock.map((i: OrderItem) => i.sku).includes(item.sku)) {
           notEnoughStockObject[item.sku] = item;
         }
       });
+
+      // reform not enough to array of {}
       const notEnoughStock: OrderItem[] = Object.keys(notEnoughStockObject).map(key => ({
         ...notEnoughStockObject[key],
         quantityRequired: items.find(i => i.sku === key).quantity
       }));
+
+      // return all data
       return {
         products,
         inStock,
