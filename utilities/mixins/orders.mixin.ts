@@ -10,7 +10,16 @@ export const OrdersOperations: ServiceSchema = {
      * Check Ordered Items Status inStock And Quantities ...
      *
      * @param {OrderItem[]} items
-     * @returns {products, inStock, enoughStock, items, orderItems}
+     * @returns {Promise<{
+     *       products: Array<{ _source: Product; _id: string }>;
+     *       inStock: OrderItem[];
+     *       enoughStock: OrderItem[];
+     *       items: OrderItem[];
+     *       orderItems: string[];
+     *       outOfStock: OrderItem[];
+     *       notEnoughStock: OrderItem[];
+     *       notKnawat: OrderItem[];
+     *     }>}
      */
     async stockProducts(
       items: OrderItem[]
@@ -109,11 +118,11 @@ export const OrdersOperations: ServiceSchema = {
     /**
      * Calculates the shipment cost according to the store priority
      *
-     * @param {Array<{ _source: Product }>} products
-     * @param {OrderLine[]} enoughStock
+     * @param {OrderItem[]} items
      * @param {string} country
      * @param {Store} instance
-     * @returns {Rule | false}
+     * @param {(string | boolean)} [providedMethod=false]
+     * @returns {Promise<Rule | boolean>}
      */
     async shipment(
       items: OrderItem[],
