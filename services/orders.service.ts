@@ -390,7 +390,10 @@ const TheService: ServiceSchema = {
                 Accept: 'application/json'
               }
             }
-          ).then(createResponse => createResponse.json());
+          ).then(updateResponse => {
+            this.logger.info(JSON.stringify(updateResponse), '>>>>>>>>');
+            return updateResponse.json();
+          });
 
           this.logger.info(JSON.stringify(result), '>>>>>>>>');
           if (!result.salesorder) {
