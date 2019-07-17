@@ -10,7 +10,16 @@ export const OrdersOperations: ServiceSchema = {
      * Check Ordered Items Status inStock And Quantities ...
      *
      * @param {OrderItem[]} items
-     * @returns {products, inStock, enoughStock, items, orderItems}
+     * @returns {Promise<{
+     *       products: Array<{ _source: Product; _id: string }>;
+     *       inStock: OrderItem[];
+     *       enoughStock: OrderItem[];
+     *       items: OrderItem[];
+     *       orderItems: string[];
+     *       outOfStock: OrderItem[];
+     *       notEnoughStock: OrderItem[];
+     *       notKnawat: OrderItem[];
+     *     }>}
      */
     async stockProducts(
       items: OrderItem[]
@@ -25,11 +34,14 @@ export const OrdersOperations: ServiceSchema = {
       notKnawat: OrderItem[];
     }> {
       const orderItems = items.map(item => item.sku);
-      const products = await this.broker.call('products-list.getProductsByVariationSku', {
-        skus: orderItems
-      });
+      const products: [{ _source: Product; _id: string }] = await this.broker.call(
+        'products-list.getProductsByVariationSku',
+        {
+          skus: orderItems
+        }
+      );
       const found: OrderItem[] = [];
-      products.forEach((product: { _source: Product; _id: string }) =>
+      products.forEach(product => {
         found.push(
           ...product._source.variations
             .filter((variation: Variation) => orderItems.includes(variation.sku))
@@ -56,8 +68,8 @@ export const OrdersOperations: ServiceSchema = {
                 ''
               )}`
             }))
-        )
-      );
+        );
+      });
       const notKnawat = items.filter(
         (item: OrderItem) => !found.map((i: OrderItem) => i.sku).includes(item.sku)
       );
@@ -109,34 +121,35 @@ export const OrdersOperations: ServiceSchema = {
     /**
      * Calculates the shipment cost according to the store priority
      *
-     * @param {Array<{ _source: Product }>} products
-     * @param {OrderLine[]} enoughStock
+     * @param {OrderItem[]} items
      * @param {string} country
      * @param {Store} instance
-     * @returns {Rule | false}
+     * @param {string} [providedMethod]
+     * @returns {Promise<Rule>}
      */
     async shipment(
       items: OrderItem[],
       country: string,
       instance: Store,
-      providedMethod: string | boolean = false
-    ): Promise<Rule | boolean> {
+      providedMethod?: string
+    ): Promise<Rule> {
       const shipmentWeight =
         items.reduce(
           (accumulator, item) => (accumulator = accumulator + item.weight * item.quantity),
           0
         ) * 1000;
-      const shipmentRules = await this.broker
+      const shipmentRules: Rule[] = await this.broker
         .call('shipment.ruleByCountry', {
           country,
           weight: shipmentWeight,
           price: 1
         })
         .then((rules: Rule[]) => rules.sort((a: Rule, b: Rule) => a.cost - b.cost));
+
       // find shipment policy according to store priorities
-      let shipment = false;
+      let shipment: Rule;
       if (providedMethod) {
-        shipment = shipmentRules.find((rule: Rule) => rule.courier === providedMethod) || false;
+        shipment = shipmentRules.find(rule => rule.courier === providedMethod) || undefined;
       }
       if (instance.shipping_methods && instance.shipping_methods.length > 0 && !shipment) {
         const sortedShippingMethods = instance.shipping_methods.sort((a, b) => a.sort - b.sort);
@@ -154,9 +167,11 @@ export const OrdersOperations: ServiceSchema = {
             ? shipmentRules.sort((a: Rule, b: Rule) => a.cost - b.cost)[0]
             : false;
       }
+
       if (!shipment) {
-        shipment = shipmentRules[0] || false;
+        [shipment] = shipmentRules;
       }
+
       return shipment;
     }
   }

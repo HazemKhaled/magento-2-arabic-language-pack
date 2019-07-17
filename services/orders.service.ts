@@ -1,8 +1,10 @@
 import { Context, ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
 import { v1 as uuidv1 } from 'uuid';
+
 import { OrdersOperations } from '../utilities/mixins/orders.mixin';
 import {
+  Log,
   OMSResponse,
   Order,
   OrderAddress,
@@ -71,10 +73,10 @@ const TheService: ServiceSchema = {
           notEnoughStock: OrderItem[];
           notKnawat: OrderItem[];
         } = await this.stockProducts(data.items);
+
         // Return warning response if no Item available
         if (stock.items.length === 0) {
           this.sendLogs({
-            topic: 'order',
             topicId: data.externalId,
             message: `The products you ordered are not Knawat products, The order has not been created!`,
             storeId: instance.url,
@@ -87,6 +89,7 @@ const TheService: ServiceSchema = {
               params: ctx.params
             }
           });
+
           ctx.meta.$statusCode = 404;
           ctx.meta.$statusMessage = 'Not Found';
           return {
@@ -113,9 +116,8 @@ const TheService: ServiceSchema = {
 
         if (!shipment) {
           this.sendLogs({
-            topic: 'order',
             topicId: data.externalId,
-            message: `Sorry the order is not created as there is no shipment method to your country!`,
+            message: `We don't shipment to ${ctx.params.shipping.country}`,
             storeId: instance.url,
             logLevel: 'error',
             code: 400,
@@ -187,7 +189,6 @@ const TheService: ServiceSchema = {
 
         if (!result.salesorder) {
           this.sendLogs({
-            topic: 'order',
             topicId: data.externalId,
             message: result.error.message,
             storeId: instance.url,
@@ -262,7 +263,6 @@ const TheService: ServiceSchema = {
         );
         if (warnings.length > 0) message.warnings = warnings;
         this.sendLogs({
-          topic: 'order',
           topicId: data.externalId,
           message: `Order created successfully`,
           storeId: instance.url,
@@ -316,7 +316,6 @@ const TheService: ServiceSchema = {
             // Return error response if no Item available
             if (stock.enoughStock.length === 0) {
               this.sendLogs({
-                topic: 'order',
                 topicId: orderBeforeUpdate.externalId,
                 message: `The products you ordered are not Knawat products, The order has not been created!`,
                 storeId: instance.url,
@@ -395,10 +394,9 @@ const TheService: ServiceSchema = {
             return updateResponse.json();
           });
 
-          this.logger.info(JSON.stringify(result), '>>>>>>>>');
+          this.logger.debug(JSON.stringify(result), '>>>>>>>>');
           if (!result.salesorder) {
             this.sendLogs({
-              topic: 'order',
               topicId: orderBeforeUpdate.externalId,
               message: result.error.message,
               storeId: instance.url,
@@ -433,7 +431,6 @@ const TheService: ServiceSchema = {
             shipping_charge: order.shippingCharge
           };
           this.sendLogs({
-            topic: 'order',
             topicId: data.externalId,
             message: `Order updated successfully`,
             storeId: instance.url,
@@ -442,18 +439,17 @@ const TheService: ServiceSchema = {
           });
           return message;
         } catch (err) {
-          this.logger.info(err);
+          this.logger.error(err);
           this.sendLogs({
-            topic: 'order',
             topicId: orderBeforeUpdate.externalId,
-            message: `Internal Server Error`,
+            message: `Order Error`,
             storeId: instance.url,
             logLevel: 'error',
             code: 500,
             payload: { errors: err }
           });
           ctx.meta.$statusCode = 500;
-          ctx.meta.$statusMessage = 'Internal Error';
+          ctx.meta.$statusMessage = 'Internal Server Error';
           return {
             errors: [
               {
@@ -672,17 +668,19 @@ const TheService: ServiceSchema = {
                 }
               };
             }
+
+            this.logger.error(result);
+
             this.sendLogs({
-              topic: 'order',
               topicId: ctx.params.id,
-              message: `Internal Server Error`,
+              message: `Order Error`,
               storeId: instance.url,
               logLevel: 'error',
               code: 500,
               payload: { errors: result }
             });
             ctx.meta.$statusCode = 500;
-            ctx.meta.$statusMessage = 'Internal Error';
+            ctx.meta.$statusMessage = 'Internal Server Error';
             return {
               errors: [
                 {
@@ -694,16 +692,15 @@ const TheService: ServiceSchema = {
           })
           .catch(err => {
             this.sendLogs({
-              topic: 'order',
               topicId: ctx.params.id,
-              message: `Internal Server Error`,
+              message: `Order Error`,
               storeId: instance.url,
               logLevel: 'error',
               code: 500,
               payload: { errors: err }
             });
             ctx.meta.$statusCode = 500;
-            ctx.meta.$statusMessage = 'Internal Error';
+            ctx.meta.$statusMessage = 'Internal Server Error';
             return {
               errors: [
                 {
@@ -828,20 +825,12 @@ const TheService: ServiceSchema = {
     /**
      * Log order errors
      *
-     * @param {*} { topic, topicId, message, storeId, logLevel, code, payload }
+     * @param {Log} log
      * @returns {ServiceSchema}
      */
-    sendLogs({ topic, topicId, message, storeId, logLevel, code, payload }): ServiceSchema {
-      const body = {
-        topic,
-        topicId,
-        message,
-        storeId,
-        logLevel,
-        code,
-        payload
-      };
-      return this.broker.call('logs.add', { ...body });
+    sendLogs(log: Log): ServiceSchema {
+      log.topic = 'order';
+      return this.broker.call('logs.add', log);
     },
     /**
      * Inspect order warning into order body
@@ -868,45 +857,49 @@ const TheService: ServiceSchema = {
       try {
         if (outOfStock.length > 0) {
           warnings.push({
-            message: `This items are out of stock ${outOfStock.map(e => e.sku)}`,
+            message: `This items are out of stock ${outOfStock.map(e => e.sku).join()}`,
             skus: outOfStock.map(e => e.sku),
             code: 1102
           });
           this.sendLogs({
             topic: 'order',
             topicId: data.externalId,
-            message: `This items are out of stock ${outOfStock.map(e => e.sku)}`,
+            message: `Some products are out of stock`,
             storeId: instance.url,
             logLevel: 'warn',
-            code: 1102
+            code: 1102,
+            payload: { outOfStock }
           });
         }
         if (notEnoughStock.length > 0) {
           warnings.push({
-            message: `This items quantities are not enough stock ${notEnoughStock.map(e => e.sku)}`,
+            message: `This items quantities are not enough stock ${notEnoughStock
+              .map(e => e.sku)
+              .join()}`,
             skus: notEnoughStock.map(e => e.sku),
             code: 1103
           });
           this.sendLogs({
             topic: 'order',
             topicId: data.externalId,
-            message: `This items quantities are not enough stock ${outOfStock.map(e => e.sku)}`,
+            message: `This items quantities are not enough stock`,
             storeId: instance.url,
             logLevel: 'warn',
-            code: 1103
+            code: 1103,
+            payload: { outOfStock }
           });
         }
         if ((!instance.shipping_methods || !instance.shipping_methods[0].name) && !shippingMethod) {
           warnings.push({
             message: `There is no default shipping method for your store, It’ll be shipped with ${shipment.courier ||
-              'PTT'}, Contact our customer support for more info`,
+              'Standard'}, Contact our customer support for more info`,
             code: 2102
           });
           this.sendLogs({
             topic: 'order',
             topicId: data.externalId,
             message: `There is no default shipping method for your store, It’ll be shipped with ${shipment.courier ||
-              'PTT'}`,
+              'Standard'}`,
             storeId: instance.url,
             logLevel: 'warn',
             code: 2102
@@ -922,7 +915,7 @@ const TheService: ServiceSchema = {
             message: `Can’t ship to ${
               shipping.country
             } with provided courier, It’ll be shipped with ${shipment.courier ||
-              'PTT'}, Contact our customer support for more info`,
+              'Standard'}, Contact our customer support for more info`,
             code: 2101
           });
           this.sendLogs({
@@ -931,7 +924,7 @@ const TheService: ServiceSchema = {
             message: `Can’t ship to ${
               shipping.country
             } with provided courier, It’ll be shipped with ${shipment.courier ||
-              'PTT'}, Contact our customer support for more info`,
+              'Standard'}, Contact our customer support for more info`,
             storeId: instance.url,
             logLevel: 'warn',
             code: 2101
