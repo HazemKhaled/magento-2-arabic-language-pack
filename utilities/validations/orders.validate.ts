@@ -35,6 +35,7 @@ export const createOrderValidation = {
 };
 
 export const updateOrderValidation = {
+  id: [{ type: 'string', empty: false }, { type: 'number', integer: true, convert: true }],
   status: {
     type: 'enum',
     values: ['pending', 'processing', 'cancelled'],
