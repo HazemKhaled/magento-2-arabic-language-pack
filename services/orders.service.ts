@@ -274,6 +274,20 @@ const TheService: ServiceSchema = {
       auth: 'Bearer',
       params: updateOrderValidation,
       async handler(ctx) {
+        const instance = await ctx.call('stores.findInstance', {
+          consumerKey: ctx.meta.user
+        });
+        this.sendLogs({
+          topic: 'order',
+          topicId: ctx.params.id,
+          message: `Cancel Order Received!`,
+          storeId: instance.url,
+          logLevel: 'info',
+          code: 100,
+          payload: {
+            params: ctx.params
+          }
+        });
         const orderBeforeUpdate = await ctx.call('orders.getOrder', { order_id: ctx.params.id });
         if (orderBeforeUpdate.id === -1) {
           return { message: 'Order Not Found!' };
@@ -302,10 +316,6 @@ const TheService: ServiceSchema = {
           errors?: Array<{}>;
         } = {};
         let shipment: any = 'No Items';
-        // If there is items
-        const instance = await ctx.call('stores.findInstance', {
-          consumerKey: ctx.meta.user
-        });
 
         try {
           if (ctx.params.items) {
@@ -644,6 +654,17 @@ const TheService: ServiceSchema = {
       async handler(ctx) {
         const instance = await ctx.call('stores.findInstance', {
           consumerKey: ctx.meta.user
+        });
+        this.sendLogs({
+          topic: 'order',
+          topicId: ctx.params.id,
+          message: `Cancel Order Received!`,
+          storeId: instance.url,
+          logLevel: 'info',
+          code: 100,
+          payload: {
+            params: ctx.params
+          }
         });
         return fetch(
           `${process.env.OMS_BASEURL}/orders/${instance.internal_data.omsId}/${ctx.params.id}`,
