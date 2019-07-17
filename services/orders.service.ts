@@ -929,7 +929,7 @@ const TheService: ServiceSchema = {
         if (!this.checkAddress(instance, data.externalId)) {
           warnings.push({
             message: `Billing address not found`,
-            code: 1105
+            code: 1104
           });
           this.sendLogs({
             topic: 'order',
@@ -937,7 +937,7 @@ const TheService: ServiceSchema = {
             message: `Billing address not found`,
             storeId: instance.url,
             logLevel: 'warn',
-            code: 1105
+            code: 1104
           });
         }
       } catch (err) {
