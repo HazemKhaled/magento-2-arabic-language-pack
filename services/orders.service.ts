@@ -834,7 +834,7 @@ const TheService: ServiceSchema = {
     sendLogs({ topic, topicId, message, storeId, logLevel, code, payload }): ServiceSchema {
       const body = {
         topic,
-        topicId: JSON.stringify(topicId),
+        topicId,
         message,
         storeId,
         logLevel,
