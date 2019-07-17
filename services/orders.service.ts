@@ -982,7 +982,7 @@ const TheService: ServiceSchema = {
         this.sendLogs({
           topic: 'order',
           topicId: externalId,
-          message: `No Billing Address Or Address Missing Data. Your order failed!`,
+          message: `No Billing Address Or Address Missing Data.`,
           storeId: instance.url,
           logLevel: 'warn',
           code: 428
