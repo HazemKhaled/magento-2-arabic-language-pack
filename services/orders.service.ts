@@ -1,6 +1,7 @@
 import { Context, ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
 import { v1 as uuidv1 } from 'uuid';
+
 import { OrdersOperations } from '../utilities/mixins/orders.mixin';
 import {
   OMSResponse,
@@ -10,7 +11,8 @@ import {
   Product,
   Store,
   StoreUser,
-  Subscription
+  Subscription,
+  Log
 } from '../utilities/types';
 import {
   createOrderValidation,
@@ -60,6 +62,7 @@ const TheService: ServiceSchema = {
           notEnoughStock: OrderItem[];
           notKnawat: OrderItem[];
         } = await this.stockProducts(data.items);
+
         // Return warning response if no Item available
         if (stock.items.length === 0) {
           this.sendLogs({
@@ -814,20 +817,13 @@ const TheService: ServiceSchema = {
     /**
      * Log order errors
      *
-     * @param {*} { topic, topicId, message, storeId, logLevel, code, payload }
+     * @param {Log} log
      * @returns {ServiceSchema}
      */
-    sendLogs({ topic, topicId, message, storeId, logLevel, code, payload }): ServiceSchema {
-      const body = {
-        topic,
-        topicId: JSON.stringify(topicId),
-        message,
-        storeId,
-        logLevel,
-        code,
-        payload
-      };
-      return this.broker.call('logs.add', { ...body });
+    sendLogs(log: Log): ServiceSchema {
+      log.topic = 'order';
+      log.topicId = JSON.stringify(log.topicId);
+      return this.broker.call('logs.add', log);
     },
     /**
      * Inspect order warning into order body
