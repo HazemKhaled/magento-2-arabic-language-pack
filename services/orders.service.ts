@@ -39,6 +39,17 @@ const TheService: ServiceSchema = {
           consumerKey: ctx.meta.user
         });
 
+        this.sendLogs({
+          topic: 'order',
+          topicId: data.externalId,
+          message: `Order Received!`,
+          storeId: instance.url,
+          logLevel: 'info',
+          code: 100,
+          payload: {
+            params: ctx.params
+          }
+        });
         // Order store data
         data.store =
           instance.internal_data && instance.internal_data.omsId
