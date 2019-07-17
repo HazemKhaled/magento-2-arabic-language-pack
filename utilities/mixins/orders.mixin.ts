@@ -34,11 +34,14 @@ export const OrdersOperations: ServiceSchema = {
       notKnawat: OrderItem[];
     }> {
       const orderItems = items.map(item => item.sku);
-      const products = await this.broker.call('products-list.getProductsByVariationSku', {
+      const products: [{ _source: Product; _id: string }] = await this.broker.call(
+        'products-list.getProductsByVariationSku',
+        {
         skus: orderItems
-      });
+        }
+      );
       const found: OrderItem[] = [];
-      products.forEach((product: { _source: Product; _id: string }) =>
+      products.forEach(product => {
         found.push(
           ...product._source.variations
             .filter((variation: Variation) => orderItems.includes(variation.sku))
@@ -65,8 +68,8 @@ export const OrdersOperations: ServiceSchema = {
                 ''
               )}`
             }))
-        )
       );
+      });
       const notKnawat = items.filter(
         (item: OrderItem) => !found.map((i: OrderItem) => i.sku).includes(item.sku)
       );
