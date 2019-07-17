@@ -145,19 +145,17 @@ const TheService: ServiceSchema = {
         data.shipmentCourier = shipment.courier;
         data.shippingCharge = shipment.cost;
         // Getting the current user subscription
-        const subscription = this.currentSubscriptions(instance);
-
+        const subscription = await this.currentSubscriptions(instance);
         // Checking for processing fees
-        if (subscription.attr_order_processing_fees && subscription.attr_order_processing_fees > 0)
-          data.items.push({
-            sku: 'PROCESSING-FEE',
-            quantity: 1,
-            name: 'PROCESSING-FEE',
-            url: 'https://knawat.com',
-            rate: 2,
-            purchase_rate: 2,
-            vendor_id: 0
-          });
+        if (
+          subscription.attr_order_processing_fees &&
+          subscription.attr_order_processing_fees > 0
+        ) {
+          data.adjustment = Number(subscription.attr_order_processing_fees);
+          data.adjustmentDescription = `PROCESSING-FEES: ${
+            subscription.attr_order_processing_fees
+          }`;
+        }
         // Preparing billing data
         data.billing = this.checkAddress(instance, data.externalId) ? instance.address : undefined;
         data.status = ['pending', 'processing', 'cancelled'].includes(data.status)
@@ -377,7 +375,6 @@ const TheService: ServiceSchema = {
             : data.status;
 
           // Update order
-          this.logger.info(JSON.stringify(data));
           const result: OMSResponse = await fetch(
             `${process.env.OMS_BASEURL}/orders/${instance.internal_data.omsId}/${ctx.params.id}`,
             {
@@ -731,7 +728,6 @@ const TheService: ServiceSchema = {
         })}&access_token=${process.env.KLAYER_TOKEN}`,
         { method: 'get' }
       ).then(res => res.json());
-
       // Calculate active subscription
       const max: Subscription[] = [];
       let lastDate = new Date(0);
@@ -985,7 +981,7 @@ const TheService: ServiceSchema = {
           message: `No Billing Address Or Address Missing Data.`,
           storeId: instance.url,
           logLevel: 'warn',
-          code: 428
+          code: 100
         });
         return false;
       }
