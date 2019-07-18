@@ -34,12 +34,12 @@ const TheService: ServiceSchema = {
       auth: 'Bearer',
       params: createOrderValidation,
       async handler(ctx: Context) {
-        const data = this.orderData(ctx.params, true);
-
         // Get the Store instance
         const instance = await ctx.call('stores.findInstance', {
           consumerKey: ctx.meta.user
         });
+
+        const data = this.orderData(ctx.params, true, instance.url);
 
         this.sendLogs({
           topic: 'order',
@@ -975,7 +975,7 @@ const TheService: ServiceSchema = {
      * @param {Order} params
      * @returns
      */
-    orderData(params: Order, create = false) {
+    orderData(params: Order, create = false, storeUrl) {
       const data: Order = {
         status: params.status,
         items: params.items || params.line_items,
@@ -986,7 +986,8 @@ const TheService: ServiceSchema = {
       if (create) {
         data.externalId = params.id ? String(params.id) : uuidv1();
         data.externalInvoice =
-          params.invoice_url || `${this.settings.BASEURL}/invoice/external/${data.externalId}`;
+          params.invoice_url ||
+          `${this.settings.BASEURL}/invoice/${encodeURIComponent(storeUrl)}/${data.externalId}`;
       }
       return data;
     },
