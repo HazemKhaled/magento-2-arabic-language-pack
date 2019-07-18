@@ -164,7 +164,6 @@ const TheService: ServiceSchema = {
             } Available Qty: ${item.quantity}\n`,
           ''
         )}${data.notes}`;
-
         const result: OMSResponse = await fetch(`${process.env.OMS_BASEURL}/orders`, {
           method: 'POST',
           body: JSON.stringify(data),
@@ -234,7 +233,9 @@ const TheService: ServiceSchema = {
             createDate: order.createDate,
             notes: order.notes || '',
             shipping_method: order.shipmentCourier,
-            shipping_charge: order.shippingCharge
+            shipping_charge: order.shippingCharge,
+            adjustment: order.adjustment,
+            adjustmentDescription: order.adjustmentDescription
           }
         };
 
@@ -424,7 +425,9 @@ const TheService: ServiceSchema = {
             createDate: order.createDate,
             notes: order.notes || '',
             shipping_method: order.shipmentCourier,
-            shipping_charge: order.shippingCharge
+            shipping_charge: order.shippingCharge,
+            adjustment: order.adjustment,
+            adjustmentDescription: order.adjustmentDescription
           };
           this.sendLogs({
             topicId: data.externalId,
@@ -512,7 +515,9 @@ const TheService: ServiceSchema = {
           knawat_order_status: order.status ? this.normalizeResponseStatus(order.status) : '',
           notes: order.notes,
           shipping_method: order.shipmentCourier,
-          shipping_charge: order.shippingCharge
+          shipping_charge: order.shippingCharge,
+          adjustment: order.adjustment,
+          adjustmentDescription: order.adjustmentDescription
         };
         if (order.meta_data && order.meta_data.length > 0) {
           order.meta_data.forEach((meta: any) => {

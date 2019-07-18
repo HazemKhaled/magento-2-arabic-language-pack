@@ -74,6 +74,8 @@ export interface OMSResponse {
     total: number;
     hasQtyCancelled: boolean;
     notes?: string;
+    adjustment: number;
+    adjustmentDescription: string;
   };
   error?: { [key: string]: any };
 }
