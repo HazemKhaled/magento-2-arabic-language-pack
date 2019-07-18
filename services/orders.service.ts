@@ -449,11 +449,11 @@ const TheService: ServiceSchema = {
           this.logger.error(err);
           this.sendLogs({
             topicId: orderBeforeUpdate.externalId,
-            message: `Order Error`,
+            message: err && err.error && err.error.message ? err.error.message : `Order Error`,
             storeId: instance.url,
             logLevel: 'error',
             code: 500,
-            payload: { errors: err }
+            payload: { errors: err.error || err, params: ctx.params }
           });
           ctx.meta.$statusCode = 500;
           ctx.meta.$statusMessage = 'Internal Server Error';
@@ -691,11 +691,14 @@ const TheService: ServiceSchema = {
 
             this.sendLogs({
               topicId: ctx.params.id,
-              message: `Order Error`,
+              message:
+                result && result.error && result.error.message
+                  ? result.error.message
+                  : `Order Error`,
               storeId: instance.url,
               logLevel: 'error',
               code: 500,
-              payload: { errors: result }
+              payload: { errors: result.error || result, params: ctx.params }
             });
             ctx.meta.$statusCode = 500;
             ctx.meta.$statusMessage = 'Internal Server Error';
@@ -711,11 +714,11 @@ const TheService: ServiceSchema = {
           .catch(err => {
             this.sendLogs({
               topicId: ctx.params.id,
-              message: `Order Error`,
+              message: err && err.error && err.error.message ? err.error.message : `Order Error`,
               storeId: instance.url,
               logLevel: 'error',
               code: 500,
-              payload: { errors: err }
+              payload: { errors: err.error || err, params: ctx.params }
             });
             ctx.meta.$statusCode = 500;
             ctx.meta.$statusMessage = 'Internal Server Error';
