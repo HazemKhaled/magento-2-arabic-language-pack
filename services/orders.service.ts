@@ -987,7 +987,9 @@ const TheService: ServiceSchema = {
         data.externalId = params.id ? String(params.id) : uuidv1();
         data.externalInvoice =
           params.invoice_url ||
-          `${this.settings.BASEURL}/invoice/${encodeURIComponent(storeUrl)}/${data.externalId}`;
+          `${this.settings.BASEURL}/invoice/${encodeURIComponent(storeUrl)}/external/${
+            data.externalId
+          }`;
       }
       return data;
     },
