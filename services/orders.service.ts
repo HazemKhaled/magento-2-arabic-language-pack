@@ -39,7 +39,7 @@ const TheService: ServiceSchema = {
           consumerKey: ctx.meta.user
         });
 
-        const data = this.orderData(ctx.params, true, instance.url);
+        const data = this.orderData(ctx.params, instance, true);
 
         this.sendLogs({
           topic: 'order',
@@ -52,16 +52,6 @@ const TheService: ServiceSchema = {
             params: ctx.params
           }
         });
-        // Order store data
-        data.store =
-          instance.internal_data && instance.internal_data.omsId
-            ? { id: instance.internal_data.omsId }
-            : {
-                url: instance.url,
-                name: instance.name,
-                users: instance.users
-              };
-
         // Check the available products and quantities return object with inStock products info
         const stock: {
           products: Array<{ _source: Product; _id: string }>;
@@ -184,7 +174,6 @@ const TheService: ServiceSchema = {
             Accept: 'application/json'
           }
         }).then(createResponse => createResponse.json());
-
         if (!result.salesorder) {
           this.sendLogs({
             topicId: data.externalId,
@@ -746,8 +735,7 @@ const TheService: ServiceSchema = {
       const [user] = await fetch(
         `${process.env.KLAYER_URL}/api/Partners?filter=${JSON.stringify({
           where: {
-            contact_email: instance.users.filter((usr: StoreUser) => usr.roles.includes('owner'))[0]
-              .email
+            contact_email: instance.users.find(usr => usr.roles.includes('owner')).email
           }
         })}&access_token=${process.env.KLAYER_TOKEN}`,
         { method: 'get' }
@@ -975,7 +963,7 @@ const TheService: ServiceSchema = {
      * @param {Order} params
      * @returns
      */
-    orderData(params: Order, create = false, storeUrl) {
+    orderData(params: Order, instance, create = false) {
       const data: Order = {
         status: params.status,
         items: params.items || params.line_items,
@@ -987,9 +975,18 @@ const TheService: ServiceSchema = {
         data.externalId = params.id ? String(params.id) : uuidv1();
         data.externalInvoice =
           params.invoice_url ||
-          `${this.settings.BASEURL}/invoice/${encodeURIComponent(storeUrl)}/external/${
+          `${this.settings.BASEURL}/invoice/${encodeURIComponent(instance.url)}/external/${
             data.externalId
           }`;
+        // Order store data
+        data.store =
+          instance.internal_data && instance.internal_data.omsId
+            ? { id: instance.internal_data.omsId }
+            : {
+                url: instance.url,
+                name: instance.name,
+                users: instance.users
+              };
       }
       return data;
     },

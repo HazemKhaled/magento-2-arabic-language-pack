@@ -21,6 +21,7 @@ export interface Order {
   invoice_url?: string;
   shipmentCourier?: string;
   shipping_method?: string;
+  store?: {};
 }
 
 /**
