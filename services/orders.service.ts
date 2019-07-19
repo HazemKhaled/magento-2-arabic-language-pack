@@ -646,6 +646,19 @@ const TheService: ServiceSchema = {
         id: { type: 'string', convert: true }
       },
       async handler(ctx) {
+        const orderBeforeUpdate = await ctx.call('orders.getOrder', { order_id: ctx.params.id });
+        if (orderBeforeUpdate.id === -1) {
+          return { message: 'Order Not Found!' };
+        }
+        // Change here
+        if (!['Order Placed', 'Processing', 'Cancelled'].includes(orderBeforeUpdate.status)) {
+          ctx.meta.$statusCode = 405;
+          ctx.meta.$statusMessage = 'Not Allowed';
+          return { message: 'The Order Is Now Processed With Knawat You Can Not Update It' };
+        }
+        if ('Cancelled' === orderBeforeUpdate.status) {
+          return { message: 'The Order Is Already Cancelled' };
+        }
         const instance = await ctx.call('stores.findInstance', {
           consumerKey: ctx.meta.user
         });
@@ -671,6 +684,7 @@ const TheService: ServiceSchema = {
         )
           .then(async response => {
             const result = await response.json();
+            this.logger.info(JSON.stringify(result), 'dfsdfsadfsda');
             this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
             if (result.salesorder) {
               return {
