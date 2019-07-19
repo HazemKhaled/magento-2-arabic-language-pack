@@ -283,7 +283,7 @@ const TheService: ServiceSchema = {
           return { message: 'Order Not Found!' };
         }
         // Change here
-        if (!['Order Placed', 'Pending'].includes(orderBeforeUpdate.status)) {
+        if (!['draft', 'open'].includes(orderBeforeUpdate.status)) {
           return { message: 'The Order Is Now Processed With Knawat You Can Not Update It' };
         }
 
