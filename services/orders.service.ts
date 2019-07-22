@@ -353,11 +353,9 @@ const TheService: ServiceSchema = {
             if (ctx.params.shipping && ctx.params.shipping.country) {
               country = ctx.params.shipping.country;
             }
-
             // Shipping
             shipment = await this.shipment(
-              stock.products,
-              stock.enoughStock,
+              stock.items,
               country,
               instance,
               ctx.params.shipping_method
@@ -938,7 +936,7 @@ const TheService: ServiceSchema = {
             storeId: instance.url,
             logLevel: 'warn',
             code: 2102,
-            payload: {shipment ,params}
+            payload: { shipment, params }
           });
         }
         if (
@@ -963,7 +961,8 @@ const TheService: ServiceSchema = {
               'Standard'}, Contact our customer support for more info`,
             storeId: instance.url,
             logLevel: 'warn',
-            code: 2101, payload: {shipment, params}
+            code: 2101,
+            payload: { shipment, params }
           });
         }
         if (!this.checkAddress(instance, data.externalId)) {
@@ -978,7 +977,7 @@ const TheService: ServiceSchema = {
             storeId: instance.url,
             logLevel: 'warn',
             code: 1104,
-            payload: {params}
+            payload: { params }
           });
         }
       } catch (err) {
