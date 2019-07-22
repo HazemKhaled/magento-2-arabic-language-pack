@@ -247,7 +247,8 @@ const TheService: ServiceSchema = {
           instance,
           ctx.params.shipping_method,
           ctx.params.shipping,
-          shipment
+          shipment,
+          ctx.params
         );
         if (warnings.length > 0) message.warnings = warnings;
         this.sendLogs({
@@ -283,8 +284,13 @@ const TheService: ServiceSchema = {
           return { message: 'Order Not Found!' };
         }
         // Change here
-        if (!['Order Placed', 'Processing'].includes(orderBeforeUpdate.status)) {
+        if (!['Order Placed', 'Processing', 'Cancelled'].includes(orderBeforeUpdate.status)) {
+          ctx.meta.$statusCode = 405;
+          ctx.meta.$statusMessage = 'Not Allowed';
           return { message: 'The Order Is Now Processed With Knawat You Can Not Update It' };
+        }
+        if ('Cancelled' === orderBeforeUpdate.status) {
+          return { message: 'The Order Is Cancelled, You Can Not Update It' };
         }
 
         const data = this.orderData(ctx.params);
@@ -365,7 +371,8 @@ const TheService: ServiceSchema = {
               instance,
               ctx.params.shipping_method,
               ctx.params.shipping,
-              shipment
+              shipment,
+              ctx.params
             );
             if (warnings.length > 0) message.warnings = warnings;
           }
@@ -373,7 +380,7 @@ const TheService: ServiceSchema = {
           data.status = ['pending', 'processing', 'cancelled'].includes(data.status)
             ? this.normalizeStatus(data.status)
             : data.status;
-
+          this.logger.info(JSON.stringify(data));
           // Update order
           const result: OMSResponse = await fetch(
             `${process.env.OMS_BASEURL}/orders/${instance.internal_data.omsId}/${ctx.params.id}`,
@@ -878,7 +885,8 @@ const TheService: ServiceSchema = {
       instance,
       shippingMethod,
       shipping,
-      shipment
+      shipment,
+      params
     ) {
       const warnings = [];
       try {
@@ -895,7 +903,7 @@ const TheService: ServiceSchema = {
             storeId: instance.url,
             logLevel: 'warn',
             code: 1102,
-            payload: { outOfStock }
+            payload: { outOfStock, params }
           });
         }
         if (notEnoughStock.length > 0) {
@@ -913,7 +921,7 @@ const TheService: ServiceSchema = {
             storeId: instance.url,
             logLevel: 'warn',
             code: 1103,
-            payload: { outOfStock }
+            payload: { outOfStock, params }
           });
         }
         if ((!instance.shipping_methods || !instance.shipping_methods[0].name) && !shippingMethod) {
@@ -929,7 +937,8 @@ const TheService: ServiceSchema = {
               'Standard'}`,
             storeId: instance.url,
             logLevel: 'warn',
-            code: 2102
+            code: 2102,
+            payload: {shipment ,params}
           });
         }
         if (
@@ -954,7 +963,7 @@ const TheService: ServiceSchema = {
               'Standard'}, Contact our customer support for more info`,
             storeId: instance.url,
             logLevel: 'warn',
-            code: 2101
+            code: 2101, payload: {shipment, params}
           });
         }
         if (!this.checkAddress(instance, data.externalId)) {
@@ -968,7 +977,8 @@ const TheService: ServiceSchema = {
             message: `Billing address not found`,
             storeId: instance.url,
             logLevel: 'warn',
-            code: 1104
+            code: 1104,
+            payload: {params}
           });
         }
       } catch (err) {
