@@ -1,13 +1,17 @@
 import { Context, ServiceSchema } from 'moleculer';
+import fetch from 'node-fetch';
 import DbService from '../utilities/mixins/mongo.mixin';
 
 import { v1 as uuidv1, v4 as uuidv4 } from 'uuid';
-import { Store, StoreUser } from '../utilities/types';
+import { Store, StoreUser, User } from '../utilities/types';
 import { createValidation, updateValidation } from '../utilities/validations/stores.validate';
 
 const TheService: ServiceSchema = {
   name: 'stores',
   mixins: [DbService('stores')],
+  settings: {
+    AUTH: Buffer.from(`${process.env.BASIC_USER}:${process.env.BASIC_PASS}`).toString('base64')
+  },
   actions: {
     /**
      * This function is used locally by mp to get an instance with consumerKey
@@ -181,9 +185,10 @@ const TheService: ServiceSchema = {
         // Initial response variable
         let mReq: { [key: string]: {} } = {};
         try {
-          mReq = await this.adapter
-            .updateById(id, { $set: store })
-            .then((res: Store) => this.sanitizeResponse(res));
+          mReq = await this.adapter.updateById(id, { $set: store }).then(async (res: Store) => {
+            this.updateOmsStore(res.internal_data.omsId, ctx.params);
+            return this.sanitizeResponse(res);
+          });
           // If the store not found return Not Found error
           if (mReq === null) {
             ctx.meta.$statusMessage = 'Not Found';
@@ -295,6 +300,22 @@ const TheService: ServiceSchema = {
       store.url = store._id;
       delete store._id;
       return store;
+    },
+    updateOmsStore(storeId, params) {
+      const body: { users?: User[]; price_update_date?: string; stock_update_date?: string } = {};
+      if (params.users) body.users = params.users;
+      if (params.price_date) body.price_update_date = params.price_date;
+      if (params.stock_date) body.stock_update_date = params.stock_date;
+      if (Object.keys(body).length === 0) return;
+      return fetch(`${process.env.OMS_BASEURL}/stores/${storeId}`, {
+        method: 'put',
+        headers: {
+          Authorization: `Basic ${this.settings.AUTH}`,
+          'Content-Type': 'application/json',
+          Accept: 'application/json'
+        },
+        body: JSON.stringify(body)
+      });
     }
   }
 };
