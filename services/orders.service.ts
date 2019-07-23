@@ -388,7 +388,6 @@ const TheService: ServiceSchema = {
           data.status = ['pending', 'processing', 'cancelled'].includes(data.status)
             ? this.normalizeStatus(data.status)
             : data.status;
-          this.logger.info(JSON.stringify(data));
           // Update order
           const result: OMSResponse = await fetch(
             `${process.env.OMS_BASEURL}/orders/${instance.internal_data.omsId}/${ctx.params.id}`,
@@ -402,7 +401,6 @@ const TheService: ServiceSchema = {
               }
             }
           ).then(updateResponse => {
-            this.logger.info(JSON.stringify(updateResponse), '>>>>>>>>');
             return updateResponse.json();
           });
 
@@ -643,7 +641,6 @@ const TheService: ServiceSchema = {
             Authorization: `Basic ${this.settings.AUTH}`
           }
         }).then(response => response.json());
-        this.logger.info(orders);
         return orders.salesorders.map((order: Order) => ({
           id: order.id,
           externalId: order.externalId,
@@ -699,7 +696,6 @@ const TheService: ServiceSchema = {
         )
           .then(async response => {
             const result = await response.json();
-            this.logger.info(JSON.stringify(result), 'dfsdfsadfsda');
             this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
             if (result.salesorder) {
               return {
