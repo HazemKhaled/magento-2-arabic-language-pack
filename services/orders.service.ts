@@ -137,14 +137,24 @@ const TheService: ServiceSchema = {
         // Getting the current user subscription
         const subscription = await this.currentSubscriptions(instance);
         // Checking for processing fees
+        if (subscription === -1) {
+          this.sendLogs({
+            topic: 'order',
+            topicId: data.externalId,
+            message: `No owner user registered on klayer, No subscription`,
+            storeId: instance.url,
+            logLevel: 'warn',
+            code: 2103,
+            payload: { params: ctx.params }
+          });
+        }
         if (
-          subscription.attr_order_processing_fees &&
-          subscription.attr_order_processing_fees > 0
+          subscription === -1 ||
+          (subscription.attr_order_processing_fees && subscription.attr_order_processing_fees > 0)
         ) {
-          data.adjustment = Number(subscription.attr_order_processing_fees);
-          data.adjustmentDescription = `PROCESSING-FEES: ${
-            subscription.attr_order_processing_fees
-          }`;
+          data.adjustment = Number(subscription.attr_order_processing_fees || 2);
+          data.adjustmentDescription = `PROCESSING-FEES: ${subscription.attr_order_processing_fees ||
+            2}`;
         }
         // Preparing billing data
         data.billing = this.checkAddress(instance, data.externalId) ? instance.address : undefined;
@@ -754,20 +764,24 @@ const TheService: ServiceSchema = {
      * @param {Store} instance
      * @returns {Promise<Subscription>}
      */
-    async currentSubscriptions(instance: Store): Promise<Subscription> {
+    async currentSubscriptions(instance: Store, iteration: number = 0): Promise<Subscription | -1> {
       // Getting the user Information to check subscription
-      const [user] = await fetch(
+      const instanceOwner = instance.users.filter(usr => usr.roles.includes('owner'));
+      if (instanceOwner.length <= iteration) return -1;
+      let user: any = await fetch(
         `${process.env.KLAYER_URL}/api/Partners?filter=${JSON.stringify({
           where: {
-            contact_email: instance.users.find(usr => usr.roles.includes('owner')).email
+            contact_email: instanceOwner[iteration]
           }
         })}&access_token=${process.env.KLAYER_TOKEN}`,
         { method: 'get' }
-      ).then(res => res.json());
+      );
+      if (!user.ok) return this.currentSubscriptions(instance, iteration + 1);
+      user = await user.json();
       // Calculate active subscription
       const max: Subscription[] = [];
       let lastDate = new Date(0);
-      user.subscriptions.forEach((subscription: Subscription) => {
+      user[0].subscriptions.forEach((subscription: Subscription) => {
         if (new Date(subscription.expire_date) > lastDate) {
           max.push(subscription);
           lastDate = new Date(subscription.expire_date);
