@@ -1,7 +1,7 @@
 export const createOrderValidation = {
   id: [
     { type: 'string', empty: false, optional: true },
-    { type: 'number', integer: true, convert: true }
+    { type: 'number', integer: true, convert: true, optional: true }
   ],
   status: { type: 'enum', values: ['pending', 'processing', 'cancelled'] },
   items: {
