@@ -153,8 +153,7 @@ const TheService: ServiceSchema = {
           (subscription.attr_order_processing_fees && subscription.attr_order_processing_fees > 0)
         ) {
           data.adjustment = Number(subscription.attr_order_processing_fees || 2);
-          data.adjustmentDescription = `PROCESSING-FEES: ${subscription.attr_order_processing_fees ||
-            2}`;
+          data.adjustmentDescription = `PROCESSING-FEES: `;
         }
         // Preparing billing data
         data.billing = this.checkAddress(instance, data.externalId) ? instance.address : undefined;
