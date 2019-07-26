@@ -302,10 +302,35 @@ const TheService: ServiceSchema = {
       return store;
     },
     updateOmsStore(storeId, params) {
-      const body: { users?: User[]; price_update_date?: string; stock_update_date?: string } = {};
-      if (params.users) body.users = params.users;
-      if (params.price_date) body.price_update_date = params.price_date;
-      if (params.stock_date) body.stock_update_date = params.stock_date;
+      const body: { [key: string]: string | User[] | string[]; users?: User[] } = {};
+      // Sanitized params keys
+      const keys: string[] = [
+        'name',
+        'status',
+        'type',
+        'stock_date',
+        'stock_status',
+        'price_date',
+        'price_status',
+        'sale_price',
+        'sale_price_operator',
+        'compared_at_price',
+        'compared_at_price_operator',
+        'currency',
+        'users',
+        'languages',
+        'shipping_methods'
+      ];
+      const transformObj: { [key: string]: string } = {
+        type: 'platform',
+        compared_at_price: 'compared_price',
+        compared_at_price_operator: 'compared_operator'
+      };
+      Object.keys(params).forEach(key => {
+        if (!(key in keys)) return;
+        const keyName: string = transformObj[key] || key;
+        body[keyName] = params[key];
+      });
       if (Object.keys(body).length === 0) return;
       return fetch(`${process.env.OMS_BASEURL}/stores/${storeId}`, {
         method: 'put',
