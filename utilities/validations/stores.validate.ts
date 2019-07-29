@@ -34,6 +34,8 @@ export const createValidation = {
     items: {
       type: 'object',
       props: {
+        first_name: {type: 'string', optional: true},
+        last_name: {type: 'string', optional: true},
         email: { type: 'email' },
         roles: {
           type: 'array',
@@ -115,6 +117,8 @@ export const updateValidation = {
     items: {
       type: 'object',
       props: {
+        first_name: {type: 'string', optional: true},
+        last_name: {type: 'string', optional: true},
         email: { type: 'email' },
         roles: {
           type: 'array',
