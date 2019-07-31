@@ -8,18 +8,28 @@ const TheService: ServiceSchema = {
   },
   actions: {
     get: {
-      auth: 'Basic',
-      params: {
-        storeId: [{ type: 'string' }, { type: 'number', integer: true }]
-      },
-      handler(ctx: Context) {
-        this.logger.info(ctx.params.storeId);
-        return fetch(`${process.env.OMS_BASEURL}/invoices/${ctx.params.storeId}`, {
-          method: 'get',
-          headers: {
-            Authorization: `Basic ${this.settings.AUTH}`
-          }
-        }).then(res => res.json());
+      auth: 'Bearer',
+      async handler(ctx: Context) {
+        const instance = await ctx.call('stores.findInstance', {
+          consumerKey: ctx.meta.user
+        });
+        if (instance.internal_data && instance.internal_data.omsId) {
+          return fetch(`${process.env.OMS_BASEURL}/invoices/${instance.internal_data.omsId}`, {
+            method: 'get',
+            headers: {
+              Authorization: `Basic ${this.settings.AUTH}`
+            }
+          }).then(res => res.json());
+        }
+        ctx.meta.$statusCode = 404;
+        ctx.meta.$statusMessage = 'Not Found';
+        return {
+          errors: [
+            {
+              message: 'No Record Found For This Store!'
+            }
+          ]
+        };
       }
     }
   }
