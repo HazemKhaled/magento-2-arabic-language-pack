@@ -9,7 +9,7 @@ const TheService: ServiceSchema = {
   actions: {
     get: {
       auth: 'Bearer',
-      cache: { keys: ['#user'], ttl: 60 },
+      // cache: { keys: ['#user'], ttl: 60 },
       params: {
         page: { type: 'number', integer: true, optional: true, convert: true },
         limit: { type: 'number', integer: true, optional: true, convert: true },
