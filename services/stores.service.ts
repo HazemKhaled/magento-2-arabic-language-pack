@@ -26,11 +26,14 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 // 1 hour
       },
       params: {
-        consumerKey: { type: 'string', convert: true }
+        consumerKey: { type: 'string', convert: true, optional: true },
+        id: { type: 'string', convert: true, optional: true }
       },
       handler(ctx: Context) {
+        let query: { _id?: string } | false = false;
+        if (ctx.params.id) query = { _id: ctx.params.id };
         return this.adapter
-          .findOne({ consumer_key: ctx.params.consumerKey })
+          .findOne(query || { consumer_key: ctx.params.consumerKey })
           .then((res: Store | null) => {
             // If the DB response not null will return the data
             if (res !== null) return this.sanitizeResponse(res);

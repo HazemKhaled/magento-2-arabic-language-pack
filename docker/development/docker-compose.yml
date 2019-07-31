@@ -48,7 +48,7 @@ services:
     restart: always
     env_file: .env
     environment:
-      SERVICES: invoices
+      SERVICES: invoices, payments
 
   catalog:
     build:
