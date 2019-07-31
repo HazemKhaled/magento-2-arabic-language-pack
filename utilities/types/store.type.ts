@@ -17,6 +17,8 @@ export interface Store {
   compared_at_price_operator: number;
   users: StoreUser[];
   shipping_methods: ShippingMethod[];
+  credit: number;
+  debit: number;
   internal_data: { [key: string]: unknown };
 }
 
