@@ -68,7 +68,10 @@ const TheService: ServiceSchema = {
 
           // Logs
           'POST logs': 'logs.add',
-          'GET logs': 'logs.getLogs'
+          'GET logs': 'logs.getLogs',
+
+          // Invoices
+          'GET invoices/:storeId': 'invoices.get'
         },
 
         // Disable to call not-mapped actions
