@@ -24,6 +24,7 @@ const TheService: ServiceSchema = {
           },
           optional: true
         },
+        account_id: { type: 'string', optional: true },
         bank_charges: { type: 'number', optional: true, convert: true }
       },
       async handler(ctx: Context) {
@@ -42,6 +43,7 @@ const TheService: ServiceSchema = {
               payment_mode: ctx.params.payment_mode,
               amount: ctx.params.amount,
               invoices: ctx.params.invoices,
+              account_id: ctx.params.account_id,
               bank_charges: ctx.params.bank_charges
             })
           }).then(res => res.json());
