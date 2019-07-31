@@ -333,7 +333,7 @@ const TheService: ServiceSchema = {
       return store;
     },
     updateOmsStore(storeId, params) {
-      const body: { [key: string]: string | User[] | string[]; users?: User[] } = {};
+      const body: { [key: string]: string | StoreUser[] | string[]; users?: StoreUser[] } = {};
       // Sanitized params keys
       const keys: string[] = [
         'name',
@@ -358,11 +358,15 @@ const TheService: ServiceSchema = {
         compared_at_price_operator: 'compared_operator'
       };
       Object.keys(params).forEach(key => {
-        if (!(key in keys)) return;
+        if (!keys.includes(key)) return;
         const keyName: string = transformObj[key] || key;
-        body[keyName] = params[key];
+        body[keyName] = params[key].$date || params[key];
       });
+      this.logger.info(body);
       if (Object.keys(body).length === 0) return;
+      if (params.users) {
+        body.users[body.users.findIndex(user => user.roles.includes('owner'))].primary = true;
+      }
       return fetch(`${process.env.OMS_BASEURL}/stores/${storeId}`, {
         method: 'put',
         headers: {

@@ -31,6 +31,7 @@ export interface Store {
 export interface StoreUser {
   email: string;
   roles: string[];
+  primary?: boolean;
 }
 
 /**
