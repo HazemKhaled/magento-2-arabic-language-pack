@@ -41,6 +41,15 @@ services:
     environment:
       SERVICES: users
 
+  invoices:
+    build:
+      context: ../../
+    image: microes
+    restart: always
+    env_file: .env
+    environment:
+      SERVICES: invoices
+
   catalog:
     build:
       context: ../../
