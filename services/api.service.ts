@@ -74,7 +74,8 @@ const TheService: ServiceSchema = {
           'GET invoices': 'invoices.get',
 
           // Payments
-          'POST payments/:storeId': 'payments.add'
+          'POST payments/:storeId': 'payments.add',
+          'GET payments': 'payments.get'
         },
 
         // Disable to call not-mapped actions
