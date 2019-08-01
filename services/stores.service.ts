@@ -239,6 +239,54 @@ const TheService: ServiceSchema = {
         }
         return mReq;
       }
+    },
+    sync: {
+      auth: 'Basic',
+      params: {},
+      async handler(ctx) {
+        try {
+          const omsStore = await fetch(
+            `${process.env.OMS_BASEURL}/stores/${encodeURIComponent(ctx.params.storeId)}/find`,
+            {
+              method: 'get',
+              headers: {
+                Authorization: `Basic ${this.settings.AUTH}`
+              }
+            }
+          ).then(async res => {
+            const response = await res.json();
+            if (!res.ok) {
+              response.status = res.status;
+              response.statusText = res.statusText;
+              throw response;
+            }
+            return response;
+          });
+
+          return ctx.call('stores.update', {
+            id: ctx.params.storeId,
+            internal_data: {
+              omsId: omsStore.id
+            },
+            updated: '2010-01-01T00:00:00.000Z',
+            stock_date: '2010-01-01T00:00:00.000Z',
+            price_date: '2010-01-01T00:00:00.000Z',
+            stock_status: 'idle',
+            price_status: 'idle'
+          });
+        } catch (err) {
+          ctx.meta.$statusCode = err.status || (err.error && err.error.statusCode) || 500;
+          ctx.meta.$statusMessage =
+            err.statusText || (err.error && err.error.name) || 'Internal Error';
+          return {
+            errors: [
+              {
+                message: err.error ? err.error.message : 'Internal Server Error'
+              }
+            ]
+          };
+        }
+      }
     }
   },
   methods: {
