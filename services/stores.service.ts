@@ -262,12 +262,13 @@ const TheService: ServiceSchema = {
             }
             return response;
           });
-
+          const instance = await ctx.call('stores.findInstance', {
+            id: ctx.params.storeId
+          });
+          instance.internal_data.omsId = omsStore.id;
           return ctx.call('stores.update', {
             id: ctx.params.storeId,
-            internal_data: {
-              omsId: omsStore.id
-            },
+            internal_data: instance.internal_data,
             updated: '2010-01-01T00:00:00.000Z',
             stock_date: '2010-01-01T00:00:00.000Z',
             price_date: '2010-01-01T00:00:00.000Z',
