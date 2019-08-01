@@ -36,7 +36,28 @@ const TheService: ServiceSchema = {
             headers: {
               Authorization: `Basic ${this.settings.AUTH}`
             }
-          }).then(res => res.json());
+          })
+            .then(async res => {
+              const response = await res.json();
+              if (!res.ok) {
+                response.status = res.status;
+                response.statusText = res.statusText;
+                throw response;
+              }
+              return response;
+            })
+            .catch(err => {
+              ctx.meta.$statusCode = err.status || (err.error && err.error.statusCode) || 500;
+              ctx.meta.$statusMessage =
+                err.statusText || (err.error && err.error.name) || 'Internal Error';
+              return {
+                errors: [
+                  {
+                    message: err.error ? err.error.message : 'Internal Server Error'
+                  }
+                ]
+              };
+            });
         }
         ctx.meta.$statusCode = 404;
         ctx.meta.$statusMessage = 'Not Found';
