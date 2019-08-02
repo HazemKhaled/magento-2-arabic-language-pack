@@ -529,7 +529,8 @@ const TheService: ServiceSchema = {
           shipping_method: order.shipmentCourier,
           shipping_charge: order.shippingCharge,
           adjustment: order.adjustment,
-          adjustmentDescription: order.adjustmentDescription
+          adjustmentDescription: order.adjustmentDescription,
+          trackingNumber: order.shipmentTrackingNumber
         };
         if (order.meta_data && order.meta_data.length > 0) {
           order.meta_data.forEach((meta: any) => {
