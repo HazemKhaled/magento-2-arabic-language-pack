@@ -476,6 +476,10 @@ const TheService: ServiceSchema = {
     },
     getOrder: {
       auth: 'Bearer',
+      cache: {
+        keys: ['order_id'],
+        ttl: 60 * 60 // 1 hour
+      },
       params: {
         order_id: { type: 'string' }
       },
@@ -556,6 +560,10 @@ const TheService: ServiceSchema = {
     },
     list: {
       auth: 'Bearer',
+      cache: {
+        keys: ['#user', 'limit', 'page', 'sort', 'sortOrder', 'status', 'externalId'],
+        ttl: 60 * 60
+      },
       params: {
         limit: {
           type: 'number',
@@ -600,10 +608,6 @@ const TheService: ServiceSchema = {
         shipmentDateEnd: { type: 'date', convert: true, optional: true },
         shipmentDateBefore: { type: 'date', convert: true, optional: true },
         shipmentDateAfter: { type: 'date', convert: true, optional: true }
-      },
-      cache: {
-        keys: ['#user', 'page', 'limit'],
-        ttl: 15 * 60 // 15 mins
       },
       async handler(ctx) {
         const instance = await ctx.call('stores.findInstance', {

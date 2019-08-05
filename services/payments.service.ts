@@ -85,6 +85,10 @@ const TheService: ServiceSchema = {
     },
     get: {
       auth: 'Bearer',
+      cache: {
+        keys: ['#user', 'page', 'limit', 'reference_number', 'payment_mode'],
+        ttl: 60 * 60
+      },
       params: {
         page: { type: 'number', integer: true, optional: true, convert: true },
         limit: { type: 'number', integer: true, optional: true, convert: true },

@@ -90,12 +90,12 @@ const TheService: ServiceSchema = {
      */
     get: {
       auth: 'Basic',
-      params: {
-        id: { type: 'string' }
-      },
       cache: {
         keys: ['id'],
         ttl: 60 * 60 // 1 hour
+      },
+      params: {
+        id: { type: 'string' }
       },
       handler(ctx: Context) {
         return this.adapter.findById(ctx.params.id).then(async (res: Store | null) => {
@@ -125,12 +125,12 @@ const TheService: ServiceSchema = {
      */
     list: {
       auth: 'Basic',
-      params: {
-        filter: { type: 'string' }
-      },
       cache: {
         keys: ['filter'],
         ttl: 60 * 60 // 1 hour
+      },
+      params: {
+        filter: { type: 'string' }
       },
       handler(ctx: Context) {
         let params: { where?: {}; limit?: {}; order?: string; sort?: {} } = {};

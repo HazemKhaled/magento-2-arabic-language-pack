@@ -14,8 +14,8 @@ const Shipment: ServiceSchema = {
      */
     getShipments: {
       auth: 'Basic',
+      cache: { keys: ['id'], ttl: 60 * 60 },
       params: { id: { type: 'string', optional: true } },
-      cache: { keys: ['id'], ttl: 60 },
       handler(ctx: Context): ShipmentPolicy | ShipmentPolicy[] {
         return (ctx.params.id ? this.adapter.findById(ctx.params.id) : this.adapter.find()).then(
           (data: ShipmentPolicy[]) => this.shipmentTransform(data)
@@ -121,12 +121,12 @@ const Shipment: ServiceSchema = {
      */
     ruleByCountry: {
       auth: 'Basic',
+      cache: { keys: ['country', 'weight', 'price'], ttl: 60 * 60 },
       params: {
         country: { type: 'string' },
         weight: { type: 'number', convert: true },
         price: { type: 'number', convert: true }
       },
-      cache: { keys: ['country', 'weight', 'price'], ttl: 60 },
       handler(ctx: Context): Rule[] {
         return this.adapter // find policies with matched rules
           .find({
@@ -169,10 +169,10 @@ const Shipment: ServiceSchema = {
      */
     getCouriers: {
       auth: 'Basic',
+      cache: { keys: ['country'], ttl: 60 * 60 },
       params: {
         country: { type: 'string', optional: true, min: 2, max: 2 }
       },
-      cache: { keys: ['country'], ttl: 60 },
       handler(ctx: Context): string[] {
         const query = ctx.params.country ? { countries: ctx.params.country } : {};
         return this.adapter.find({ query }).then(
