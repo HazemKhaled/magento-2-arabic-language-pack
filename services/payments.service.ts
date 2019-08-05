@@ -24,7 +24,7 @@ const TheService: ServiceSchema = {
           },
           optional: true
         },
-        account_id: { type: 'string', optional: true },
+        account_id: { type: 'string' },
         bank_charges: { type: 'number', optional: true, convert: true }
       },
       async handler(ctx: Context) {
