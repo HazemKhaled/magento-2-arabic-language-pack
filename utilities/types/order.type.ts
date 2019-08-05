@@ -22,6 +22,7 @@ export interface Order {
   shipmentCourier?: string;
   shipping_method?: string;
   store?: {};
+  orderNumber?: string;
 }
 
 /**

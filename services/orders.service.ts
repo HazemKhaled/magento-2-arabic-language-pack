@@ -651,7 +651,8 @@ const TheService: ServiceSchema = {
           createDate: order.createDate,
           updateDate: order.updateDate,
           total: order.total,
-          knawat_order_status: order.status ? this.normalizeResponseStatus(order.status) : ''
+          knawat_order_status: order.status ? this.normalizeResponseStatus(order.status) : '',
+          orderNumber: order.orderNumber
         }));
       }
     },
