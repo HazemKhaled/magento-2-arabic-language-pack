@@ -22,7 +22,7 @@ const TheService: ServiceSchema = {
     findInstance: {
       auth: 'Basic',
       cache: {
-        keys: ['consumerKey'],
+        keys: ['consumerKey', 'id'],
         ttl: 60 * 60 // 1 hour
       },
       params: {
@@ -229,6 +229,7 @@ const TheService: ServiceSchema = {
           // Clean cache if store updated
           if (!isResError(mReq)) {
             this.broker.cacher.clean(`stores.findInstance:${mReq.consumer_key}*`);
+            this.broker.cacher.clean(`stores.findInstance:*${mReq.url}*`);
             this.broker.cacher.clean(`stores.me:${mReq.consumer_key}*`);
             this.broker.cacher.clean(`stores.get:${encodeURIComponent(mReq.url)}*`);
             this.broker.cacher.clean(`stores.list**`);
