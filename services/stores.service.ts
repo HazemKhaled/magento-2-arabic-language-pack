@@ -268,7 +268,9 @@ const TheService: ServiceSchema = {
             id: ctx.params.storeId
           });
           instance.internal_data.omsId = omsStore.id;
-          this.broker.cacher.clean(`orders.list:${instance.consumer_key}**`);
+          this.broker.cacher.clean(`orders.getOrder:${instance.consumer_key}*`);
+          this.broker.cacher.clean(`orders.list:${instance.consumer_key}*`);
+          this.broker.cacher.clean(`invoices.get:${instance.consumer_key}*`);
           return ctx.call('stores.update', {
             id: ctx.params.storeId,
             internal_data: instance.internal_data,
