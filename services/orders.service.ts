@@ -244,7 +244,8 @@ const TheService: ServiceSchema = {
             shipping_method: order.shipmentCourier,
             shipping_charge: order.shippingCharge,
             adjustment: order.adjustment,
-            adjustmentDescription: order.adjustmentDescription
+            adjustmentDescription: order.adjustmentDescription,
+            orderNumber: order.orderNumber
           }
         };
 
@@ -310,6 +311,7 @@ const TheService: ServiceSchema = {
         if (data.status === 'cancelled' || data.status === 'void') {
           return ctx.call('orders.delete', { id: data.id }).then(res => {
             this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
+            this.broker.cacher.clean(`orders.getOrder:${data.id}**`);
             return res;
           });
         }
@@ -426,6 +428,7 @@ const TheService: ServiceSchema = {
           }
           const order = result.salesorder;
           this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
+          this.broker.cacher.clean(`orders.getOrder:${data.id}**`);
 
           message.status = 'success';
           message.data = {
@@ -439,7 +442,8 @@ const TheService: ServiceSchema = {
             shipping_method: order.shipmentCourier,
             shipping_charge: order.shippingCharge,
             adjustment: order.adjustment,
-            adjustmentDescription: order.adjustmentDescription
+            adjustmentDescription: order.adjustmentDescription,
+            orderNumber: order.orderNumber
           };
           this.sendLogs({
             topicId: data.externalId,
@@ -474,6 +478,10 @@ const TheService: ServiceSchema = {
     },
     getOrder: {
       auth: 'Bearer',
+      cache: {
+        keys: ['order_id'],
+        ttl: 60 * 60 // 1 hour
+      },
       params: {
         order_id: { type: 'string' }
       },
@@ -529,7 +537,9 @@ const TheService: ServiceSchema = {
           shipping_method: order.shipmentCourier,
           shipping_charge: order.shippingCharge,
           adjustment: order.adjustment,
-          adjustmentDescription: order.adjustmentDescription
+          adjustmentDescription: order.adjustmentDescription,
+          shipment_tracking_number: order.shipmentTrackingNumber,
+          orderNumber: order.orderNumber
         };
         if (order.meta_data && order.meta_data.length > 0) {
           order.meta_data.forEach((meta: any) => {
@@ -552,6 +562,10 @@ const TheService: ServiceSchema = {
     },
     list: {
       auth: 'Bearer',
+      cache: {
+        keys: ['#user', 'limit', 'page', 'sort', 'sortOrder', 'status', 'externalId'],
+        ttl: 60 * 60
+      },
       params: {
         limit: {
           type: 'number',
@@ -596,10 +610,6 @@ const TheService: ServiceSchema = {
         shipmentDateEnd: { type: 'date', convert: true, optional: true },
         shipmentDateBefore: { type: 'date', convert: true, optional: true },
         shipmentDateAfter: { type: 'date', convert: true, optional: true }
-      },
-      cache: {
-        keys: ['#user', 'page', 'limit'],
-        ttl: 15 * 60 // 15 mins
       },
       async handler(ctx) {
         const instance = await ctx.call('stores.findInstance', {
@@ -647,7 +657,8 @@ const TheService: ServiceSchema = {
           createDate: order.createDate,
           updateDate: order.updateDate,
           total: order.total,
-          knawat_order_status: order.status ? this.normalizeResponseStatus(order.status) : ''
+          knawat_order_status: order.status ? this.normalizeResponseStatus(order.status) : '',
+          orderNumber: order.orderNumber
         }));
       }
     },
@@ -696,6 +707,7 @@ const TheService: ServiceSchema = {
           .then(async response => {
             const result = await response.json();
             this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
+            this.broker.cacher.clean(`orders.getOrder:${ctx.params.id}**`);
             if (result.salesorder) {
               return {
                 status: 'success',
