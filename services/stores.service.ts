@@ -244,7 +244,9 @@ const TheService: ServiceSchema = {
     },
     sync: {
       auth: 'Basic',
-      params: {},
+      params: {
+        storeId: { type: 'string' }
+      },
       async handler(ctx) {
         try {
           const omsStore = await fetch(
