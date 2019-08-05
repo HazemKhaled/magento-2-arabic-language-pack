@@ -226,7 +226,9 @@ const TheService: ServiceSchema = {
           }
           // Clean cache if store updated
           if (mReq.consumer_key) {
-            this.broker.cacher.clean(`stores.**`);
+            this.broker.cacher.clean(`stores.findInstance:${mReq.consumer_key}**`);
+            this.broker.cacher.clean(`stores.me:${mReq.consumer_key}**`);
+            this.broker.cacher.clean(`stores.list**`);
             this.broker.cacher.clean(`products.list:${mReq.consumer_key}**`);
             this.broker.cacher.clean(`products.getInstanceProduct:${mReq.consumer_key}**`);
           }
@@ -266,6 +268,7 @@ const TheService: ServiceSchema = {
             id: ctx.params.storeId
           });
           instance.internal_data.omsId = omsStore.id;
+          this.broker.cacher.clean(`orders.list:${instance.consumer_key}**`);
           return ctx.call('stores.update', {
             id: ctx.params.storeId,
             internal_data: instance.internal_data,
