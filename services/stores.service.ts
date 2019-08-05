@@ -3,11 +3,8 @@ import fetch from 'node-fetch';
 import DbService from '../utilities/mixins/mongo.mixin';
 
 import { v1 as uuidv1, v4 as uuidv4 } from 'uuid';
-import { Store, StoreUser, User } from '../utilities/types';
+import { ResError, Store, StoreUser } from '../utilities/types';
 import { createValidation, updateValidation } from '../utilities/validations/stores.validate';
-import { unlink } from 'fs';
-import { type } from 'os';
-import { is } from 'bluebird';
 
 const TheService: ServiceSchema = {
   name: 'stores',
@@ -213,9 +210,6 @@ const TheService: ServiceSchema = {
         // Sanitize request params
         const store: Store = this.sanitizeStoreParams(ctx.params);
         // Initial response variable
-        interface ResError {
-          errors: Array<{ message: string }>;
-        }
         let mReq: Store | ResError = { errors: [] };
         try {
           mReq = await this.adapter.updateById(id, { $set: store }).then(async (res: Store) => {

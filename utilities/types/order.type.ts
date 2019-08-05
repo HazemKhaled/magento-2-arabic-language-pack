@@ -25,6 +25,15 @@ export interface Order {
 }
 
 /**
+ *  Error Response
+ * @export
+ * @interface ResError
+ */
+export interface ResError {
+  errors: Array<{ message: string }>;
+}
+
+/**
  * OrderItem Type definition
  *
  * @export
