@@ -311,6 +311,7 @@ const TheService: ServiceSchema = {
         if (data.status === 'cancelled' || data.status === 'void') {
           return ctx.call('orders.delete', { id: data.id }).then(res => {
             this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
+            this.broker.cacher.clean(`orders.getOrder:${data.id}**`);
             return res;
           });
         }
@@ -427,6 +428,7 @@ const TheService: ServiceSchema = {
           }
           const order = result.salesorder;
           this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
+          this.broker.cacher.clean(`orders.getOrder:${data.id}**`);
 
           message.status = 'success';
           message.data = {
@@ -705,6 +707,7 @@ const TheService: ServiceSchema = {
           .then(async response => {
             const result = await response.json();
             this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
+            this.broker.cacher.clean(`orders.getOrder:${ctx.params.id}**`);
             if (result.salesorder) {
               return {
                 status: 'success',

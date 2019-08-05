@@ -54,9 +54,12 @@ const TheService: ServiceSchema = {
                 response.statusText = res.statusText;
                 throw response;
               }
-              this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
-              this.broker.cacher.clean(`stores.get:${instance.url}*`);
-              this.broker.cacher.clean(`invoices.get:${instance.consumer_key}*`);
+
+              // Store balance
+              this.broker.cacher.clean(`stores.me:${instance.consumer_key}**`);
+              this.broker.cacher.clean(`stores.get:${instance.url}**`);
+              this.broker.cacher.clean(`payments.get:${instance.consumer_key}**`);
+              this.broker.cacher.clean(`invoices.get:${instance.consumer_key}**`);
               return response;
             })
             .catch(err => {

@@ -175,10 +175,14 @@ const TheService: ServiceSchema = {
       params: createValidation,
       async handler(ctx: Context) {
         // Clear cache
-        this.broker.cacher.clean(`stores.get:**`);
+        this.broker.cacher.clean(`stores.get:${ctx.params.url}`);
+
+        // FIX: Clear only cache by email
         this.broker.cacher.clean(`stores.list:**`);
+
         // Sanitize request params
         const store: Store = this.sanitizeStoreParams(ctx.params, true);
+
         // Initial response variable
         let mReq: Store | {} = {};
         try {
