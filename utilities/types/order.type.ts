@@ -76,6 +76,7 @@ export interface OMSResponse {
     notes?: string;
     adjustment: number;
     adjustmentDescription: string;
+    orderNumber: string;
   };
   error?: { [key: string]: any };
 }
