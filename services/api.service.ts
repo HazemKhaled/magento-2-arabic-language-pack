@@ -46,7 +46,7 @@ const TheService: ServiceSchema = {
           'POST stores': 'stores.create',
           'GET stores/:id': 'stores.get',
           'PUT stores/:id': 'stores.update',
-          'PUT stores/:storeId/sync': 'stores.sync',
+          'PUT stores/:id/sync': 'stores.sync',
 
           // All Products
           'GET products': 'products-list.list',
@@ -75,7 +75,7 @@ const TheService: ServiceSchema = {
           'GET invoices': 'invoices.get',
 
           // Payments
-          'POST payments/:storeId': 'payments.add',
+          'POST payments/:id': 'payments.add',
           'GET payments': 'payments.get'
         },
 

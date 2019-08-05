@@ -249,11 +249,12 @@ const TheService: ServiceSchema = {
     sync: {
       auth: 'Basic',
       params: {
-        storeId: { type: 'string' }
+        id: { type: 'string' }
       },
       async handler(ctx) {
+        const storeId = ctx.params.id;
         const instance = await ctx.call('stores.findInstance', {
-          id: ctx.params.storeId
+          id: storeId
         });
         if (!instance.url) {
           ctx.meta.$statusCode = 404;
@@ -268,7 +269,7 @@ const TheService: ServiceSchema = {
         }
         try {
           const omsStore = await fetch(
-            `${process.env.OMS_BASEURL}/stores/${encodeURIComponent(ctx.params.storeId)}/find`,
+            `${process.env.OMS_BASEURL}/stores/${encodeURIComponent(storeId)}/find`,
             {
               method: 'get',
               headers: {
@@ -320,7 +321,7 @@ const TheService: ServiceSchema = {
           this.broker.cacher.clean(`orders.list:${instance.consumer_key}*`);
           this.broker.cacher.clean(`invoices.get:${instance.consumer_key}*`);
           return ctx.call('stores.update', {
-            id: ctx.params.storeId,
+            id: storeId,
             internal_data: instance.internal_data,
             updated: '2010-01-01T00:00:00.000Z',
             stock_date: '2010-01-01T00:00:00.000Z',

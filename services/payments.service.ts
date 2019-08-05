@@ -10,7 +10,7 @@ const TheService: ServiceSchema = {
     add: {
       auth: 'Basic',
       params: {
-        storeId: [{ type: 'string' }, { type: 'number', integer: true }],
+        id: [{ type: 'string' }, { type: 'number', integer: true }],
         payment_mode: { type: 'string' },
         amount: { type: 'number' },
         invoices: {
@@ -29,7 +29,7 @@ const TheService: ServiceSchema = {
       },
       async handler(ctx: Context) {
         const instance = await ctx.call('stores.findInstance', {
-          id: ctx.params.storeId
+          id: ctx.params.id
         });
         if (instance.internal_data && instance.internal_data.omsId) {
           return fetch(`${process.env.OMS_BASEURL}/payments/${instance.internal_data.omsId}`, {
