@@ -252,6 +252,9 @@ const TheService: ServiceSchema = {
         storeId: { type: 'string' }
       },
       async handler(ctx) {
+        const instance = await ctx.call('stores.findInstance', {
+          id: ctx.params.storeId
+        });
         try {
           const omsStore = await fetch(
             `${process.env.OMS_BASEURL}/stores/${encodeURIComponent(ctx.params.storeId)}/find`,
@@ -263,17 +266,45 @@ const TheService: ServiceSchema = {
             }
           ).then(async res => {
             const response = await res.json();
-            if (!res.ok) {
+            if (!res.ok && res.status !== 404) {
               response.status = res.status;
               response.statusText = res.statusText;
               throw response;
             }
+            if (!res.ok && res.status === 404) {
+              return fetch(`${process.env.OMS_BASEURL}/stores`, {
+                method: 'post',
+                headers: {
+                  Authorization: `Basic ${this.settings.AUTH}`,
+                  'Content-Type': 'application/json',
+                  Accept: 'application/json'
+                },
+                body: JSON.stringify({
+                  url: instance.url,
+                  users: instance.users,
+                  status: instance.status,
+                  stock_date: instance.status_date,
+                  stock_status: instance.stock_status,
+                  price_date: instance.price_date,
+                  price_status: instance.price_status,
+                  sale_price: instance.sale_price,
+                  sale_operator: instance.sale_price_operator,
+                  compared_price: instance.compared_at_price,
+                  compared_operator: instance.compared_at_price_operator,
+                  currency: [instance.currency],
+                  shipping_methods: instance.shipping_methods.map(
+                    (method: { name: string }) => method.name
+                  ),
+                  languages: instance.languages,
+                  platform: instance.type,
+                  company_name: instance.name
+                })
+              }).then(createRes => createRes.json());
+            }
+            this.logger.info(response);
             return response;
           });
-          const instance = await ctx.call('stores.findInstance', {
-            id: ctx.params.storeId
-          });
-          instance.internal_data.omsId = omsStore.id;
+          instance.internal_data = { ...instance.internal_data, omsId: omsStore.id };
           this.broker.cacher.clean(`orders.getOrder:${instance.consumer_key}*`);
           this.broker.cacher.clean(`orders.list:${instance.consumer_key}*`);
           this.broker.cacher.clean(`invoices.get:${instance.consumer_key}*`);
