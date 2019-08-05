@@ -5,6 +5,9 @@ import DbService from '../utilities/mixins/mongo.mixin';
 import { v1 as uuidv1, v4 as uuidv4 } from 'uuid';
 import { Store, StoreUser, User } from '../utilities/types';
 import { createValidation, updateValidation } from '../utilities/validations/stores.validate';
+import { unlink } from 'fs';
+import { type } from 'os';
+import { is } from 'bluebird';
 
 const TheService: ServiceSchema = {
   name: 'stores',
@@ -210,7 +213,10 @@ const TheService: ServiceSchema = {
         // Sanitize request params
         const store: Store = this.sanitizeStoreParams(ctx.params);
         // Initial response variable
-        let mReq: { [key: string]: {} } = {};
+        interface ResError {
+          errors: Array<{ message: string }>;
+        }
+        let mReq: Store | ResError = { errors: [] };
         try {
           mReq = await this.adapter.updateById(id, { $set: store }).then(async (res: Store) => {
             this.updateOmsStore(res.internal_data.omsId, ctx.params);
@@ -224,10 +230,13 @@ const TheService: ServiceSchema = {
               errors: [{ message: 'Store Not Found' }]
             };
           }
+          const isResError = (req: Store | ResError): req is ResError =>
+            (req as ResError).errors !== undefined;
           // Clean cache if store updated
-          if (mReq.consumer_key) {
+          if (!isResError(mReq)) {
             this.broker.cacher.clean(`stores.findInstance:${mReq.consumer_key}*`);
             this.broker.cacher.clean(`stores.me:${mReq.consumer_key}*`);
+            this.broker.cacher.clean(`stores.get:${encodeURIComponent(mReq._id)}*`);
             this.broker.cacher.clean(`stores.list**`);
             this.broker.cacher.clean(`products.list:${mReq.consumer_key}*`);
             this.broker.cacher.clean(`products.getInstanceProduct:${mReq.consumer_key}*`);

@@ -56,6 +56,7 @@ const TheService: ServiceSchema = {
               }
               this.broker.cacher.clean(`stores.findInstance:${instance.consumer_key}*`);
               this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
+              this.broker.cacher.clean(`stores.get:${encodeURIComponent(instance._id)}*`);
               this.broker.cacher.clean(`invoices.get:${instance.consumer_key}*`);
               return response;
             })
