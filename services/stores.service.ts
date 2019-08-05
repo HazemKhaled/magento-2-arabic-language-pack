@@ -226,11 +226,11 @@ const TheService: ServiceSchema = {
           }
           // Clean cache if store updated
           if (mReq.consumer_key) {
-            this.broker.cacher.clean(`stores.findInstance:${mReq.consumer_key}**`);
-            this.broker.cacher.clean(`stores.me:${mReq.consumer_key}**`);
+            this.broker.cacher.clean(`stores.findInstance:${mReq.consumer_key}*`);
+            this.broker.cacher.clean(`stores.me:${mReq.consumer_key}*`);
             this.broker.cacher.clean(`stores.list**`);
-            this.broker.cacher.clean(`products.list:${mReq.consumer_key}**`);
-            this.broker.cacher.clean(`products.getInstanceProduct:${mReq.consumer_key}**`);
+            this.broker.cacher.clean(`products.list:${mReq.consumer_key}*`);
+            this.broker.cacher.clean(`products.getInstanceProduct:${mReq.consumer_key}*`);
           }
         } catch (err) {
           ctx.meta.$statusMessage = 'Internal Server Error';
