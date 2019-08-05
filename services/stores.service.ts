@@ -255,6 +255,17 @@ const TheService: ServiceSchema = {
         const instance = await ctx.call('stores.findInstance', {
           id: ctx.params.storeId
         });
+        if (!instance.url) {
+          ctx.meta.$statusCode = 404;
+          ctx.meta.$statusMessage = 'Not Found!';
+          return {
+            errors: [
+              {
+                message: 'Store not found!'
+              }
+            ]
+          };
+        }
         try {
           const omsStore = await fetch(
             `${process.env.OMS_BASEURL}/stores/${encodeURIComponent(ctx.params.storeId)}/find`,
