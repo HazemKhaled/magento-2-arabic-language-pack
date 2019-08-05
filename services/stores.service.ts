@@ -3,7 +3,7 @@ import fetch from 'node-fetch';
 import DbService from '../utilities/mixins/mongo.mixin';
 
 import { v1 as uuidv1, v4 as uuidv4 } from 'uuid';
-import { Store, StoreUser, User } from '../utilities/types';
+import { ResError, Store, StoreUser } from '../utilities/types';
 import { createValidation, updateValidation } from '../utilities/validations/stores.validate';
 
 const TheService: ServiceSchema = {
@@ -22,15 +22,18 @@ const TheService: ServiceSchema = {
     findInstance: {
       auth: 'Basic',
       cache: {
-        keys: ['consumerKey'],
+        keys: ['consumerKey', 'id'],
         ttl: 60 * 60 // 1 hour
       },
       params: {
-        consumerKey: { type: 'string', convert: true }
+        consumerKey: { type: 'string', convert: true, optional: true },
+        id: { type: 'string', convert: true, optional: true }
       },
       handler(ctx: Context) {
+        let query: { _id?: string } | false = false;
+        if (ctx.params.id) query = { _id: ctx.params.id };
         return this.adapter
-          .findOne({ consumer_key: ctx.params.consumerKey })
+          .findOne(query || { consumer_key: ctx.params.consumerKey })
           .then((res: Store | null) => {
             // If the DB response not null will return the data
             if (res !== null) return this.sanitizeResponse(res);
@@ -54,14 +57,29 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 // 1 hour
       },
       handler(ctx: Context) {
-        return this.adapter.findOne({ consumer_key: ctx.meta.user }).then((res: Store | null) => {
-          // If the DB response not null will return the data
-          if (res !== null) return this.sanitizeResponse(res);
-          // If null return Not Found error
-          ctx.meta.$statusMessage = 'Not Found';
-          ctx.meta.$statusCode = 404;
-          return { errors: [{ message: 'Store Not Found' }] };
-        });
+        return this.adapter
+          .findOne({ consumer_key: ctx.meta.user })
+          .then(async (res: Store | null) => {
+            let omsData = false;
+            if (res.internal_data && res.internal_data.omsId) {
+              omsData = await fetch(
+                `${process.env.OMS_BASEURL}/stores/${res.internal_data.omsId}`,
+                {
+                  method: 'get',
+                  headers: {
+                    Authorization: `Basic ${this.settings.AUTH}`
+                  }
+                }
+              ).then(response => response.json());
+            }
+            this.logger.info(omsData);
+            // If the DB response not null will return the data
+            if (res !== null) return this.sanitizeResponse(res, omsData);
+            // If null return Not Found error
+            ctx.meta.$statusMessage = 'Not Found';
+            ctx.meta.$statusCode = 404;
+            return { errors: [{ message: 'Store Not Found' }] };
+          });
       }
     },
     /**
@@ -72,17 +90,26 @@ const TheService: ServiceSchema = {
      */
     get: {
       auth: 'Basic',
-      params: {
-        id: { type: 'string' }
-      },
       cache: {
         keys: ['id'],
         ttl: 60 * 60 // 1 hour
       },
+      params: {
+        id: { type: 'string' }
+      },
       handler(ctx: Context) {
-        return this.adapter.findById(ctx.params.id).then((res: Store | null) => {
+        return this.adapter.findById(ctx.params.id).then(async (res: Store | null) => {
+          let omsData = false;
+          if (res.internal_data.omsId) {
+            omsData = await fetch(`${process.env.OMS_BASEURL}/stores/${res.internal_data.omsId}`, {
+              method: 'get',
+              headers: {
+                Authorization: `Basic ${this.settings.AUTH}`
+              }
+            }).then(response => response.json());
+          }
           // If the DB response not null will return the data
-          if (res !== null) return this.sanitizeResponse(res);
+          if (res !== null) return this.sanitizeResponse(res, omsData);
           // If null return Not Found error
           ctx.meta.$statusMessage = 'Not Found';
           ctx.meta.$statusCode = 404;
@@ -98,12 +125,12 @@ const TheService: ServiceSchema = {
      */
     list: {
       auth: 'Basic',
-      params: {
-        filter: { type: 'string' }
-      },
       cache: {
         keys: ['filter'],
         ttl: 60 * 60 // 1 hour
+      },
+      params: {
+        filter: { type: 'string' }
       },
       handler(ctx: Context) {
         let params: { where?: {}; limit?: {}; order?: string; sort?: {} } = {};
@@ -148,10 +175,14 @@ const TheService: ServiceSchema = {
       params: createValidation,
       async handler(ctx: Context) {
         // Clear cache
-        this.broker.cacher.clean(`stores.get:**`);
+        this.broker.cacher.clean(`stores.get:${ctx.params.url}`);
+
+        // FIX: Clear only cache by email
         this.broker.cacher.clean(`stores.list:**`);
+
         // Sanitize request params
         const store: Store = this.sanitizeStoreParams(ctx.params, true);
+
         // Initial response variable
         let mReq: Store | {} = {};
         try {
@@ -183,7 +214,7 @@ const TheService: ServiceSchema = {
         // Sanitize request params
         const store: Store = this.sanitizeStoreParams(ctx.params);
         // Initial response variable
-        let mReq: { [key: string]: {} } = {};
+        let mReq: Store | ResError = { errors: [] };
         try {
           mReq = await this.adapter.updateById(id, { $set: store }).then(async (res: Store) => {
             this.updateOmsStore(res.internal_data.omsId, ctx.params);
@@ -197,11 +228,17 @@ const TheService: ServiceSchema = {
               errors: [{ message: 'Store Not Found' }]
             };
           }
+          const isResError = (req: Store | ResError): req is ResError =>
+            (req as ResError).errors !== undefined;
           // Clean cache if store updated
-          if (mReq.consumer_key) {
-            this.broker.cacher.clean(`stores.**`);
-            this.broker.cacher.clean(`products.list:${mReq.consumer_key}**`);
-            this.broker.cacher.clean(`products.getInstanceProduct:${mReq.consumer_key}**`);
+          if (!isResError(mReq)) {
+            this.broker.cacher.clean(`stores.findInstance:${mReq.consumer_key}*`);
+            this.broker.cacher.clean(`stores.findInstance:*${mReq.url}*`);
+            this.broker.cacher.clean(`stores.me:${mReq.consumer_key}*`);
+            this.broker.cacher.clean(`stores.get:${encodeURIComponent(mReq.url)}*`);
+            this.broker.cacher.clean(`stores.list**`);
+            this.broker.cacher.clean(`products.list:${mReq.consumer_key}*`);
+            this.broker.cacher.clean(`products.getInstanceProduct:${mReq.consumer_key}*`);
           }
         } catch (err) {
           ctx.meta.$statusMessage = 'Internal Server Error';
@@ -211,6 +248,103 @@ const TheService: ServiceSchema = {
           };
         }
         return mReq;
+      }
+    },
+    sync: {
+      auth: 'Basic',
+      params: {
+        id: { type: 'string' }
+      },
+      async handler(ctx) {
+        const storeId = ctx.params.id;
+        const instance = await ctx.call('stores.findInstance', {
+          id: storeId
+        });
+        if (!instance.url) {
+          ctx.meta.$statusCode = 404;
+          ctx.meta.$statusMessage = 'Not Found!';
+          return {
+            errors: [
+              {
+                message: 'Store not found!'
+              }
+            ]
+          };
+        }
+        try {
+          const omsStore = await fetch(
+            `${process.env.OMS_BASEURL}/stores/${encodeURIComponent(storeId)}/find`,
+            {
+              method: 'get',
+              headers: {
+                Authorization: `Basic ${this.settings.AUTH}`
+              }
+            }
+          ).then(async res => {
+            const response = await res.json();
+            if (!res.ok && res.status !== 404) {
+              response.status = res.status;
+              response.statusText = res.statusText;
+              throw response;
+            }
+            if (!res.ok && res.status === 404) {
+              return fetch(`${process.env.OMS_BASEURL}/stores`, {
+                method: 'post',
+                headers: {
+                  Authorization: `Basic ${this.settings.AUTH}`,
+                  'Content-Type': 'application/json',
+                  Accept: 'application/json'
+                },
+                body: JSON.stringify({
+                  url: instance.url,
+                  users: instance.users,
+                  status: instance.status,
+                  stock_date: instance.status_date,
+                  stock_status: instance.stock_status,
+                  price_date: instance.price_date,
+                  price_status: instance.price_status,
+                  sale_price: instance.sale_price,
+                  sale_operator: instance.sale_price_operator,
+                  compared_price: instance.compared_at_price,
+                  compared_operator: instance.compared_at_price_operator,
+                  currency: [instance.currency],
+                  shipping_methods: instance.shipping_methods.map(
+                    (method: { name: string }) => method.name
+                  ),
+                  languages: instance.languages,
+                  platform: instance.type,
+                  company_name: instance.name
+                })
+              }).then(createRes => createRes.json());
+            }
+            this.logger.info(response);
+            return response;
+          });
+          instance.internal_data = { ...instance.internal_data, omsId: omsStore.id };
+          this.broker.cacher.clean(`orders.getOrder:${instance.consumer_key}*`);
+          this.broker.cacher.clean(`orders.list:${instance.consumer_key}*`);
+          this.broker.cacher.clean(`invoices.get:${instance.consumer_key}*`);
+          return ctx.call('stores.update', {
+            id: storeId,
+            internal_data: instance.internal_data,
+            updated: '2010-01-01T00:00:00.000Z',
+            stock_date: '2010-01-01T00:00:00.000Z',
+            price_date: '2010-01-01T00:00:00.000Z',
+            stock_status: 'idle',
+            price_status: 'idle'
+          });
+        } catch (err) {
+          ctx.meta.$statusCode = err.status || (err.error && err.error.statusCode) || 500;
+          ctx.meta.$statusMessage =
+            err.statusText || (err.error && err.error.name) || 'Internal Error';
+          return {
+            errors: [
+              {
+                message: err.error ? err.error.message : 'Internal Server Error'
+              }
+            ]
+          };
+        }
       }
     }
   },
@@ -296,13 +430,17 @@ const TheService: ServiceSchema = {
      * @param {Store} store
      * @returns {Store}
      */
-    sanitizeResponse(store: Store) {
+    sanitizeResponse(store: Store, omsData = false) {
       store.url = store._id;
       delete store._id;
+      if (omsData) {
+        store.debit = omsData.debit;
+        store.credit = omsData.credit;
+      }
       return store;
     },
     updateOmsStore(storeId, params) {
-      const body: { [key: string]: string | User[] | string[]; users?: User[] } = {};
+      const body: { [key: string]: string | StoreUser[] | string[]; users?: StoreUser[] } = {};
       // Sanitized params keys
       const keys: string[] = [
         'name',
@@ -327,11 +465,15 @@ const TheService: ServiceSchema = {
         compared_at_price_operator: 'compared_operator'
       };
       Object.keys(params).forEach(key => {
-        if (!(key in keys)) return;
+        if (!keys.includes(key)) return;
         const keyName: string = transformObj[key] || key;
-        body[keyName] = params[key];
+        body[keyName] = params[key].$date || params[key];
       });
+      this.logger.info(body);
       if (Object.keys(body).length === 0) return;
+      if (params.users) {
+        body.users[body.users.findIndex(user => user.roles.includes('owner'))].primary = true;
+      }
       return fetch(`${process.env.OMS_BASEURL}/stores/${storeId}`, {
         method: 'put',
         headers: {

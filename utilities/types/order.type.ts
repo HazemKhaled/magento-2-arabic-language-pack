@@ -22,6 +22,16 @@ export interface Order {
   shipmentCourier?: string;
   shipping_method?: string;
   store?: {};
+  orderNumber?: string;
+}
+
+/**
+ *  Error Response
+ * @export
+ * @interface ResError
+ */
+export interface ResError {
+  errors: Array<{ message: string }>;
 }
 
 /**
@@ -76,6 +86,7 @@ export interface OMSResponse {
     notes?: string;
     adjustment: number;
     adjustmentDescription: string;
+    orderNumber: string;
   };
   error?: { [key: string]: any };
 }
