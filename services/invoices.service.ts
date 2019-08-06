@@ -1,5 +1,6 @@
 import { Context, ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
+import { Invoice } from '../utilities/types';
 
 const TheService: ServiceSchema = {
   name: 'invoices',
@@ -27,8 +28,8 @@ const TheService: ServiceSchema = {
         const keys: { [key: string]: string } = {
           page: 'page',
           limit: 'perPage',
-          reference_number: 'reference_number',
-          invoice_number: 'invoice_number'
+          reference_number: 'referenceNumber',
+          invoice_number: 'invoiceNumber'
         };
         Object.keys(ctx.params).forEach(key => {
           if (ctx.params[key]) url.searchParams.append(keys[key], ctx.params[key]);
@@ -47,7 +48,25 @@ const TheService: ServiceSchema = {
                 response.statusText = res.statusText;
                 throw response;
               }
-              return response;
+              return {
+                invoices: response.invoices.map((invoice: Invoice) => ({
+                  invoice_id: invoice.invoiceId,
+                  customer_name: invoice.customerName,
+                  customer_id: invoice.customerId,
+                  status: invoice.status,
+                  invoice_number: invoice.invoiceNumber,
+                  reference_number: invoice.referenceNumber,
+                  date: invoice.date,
+                  due_date: invoice.dueDate,
+                  due_days: invoice.dueDays,
+                  total: invoice.total,
+                  balance: invoice.balance,
+                  created_time: invoice.createdTime,
+                  last_modified_time: invoice.lastModifiedTime,
+                  shipping_charge: invoice.shippingCharge,
+                  adjustment: invoice.adjustment
+                }))
+              };
             })
             .catch(err => {
               ctx.meta.$statusCode = err.status || (err.error && err.error.statusCode) || 500;
