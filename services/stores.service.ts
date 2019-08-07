@@ -273,7 +273,7 @@ const TheService: ServiceSchema = {
         }
         try {
           const omsStore = await fetch(
-            `${process.env.OMS_BASEURL}/stores/${encodeURIComponent(storeId)}/find`,
+            `${process.env.OMS_BASEURL}/stores?url=${encodeURIComponent(storeId)}`,
             {
               method: 'get',
               headers: {
