@@ -299,21 +299,21 @@ const TheService: ServiceSchema = {
                   url: instance.url,
                   users: instance.users,
                   status: instance.status,
-                  stock_date: instance.status_date,
-                  stock_status: instance.stock_status,
-                  price_date: instance.price_date,
-                  price_status: instance.price_status,
-                  sale_price: instance.sale_price,
-                  sale_operator: instance.sale_price_operator,
-                  compared_price: instance.compared_at_price,
-                  compared_operator: instance.compared_at_price_operator,
+                  stockDate: instance.status_date,
+                  stockStatus: instance.stock_status,
+                  priceDate: instance.price_date,
+                  priceStatus: instance.price_status,
+                  salePrice: instance.sale_price,
+                  saleOperator: instance.sale_price_operator,
+                  comparedPrice: instance.compared_at_price,
+                  comparedOperator: instance.compared_at_price_operator,
                   currency: [instance.currency],
-                  shipping_methods: instance.shipping_methods.map(
+                  shippingMethods: instance.shipping_methods.map(
                     (method: { name: string }) => method.name
                   ),
                   languages: instance.languages,
                   platform: instance.type,
-                  company_name: instance.name
+                  companyName: instance.name
                 })
               }).then(createRes => createRes.json());
             }
@@ -461,8 +461,14 @@ const TheService: ServiceSchema = {
       ];
       const transformObj: { [key: string]: string } = {
         type: 'platform',
-        compared_at_price: 'compared_price',
-        compared_at_price_operator: 'compared_operator'
+        compared_at_price: 'comparedPrice',
+        compared_at_price_operator: 'comparedOperator',
+        stock_date: 'stockDate',
+        stock_status: 'stockStatus',
+        price_date: 'priceDate',
+        price_status: 'priceStatus',
+        sale_price: 'salePrice',
+        sale_price_operator: 'saleOperator'
       };
       Object.keys(params).forEach(key => {
         if (!keys.includes(key)) return;
