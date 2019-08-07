@@ -477,9 +477,6 @@ const TheService: ServiceSchema = {
       });
       this.logger.info(body);
       if (Object.keys(body).length === 0) return;
-      if (params.users) {
-        body.users[body.users.findIndex(user => user.roles.includes('owner'))].primary = true;
-      }
       return fetch(`${process.env.OMS_BASEURL}/stores/${storeId}`, {
         method: 'put',
         headers: {
