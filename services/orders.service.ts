@@ -141,7 +141,7 @@ const TheService: ServiceSchema = {
           this.sendLogs({
             topic: 'order',
             topicId: data.externalId,
-            message: `No owner user registered on klayer, No subscription`,
+            message: `No subscription for this store`,
             storeId: instance.url,
             logLevel: 'warn',
             code: 2103,
