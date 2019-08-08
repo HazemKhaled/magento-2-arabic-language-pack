@@ -100,7 +100,7 @@ const TheService: ServiceSchema = {
       handler(ctx: Context) {
         return this.adapter.findById(ctx.params.id).then(async (res: Store | null) => {
           let omsData = false;
-          if (res.internal_data && res.internal_data.omsId) {
+          if (res && res.internal_data && res.internal_data.omsId) {
             omsData = await fetch(`${process.env.OMS_BASEURL}/stores/${res.internal_data.omsId}`, {
               method: 'get',
               headers: {
