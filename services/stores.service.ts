@@ -235,7 +235,7 @@ const TheService: ServiceSchema = {
             this.broker.cacher.clean(`stores.findInstance:${mReq.consumer_key}*`);
             this.broker.cacher.clean(`stores.findInstance:*${mReq.url}*`);
             this.broker.cacher.clean(`stores.me:${mReq.consumer_key}*`);
-            this.broker.cacher.clean(`stores.get:${encodeURIComponent(mReq.url)}*`);
+            this.broker.cacher.clean(`stores.get:${mReq.url}*`);
             this.broker.cacher.clean(`stores.list**`);
             this.broker.cacher.clean(`products.list:${mReq.consumer_key}*`);
             this.broker.cacher.clean(`products.getInstanceProduct:${mReq.consumer_key}*`);
