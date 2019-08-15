@@ -219,9 +219,8 @@ const TheService: ServiceSchema = {
           mReq = await this.adapter.updateById(id, { $set: store }).then(async (res: Store) => {
             if (res && res.internal_data && res.internal_data.omsId) {
               this.updateOmsStore(res.internal_data.omsId, ctx.params);
-              return this.sanitizeResponse(res);
             }
-            return res;
+            return this.sanitizeResponse(res);
           });
           // If the store not found return Not Found error
           if (mReq === null) {
