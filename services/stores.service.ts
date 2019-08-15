@@ -391,6 +391,7 @@ const TheService: ServiceSchema = {
             sort: 2
           }
         ];
+        if (!store.internal_data) store.internal_data = {};
       }
       if (params.users) {
         params.users = params.users.map((user: StoreUser) => ({
