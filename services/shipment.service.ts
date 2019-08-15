@@ -14,7 +14,7 @@ const Shipment: ServiceSchema = {
      */
     getShipments: {
       auth: 'Basic',
-      cache: { keys: ['id'], ttl: 60 * 60 },
+      cache: { keys: ['id'], ttl: 60 * 60 * 24 * 30 },
       params: { id: { type: 'string', optional: true } },
       handler(ctx: Context): ShipmentPolicy | ShipmentPolicy[] {
         return (ctx.params.id ? this.adapter.findById(ctx.params.id) : this.adapter.find()).then(
@@ -121,7 +121,7 @@ const Shipment: ServiceSchema = {
      */
     ruleByCountry: {
       auth: 'Basic',
-      cache: { keys: ['country', 'weight', 'price'], ttl: 60 * 60 },
+      cache: { keys: ['country', 'weight', 'price'], ttl: 60 * 60 * 24 * 30 },
       params: {
         country: { type: 'string' },
         weight: { type: 'number', convert: true },
@@ -169,7 +169,7 @@ const Shipment: ServiceSchema = {
      */
     getCouriers: {
       auth: 'Basic',
-      cache: { keys: ['country'], ttl: 60 * 60 },
+      cache: { keys: ['country'], ttl: 60 * 60 * 24 * 30 },
       params: {
         country: { type: 'string', optional: true, min: 2, max: 2 }
       },
