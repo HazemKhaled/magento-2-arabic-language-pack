@@ -217,8 +217,11 @@ const TheService: ServiceSchema = {
         let mReq: Store | ResError = { errors: [] };
         try {
           mReq = await this.adapter.updateById(id, { $set: store }).then(async (res: Store) => {
-            this.updateOmsStore(res.internal_data.omsId, ctx.params);
-            return this.sanitizeResponse(res);
+            if (res && res.internal_data && res.internal_data.omsId) {
+              this.updateOmsStore(res.internal_data.omsId, ctx.params);
+              return this.sanitizeResponse(res);
+            }
+            return res;
           });
           // If the store not found return Not Found error
           if (mReq === null) {
