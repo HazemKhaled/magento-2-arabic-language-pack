@@ -60,9 +60,9 @@ const TheService: ServiceSchema = {
         return this.adapter
           .findOne({ consumer_key: ctx.meta.user })
           .then(async (res: Store | null) => {
-            let omsData = false;
+            let omsData: boolean | { store: Store } = false;
             if (res.internal_data && res.internal_data.omsId) {
-              omsData = await fetch(
+              omsData = (await fetch(
                 `${process.env.OMS_BASEURL}/stores/${res.internal_data.omsId}`,
                 {
                   method: 'get',
@@ -70,11 +70,10 @@ const TheService: ServiceSchema = {
                     Authorization: `Basic ${this.settings.AUTH}`
                   }
                 }
-              ).then(response => response.json());
+              ).then(response => response.json())) as { store: Store };
+              // If the DB response not null will return the data
+              if (res !== null) return this.sanitizeResponse(res, omsData.store);
             }
-            this.logger.info(omsData);
-            // If the DB response not null will return the data
-            if (res !== null) return this.sanitizeResponse(res, omsData);
             // If null return Not Found error
             ctx.meta.$statusMessage = 'Not Found';
             ctx.meta.$statusCode = 404;
@@ -99,17 +98,17 @@ const TheService: ServiceSchema = {
       },
       handler(ctx: Context) {
         return this.adapter.findById(ctx.params.id).then(async (res: Store | null) => {
-          let omsData = false;
+          let omsData: boolean | { store: Store } = false;
           if (res && res.internal_data && res.internal_data.omsId) {
-            omsData = await fetch(`${process.env.OMS_BASEURL}/stores/${res.internal_data.omsId}`, {
+            omsData = (await fetch(`${process.env.OMS_BASEURL}/stores/${res.internal_data.omsId}`, {
               method: 'get',
               headers: {
                 Authorization: `Basic ${this.settings.AUTH}`
               }
-            }).then(response => response.json());
+            }).then(response => response.json())) as { store: Store };
+            // If the DB response not null will return the data
+            if (res !== null) return this.sanitizeResponse(res, omsData.store);
           }
-          // If the DB response not null will return the data
-          if (res !== null) return this.sanitizeResponse(res, omsData);
           // If null return Not Found error
           ctx.meta.$statusMessage = 'Not Found';
           ctx.meta.$statusCode = 404;
@@ -319,8 +318,7 @@ const TheService: ServiceSchema = {
                 })
               }).then(createRes => createRes.json());
             }
-            this.logger.info(response);
-            return response;
+            return response.store;
           });
           instance.internal_data = { ...instance.internal_data, omsId: omsStore.id };
           this.broker.cacher.clean(`orders.getOrder:${instance.consumer_key}*`);

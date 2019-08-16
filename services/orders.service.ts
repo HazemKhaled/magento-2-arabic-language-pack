@@ -173,6 +173,7 @@ const TheService: ServiceSchema = {
             } Available Qty: ${item.quantity}\n`,
           ''
         )}${data.notes}`;
+        this.logger.info(JSON.stringify(data));
         const result: OMSResponse = await fetch(`${process.env.OMS_BASEURL}/orders`, {
           method: 'POST',
           body: JSON.stringify(data),

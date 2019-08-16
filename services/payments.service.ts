@@ -58,15 +58,14 @@ const TheService: ServiceSchema = {
               if (!res.ok) {
                 response.status = res.status;
                 response.statusText = res.statusText;
-                throw this.sanitizePayment(response);
+                throw response;
               }
-              this.logger.info(response);
               // Store balance
               this.broker.cacher.clean(`stores.me:${instance.consumer_key}**`);
               this.broker.cacher.clean(`stores.get:${instance.url}**`);
               this.broker.cacher.clean(`payments.get:${instance.consumer_key}**`);
               this.broker.cacher.clean(`invoices.get:${instance.consumer_key}**`);
-              return response;
+              return this.sanitizePayment(response.payment);
             })
             .catch(err => {
               ctx.meta.$statusCode = err.status || (err.error && err.error.statusCode) || 500;
