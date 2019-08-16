@@ -63,18 +63,28 @@ const TheService: ServiceSchema = {
               };
             }
             this.broker.cacher.clean(`stores.findInstance:${ctx.params.consumerKey}`);
-            throw new MoleculerClientError('consumerKey or consumerSecret is invalid!', 422, '', [
-              { field: 'consumerKey', message: 'is not valid' },
-              { field: 'consumerSecret', message: 'is not valid' }
-            ]);
+
+            ctx.meta.$statusCode = 401;
+            ctx.meta.$statusMessage = 'Unauthorized Error';
+            return {
+              errors: [
+                { field: 'consumerKey', message: 'is not valid' },
+                { field: 'consumerSecret', message: 'is not valid' }
+              ]
+            };
           })
           .then((user: StoreUser) => this.transformEntity(user, true, ctx.meta.token))
           .catch(() => {
             this.broker.cacher.clean(`users.resolveBearerToken:${ctx.meta.token}`);
-            throw new MoleculerClientError('consumerKey or consumerSecret is invalid!', 422, '', [
-              { field: 'consumerKey', message: 'is not valid' },
-              { field: 'consumerSecret', message: 'is not valid' }
-            ]);
+
+            ctx.meta.$statusCode = 401;
+            ctx.meta.$statusMessage = 'Unauthorized Error';
+            return {
+              errors: [
+                { field: 'consumerKey', message: 'is not valid' },
+                { field: 'consumerSecret', message: 'is not valid' }
+              ]
+            };
           });
       }
     },
