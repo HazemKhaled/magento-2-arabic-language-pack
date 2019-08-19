@@ -218,6 +218,7 @@ const TheService: ServiceSchema = {
               (req as Store).internal_data !== undefined;
             if (isStore(mReq)) {
               const internal = mReq.internal_data;
+              if (!response.store) throw response;
               internal.omsId = response.store && response.store.id;
               ctx.call('stores.update', {
                 id: ctx.params.url,
