@@ -60,8 +60,8 @@ export const createValidation = {
   address: {
     type: 'object',
     props: {
-      first_name: { type: 'string' },
-      last_name: { type: 'string' },
+      first_name: { type: 'string', min: 3 },
+      last_name: { type: 'string', min: 3 },
       company: { type: 'string', optional: true },
       address_1: { type: 'string', min: 3 },
       address_2: { type: 'string', optional: true },
