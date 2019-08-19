@@ -186,12 +186,12 @@ const TheService: ServiceSchema = {
         let mReq: Store | {} = {};
         try {
           mReq = await this.adapter.insert(store).then((res: Store) => this.sanitizeResponse(res));
-          this.createOmsStore(ctx.params).then((response: OmsStore) => {
+          this.createOmsStore(ctx.params).then((response: { store: OmsStore }) => {
             const isStore = (req: Store | {}): req is Store =>
               (req as Store).internal_data !== undefined;
             if (isStore(mReq)) {
               const internal = mReq.internal_data;
-              internal.omsId = response.id;
+              internal.omsId = response.store && response.store.id;
               ctx.call('stores.update', {
                 id: ctx.params.url,
                 internal_data: internal
