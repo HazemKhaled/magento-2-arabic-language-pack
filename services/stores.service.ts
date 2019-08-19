@@ -111,7 +111,7 @@ const TheService: ServiceSchema = {
 
             // If the DB response not null will return the data
             if (!omsData) {
-              this.logger.warn(ctx.params);
+              this.logger.warn('Can not get balance', ctx.params);
             } else {
               return this.sanitizeResponse(res, omsData.store);
             }
@@ -197,9 +197,23 @@ const TheService: ServiceSchema = {
 
         // Initial response variable
         let mReq: Store | {} = {};
-        try {
-          mReq = await this.adapter.insert(store).then((res: Store) => this.sanitizeResponse(res));
-          this.createOmsStore(ctx.params).then((response: { store: OmsStore }) => {
+        mReq = await this.adapter
+          .insert(store)
+          .then((res: Store) => this.sanitizeResponse(res))
+          .catch(err => {
+            this.logger.error('Create store', err);
+            // Errors Handling
+            ctx.meta.$statusMessage = 'Internal Server Error';
+            ctx.meta.$statusCode = 500;
+
+            mReq = {
+              errors: [{ message: err.code === 11000 ? 'Duplicated entry!' : 'Internal Error!' }]
+            };
+          });
+
+        // create in OMS
+        this.createOmsStore(ctx.params)
+          .then((response: { store: OmsStore }) => {
             const isStore = (req: Store | {}): req is Store =>
               (req as Store).internal_data !== undefined;
             if (isStore(mReq)) {
@@ -210,15 +224,19 @@ const TheService: ServiceSchema = {
                 internal_data: internal
               });
             }
+          })
+          .catch(error => {
+            this.sendLogs({
+              topic: 'store',
+              topicId: ctx.params.url,
+              message: `Create in OMS`,
+              storeId: ctx.params.url,
+              logLevel: 'error',
+              code: 500,
+              payload: { error, params }
+            });
           });
-        } catch (err) {
-          // Errors Handling
-          ctx.meta.$statusMessage = 'Internal Server Error';
-          ctx.meta.$statusCode = 500;
-          mReq = {
-            errors: [{ message: err.code === 11000 ? 'Duplicated entry!' : 'Internal Error!' }]
-          };
-        }
+
         return mReq;
       }
     },
@@ -564,6 +582,16 @@ const TheService: ServiceSchema = {
         },
         body: JSON.stringify(body)
       }).then(response => response.json());
+    },
+    /**
+     * Log order errors
+     *
+     * @param {Log} log
+     * @returns {ServiceSchema}
+     */
+    sendLogs(log: Log): ServiceSchema {
+      log.topic = 'store';
+      return this.broker.call('logs.add', log);
     }
   }
 };
