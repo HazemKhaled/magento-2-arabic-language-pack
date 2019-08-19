@@ -257,9 +257,9 @@ const TheService: ServiceSchema = {
         // Sanitize request params
         const store: Store = this.sanitizeStoreParams(ctx.params);
         // Initial response variable
-        let mReq: Store | ResError = { errors: [] };
+        // let mReq: Store | ResError = { errors: [] };
 
-        mReq = await this.adapter
+        const myStore: Store = await this.adapter
           .updateById(id, { $set: store })
           .then(async (res: Store) => {
             return this.sanitizeResponse(res);
@@ -282,40 +282,49 @@ const TheService: ServiceSchema = {
             };
           });
 
-        const isStore = (req: Store | ResError): req is Store =>
-          (req as Store).internal_data !== undefined;
-        try {
-          // If the store not found return Not Found error
-          if (mReq === null) {
-            ctx.meta.$statusMessage = 'Not Found';
-            ctx.meta.$statusCode = 404;
-            mReq = {
-              errors: [{ message: 'Store Not Found' }]
-            };
-          }
-          // Clean cache if store updated
-          if (isStore(mReq)) {
-            this.broker.cacher.clean(`stores.findInstance:${mReq.consumer_key}*`);
-            this.broker.cacher.clean(`stores.findInstance:*${mReq.url}*`);
-            this.broker.cacher.clean(`stores.me:${mReq.consumer_key}*`);
-            this.broker.cacher.clean(`stores.get:${mReq.url}*`);
-            this.broker.cacher.clean(`stores.list**`);
-            this.broker.cacher.clean(`products.list:${mReq.consumer_key}*`);
-            this.broker.cacher.clean(`products.getInstanceProduct:${mReq.consumer_key}*`);
-          }
-        } catch (err) {
-          ctx.meta.$statusMessage = 'Internal Server Error';
-          ctx.meta.$statusCode = 500;
-          mReq = {
-            errors: [{ message: 'Internal Error' }]
+        // If the store not found return Not Found error
+        if (!myStore) {
+          ctx.meta.$statusMessage = 'Not Found';
+          ctx.meta.$statusCode = 404;
+          return {
+            errors: [{ message: 'Store Not Found' }]
           };
         }
-        if (isStore(mReq)) {
-          if (mReq && mReq.internal_data && mReq.internal_data.omsId) {
-            this.updateOmsStore(mReq.internal_data.omsId, ctx.params);
-          }
+
+        // Clean cache if store updated
+        this.broker.cacher.clean(`stores.findInstance:${myStore.consumer_key}*`);
+        this.broker.cacher.clean(`stores.findInstance:*${myStore.url}*`);
+        this.broker.cacher.clean(`stores.me:${myStore.consumer_key}*`);
+        this.broker.cacher.clean(`stores.get:${myStore.url}*`);
+        this.broker.cacher.clean(`stores.list**`);
+        this.broker.cacher.clean(`products.list:${myStore.consumer_key}*`);
+        this.broker.cacher.clean(`products.getInstanceProduct:${myStore.consumer_key}*`);
+
+        if (myStore.internal_data && myStore.internal_data.omsId) {
+          this.updateOmsStore(myStore.internal_data.omsId, ctx.params).catch((error: unknown) => {
+            this.sendLogs({
+              topic: 'store',
+              topicId: ctx.params.url,
+              message: `Update in OMS`,
+              storeId: ctx.params.url,
+              logLevel: 'error',
+              code: 500,
+              payload: { error, params: ctx.params }
+            });
+          });
+        } else {
+          this.sendLogs({
+            topic: 'store',
+            topicId: ctx.params.url,
+            message: `Update in OMS, omdId not found`,
+            storeId: ctx.params.url,
+            logLevel: 'error',
+            code: 500,
+            payload: { params: ctx.params }
+          });
         }
-        return mReq;
+
+        return myStore;
       }
     },
     sync: {
