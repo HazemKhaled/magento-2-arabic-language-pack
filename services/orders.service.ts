@@ -155,8 +155,6 @@ const TheService: ServiceSchema = {
           data.adjustment = Number(subscription.attr_order_processing_fees || 2);
           data.adjustmentDescription = `Processing Fees`;
         }
-        // Preparing billing data
-        data.billing = this.checkAddress(instance, data.externalId) ? instance.address : undefined;
         data.status = ['pending', 'processing', 'cancelled'].includes(data.status)
           ? this.normalizeStatus(data.status)
           : data.status;
