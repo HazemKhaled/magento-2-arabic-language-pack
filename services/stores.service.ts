@@ -3,7 +3,7 @@ import fetch from 'node-fetch';
 import DbService from '../utilities/mixins/mongo.mixin';
 
 import { v1 as uuidv1, v4 as uuidv4 } from 'uuid';
-import { OmsStore, ResError, Store, StoreUser } from '../utilities/types';
+import { OmsStore, ResError, Store, StoreUser, Log } from '../utilities/types';
 import { createValidation, updateValidation } from '../utilities/validations/stores.validate';
 
 const TheService: ServiceSchema = {
@@ -200,7 +200,7 @@ const TheService: ServiceSchema = {
         mReq = await this.adapter
           .insert(store)
           .then((res: Store) => this.sanitizeResponse(res))
-          .catch(err => {
+          .catch((err: { code: number }) => {
             this.logger.error('Create store', err);
             // Errors Handling
             ctx.meta.$statusMessage = 'Internal Server Error';
@@ -225,7 +225,7 @@ const TheService: ServiceSchema = {
               });
             }
           })
-          .catch(error => {
+          .catch((error: unknown) => {
             this.sendLogs({
               topic: 'store',
               topicId: ctx.params.url,
@@ -233,7 +233,7 @@ const TheService: ServiceSchema = {
               storeId: ctx.params.url,
               logLevel: 'error',
               code: 500,
-              payload: { error, params }
+              payload: { error, params: ctx.params }
             });
           });
 
