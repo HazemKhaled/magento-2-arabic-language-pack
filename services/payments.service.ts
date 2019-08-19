@@ -26,7 +26,8 @@ const TheService: ServiceSchema = {
           optional: true
         },
         account_id: { type: 'string' },
-        bank_charges: { type: 'number', optional: true, convert: true }
+        bank_charges: { type: 'number', optional: true, convert: true },
+        reference: [{ type: 'string' }, { type: 'number', integer: true }]
       },
       async handler(ctx: Context) {
         const instance = await ctx.call('stores.findInstance', {
@@ -50,7 +51,8 @@ const TheService: ServiceSchema = {
                   }))
                 : undefined,
               accountId: ctx.params.account_id,
-              bankCharges: ctx.params.bank_charges
+              bankCharges: ctx.params.bank_charges,
+              referenceNumber: String(ctx.params.reference)
             })
           })
             .then(async res => {
