@@ -27,7 +27,10 @@ const TheService: ServiceSchema = {
         },
         account_id: { type: 'string' },
         bank_charges: { type: 'number', optional: true, convert: true },
-        reference: [{ type: 'string' }, { type: 'number', integer: true }]
+        reference: [
+          { type: 'string', optional: true },
+          { type: 'number', integer: true, optional: true }
+        ]
       },
       async handler(ctx: Context) {
         const instance = await ctx.call('stores.findInstance', {
@@ -178,6 +181,7 @@ const TheService: ServiceSchema = {
         account_name: payment.accountName,
         payment_id: payment.paymentId,
         unused_amount: payment.unusedAmount,
+        reference: payment.referenceNumber,
         date: payment.date
       });
     }

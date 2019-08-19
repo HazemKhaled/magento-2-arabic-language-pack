@@ -14,6 +14,7 @@ export interface Payment {
   accountName: string;
   paymentId: string;
   unusedAmount: number;
+  referenceNumber?: string;
   date: Date;
 }
 
@@ -33,6 +34,7 @@ export interface PaymentResponse {
   account_name: string;
   payment_id: string;
   unused_amount: number;
+  reference?: string;
   date: Date;
 }
 
