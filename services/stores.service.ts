@@ -258,13 +258,33 @@ const TheService: ServiceSchema = {
         const store: Store = this.sanitizeStoreParams(ctx.params);
         // Initial response variable
         let mReq: Store | ResError = { errors: [] };
-        try {
-          mReq = await this.adapter.updateById(id, { $set: store }).then(async (res: Store) => {
-            if (res && res.internal_data && res.internal_data.omsId) {
-              this.updateOmsStore(res.internal_data.omsId, ctx.params);
-            }
+
+        mReq = await this.adapter
+          .updateById(id, { $set: store })
+          .then(async (res: Store) => {
             return this.sanitizeResponse(res);
+          })
+          .catch((error: { code: number }) => {
+            this.sendLogs({
+              topic: 'store',
+              topicId: id,
+              message: `update Store`,
+              storeId: id,
+              logLevel: 'error',
+              code: 500,
+              payload: { error, params: ctx.params }
+            });
+            ctx.meta.$statusMessage = 'Internal Server Error';
+            ctx.meta.$statusCode = 500;
+
+            return {
+              errors: [{ message: error.code === 11000 ? 'Duplicated entry!' : 'Internal Error!' }]
+            };
           });
+
+        const isStore = (req: Store | ResError): req is Store =>
+          (req as Store).internal_data !== undefined;
+        try {
           // If the store not found return Not Found error
           if (mReq === null) {
             ctx.meta.$statusMessage = 'Not Found';
@@ -273,10 +293,8 @@ const TheService: ServiceSchema = {
               errors: [{ message: 'Store Not Found' }]
             };
           }
-          const isResError = (req: Store | ResError): req is ResError =>
-            (req as ResError).errors !== undefined;
           // Clean cache if store updated
-          if (!isResError(mReq)) {
+          if (isStore(mReq)) {
             this.broker.cacher.clean(`stores.findInstance:${mReq.consumer_key}*`);
             this.broker.cacher.clean(`stores.findInstance:*${mReq.url}*`);
             this.broker.cacher.clean(`stores.me:${mReq.consumer_key}*`);
@@ -291,6 +309,11 @@ const TheService: ServiceSchema = {
           mReq = {
             errors: [{ message: 'Internal Error' }]
           };
+        }
+        if (isStore(mReq)) {
+          if (mReq && mReq.internal_data && mReq.internal_data.omsId) {
+            this.updateOmsStore(mReq.internal_data.omsId, ctx.params);
+          }
         }
         return mReq;
       }
@@ -503,7 +526,7 @@ const TheService: ServiceSchema = {
         'users',
         'languages',
         'shipping_methods',
-        'billing'
+        'address'
       ];
       const transformObj: { [key: string]: string } = {
         type: 'platform',
@@ -515,14 +538,14 @@ const TheService: ServiceSchema = {
         price_status: 'priceStatus',
         sale_price: 'salePrice',
         sale_price_operator: 'saleOperator',
-        shipping_methods: 'shippingMethods'
+        shipping_methods: 'shippingMethods',
+        address: 'billing'
       };
       Object.keys(params).forEach(key => {
         if (!keys.includes(key)) return;
         const keyName: string = transformObj[key] || key;
         body[keyName] = params[key].$date || params[key];
       });
-      this.logger.info(body);
       if (Object.keys(body).length === 0) return;
       return fetch(`${process.env.OMS_BASEURL}/stores/${storeId}`, {
         method: 'put',
@@ -532,7 +555,7 @@ const TheService: ServiceSchema = {
           Accept: 'application/json'
         },
         body: JSON.stringify(body)
-      });
+      }).then(response => response.json());
     },
     createOmsStore(params) {
       const body: { [key: string]: string | StoreUser[] | string[]; users?: StoreUser[] } = {};
@@ -554,7 +577,7 @@ const TheService: ServiceSchema = {
         'users',
         'languages',
         'shipping_methods',
-        'billing'
+        'address'
       ];
       const transformObj: { [key: string]: string } = {
         type: 'platform',
@@ -566,7 +589,8 @@ const TheService: ServiceSchema = {
         price_status: 'priceStatus',
         sale_price: 'salePrice',
         sale_price_operator: 'saleOperator',
-        shipping_methods: 'shippingMethods'
+        shipping_methods: 'shippingMethods',
+        address: 'billing'
       };
       Object.keys(params).forEach(key => {
         if (!keys.includes(key)) return;
