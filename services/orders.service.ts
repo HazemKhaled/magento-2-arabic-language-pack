@@ -11,8 +11,8 @@ import {
   OrderItem,
   Product,
   Store,
-  StoreUser,
-  Subscription
+  Subscription,
+  User
 } from '../utilities/types';
 import {
   createOrderValidation,
@@ -134,27 +134,29 @@ const TheService: ServiceSchema = {
 
         data.shipmentCourier = shipment.courier;
         data.shippingCharge = shipment.cost;
+
         // Getting the current user subscription
         const subscription = await this.currentSubscriptions(instance);
+
         // Checking for processing fees
-        if (subscription === -1) {
-          this.sendLogs({
-            topic: 'order',
-            topicId: data.externalId,
-            message: `No subscription for this store`,
-            storeId: instance.url,
-            logLevel: 'warn',
-            code: 2103,
-            payload: { params: ctx.params }
-          });
-        }
+        this.sendLogs({
+          topic: 'order',
+          topicId: data.externalId,
+          message: `Subscription Package: ${subscription ? subscription.membership_name : 'Free'}`,
+          storeId: instance.url,
+          logLevel: 'info',
+          code: 2103,
+          payload: { subscription, params: ctx.params }
+        });
+
         if (
-          subscription === -1 ||
+          !subscription ||
           (subscription.attr_order_processing_fees && subscription.attr_order_processing_fees > 0)
         ) {
           data.adjustment = Number(subscription.attr_order_processing_fees || 2);
           data.adjustmentDescription = `Processing Fees`;
         }
+
         data.status = ['pending', 'processing', 'cancelled'].includes(data.status)
           ? this.normalizeStatus(data.status)
           : data.status;
@@ -770,29 +772,45 @@ const TheService: ServiceSchema = {
      * @param {Store} instance
      * @returns {Promise<Subscription>}
      */
-    async currentSubscriptions(instance: Store, iteration: number = 0): Promise<Subscription | -1> {
+    async currentSubscriptions(instance: Store): Promise<Subscription> {
       // Getting the user Information to check subscription
-      const instanceOwner = instance.users.filter(usr => usr.roles.includes('owner'));
-      if (instanceOwner.length <= iteration) return -1;
-      let user: any = await fetch(
+      const ownerEmails = instance.users
+        .filter(usr => usr.roles.includes('owner'))
+        .map(u => u.email);
+
+      let users: any = await fetch(
         `${process.env.KLAYER_URL}/api/Partners?filter=${JSON.stringify({
           where: {
-            contact_email: instanceOwner[iteration]
+            contact_email: { $in: ownerEmails }
           }
         })}&access_token=${process.env.KLAYER_TOKEN}`,
         { method: 'get' }
       );
-      if (!user.ok) return this.currentSubscriptions(instance, iteration + 1);
-      user = await user.json();
+
+      users = await users.json();
+
       // Calculate active subscription
       const max: Subscription[] = [];
-      let lastDate = new Date(0);
-      user[0].subscriptions.forEach((subscription: Subscription) => {
-        if (new Date(subscription.expire_date) > lastDate) {
-          max.push(subscription);
-          lastDate = new Date(subscription.expire_date);
-        }
-      });
+      let lastLimit = 0;
+
+      // Get all subscriptions from all users
+      const date = new Date();
+      users
+        .reduce((accumulator: Subscription[], current: User) => {
+          return accumulator.concat(
+            current.subscriptions.filter(
+              (subscription: Subscription) => new Date(subscription.expire_date) > date
+            )
+          );
+        }, [])
+        .forEach((subscription: Subscription) => {
+          if (Number(subscription.attr_products_limit) > lastLimit) {
+            max.push(subscription);
+            lastLimit = Number(subscription.attr_products_limit);
+          }
+        });
+
+      // Use the highest number of product count
       return max.pop();
     },
 
