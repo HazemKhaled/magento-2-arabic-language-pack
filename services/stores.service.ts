@@ -3,7 +3,7 @@ import fetch from 'node-fetch';
 import DbService from '../utilities/mixins/mongo.mixin';
 
 import { v1 as uuidv1, v4 as uuidv4 } from 'uuid';
-import { ResError, Store, StoreUser } from '../utilities/types';
+import { OmsStore, ResError, Store, StoreUser } from '../utilities/types';
 import { createValidation, updateValidation } from '../utilities/validations/stores.validate';
 
 const TheService: ServiceSchema = {
@@ -186,6 +186,18 @@ const TheService: ServiceSchema = {
         let mReq: Store | {} = {};
         try {
           mReq = await this.adapter.insert(store).then((res: Store) => this.sanitizeResponse(res));
+          this.createOmsStore(ctx.params).then((response: OmsStore) => {
+            const isStore = (req: Store | {}): req is Store =>
+              (req as Store).internal_data !== undefined;
+            if (isStore(mReq)) {
+              const internal = mReq.internal_data;
+              internal.omsId = response.id;
+              ctx.call('stores.update', {
+                id: ctx.params.url,
+                internal_data: internal
+              });
+            }
+          });
         } catch (err) {
           // Errors Handling
           ctx.meta.$statusMessage = 'Internal Server Error';
@@ -458,7 +470,8 @@ const TheService: ServiceSchema = {
         'currency',
         'users',
         'languages',
-        'shipping_methods'
+        'shipping_methods',
+        'billing'
       ];
       const transformObj: { [key: string]: string } = {
         type: 'platform',
@@ -469,7 +482,8 @@ const TheService: ServiceSchema = {
         price_date: 'priceDate',
         price_status: 'priceStatus',
         sale_price: 'salePrice',
-        sale_price_operator: 'saleOperator'
+        sale_price_operator: 'saleOperator',
+        shipping_methods: 'shippingMethods'
       };
       Object.keys(params).forEach(key => {
         if (!keys.includes(key)) return;
@@ -487,6 +501,56 @@ const TheService: ServiceSchema = {
         },
         body: JSON.stringify(body)
       });
+    },
+    createOmsStore(params) {
+      const body: { [key: string]: string | StoreUser[] | string[]; users?: StoreUser[] } = {};
+      // Sanitized params keys
+      const keys: string[] = [
+        'url',
+        'name',
+        'status',
+        'type',
+        'stock_date',
+        'stock_status',
+        'price_date',
+        'price_status',
+        'sale_price',
+        'sale_price_operator',
+        'compared_at_price',
+        'compared_at_price_operator',
+        'currency',
+        'users',
+        'languages',
+        'shipping_methods',
+        'billing'
+      ];
+      const transformObj: { [key: string]: string } = {
+        type: 'platform',
+        compared_at_price: 'comparedPrice',
+        compared_at_price_operator: 'comparedOperator',
+        stock_date: 'stockDate',
+        stock_status: 'stockStatus',
+        price_date: 'priceDate',
+        price_status: 'priceStatus',
+        sale_price: 'salePrice',
+        sale_price_operator: 'saleOperator',
+        shipping_methods: 'shippingMethods'
+      };
+      Object.keys(params).forEach(key => {
+        if (!keys.includes(key)) return;
+        const keyName: string = transformObj[key] || key;
+        body[keyName] = params[key].$date || params[key];
+      });
+      if (Object.keys(body).length === 0) return;
+      return fetch(`${process.env.OMS_BASEURL}/stores`, {
+        method: 'post',
+        headers: {
+          Authorization: `Basic ${this.settings.AUTH}`,
+          'Content-Type': 'application/json',
+          Accept: 'application/json'
+        },
+        body: JSON.stringify(body)
+      }).then(response => response.json());
     }
   }
 };
