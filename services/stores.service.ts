@@ -98,17 +98,30 @@ const TheService: ServiceSchema = {
       },
       handler(ctx: Context) {
         return this.adapter.findById(ctx.params.id).then(async (res: Store | null) => {
-          let omsData: boolean | { store: Store } = false;
           if (res && res.internal_data && res.internal_data.omsId) {
-            omsData = (await fetch(`${process.env.OMS_BASEURL}/stores/${res.internal_data.omsId}`, {
-              method: 'get',
-              headers: {
-                Authorization: `Basic ${this.settings.AUTH}`
+            const omsData = (await fetch(
+              `${process.env.OMS_BASEURL}/stores/${res.internal_data.omsId}`,
+              {
+                method: 'get',
+                headers: {
+                  Authorization: `Basic ${this.settings.AUTH}`
+                }
               }
-            }).then(response => response.json())) as { store: Store };
+            ).then(response => response.json())) as { store: Store };
+
             // If the DB response not null will return the data
-            if (res !== null) return this.sanitizeResponse(res, omsData.store);
+            if (!omsData) {
+              this.logger.warn(ctx.params);
+            } else {
+              return this.sanitizeResponse(res, omsData.store);
+            }
           }
+
+          // return store even if we didn't get balance from OMS
+          if (res) {
+            return res;
+          }
+
           // If null return Not Found error
           ctx.meta.$statusMessage = 'Not Found';
           ctx.meta.$statusCode = 404;
