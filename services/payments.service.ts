@@ -1,5 +1,6 @@
 import { Context, ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
+import { Payment, PaymentInvoice } from '../utilities/types';
 
 const TheService: ServiceSchema = {
   name: 'payments',
@@ -25,7 +26,11 @@ const TheService: ServiceSchema = {
           optional: true
         },
         account_id: { type: 'string' },
-        bank_charges: { type: 'number', optional: true, convert: true }
+        bank_charges: { type: 'number', optional: true, convert: true },
+        reference: [
+          { type: 'string', optional: true },
+          { type: 'number', integer: true, optional: true }
+        ]
       },
       async handler(ctx: Context) {
         const instance = await ctx.call('stores.findInstance', {
@@ -40,11 +45,17 @@ const TheService: ServiceSchema = {
               Accept: 'application/json'
             },
             body: JSON.stringify({
-              payment_mode: ctx.params.payment_mode,
+              paymentMode: ctx.params.payment_mode,
               amount: ctx.params.amount,
-              invoices: ctx.params.invoices,
-              account_id: ctx.params.account_id,
-              bank_charges: ctx.params.bank_charges
+              invoices: ctx.params.invoices
+                ? ctx.params.invoices.map((invoice: { [key: string]: string }) => ({
+                    invoiceId: invoice.invoice_id,
+                    amountApplied: invoice.amount_applied
+                  }))
+                : undefined,
+              accountId: ctx.params.account_id,
+              bankCharges: ctx.params.bank_charges,
+              referenceNumber: String(ctx.params.reference)
             })
           })
             .then(async res => {
@@ -54,13 +65,12 @@ const TheService: ServiceSchema = {
                 response.statusText = res.statusText;
                 throw response;
               }
-
               // Store balance
               this.broker.cacher.clean(`stores.me:${instance.consumer_key}**`);
               this.broker.cacher.clean(`stores.get:${instance.url}**`);
               this.broker.cacher.clean(`payments.get:${instance.consumer_key}**`);
               this.broker.cacher.clean(`invoices.get:${instance.consumer_key}**`);
-              return response;
+              return this.sanitizePayment(response.payment);
             })
             .catch(err => {
               ctx.meta.$statusCode = err.status || (err.error && err.error.statusCode) || 500;
@@ -102,7 +112,7 @@ const TheService: ServiceSchema = {
         const instance = await ctx.call('stores.findInstance', {
           consumerKey: ctx.meta.user
         });
-        const url = new URL(`${process.env.OMS_BASEURL}/invoices/${instance.internal_data.omsId}`);
+        const url = new URL(`${process.env.OMS_BASEURL}/payments/${instance.internal_data.omsId}`);
         const keys: { [key: string]: string } = {
           page: 'page',
           limit: 'perPage',
@@ -126,9 +136,10 @@ const TheService: ServiceSchema = {
                 response.statusText = res.statusText;
                 throw response;
               }
-              return response;
+              return { payments: response.payments.map(this.sanitizePayment) };
             })
             .catch(err => {
+              this.logger.info(err);
               ctx.meta.$statusCode = err.status || (err.error && err.error.statusCode) || 500;
               ctx.meta.$statusMessage =
                 err.statusText || (err.error && err.error.name) || 'Internal Error';
@@ -151,6 +162,28 @@ const TheService: ServiceSchema = {
           ]
         };
       }
+    }
+  },
+  methods: {
+    sanitizePayment(payment: Payment): PaymentResponse {
+      return Object({
+        store_id: payment.storeId,
+        payment_mode: payment.paymentMode,
+        amount: payment.amount,
+        invoices:
+          payment.invoices &&
+          payment.invoices.map((invoice: PaymentInvoice) => ({
+            amount_applied: invoice.amountApplied,
+            invoice_id: invoice.invoiceId
+          })),
+        bank_charges: payment.bankCharges,
+        account_id: payment.accountId,
+        account_name: payment.accountName,
+        payment_id: payment.paymentId,
+        unused_amount: payment.unusedAmount,
+        reference: payment.referenceNumber,
+        date: payment.date
+      });
     }
   }
 };

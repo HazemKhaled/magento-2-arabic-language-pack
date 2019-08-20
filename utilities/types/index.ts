@@ -6,3 +6,6 @@ export * from './store.type';
 export * from './user.type';
 export * from './log.type';
 export * from './shipment.type';
+export * from './invoice.type';
+export * from './payment.type';
+export * from './omsStore.type';

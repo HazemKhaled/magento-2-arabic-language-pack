@@ -34,8 +34,8 @@ export const createValidation = {
     items: {
       type: 'object',
       props: {
-        first_name: {type: 'string', optional: true},
-        last_name: {type: 'string', optional: true},
+        first_name: { type: 'string', optional: true },
+        last_name: { type: 'string', optional: true },
         email: { type: 'email' },
         roles: {
           type: 'array',
@@ -60,10 +60,10 @@ export const createValidation = {
   address: {
     type: 'object',
     props: {
-      first_name: { type: 'string' },
-      last_name: { type: 'string' },
+      first_name: { type: 'string', min: 3 },
+      last_name: { type: 'string', min: 3 },
       company: { type: 'string', optional: true },
-      address_1: { type: 'string' },
+      address_1: { type: 'string', min: 3 },
       address_2: { type: 'string', optional: true },
       city: { type: 'string', optional: true },
       state: { type: 'string', optional: true },
@@ -117,8 +117,8 @@ export const updateValidation = {
     items: {
       type: 'object',
       props: {
-        first_name: {type: 'string', optional: true},
-        last_name: {type: 'string', optional: true},
+        first_name: { type: 'string', optional: true },
+        last_name: { type: 'string', optional: true },
         email: { type: 'email' },
         roles: {
           type: 'array',

@@ -28,7 +28,7 @@ export interface Subscription {
   name: string;
   title: string;
   description: string;
-  attr_products_limit: number | string;
-  attr_language_limit: number | string;
+  attr_products_limit: number;
+  attr_language_limit: number;
   attr_order_processing_fees: number | string;
 }
