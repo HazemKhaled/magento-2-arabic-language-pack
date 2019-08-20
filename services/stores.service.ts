@@ -222,7 +222,7 @@ const TheService: ServiceSchema = {
               internal_data: internal
             });
           })
-          .catch((error: unknown) => {
+          .catch((err: unknown) => {
             this.sendLogs({
               topic: 'store',
               topicId: ctx.params.url,
@@ -230,7 +230,7 @@ const TheService: ServiceSchema = {
               storeId: ctx.params.url,
               logLevel: 'error',
               code: 500,
-              payload: { error, params: ctx.params }
+              payload: { error: err, params: ctx.params }
             });
           });
 
