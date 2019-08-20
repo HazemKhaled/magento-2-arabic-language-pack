@@ -312,7 +312,7 @@ const TheService: ServiceSchema = {
         if (data.status === 'cancelled' || data.status === 'void') {
           return ctx.call('orders.delete', { id: data.id }).then(res => {
             this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
-            this.broker.cacher.clean(`orders.getOrder:${data.id}**`);
+            this.broker.cacher.clean(`orders.getOrder:${ctx.params.id}**`);
             return res;
           });
         }
@@ -429,7 +429,7 @@ const TheService: ServiceSchema = {
           }
           const order = result.salesorder;
           this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
-          this.broker.cacher.clean(`orders.getOrder:${data.id}**`);
+          this.broker.cacher.clean(`orders.getOrder:${ctx.params.id}**`);
 
           message.status = 'success';
           message.data = {
