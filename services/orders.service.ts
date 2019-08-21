@@ -70,7 +70,7 @@ const TheService: ServiceSchema = {
             topicId: data.externalId,
             message: `The products you ordered are not Knawat products, The order has not been created!`,
             storeId: instance.url,
-            logLevel: 'error',
+            logLevel: 'warn',
             code: 1101,
             payload: {
               errors: {
@@ -335,7 +335,7 @@ const TheService: ServiceSchema = {
                 topicId: orderBeforeUpdate.externalId,
                 message: `The products you ordered are not Knawat products, The order has not been created!`,
                 storeId: instance.url,
-                logLevel: 'error',
+                logLevel: 'warn',
                 code: 1101,
                 payload: {
                   errors: {
