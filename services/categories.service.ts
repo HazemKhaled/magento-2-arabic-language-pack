@@ -40,8 +40,17 @@ const TheService: ServiceSchema = {
       cache: {
         ttl: 60 * 60 // 1 hour
       },
-      handler(): Category[] {
-        return this.fetchCategories();
+      params: {
+        parentId: [{ type: 'number', optional: true }, { type: 'string', optional: true }],
+        treeNodeLevel: [{ type: 'number', optional: true }, { type: 'string', optional: true }]
+      },
+      async handler(ctx): Promise<Category[]> {
+        const categories = await this.fetchCategories(ctx.params);
+        if (categories.status === 'failed') {
+          ctx.meta.$statusCode = 404;
+          ctx.meta.$statusMessage = 'Not Found';
+        }
+        return categories;
       }
     }
   },
@@ -51,13 +60,26 @@ const TheService: ServiceSchema = {
      *
      * @returns {Category[]}
      */
-    fetchCategories(): Category[] {
+    fetchCategories(params = {}): Category[] {
+      const query: any = { bool: { filter: [] } };
+      if (Object.keys(params).length === 0) {
+        query.bool.filter.push({
+          term: { treeNodeLevel: 1 }
+        });
+      }
+      if (params.parentId) query.bool.filter.push({ term: { parentId: params.parentId } });
+      if (params.treeNodeLevel) {
+        query.bool.filter.push({
+          terms: { treeNodeLevel: params.treeNodeLevel.split(',') }
+        });
+      }
       return this.broker
         .call('categories.search', {
           index: 'categories',
-          type: 'Category',
+          type: '_doc',
           body: {
-            size: 999
+            size: 999,
+            query
           }
         })
         .then((result: SearchResponse<Category>) => {
@@ -68,11 +90,14 @@ const TheService: ServiceSchema = {
             };
           }
 
-          return result.hits.hits.map((param: { _source: Category }) => {
+          return result.hits.hits.map((param: { _id: string; _source: Category }) => {
             const category: Category = param._source;
             return {
-              id: category.odooId,
-              name: this.formatI18nText(category.name)
+              id: Number(param._id),
+              name: this.formatI18nText(category.name),
+              parentId: category.parentId,
+              productsCount: category.productsCount,
+              treeNodeLevel: category.treeNodeLevel
             };
           });
         })
