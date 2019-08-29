@@ -361,38 +361,16 @@ const TheService: ServiceSchema = {
               throw response;
             }
             if (!res.ok && res.status === 404) {
-              return fetch(`${process.env.OMS_BASEURL}/stores`, {
-                method: 'post',
-                headers: {
-                  Authorization: `Basic ${this.settings.AUTH}`,
-                  'Content-Type': 'application/json',
-                  Accept: 'application/json'
-                },
-                body: JSON.stringify({
-                  url: instance.url,
-                  users: instance.users,
-                  status: instance.status,
-                  stockDate: instance.status_date,
-                  stockStatus: instance.stock_status,
-                  priceDate: instance.price_date,
-                  priceStatus: instance.price_status,
-                  salePrice: instance.sale_price,
-                  saleOperator: instance.sale_price_operator,
-                  comparedPrice: instance.compared_at_price,
-                  comparedOperator: instance.compared_at_price_operator,
-                  currency: [instance.currency],
-                  shippingMethods: instance.shipping_methods.map(
-                    (method: { name: string }) => method.name
-                  ),
-                  languages: instance.languages,
-                  platform: instance.type,
-                  companyName: instance.name
-                })
-              }).then(createRes => createRes.json());
+              return this.createOmsStore(instance).then((value: any) => {
+                return value;
+              });
             }
             return response.store;
           });
-          instance.internal_data = { ...instance.internal_data, omsId: omsStore.id };
+          instance.internal_data = {
+            ...instance.internal_data,
+            omsId: omsStore.id || (omsStore.store && omsStore.store.id)
+          };
           this.broker.cacher.clean(`orders.getOrder:${instance.consumer_key}*`);
           this.broker.cacher.clean(`orders.list:${instance.consumer_key}*`);
           this.broker.cacher.clean(`invoices.get:${instance.consumer_key}*`);
@@ -513,7 +491,7 @@ const TheService: ServiceSchema = {
       return store;
     },
     updateOmsStore(storeId, params) {
-      const body: { [key: string]: string | StoreUser[] | string[]; users?: StoreUser[] } = {};
+      const body: OmsStore = {};
       // Sanitized params keys
       const keys: string[] = [
         'name',
@@ -552,6 +530,11 @@ const TheService: ServiceSchema = {
         body[keyName] = params[key].$date || params[key];
       });
       if (Object.keys(body).length === 0) return;
+      if (body.shippingMethods) {
+        body.shippingMethods = (body.shippingMethods as Array<{ name: string }>).map(
+          method => method.name
+        );
+      }
       return fetch(`${process.env.OMS_BASEURL}/stores/${storeId}`, {
         method: 'put',
         headers: {
@@ -563,7 +546,7 @@ const TheService: ServiceSchema = {
       }).then(response => response.json());
     },
     createOmsStore(params) {
-      const body: { [key: string]: string | StoreUser[] | string[]; users?: StoreUser[] } = {};
+      const body: OmsStore = {};
       // Sanitized params keys
       const keys: string[] = [
         'url',
@@ -603,6 +586,11 @@ const TheService: ServiceSchema = {
         body[keyName] = params[key].$date || params[key];
       });
       if (Object.keys(body).length === 0) return;
+      if (body.shippingMethods) {
+        body.shippingMethods = (body.shippingMethods as Array<{ name: string }>).map(
+          method => method.name
+        );
+      }
       return fetch(`${process.env.OMS_BASEURL}/stores`, {
         method: 'post',
         headers: {
