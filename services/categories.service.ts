@@ -69,7 +69,7 @@ const TheService: ServiceSchema = {
           term: { treeNodeLevel: 1 }
         });
       }
-      if (params.parentId)
+      if (params.parentId || params.parentId === 0)
         query.bool.should.push(
           { term: { parentId: params.parentId } },
           { term: { _id: params.parentId } }
@@ -110,7 +110,7 @@ const TheService: ServiceSchema = {
                 };
               })
           };
-          if (params.parentId) {
+          if (params.parentId && params.parentId !== '0') {
             const parent = result.hits.hits.find(cat => cat._id === params.parentId);
             response.parent = {
               id: Number(parent._id),
