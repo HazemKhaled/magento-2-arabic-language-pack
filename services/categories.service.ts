@@ -61,7 +61,9 @@ const TheService: ServiceSchema = {
      * @returns {Category[]}
      */
     fetchCategories(params = {}): Category[] {
-      const query: any = { bool: { filter: [], should: [] } };
+      const query: any = {
+        bool: { filter: [], should: [], must_not: { term: { productsCount: 0 } } }
+      };
       if (Object.keys(params).length === 0) {
         query.bool.filter.push({
           term: { treeNodeLevel: 1 }
