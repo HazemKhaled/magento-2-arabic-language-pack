@@ -38,7 +38,7 @@ const TheService: ServiceSchema = {
     list: {
       auth: 'Bearer',
       cache: {
-        ttl: 60 * 60 // 1 hour
+        ttl: 60 * 60 * 24 // 1 day
       },
       params: {
         parentId: [{ type: 'number', optional: true }, { type: 'string', optional: true }],
@@ -61,13 +61,17 @@ const TheService: ServiceSchema = {
      * @returns {Category[]}
      */
     fetchCategories(params = {}): Category[] {
-      const query: any = { bool: { filter: [] } };
+      const query: any = { bool: { filter: [], should: [] } };
       if (Object.keys(params).length === 0) {
         query.bool.filter.push({
           term: { treeNodeLevel: 1 }
         });
       }
-      if (params.parentId) query.bool.filter.push({ term: { parentId: params.parentId } });
+      if (params.parentId)
+        query.bool.should.push(
+          { term: { parentId: params.parentId } },
+          { term: { _id: params.parentId } }
+        );
       if (params.treeNodeLevel) {
         query.bool.filter.push({
           terms: { treeNodeLevel: params.treeNodeLevel.split(',') }
@@ -89,17 +93,32 @@ const TheService: ServiceSchema = {
               message: 'There are no categories at the moment.'
             };
           }
-
-          return result.hits.hits.map((param: { _id: string; _source: Category }) => {
-            const category: Category = param._source;
-            return {
-              id: Number(param._id),
-              name: this.formatI18nText(category.name),
-              parentId: category.parentId,
-              productsCount: category.productsCount,
-              treeNodeLevel: category.treeNodeLevel
+          const response: any = {
+            count: result.hits.total,
+            categories: result.hits.hits
+              .filter(cat => cat._id !== params.parentId)
+              .map((param: { _id: string; _source: Category }) => {
+                const category: Category = param._source;
+                return {
+                  id: Number(param._id),
+                  name: this.formatI18nText(category.name),
+                  parentId: category.parentId,
+                  productsCount: category.productsCount,
+                  treeNodeLevel: category.treeNodeLevel
+                };
+              })
+          };
+          if (params.parentId) {
+            const parent = result.hits.hits.find(cat => cat._id === params.parentId);
+            response.parent = {
+              id: Number(parent._id),
+              name: this.formatI18nText(parent._source.name),
+              parentId: parent._source.parentId,
+              productsCount: parent._source.productsCount,
+              treeNodeLevel: parent._source.treeNodeLevel
             };
-          });
+          }
+          return response;
         })
         .catch((error: any) => new MoleculerClientError(error));
     }
