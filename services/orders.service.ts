@@ -772,7 +772,7 @@ const TheService: ServiceSchema = {
      * @param {Store} instance
      * @returns {Promise<Subscription>}
      */
-    async currentSubscriptions(instance: Store): Promise<Subscription> {
+    async currentSubscriptions(instance: Store): Promise<Subscription | false> {
       // Getting the user Information to check subscription
       const ownerEmails = instance.users
         .filter(usr => usr.roles.includes('owner'))
@@ -795,6 +795,9 @@ const TheService: ServiceSchema = {
 
       // Get all subscriptions from all users
       const date = new Date();
+      if (users.error) {
+        return false;
+      }
       users
         .reduce((accumulator: Subscription[], current: User) => {
           return accumulator.concat(
