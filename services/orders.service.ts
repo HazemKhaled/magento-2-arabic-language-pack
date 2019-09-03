@@ -772,7 +772,7 @@ const TheService: ServiceSchema = {
      * @param {Store} instance
      * @returns {Promise<Subscription>}
      */
-    async currentSubscriptions(instance: Store): Promise<Subscription> {
+    async currentSubscriptions(instance: Store): Promise<Subscription | false> {
       // Getting the user Information to check subscription
       const ownerEmails = instance.users
         .filter(usr => usr.roles.includes('owner'))
@@ -795,6 +795,9 @@ const TheService: ServiceSchema = {
 
       // Get all subscriptions from all users
       const date = new Date();
+      if (users.error) {
+        return false;
+      }
       users
         .reduce((accumulator: Subscription[], current: User) => {
           return accumulator.concat(
@@ -1008,15 +1011,6 @@ const TheService: ServiceSchema = {
             message: `Billing address not found`,
             code: 1104
           });
-          this.sendLogs({
-            topic: 'order',
-            topicId: data.externalId,
-            message: `Billing address not found`,
-            storeId: instance.url,
-            logLevel: 'warn',
-            code: 1104,
-            payload: { params }
-          });
         }
       } catch (err) {
         this.logger.error(err);
@@ -1071,7 +1065,7 @@ const TheService: ServiceSchema = {
           message: `No Billing Address Or Address Missing Data.`,
           storeId: instance.url,
           logLevel: 'warn',
-          code: 100
+          code: 1104
         });
         return false;
       }
