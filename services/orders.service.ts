@@ -198,7 +198,7 @@ const TheService: ServiceSchema = {
             errors: [
               {
                 status: 'fail',
-                message: result.error.message
+                message: result.error.details || result.error.message
               }
             ]
           };
@@ -422,7 +422,7 @@ const TheService: ServiceSchema = {
               errors: [
                 {
                   status: 'fail',
-                  message: result.error.message
+                  message: result.error.details || result.error.message
                 }
               ]
             };
