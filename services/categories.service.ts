@@ -38,7 +38,7 @@ const TheService: ServiceSchema = {
     list: {
       auth: 'Bearer',
       cache: {
-        ttl: 60 * 60 // 1 hour
+        ttl: 60 * 10 // 1 hour
       },
       params: {
         parentId: [{ type: 'number', optional: true }, { type: 'string', optional: true }],
