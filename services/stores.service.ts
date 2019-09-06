@@ -1,8 +1,9 @@
 import { Context, ServiceSchema } from 'moleculer';
+import fetch from 'node-fetch';
 import DbService from '../utilities/mixins/mongo.mixin';
 
 import { v1 as uuidv1, v4 as uuidv4 } from 'uuid';
-import { Store, StoreUser } from '../utilities/types/store.type';
+import { Log, OmsStore, ResError, Store, StoreUser } from '../utilities/types';
 import { createValidation, updateValidation } from '../utilities/validations/stores.validate';
 
 const TheService: ServiceSchema = {
@@ -21,15 +22,18 @@ const TheService: ServiceSchema = {
     findInstance: {
       auth: 'Basic',
       cache: {
-        keys: ['consumerKey'],
+        keys: ['consumerKey', 'id'],
         ttl: 60 * 60 // 1 hour
       },
       params: {
-        consumerKey: { type: 'string', convert: true }
+        consumerKey: { type: 'string', convert: true, optional: true },
+        id: { type: 'string', convert: true, optional: true }
       },
       handler(ctx: Context) {
+        let query: { _id?: string } | false = false;
+        if (ctx.params.id) query = { _id: ctx.params.id };
         return this.adapter
-          .findOne({ consumer_key: ctx.params.consumerKey })
+          .findOne(query || { consumer_key: ctx.params.consumerKey })
           .then((res: Store | null) => {
             // If the DB response not null will return the data
             if (res !== null) return this.sanitizeResponse(res);
@@ -53,14 +57,28 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 // 1 hour
       },
       handler(ctx: Context) {
-        return this.adapter.findOne({ consumer_key: ctx.meta.user }).then((res: Store | null) => {
-          // If the DB response not null will return the data
-          if (res !== null) return this.sanitizeResponse(res);
-          // If null return Not Found error
-          ctx.meta.$statusMessage = 'Not Found';
-          ctx.meta.$statusCode = 404;
-          return { errors: [{ message: 'Store Not Found' }] };
-        });
+        return this.adapter
+          .findOne({ consumer_key: ctx.meta.user })
+          .then(async (res: Store | null) => {
+            let omsData: boolean | { store: Store } = false;
+            if (res.internal_data && res.internal_data.omsId) {
+              omsData = (await fetch(
+                `${process.env.OMS_BASEURL}/stores/${res.internal_data.omsId}`,
+                {
+                  method: 'get',
+                  headers: {
+                    Authorization: `Basic ${this.settings.AUTH}`
+                  }
+                }
+              ).then(response => response.json())) as { store: Store };
+              // If the DB response not null will return the data
+              if (res !== null) return this.sanitizeResponse(res, omsData.store);
+            }
+            // If null return Not Found error
+            ctx.meta.$statusMessage = 'Not Found';
+            ctx.meta.$statusCode = 404;
+            return { errors: [{ message: 'Store Not Found' }] };
+          });
       }
     },
     /**
@@ -71,17 +89,39 @@ const TheService: ServiceSchema = {
      */
     get: {
       auth: 'Basic',
-      params: {
-        id: { type: 'string' }
-      },
       cache: {
         keys: ['id'],
         ttl: 60 * 60 // 1 hour
       },
+      params: {
+        id: { type: 'string' }
+      },
       handler(ctx: Context) {
-        return this.adapter.findById(ctx.params.id).then((res: Store | null) => {
-          // If the DB response not null will return the data
-          if (res !== null) return this.sanitizeResponse(res);
+        return this.adapter.findById(ctx.params.id).then(async (res: Store | null) => {
+          if (res && res.internal_data && res.internal_data.omsId) {
+            const omsData = (await fetch(
+              `${process.env.OMS_BASEURL}/stores/${res.internal_data.omsId}`,
+              {
+                method: 'get',
+                headers: {
+                  Authorization: `Basic ${this.settings.AUTH}`
+                }
+              }
+            ).then(response => response.json())) as { store: Store };
+
+            // If the DB response not null will return the data
+            if (!omsData) {
+              this.logger.warn('Can not get balance', ctx.params);
+            } else {
+              return this.sanitizeResponse(res, omsData.store);
+            }
+          }
+
+          // return store even if we didn't get balance from OMS
+          if (res) {
+            return res;
+          }
+
           // If null return Not Found error
           ctx.meta.$statusMessage = 'Not Found';
           ctx.meta.$statusCode = 404;
@@ -97,12 +137,12 @@ const TheService: ServiceSchema = {
      */
     list: {
       auth: 'Basic',
-      params: {
-        filter: { type: 'string' }
-      },
       cache: {
         keys: ['filter'],
         ttl: 60 * 60 // 1 hour
+      },
+      params: {
+        filter: { type: 'string' }
       },
       handler(ctx: Context) {
         let params: { where?: {}; limit?: {}; order?: string; sort?: {} } = {};
@@ -147,23 +187,54 @@ const TheService: ServiceSchema = {
       params: createValidation,
       async handler(ctx: Context) {
         // Clear cache
-        this.broker.cacher.clean(`stores.get:**`);
+        this.broker.cacher.clean(`stores.get:${ctx.params.url}`);
+
+        // FIX: Clear only cache by email
         this.broker.cacher.clean(`stores.list:**`);
+
         // Sanitize request params
         const store: Store = this.sanitizeStoreParams(ctx.params, true);
+
         // Initial response variable
-        let mReq: Store | {} = {};
-        try {
-          mReq = await this.adapter.insert(store).then((res: Store) => this.sanitizeResponse(res));
-        } catch (err) {
-          // Errors Handling
-          ctx.meta.$statusMessage = 'Internal Server Error';
-          ctx.meta.$statusCode = 500;
-          mReq = {
-            errors: [{ message: err.code === 11000 ? 'Duplicated entry!' : 'Internal Error!' }]
-          };
-        }
-        return mReq;
+        let error: {} = {};
+        const myStore = await this.adapter
+          .insert(store)
+          .then((res: Store) => this.sanitizeResponse(res))
+          .catch((err: { code: number }) => {
+            this.logger.error('Create store', err);
+            // Errors Handling
+            ctx.meta.$statusMessage = 'Internal Server Error';
+            ctx.meta.$statusCode = 500;
+
+            error = {
+              errors: [{ message: err.code === 11000 ? 'Duplicated entry!' : 'Internal Error!' }]
+            };
+          });
+
+        // create in OMS
+        this.createOmsStore(ctx.params)
+          .then((response: { store: OmsStore }) => {
+            const internal = myStore.internal_data;
+            if (!response.store) throw response;
+            internal.omsId = response.store && response.store.id;
+            ctx.call('stores.update', {
+              id: ctx.params.url,
+              internal_data: internal
+            });
+          })
+          .catch((err: unknown) => {
+            this.sendLogs({
+              topic: 'store',
+              topicId: ctx.params.url,
+              message: `Create in OMS`,
+              storeId: ctx.params.url,
+              logLevel: 'error',
+              code: 500,
+              payload: { error: err, params: ctx.params }
+            });
+          });
+
+        return myStore || error;
       }
     },
     /**
@@ -182,33 +253,148 @@ const TheService: ServiceSchema = {
         // Sanitize request params
         const store: Store = this.sanitizeStoreParams(ctx.params);
         // Initial response variable
-        let mReq: { [key: string]: {} } = {};
-        try {
-          mReq = await this.adapter
-            .updateById(id, { $set: store })
-            .then((res: Store) => this.sanitizeResponse(res));
-          // If the store not found return Not Found error
-          if (mReq === null) {
-            ctx.meta.$statusMessage = 'Not Found';
-            ctx.meta.$statusCode = 404;
-            mReq = {
-              errors: [{ message: 'Store Not Found' }]
+        // let mReq: Store | ResError = { errors: [] };
+
+        const myStore: Store = await this.adapter
+          .updateById(id, { $set: store })
+          .then(async (res: Store) => {
+            return this.sanitizeResponse(res);
+          })
+          .catch((error: { code: number }) => {
+            this.sendLogs({
+              topic: 'store',
+              topicId: id,
+              message: `update Store`,
+              storeId: id,
+              logLevel: 'error',
+              code: 500,
+              payload: { error, params: ctx.params }
+            });
+            ctx.meta.$statusMessage = 'Internal Server Error';
+            ctx.meta.$statusCode = 500;
+
+            return {
+              errors: [{ message: error.code === 11000 ? 'Duplicated entry!' : 'Internal Error!' }]
             };
-          }
-          // Clean cache if store updated
-          if (mReq.consumer_key) {
-            this.broker.cacher.clean(`stores.**`);
-            this.broker.cacher.clean(`products.list:${mReq.consumer_key}**`);
-            this.broker.cacher.clean(`products.getInstanceProduct:${mReq.consumer_key}**`);
-          }
-        } catch (err) {
-          ctx.meta.$statusMessage = 'Internal Server Error';
-          ctx.meta.$statusCode = 500;
-          mReq = {
-            errors: [{ message: 'Internal Error' }]
+          });
+
+        // If the store not found return Not Found error
+        if (!myStore) {
+          ctx.meta.$statusMessage = 'Not Found';
+          ctx.meta.$statusCode = 404;
+          return {
+            errors: [{ message: 'Store Not Found' }]
           };
         }
-        return mReq;
+
+        // Clean cache if store updated
+        this.broker.cacher.clean(`stores.findInstance:${myStore.consumer_key}*`);
+        this.broker.cacher.clean(`stores.findInstance:*${myStore.url}*`);
+        this.broker.cacher.clean(`stores.me:${myStore.consumer_key}*`);
+        this.broker.cacher.clean(`stores.get:${myStore.url}*`);
+        this.broker.cacher.clean(`stores.list**`);
+        this.broker.cacher.clean(`products.list:${myStore.consumer_key}*`);
+        this.broker.cacher.clean(`products.getInstanceProduct:${myStore.consumer_key}*`);
+
+        if (myStore.internal_data && myStore.internal_data.omsId) {
+          this.updateOmsStore(myStore.internal_data.omsId, ctx.params).catch((error: unknown) => {
+            this.sendLogs({
+              topic: 'store',
+              topicId: ctx.params.url,
+              message: `Update in OMS`,
+              storeId: ctx.params.url,
+              logLevel: 'error',
+              code: 500,
+              payload: { error, params: ctx.params }
+            });
+          });
+        } else {
+          this.sendLogs({
+            topic: 'store',
+            topicId: ctx.params.url,
+            message: `Update in OMS, omsId not found`,
+            storeId: ctx.params.url,
+            logLevel: 'error',
+            code: 500,
+            payload: { params: ctx.params }
+          });
+        }
+
+        return myStore;
+      }
+    },
+    sync: {
+      auth: 'Basic',
+      params: {
+        id: { type: 'string' }
+      },
+      async handler(ctx) {
+        const storeId = ctx.params.id;
+        const instance = await ctx.call('stores.findInstance', {
+          id: storeId
+        });
+        if (!instance.url) {
+          ctx.meta.$statusCode = 404;
+          ctx.meta.$statusMessage = 'Not Found!';
+          return {
+            errors: [
+              {
+                message: 'Store not found!'
+              }
+            ]
+          };
+        }
+        try {
+          const omsStore = await fetch(
+            `${process.env.OMS_BASEURL}/stores?url=${encodeURIComponent(storeId)}`,
+            {
+              method: 'get',
+              headers: {
+                Authorization: `Basic ${this.settings.AUTH}`
+              }
+            }
+          ).then(async res => {
+            const response = await res.json();
+            if (!res.ok && res.status !== 404) {
+              response.status = res.status;
+              response.statusText = res.statusText;
+              throw response;
+            }
+            if (!res.ok && res.status === 404) {
+              return this.createOmsStore(instance).then((value: any) => {
+                return value;
+              });
+            }
+            return response.store;
+          });
+          instance.internal_data = {
+            ...instance.internal_data,
+            omsId: omsStore.id || (omsStore.store && omsStore.store.id)
+          };
+          this.broker.cacher.clean(`orders.getOrder:${instance.consumer_key}*`);
+          this.broker.cacher.clean(`orders.list:${instance.consumer_key}*`);
+          this.broker.cacher.clean(`invoices.get:${instance.consumer_key}*`);
+          return ctx.call('stores.update', {
+            id: storeId,
+            internal_data: instance.internal_data,
+            updated: '2010-01-01T00:00:00.000Z',
+            stock_date: '2010-01-01T00:00:00.000Z',
+            price_date: '2010-01-01T00:00:00.000Z',
+            stock_status: 'idle',
+            price_status: 'idle'
+          });
+        } catch (err) {
+          ctx.meta.$statusCode = err.status || (err.error && err.error.statusCode) || 500;
+          ctx.meta.$statusMessage =
+            err.statusText || (err.error && err.error.name) || 'Internal Error';
+          return {
+            errors: [
+              {
+                message: err.error ? err.error.message : 'Internal Server Error'
+              }
+            ]
+          };
+        }
       }
     }
   },
@@ -240,7 +426,7 @@ const TheService: ServiceSchema = {
         store.currency = 'USD';
         store.shipping_methods = [
           {
-            name: 'Standerd',
+            name: 'Standard',
             sort: 0
           },
           {
@@ -252,6 +438,7 @@ const TheService: ServiceSchema = {
             sort: 2
           }
         ];
+        if (!store.internal_data) store.internal_data = {};
       }
       if (params.users) {
         params.users = params.users.map((user: StoreUser) => ({
@@ -294,10 +481,135 @@ const TheService: ServiceSchema = {
      * @param {Store} store
      * @returns {Store}
      */
-    sanitizeResponse(store: Store) {
+    sanitizeResponse(store: Store, omsData = false) {
       store.url = store._id;
       delete store._id;
+      if (omsData) {
+        store.debit = omsData.debit;
+        store.credit = omsData.credit;
+      }
       return store;
+    },
+    updateOmsStore(storeId, params) {
+      const body: OmsStore = {};
+      // Sanitized params keys
+      const keys: string[] = [
+        'name',
+        'status',
+        'type',
+        'stock_date',
+        'stock_status',
+        'price_date',
+        'price_status',
+        'sale_price',
+        'sale_price_operator',
+        'compared_at_price',
+        'compared_at_price_operator',
+        'currency',
+        'users',
+        'languages',
+        'shipping_methods',
+        'address'
+      ];
+      const transformObj: { [key: string]: string } = {
+        type: 'platform',
+        compared_at_price: 'comparedPrice',
+        compared_at_price_operator: 'comparedOperator',
+        stock_date: 'stockDate',
+        stock_status: 'stockStatus',
+        price_date: 'priceDate',
+        price_status: 'priceStatus',
+        sale_price: 'salePrice',
+        sale_price_operator: 'saleOperator',
+        shipping_methods: 'shippingMethods',
+        address: 'billing'
+      };
+      Object.keys(params).forEach(key => {
+        if (!keys.includes(key)) return;
+        const keyName: string = transformObj[key] || key;
+        body[keyName] = params[key].$date || params[key];
+      });
+      if (Object.keys(body).length === 0) return;
+      if (body.shippingMethods) {
+        body.shippingMethods = (body.shippingMethods as Array<{ name: string }>).map(
+          method => method.name
+        );
+      }
+      return fetch(`${process.env.OMS_BASEURL}/stores/${storeId}`, {
+        method: 'put',
+        headers: {
+          Authorization: `Basic ${this.settings.AUTH}`,
+          'Content-Type': 'application/json',
+          Accept: 'application/json'
+        },
+        body: JSON.stringify(body)
+      }).then(response => response.json());
+    },
+    createOmsStore(params) {
+      const body: OmsStore = {};
+      // Sanitized params keys
+      const keys: string[] = [
+        'url',
+        'name',
+        'status',
+        'type',
+        'stock_date',
+        'stock_status',
+        'price_date',
+        'price_status',
+        'sale_price',
+        'sale_price_operator',
+        'compared_at_price',
+        'compared_at_price_operator',
+        'currency',
+        'users',
+        'languages',
+        'shipping_methods',
+        'address'
+      ];
+      const transformObj: { [key: string]: string } = {
+        type: 'platform',
+        compared_at_price: 'comparedPrice',
+        compared_at_price_operator: 'comparedOperator',
+        stock_date: 'stockDate',
+        stock_status: 'stockStatus',
+        price_date: 'priceDate',
+        price_status: 'priceStatus',
+        sale_price: 'salePrice',
+        sale_price_operator: 'saleOperator',
+        shipping_methods: 'shippingMethods',
+        address: 'billing'
+      };
+      Object.keys(params).forEach(key => {
+        if (!keys.includes(key)) return;
+        const keyName: string = transformObj[key] || key;
+        body[keyName] = params[key].$date || params[key];
+      });
+      if (Object.keys(body).length === 0) return;
+      if (body.shippingMethods) {
+        body.shippingMethods = (body.shippingMethods as Array<{ name: string }>).map(
+          method => method.name
+        );
+      }
+      return fetch(`${process.env.OMS_BASEURL}/stores`, {
+        method: 'post',
+        headers: {
+          Authorization: `Basic ${this.settings.AUTH}`,
+          'Content-Type': 'application/json',
+          Accept: 'application/json'
+        },
+        body: JSON.stringify(body)
+      }).then(response => response.json());
+    },
+    /**
+     * Log order errors
+     *
+     * @param {Log} log
+     * @returns {ServiceSchema}
+     */
+    sendLogs(log: Log): ServiceSchema {
+      log.topic = 'store';
+      return this.broker.call('logs.add', log);
     }
   }
 };

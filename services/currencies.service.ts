@@ -13,16 +13,16 @@ const TheService: ServiceSchema = {
      */
     getCurrency: {
       auth: 'Basic',
-      params: {
-        currencyCode: { type: 'string', min: 3, max: 3 }
-      },
       cache: {
         keys: ['currencyCode'],
         ttl: 60 * 60 // 1 hour
       },
+      params: {
+        currencyCode: { type: 'string', min: 3, max: 3 }
+      },
       handler(ctx: Context) {
-        return ctx.call('currencies.getCurrencies').then(curruncies => {
-          const currency = curruncies.find(
+        return ctx.call('currencies.getCurrencies').then(currencies => {
+          const currency = currencies.find(
             (currencyObj: Currency) => currencyObj.currencyCode === ctx.params.currencyCode
           );
           if (currency === undefined) {

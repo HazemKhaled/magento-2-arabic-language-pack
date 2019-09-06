@@ -19,15 +19,6 @@ services:
       - 'traefik.frontend.entryPoints=http,https'
       - 'traefik.frontend.rule=Host:dev.mp.knawat.io'
 
-  klayer:
-    build:
-      context: ../../
-    image: microes
-    restart: always
-    env_file: .env
-    environment:
-      SERVICES: klayer
-
   stores:
     build:
       context: ../../
@@ -49,6 +40,15 @@ services:
     env_file: .env
     environment:
       SERVICES: users
+
+  invoices:
+    build:
+      context: ../../
+    image: microes
+    restart: always
+    env_file: .env
+    environment:
+      SERVICES: invoices, payments
 
   catalog:
     build:

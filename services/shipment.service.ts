@@ -1,6 +1,6 @@
 import { Context, ServiceSchema } from 'moleculer';
 import DbService from '../utilities/mixins/mongo.mixin';
-import { Rule, ShipmentPolicy } from '../utilities/types/shipment.type';
+import { Rule, ShipmentPolicy } from '../utilities/types';
 
 const Shipment: ServiceSchema = {
   name: 'shipment',
@@ -14,8 +14,8 @@ const Shipment: ServiceSchema = {
      */
     getShipments: {
       auth: 'Basic',
+      cache: { keys: ['id'], ttl: 60 * 60 * 24 * 30 },
       params: { id: { type: 'string', optional: true } },
-      cache: { keys: ['id'], ttl: 60 },
       handler(ctx: Context): ShipmentPolicy | ShipmentPolicy[] {
         return (ctx.params.id ? this.adapter.findById(ctx.params.id) : this.adapter.find()).then(
           (data: ShipmentPolicy[]) => this.shipmentTransform(data)
@@ -36,7 +36,6 @@ const Shipment: ServiceSchema = {
           type: 'array',
           items: { type: 'string', max: 2, min: 2, pattern: '[A-Z]' }
         },
-        odoo_id: { type: 'number', convert: true },
         rules: {
           type: 'array',
           items: {
@@ -59,7 +58,6 @@ const Shipment: ServiceSchema = {
           .insert({
             _id: ctx.params.name,
             countries: ctx.params.countries,
-            odoo_id: ctx.params.odoo_id,
             rules: ctx.params.rules
           })
           .then(() => {
@@ -80,7 +78,6 @@ const Shipment: ServiceSchema = {
       params: {
         id: { type: 'string' },
         countries: { type: 'array', items: { type: 'string', max: 2, min: 2, pattern: '[A-Z]' } },
-        odoo_id: { type: 'number', convert: true },
         rules: {
           type: 'array',
           items: {
@@ -104,7 +101,6 @@ const Shipment: ServiceSchema = {
             { _id: ctx.params.id },
             {
               $set: {
-                odoo_id: ctx.params.odoo_id,
                 countries: ctx.params.countries,
                 rules: ctx.params.rules
               }
@@ -125,12 +121,12 @@ const Shipment: ServiceSchema = {
      */
     ruleByCountry: {
       auth: 'Basic',
+      cache: { keys: ['country', 'weight', 'price'], ttl: 60 * 60 * 24 * 30 },
       params: {
         country: { type: 'string' },
         weight: { type: 'number', convert: true },
         price: { type: 'number', convert: true }
       },
-      cache: { keys: ['country', 'weight', 'price'], ttl: 60 },
       handler(ctx: Context): Rule[] {
         return this.adapter // find policies with matched rules
           .find({
@@ -144,9 +140,7 @@ const Shipment: ServiceSchema = {
             // Get all rules
             const rules: Rule[] = policies.reduceRight(
               (accumulator: Rule[], policy: ShipmentPolicy): Rule[] =>
-                accumulator.concat(
-                  policy.rules.map(rule => ({ ...rule, odoo_id: policy.odoo_id }))
-                ),
+                accumulator.concat(policy.rules),
               []
             );
             return (
@@ -160,8 +154,7 @@ const Shipment: ServiceSchema = {
                 .map(rule => ({
                   courier: rule.courier,
                   cost: rule.cost,
-                  duration: `${rule.delivery_days_min}-${rule.delivery_days_max}`,
-                  odoo_id: rule.odoo_id
+                  duration: `${rule.delivery_days_min}-${rule.delivery_days_max}`
                 }))
                 .sort((a, b) => a.cost - b.cost)
             );
@@ -169,17 +162,17 @@ const Shipment: ServiceSchema = {
       }
     },
     /**
-     * Returns curiers could be filtered with country
+     * Returns currencies could be filtered with country
      *
      * @param {string} country optional
      * @returns {string[]} string array of couriers
      */
     getCouriers: {
       auth: 'Basic',
+      cache: { keys: ['country'], ttl: 60 * 60 * 24 * 30 },
       params: {
         country: { type: 'string', optional: true, min: 2, max: 2 }
       },
-      cache: { keys: ['country'], ttl: 60 },
       handler(ctx: Context): string[] {
         const query = ctx.params.country ? { countries: ctx.params.country } : {};
         return this.adapter.find({ query }).then(
@@ -212,7 +205,6 @@ const Shipment: ServiceSchema = {
       if (Array.isArray(data)) {
         return data.map((item: ShipmentPolicy) => ({
           name: item._id,
-          odoo_id: item.odoo_id,
           countries: item.countries,
           rules: item.rules
         }));

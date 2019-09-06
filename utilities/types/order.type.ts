@@ -5,24 +5,33 @@
  * @interface Order
  */
 export interface Order {
-  id: string;
+  id?: string;
   status: string;
-  state?: string;
-  knawat_order_status: string;
+  knawat_order_status?: string;
   line_items?: OrderItem[];
-  items: OrderItem[];
-  billing: object;
+  items?: OrderItem[];
+  billing?: object;
   shipping: object;
-  total: number;
-  date_created?: Date;
-  createDate: Date;
-  knawat_status?: Date;
-  meta_data?: {
-    length: number;
-    forEach: (arg0: (meta: any) => void) => void;
-  };
+  total?: number;
+  createDate?: Date;
+  externalId?: string;
+  updateDate?: Date;
+  notes?: string;
+  externalInvoice?: string;
+  invoice_url?: string;
+  shipmentCourier?: string;
+  shipping_method?: string;
+  store?: {};
+  orderNumber?: string;
+}
 
-  [key: string]: any;
+/**
+ *  Error Response
+ * @export
+ * @interface ResError
+ */
+export interface ResError {
+  errors: Array<{ message: string }>;
 }
 
 /**
@@ -38,14 +47,16 @@ export interface OrderItem {
   url: string;
   rate: number;
   quantity: number;
-  purchase_rate: number;
-  vendor_id: number;
+  purchaseRate: number;
+  vendorId: number;
   description?: string;
   productType?: string;
   discount?: string;
   discountAmount?: number;
   total?: number;
   weight?: number;
+  archive?: boolean;
+  quantityRequired?: number;
 }
 
 /**
@@ -73,7 +84,11 @@ export interface OMSResponse {
     total: number;
     hasQtyCancelled: boolean;
     notes?: string;
+    adjustment: number;
+    adjustmentDescription: string;
+    orderNumber: string;
   };
+  error?: { [key: string]: any };
 }
 
 /**

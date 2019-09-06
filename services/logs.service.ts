@@ -1,7 +1,7 @@
 import { Context, ServiceSchema } from 'moleculer';
 import ESService from 'moleculer-elasticsearch';
 import { v1 as uuidv1 } from 'uuid';
-import { Log } from '../utilities/types/log.type';
+import { Log } from '../utilities/types';
 
 const TheService: ServiceSchema = {
   name: 'logs',
@@ -24,7 +24,10 @@ const TheService: ServiceSchema = {
         message: { type: 'string' },
         logLevel: { type: 'enum', values: ['info', 'debug', 'error', 'warn'] },
         storeId: { type: 'string', optional: true },
-        topicId: { type: 'string', optional: true },
+        topicId: [
+          { type: 'string', optional: true },
+          { type: 'number', optional: true, convert: true, integer: true }
+        ],
         payload: { type: 'object', optional: true },
         code: { type: 'number', convert: true, integer: true }
         // Remove until it's added to index.d
@@ -89,7 +92,10 @@ const TheService: ServiceSchema = {
         topic: { type: 'string', optional: true },
         sort: { type: 'enum', values: ['asc', 'desc'], optional: true },
         logLevel: { type: 'enum', values: ['info', 'debug', 'error', 'warn'], optional: true },
-        storeId: { type: 'string', optional: true },
+        storeId: [
+          { type: 'string', optional: true },
+          { type: 'number', optional: true, convert: true, integer: true }
+        ],
         topicId: { type: 'string', optional: true },
         limit: { type: 'number', optional: true, min: 1, max: 500, convert: true },
         page: { type: 'number', optional: true, min: 1, convert: true }
@@ -144,7 +150,7 @@ const TheService: ServiceSchema = {
         if (ctx.params.topicId) query.bool.filter.push({ term: { topicId: ctx.params.topicId } });
         if (ctx.params.storeId)
           query.bool.filter.push({ term: { 'storeId.keyword': ctx.params.storeId } });
-        if (ctx.params.from)
+        if (ctx.params.page)
           body.from = parseInt(ctx.params.page, 10) * parseInt(ctx.params.limit, 10);
         if (ctx.params.logLevel) {
           const logLevel: string[] = ['error'];
