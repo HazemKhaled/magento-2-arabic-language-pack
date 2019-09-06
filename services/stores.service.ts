@@ -497,9 +497,7 @@ const TheService: ServiceSchema = {
         'name',
         'status',
         'type',
-        'stock_date',
         'stock_status',
-        'price_date',
         'price_status',
         'sale_price',
         'sale_price_operator',
@@ -515,9 +513,7 @@ const TheService: ServiceSchema = {
         type: 'platform',
         compared_at_price: 'comparedPrice',
         compared_at_price_operator: 'comparedOperator',
-        stock_date: 'stockDate',
         stock_status: 'stockStatus',
-        price_date: 'priceDate',
         price_status: 'priceStatus',
         sale_price: 'salePrice',
         sale_price_operator: 'saleOperator',
@@ -529,12 +525,15 @@ const TheService: ServiceSchema = {
         const keyName: string = transformObj[key] || key;
         body[keyName] = params[key].$date || params[key];
       });
+      // if no attributes no update
       if (Object.keys(body).length === 0) return;
       if (body.shippingMethods) {
         body.shippingMethods = (body.shippingMethods as Array<{ name: string }>).map(
           method => method.name
         );
       }
+      body.stockDate = params.stock_date;
+      body.priceDate = params.price_date;
       return fetch(`${process.env.OMS_BASEURL}/stores/${storeId}`, {
         method: 'put',
         headers: {
@@ -553,9 +552,7 @@ const TheService: ServiceSchema = {
         'name',
         'status',
         'type',
-        'stock_date',
         'stock_status',
-        'price_date',
         'price_status',
         'sale_price',
         'sale_price_operator',
@@ -571,9 +568,7 @@ const TheService: ServiceSchema = {
         type: 'platform',
         compared_at_price: 'comparedPrice',
         compared_at_price_operator: 'comparedOperator',
-        stock_date: 'stockDate',
         stock_status: 'stockStatus',
-        price_date: 'priceDate',
         price_status: 'priceStatus',
         sale_price: 'salePrice',
         sale_price_operator: 'saleOperator',
@@ -585,12 +580,15 @@ const TheService: ServiceSchema = {
         const keyName: string = transformObj[key] || key;
         body[keyName] = params[key].$date || params[key];
       });
+      // if no attributes no update
       if (Object.keys(body).length === 0) return;
       if (body.shippingMethods) {
         body.shippingMethods = (body.shippingMethods as Array<{ name: string }>).map(
           method => method.name
         );
       }
+      body.stockDate = params.stock_date;
+      body.priceDate = params.price_date;
       return fetch(`${process.env.OMS_BASEURL}/stores`, {
         method: 'post',
         headers: {
