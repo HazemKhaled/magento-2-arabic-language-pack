@@ -76,8 +76,10 @@ const TheService: ServiceSchema = {
           { term: { _id: params.parentId } }
         );
       if (params.treeNodeLevel) {
+        let nodeLevel = params.treeNodeLevel.split(',');
+        nodeLevel = typeof nodeLevel === 'string' ? [nodeLevel] : nodeLevel;
         query.bool.filter.push({
-          terms: { treeNodeLevel: params.treeNodeLevel.split(',') }
+          terms: { treeNodeLevel: nodeLevel }
         });
       }
       return this.broker
