@@ -7,11 +7,9 @@ import { I18nText } from '../types';
  * @interface Category
  */
 export interface Category {
-  // after transform
-  id: string;
-  name: string;
-
-  // before transform
-  odooId?: string;
-  name_i18n?: I18nText;
+  id: number;
+  parentId?: number;
+  name?: I18nText;
+  productsCount: number;
+  treeNodeLevel: number;
 }

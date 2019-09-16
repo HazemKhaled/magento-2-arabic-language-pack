@@ -60,8 +60,11 @@ export const ProductTransformation: ServiceSchema = {
      */
     formatCategories(categories: Category[]): Category[] {
       return categories.map(category => ({
-        id: category.odooId,
-        name: this.formatI18nText(category.name_i18n)
+        id: category.id,
+        name: this.formatI18nText(category.name),
+        parentId: category.parentId,
+        productsCount: category.productsCount,
+        treeNodeLevel: category.treeNodeLevel
       }));
     },
 
