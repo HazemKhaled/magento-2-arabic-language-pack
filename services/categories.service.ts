@@ -77,7 +77,7 @@ const TheService: ServiceSchema = {
         );
       if (params.treeNodeLevel) {
         query.bool.filter.push({
-          terms: { treeNodeLevel: String(params.treeNodeLevel).split(',') }
+          terms: { treeNodeLevel: [params.treeNodeLevel] }
         });
       }
       return this.broker
