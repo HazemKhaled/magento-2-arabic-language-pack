@@ -1,0 +1,101 @@
+import { Context, ServiceSchema } from 'moleculer';
+import fetch from 'node-fetch';
+import { StoreUser } from '../utilities/types/store.type';
+import { Subscription, User } from '../utilities/types/user.type';
+
+
+const TheService: ServiceSchema = {
+    name: 'subscription',
+    /**
+     * Actions
+     */
+    actions: {
+        /**
+         * Get Subscription for collection of users
+         *
+         * @param {Users} users
+         * @returns {Promise<Subscription>}
+         */
+        get: {
+            params: {
+                users: {
+                    type: 'array',
+                    items: 'object',
+                    props: {
+                        email: { type: 'string' },
+                        roles: { type: 'array', items: 'string' }
+                    }
+                }
+            },
+            cache: {
+                keys: ['users'],
+                ttl: 60 * 60 // 1 hour
+            },
+            async handler(ctx: Context): Promise<Subscription> {
+                // Getting the user Information to check subscription
+                const ownerEmails: string[] = ctx.params.users
+                .filter((usr: StoreUser) => usr.roles.includes('owner'))
+                .map((usr: StoreUser) => usr.email);
+
+                let users: any = await fetch(
+                `${process.env.KLAYER_URL}/api/Partners?filter=${JSON.stringify({
+                    where: {
+                    contact_email: { $in: ownerEmails }
+                    }
+                })}&access_token=${process.env.KLAYER_TOKEN}`,
+                { method: 'get' }
+                );
+
+                users = await users.json();
+
+                // Calculate active subscription
+                const max: Subscription[] = [];
+                let lastLimit = 0;
+
+                // Get all subscriptions from all users
+                const date = new Date();
+                if (users.error) {
+                return {
+                    id: 99999999,
+                    membership_id: 99999999,
+                    membership_name: 'Free',
+                    gateway_id: 'free',
+                    start_date: '2018-11-29T12:05:47.000Z',
+                    expire_date: '2099-12-31T00:00:00.000Z',
+                    trial_expire_date: '1970-01-01T00:00:00.000Z',
+                    trial_period_completed: false,
+                    status: 'active',
+                    payments: [],
+                    payment_type: 'permanent',
+                    post_modified: '1970-01-01T00:00:00.000Z',
+                    attr_products_limit: 500,
+                    attr_stores_limit: 1,
+                    attr_language_limit: 1,
+                    attr_order_processing_fees: 2,
+                    attr_cod_fees: 0,
+                    attr_users_limit: 1
+                  };
+                }
+                users
+                .reduce((accumulator: Subscription[], current: User) => {
+                    return accumulator.concat(
+                        current.subscriptions.filter(
+                            (subscription: Subscription) => new Date(subscription.expire_date) > date
+                        )
+                    );
+                }, [])
+                .forEach((subscription: Subscription) => {
+                    if (Number(subscription.attr_products_limit) > lastLimit) {
+                    max.push(subscription);
+                    lastLimit = Number(subscription.attr_products_limit);
+                    }
+                });
+
+                // Use the highest number of product count
+                return max.pop();
+            }
+        }
+    }
+};
+
+export = TheService;
