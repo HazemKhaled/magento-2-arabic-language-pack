@@ -14,7 +14,7 @@ const TheService: ServiceSchema = {
          * Get Subscription for collection of users
          *
          * @param {string} url
-         * @returns {Promise<Subscription>}
+         * @returns {Promise<Subscription | false>}
          */
         get: {
             params: {
