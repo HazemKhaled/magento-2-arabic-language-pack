@@ -1,3 +1,5 @@
+import { Subscription } from "./user.type";
+
 /**
  * Store Type definition
  *
@@ -20,6 +22,7 @@ export interface Store {
   credit: number;
   debit: number;
   internal_data: { [key: string]: unknown };
+  subscription?: Subscription;
 }
 
 /**

@@ -61,19 +61,23 @@ const TheService: ServiceSchema = {
           .findOne({ consumer_key: ctx.meta.user })
           .then(async (res: Store | null) => {
             let omsData: boolean | { store: Store } = false;
-            if (res.internal_data && res.internal_data.omsId) {
-              omsData = (await fetch(
-                `${process.env.OMS_BASEURL}/stores/${res.internal_data.omsId}`,
-                {
-                  method: 'get',
-                  headers: {
-                    Authorization: `Basic ${this.settings.AUTH}`
+            if(res) {
+              if(res.users) {
+                res.subscription = await ctx.call('subscription.get',{ url: res._id });
+              }
+              if (res.internal_data && res.internal_data.omsId) {
+                omsData = (await fetch(
+                  `${process.env.OMS_BASEURL}/stores/${res.internal_data.omsId}`,
+                  {
+                    method: 'get',
+                    headers: {
+                      Authorization: `Basic ${this.settings.AUTH}`
+                    }
                   }
-                }
-              ).then(response => response.json())) as { store: Store };
-              // If the DB response not null will return the data
-              if (res !== null) return this.sanitizeResponse(res, omsData.store);
-            }
+                ).then(response => response.json())) as { store: Store };
+                // If the DB response not null will return the data
+                return this.sanitizeResponse(res, omsData.store);
+            }}
             // If null return Not Found error
             ctx.meta.$statusMessage = 'Not Found';
             ctx.meta.$statusCode = 404;
@@ -98,8 +102,12 @@ const TheService: ServiceSchema = {
       },
       handler(ctx: Context) {
         return this.adapter.findById(ctx.params.id).then(async (res: Store | null) => {
-          if (res && res.internal_data && res.internal_data.omsId) {
-            const omsData = (await fetch(
+          if (res) {
+            if(res.users) {
+              res.subscription = await ctx.call('subscription.get',{ url: ctx.params.id });
+            }
+            if(res.internal_data && res.internal_data.omsId) {
+              const omsData = (await fetch(
               `${process.env.OMS_BASEURL}/stores/${res.internal_data.omsId}`,
               {
                 method: 'get',
@@ -114,7 +122,7 @@ const TheService: ServiceSchema = {
               this.logger.warn('Can not get balance', ctx.params);
             } else {
               return this.sanitizeResponse(res, omsData.store);
-            }
+            }}
           }
 
           // return store even if we didn't get balance from OMS
@@ -497,9 +505,7 @@ const TheService: ServiceSchema = {
         'name',
         'status',
         'type',
-        'stock_date',
         'stock_status',
-        'price_date',
         'price_status',
         'sale_price',
         'sale_price_operator',
@@ -515,9 +521,7 @@ const TheService: ServiceSchema = {
         type: 'platform',
         compared_at_price: 'comparedPrice',
         compared_at_price_operator: 'comparedOperator',
-        stock_date: 'stockDate',
         stock_status: 'stockStatus',
-        price_date: 'priceDate',
         price_status: 'priceStatus',
         sale_price: 'salePrice',
         sale_price_operator: 'saleOperator',
@@ -529,12 +533,15 @@ const TheService: ServiceSchema = {
         const keyName: string = transformObj[key] || key;
         body[keyName] = params[key].$date || params[key];
       });
+      // if no attributes no update
       if (Object.keys(body).length === 0) return;
       if (body.shippingMethods) {
         body.shippingMethods = (body.shippingMethods as Array<{ name: string }>).map(
           method => method.name
         );
       }
+      body.stockDate = params.stock_date;
+      body.priceDate = params.price_date;
       return fetch(`${process.env.OMS_BASEURL}/stores/${storeId}`, {
         method: 'put',
         headers: {
@@ -553,9 +560,7 @@ const TheService: ServiceSchema = {
         'name',
         'status',
         'type',
-        'stock_date',
         'stock_status',
-        'price_date',
         'price_status',
         'sale_price',
         'sale_price_operator',
@@ -571,9 +576,7 @@ const TheService: ServiceSchema = {
         type: 'platform',
         compared_at_price: 'comparedPrice',
         compared_at_price_operator: 'comparedOperator',
-        stock_date: 'stockDate',
         stock_status: 'stockStatus',
-        price_date: 'priceDate',
         price_status: 'priceStatus',
         sale_price: 'salePrice',
         sale_price_operator: 'saleOperator',
@@ -585,12 +588,15 @@ const TheService: ServiceSchema = {
         const keyName: string = transformObj[key] || key;
         body[keyName] = params[key].$date || params[key];
       });
+      // if no attributes no update
       if (Object.keys(body).length === 0) return;
       if (body.shippingMethods) {
         body.shippingMethods = (body.shippingMethods as Array<{ name: string }>).map(
           method => method.name
         );
       }
+      body.stockDate = params.stock_date;
+      body.priceDate = params.price_date;
       return fetch(`${process.env.OMS_BASEURL}/stores`, {
         method: 'post',
         headers: {

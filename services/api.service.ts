@@ -162,8 +162,6 @@ const TheService: ServiceSchema = {
             }
             return ctx.call('users.resolveBasicToken', { token }).then((user: any) => {
               if (user) {
-                this.logger.info('Authenticated via Basic');
-
                 ctx.meta.token = token;
               }
               return user;
