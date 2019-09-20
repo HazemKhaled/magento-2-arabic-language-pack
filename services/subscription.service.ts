@@ -13,7 +13,7 @@ const TheService: ServiceSchema = {
         /**
          * Get Subscription for collection of users
          *
-         * @param {Users} users
+         * @param {string} url
          * @returns {Promise<Subscription>}
          */
         get: {
