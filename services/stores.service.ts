@@ -63,7 +63,7 @@ const TheService: ServiceSchema = {
             let omsData: boolean | { store: Store } = false;
             if(res) {
               if(res.users) {
-                res.subscription = await ctx.call('subscription.get',{ users: res.users });
+                res.subscription = await ctx.call('subscription.get',{ url: res._id });
               }
               if (res.internal_data && res.internal_data.omsId) {
                 omsData = (await fetch(
@@ -104,7 +104,7 @@ const TheService: ServiceSchema = {
         return this.adapter.findById(ctx.params.id).then(async (res: Store | null) => {
           if (res) {
             if(res.users) {
-              res.subscription = await ctx.call('subscription.get',{ users: res.users });
+              res.subscription = await ctx.call('subscription.get',{ url: ctx.params.id });
             }
             if(res.internal_data && res.internal_data.omsId) {
               const omsData = (await fetch(

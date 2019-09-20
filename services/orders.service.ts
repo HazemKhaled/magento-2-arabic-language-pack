@@ -136,7 +136,7 @@ const TheService: ServiceSchema = {
         data.shippingCharge = shipment.cost;
 
         // Getting the current user subscription
-        const subscription = await ctx.call('subscription.get',{ users: instance.users });
+        const subscription = await ctx.call('subscription.get',{ url: instance.url });
 
         // Checking for processing fees
         this.sendLogs({

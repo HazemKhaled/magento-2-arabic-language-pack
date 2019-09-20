@@ -18,22 +18,19 @@ const TheService: ServiceSchema = {
          */
         get: {
             params: {
-                users: {
-                    type: 'array',
-                    items: 'object',
-                    props: {
-                        email: { type: 'string' },
-                        roles: { type: 'array', items: 'string' }
-                    }
-                }
+                url: 'string'
             },
             cache: {
-                keys: ['users'],
+                keys: ['url'],
                 ttl: 60 * 60 // 1 hour
             },
-            async handler(ctx: Context): Promise<Subscription> {
+            async handler(ctx: Context): Promise<Subscription | false> {
+                const store = await ctx.call('stores.findInstance', {id: ctx.params.url});
+                if(store.errors) {
+                    return false;
+                }
                 // Getting the user Information to check subscription
-                const ownerEmails: string[] = ctx.params.users
+                const ownerEmails: string[] = store.users
                 .filter((usr: StoreUser) => usr.roles.includes('owner'))
                 .map((usr: StoreUser) => usr.email);
 
