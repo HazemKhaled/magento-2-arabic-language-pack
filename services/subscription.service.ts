@@ -37,7 +37,7 @@ const TheService: ServiceSchema = {
                 let users: any = await fetch(
                 `${process.env.KLAYER_URL}/api/Partners?filter=${JSON.stringify({
                     where: {
-                    contact_email: { $in: ownerEmails }
+                        email: { $in: ownerEmails }
                     }
                 })}&access_token=${process.env.KLAYER_TOKEN}`,
                 { method: 'get' }

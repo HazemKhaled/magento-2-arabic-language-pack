@@ -135,9 +135,17 @@ const TheService: ServiceSchema = {
         data.shipmentCourier = shipment.courier;
         data.shippingCharge = shipment.cost;
 
+        // Calculate the order total
+        let total: number = data.items.reduce((accumulator: number, current: OrderItem) => accumulator + current.purchaseRate, 0) + data.shippingCharge;
+
         // Getting the current user subscription
         const subscription = await ctx.call('subscription.get',{ url: instance.url });
-
+        if((Number(subscription.attr_order_processing_fees) === 0 || !Number(subscription.attr_order_processing_fees))
+          && subscription.attr_order_processing_fees_percentage) {
+          subscription.adjustment = subscription.attr_order_processing_fees_percentage/100 * total;
+          subscription.adjustmentDescription = `Processing Fees ${subscription.attr_order_processing_fees_percentage}%`;
+          total = total * (subscription.attr_order_processing_fees_percentage/100 + 1);
+        }
         // Checking for processing fees
         this.sendLogs({
           topic: 'order',
@@ -152,9 +160,9 @@ const TheService: ServiceSchema = {
         if (
           !subscription ||
           (subscription.attr_order_processing_fees && subscription.attr_order_processing_fees > 0)
-        ) {
-          data.adjustment = Number(subscription.attr_order_processing_fees || 2);
-          data.adjustmentDescription = `Processing Fees`;
+            || subscription.attr_order_processing_fees) {
+          data.adjustment = subscription.adjustment || Number(subscription.attr_order_processing_fees || 2);
+          data.adjustmentDescription = subscription.adjustmentDescription || `Processing Fees`;
         }
 
         data.status = ['pending', 'processing', 'cancelled'].includes(data.status)
@@ -372,7 +380,20 @@ const TheService: ServiceSchema = {
               instance,
               ctx.params.shipping_method
             );
+            
+            if(shipment) {
+              data.shipmentCourier = shipment.courier;
+              data.shippingCharge = shipment.cost;
+            }
+            // Calculate the order total
+            const total: number = data.items.reduce((accumulator: number, current: OrderItem) => accumulator + current.purchaseRate, 0) + (data.shippingCharge || orderBeforeUpdate.shippingCharge);
 
+            // Getting the current user subscription
+            const subscription = await ctx.call('subscription.get',{ url: instance.url });
+            if(Number(subscription.attr_order_processing_fees_percentage)) {
+              data.adjustment = subscription.attr_order_processing_fees_percentage/100 * total;
+              data.adjustmentDescription = `Processing Fees ${subscription.attr_order_processing_fees_percentage}%`
+            }
             // Initializing warnings array if we have a Warning
             const warnings = this.warningsMessenger(
               stock.outOfStock,
