@@ -63,9 +63,11 @@ const TheService: ServiceSchema = {
                     where: {
                         email: { $in: ownerEmails }
                     }
-                })}&access_token=${process.env.KLAYER_TOKEN}`,
-                { method: 'get' }
-                );
+                })}&access_token=${process.env.KLAYER_TOKEN}`
+                ).catch(err =>{
+                    this.logger.error(err);
+                    return false;
+                });
 
                 users = await users.json();
 
