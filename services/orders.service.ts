@@ -135,9 +135,17 @@ const TheService: ServiceSchema = {
         data.shipmentCourier = shipment.courier;
         data.shippingCharge = shipment.cost;
 
-        // Getting the current user subscription
-        const subscription = await this.currentSubscriptions(instance);
+        // Calculate the order total
+        let total: number = data.items.reduce((accumulator: number, current: OrderItem) => accumulator + current.purchaseRate, 0) + data.shippingCharge;
 
+        // Getting the current user subscription
+        const subscription = await ctx.call('subscription.get',{ url: instance.url });
+        if((Number(subscription.attr_order_processing_fees) === 0 || !Number(subscription.attr_order_processing_fees))
+          && subscription.attr_order_processing_fees_percentage) {
+          subscription.adjustment = subscription.attr_order_processing_fees_percentage/100 * total;
+          subscription.adjustmentDescription = `Processing Fees ${subscription.attr_order_processing_fees_percentage}%`;
+          total = total * (subscription.attr_order_processing_fees_percentage/100 + 1);
+        }
         // Checking for processing fees
         this.sendLogs({
           topic: 'order',
@@ -152,9 +160,9 @@ const TheService: ServiceSchema = {
         if (
           !subscription ||
           (subscription.attr_order_processing_fees && subscription.attr_order_processing_fees > 0)
-        ) {
-          data.adjustment = Number(subscription.attr_order_processing_fees || 2);
-          data.adjustmentDescription = `Processing Fees`;
+            || subscription.attr_order_processing_fees) {
+          data.adjustment = subscription.adjustment || Number(subscription.attr_order_processing_fees || 2);
+          data.adjustmentDescription = subscription.adjustmentDescription || `Processing Fees`;
         }
 
         data.status = ['pending', 'processing', 'cancelled'].includes(data.status)
@@ -173,6 +181,7 @@ const TheService: ServiceSchema = {
             } Available Qty: ${item.quantity}\n`,
           ''
         )}${data.notes}`;
+        data.subscription = subscription.membership_name;
         this.logger.info(JSON.stringify(data));
         const result: OMSResponse = await fetch(`${process.env.OMS_BASEURL}/orders`, {
           method: 'POST',
@@ -372,7 +381,21 @@ const TheService: ServiceSchema = {
               instance,
               ctx.params.shipping_method
             );
+            
+            if(shipment) {
+              data.shipmentCourier = shipment.courier;
+              data.shippingCharge = shipment.cost;
+            }
+            // Calculate the order total
+            const total: number = data.items.reduce((accumulator: number, current: OrderItem) => accumulator + current.purchaseRate, 0) + (data.shippingCharge || orderBeforeUpdate.shippingCharge);
 
+            // Getting the current user subscription
+            const subscription = await ctx.call('subscription.get',{ url: instance.url });
+            if(Number(subscription.attr_order_processing_fees_percentage)) {
+              data.adjustment = subscription.attr_order_processing_fees_percentage/100 * total;
+              data.adjustmentDescription = `Processing Fees ${subscription.attr_order_processing_fees_percentage}%`;
+              data.subscription = subscription.membership_name;
+            }
             // Initializing warnings array if we have a Warning
             const warnings = this.warningsMessenger(
               stock.outOfStock,
@@ -766,57 +789,6 @@ const TheService: ServiceSchema = {
     }
   },
   methods: {
-    /**
-     * Get store subscription from KLayer
-     *
-     * @param {Store} instance
-     * @returns {Promise<Subscription>}
-     */
-    async currentSubscriptions(instance: Store): Promise<Subscription | false> {
-      // Getting the user Information to check subscription
-      const ownerEmails = instance.users
-        .filter(usr => usr.roles.includes('owner'))
-        .map(u => u.email);
-
-      let users: any = await fetch(
-        `${process.env.KLAYER_URL}/api/Partners?filter=${JSON.stringify({
-          where: {
-            contact_email: { $in: ownerEmails }
-          }
-        })}&access_token=${process.env.KLAYER_TOKEN}`,
-        { method: 'get' }
-      );
-
-      users = await users.json();
-
-      // Calculate active subscription
-      const max: Subscription[] = [];
-      let lastLimit = 0;
-
-      // Get all subscriptions from all users
-      const date = new Date();
-      if (users.error) {
-        return false;
-      }
-      users
-        .reduce((accumulator: Subscription[], current: User) => {
-          return accumulator.concat(
-            current.subscriptions.filter(
-              (subscription: Subscription) => new Date(subscription.expire_date) > date
-            )
-          );
-        }, [])
-        .forEach((subscription: Subscription) => {
-          if (Number(subscription.attr_products_limit) > lastLimit) {
-            max.push(subscription);
-            lastLimit = Number(subscription.attr_products_limit);
-          }
-        });
-
-      // Use the highest number of product count
-      return max.pop();
-    },
-
     /**
      * Convert order status from MP status to OMS status
      *

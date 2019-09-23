@@ -115,7 +115,7 @@ services:
     restart: always
     env_file: .env
     environment:
-      SERVICES: currencies
+      SERVICES: currencies, subscription
 
   elastic-update:
     build:
