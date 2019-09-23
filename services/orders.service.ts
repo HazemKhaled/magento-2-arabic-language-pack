@@ -140,11 +140,11 @@ const TheService: ServiceSchema = {
 
         // Getting the current user subscription
         const subscription = await ctx.call('subscription.get',{ url: instance.url });
-        if((subscription.attr_order_processing_fees === 0 || !subscription.attr_order_processing_fees)
-          && subscription.attr_order_processing_fees) {
-          subscription.adjustment = subscription.processing_fees_percentage/100 * total;
-          subscription.adjustmentDescription = `Processing Fees ${subscription.processing_fees_percentage}%`
-          total = total * (subscription.processing_fees_percentage/100 + 1);
+        if((Number(subscription.attr_order_processing_fees) === 0 || !Number(subscription.attr_order_processing_fees))
+          && subscription.attr_order_processing_fees_percentage) {
+          subscription.adjustment = subscription.attr_order_processing_fees_percentage/100 * total;
+          subscription.adjustmentDescription = `Processing Fees ${subscription.attr_order_processing_fees_percentage}%`;
+          total = total * (subscription.attr_order_processing_fees_percentage/100 + 1);
         }
         // Checking for processing fees
         this.sendLogs({
@@ -390,9 +390,9 @@ const TheService: ServiceSchema = {
 
             // Getting the current user subscription
             const subscription = await ctx.call('subscription.get',{ url: instance.url });
-            if(subscription.processing_fees_percentage) {
-              data.adjustment = subscription.processing_fees_percentage/100 * total;
-              data.adjustmentDescription = `Processing Fees ${subscription.processing_fees_percentage}%`
+            if(Number(subscription.attr_order_processing_fees_percentage)) {
+              data.adjustment = subscription.attr_order_processing_fees_percentage/100 * total;
+              data.adjustmentDescription = `Processing Fees ${subscription.attr_order_processing_fees_percentage}%`
             }
             // Initializing warnings array if we have a Warning
             const warnings = this.warningsMessenger(
