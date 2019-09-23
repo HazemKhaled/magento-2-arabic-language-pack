@@ -181,6 +181,7 @@ const TheService: ServiceSchema = {
             } Available Qty: ${item.quantity}\n`,
           ''
         )}${data.notes}`;
+        data.subscription = subscription.membership_name;
         this.logger.info(JSON.stringify(data));
         const result: OMSResponse = await fetch(`${process.env.OMS_BASEURL}/orders`, {
           method: 'POST',
@@ -392,7 +393,8 @@ const TheService: ServiceSchema = {
             const subscription = await ctx.call('subscription.get',{ url: instance.url });
             if(Number(subscription.attr_order_processing_fees_percentage)) {
               data.adjustment = subscription.attr_order_processing_fees_percentage/100 * total;
-              data.adjustmentDescription = `Processing Fees ${subscription.attr_order_processing_fees_percentage}%`
+              data.adjustmentDescription = `Processing Fees ${subscription.attr_order_processing_fees_percentage}%`;
+              data.subscription = subscription.membership_name;
             }
             // Initializing warnings array if we have a Warning
             const warnings = this.warningsMessenger(
