@@ -66,10 +66,14 @@ const TheService: ServiceSchema = {
                 })}&access_token=${process.env.KLAYER_TOKEN}`
                 ).catch(err =>{
                     this.logger.error(err);
-                    return false;
+                    return [];
                 });
 
-                users = await users.json();
+                try{
+                    users = await users.json();
+                }catch(err){
+                    this.logger.error(err);
+                }
 
                 // Calculate active subscription
                 const max: Subscription[] = [this.settings.free];
