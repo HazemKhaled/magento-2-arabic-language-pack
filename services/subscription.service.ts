@@ -58,16 +58,16 @@ const TheService: ServiceSchema = {
                 .filter((usr: StoreUser) => usr.roles.includes('owner'))
                 .map((usr: StoreUser) => usr.email);
 
-                let users: any = await fetch(
+                const users: any = await fetch(
                 `${process.env.KLAYER_URL}/api/Partners?filter=${JSON.stringify({
                     where: {
                         email: { $in: ownerEmails }
                     }
-                })}&access_token=${process.env.KLAYER_TOKEN}`,
-                { method: 'get' }
-                );
-
-                users = await users.json();
+                })}&access_token=${process.env.KLAYER_TOKEN}`
+                ).then(res => res.json()).catch(err =>{
+                    this.logger.error(err);
+                    return [];
+                });
 
                 // Calculate active subscription
                 const max: Subscription[] = [this.settings.free];
