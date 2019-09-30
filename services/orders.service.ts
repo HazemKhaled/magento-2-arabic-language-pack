@@ -190,7 +190,7 @@ const TheService: ServiceSchema = {
             storeId: instance.url,
             logLevel: 'error',
             code: result.error.statusCode,
-            payload: { errors: result, params: ctx.params }
+            payload: { errors: (result.error && result.error.details) || result, params: ctx.params }
           });
           ctx.meta.$statusCode = result.error.statusCode;
           ctx.meta.$statusMessage = result.error.name;
@@ -414,7 +414,7 @@ const TheService: ServiceSchema = {
               storeId: instance.url,
               logLevel: 'error',
               code: result.error.statusCode,
-              payload: { errors: result, params: ctx.params }
+              payload: { errors: (result.error && result.error.details) || result, params: ctx.params }
             });
             ctx.meta.$statusCode = result.error.statusCode;
             ctx.meta.$statusMessage = result.error.name;
