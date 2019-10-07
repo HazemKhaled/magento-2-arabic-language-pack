@@ -23,7 +23,7 @@ const TheService: ServiceSchema = {
         topic: { type: 'string' },
         message: { type: 'string' },
         logLevel: { type: 'enum', values: ['info', 'debug', 'error', 'warn'] },
-        storeId: { type: 'string', optional: true },
+        storeId: { type: 'string' },
         topicId: [
           { type: 'string', optional: true },
           { type: 'number', optional: true, convert: true, integer: true }
@@ -34,23 +34,6 @@ const TheService: ServiceSchema = {
         // $$strict: true
       },
       handler(ctx: Context) {
-        if (!ctx.params.storeId && !ctx.params.topicId) {
-          ctx.meta.$statusCode = 422;
-          ctx.meta.$statusMessage = 'Missing Entity';
-          return {
-            name: 'ValidationError',
-            message: 'Parameters validation error!',
-            code: 422,
-            type: 'VALIDATION_ERROR',
-            data: [
-              {
-                type: 'required',
-                field: 'topicId | storeId',
-                message: "At least one of 'topicId | storeId' fields is required!"
-              }
-            ]
-          };
-        }
         const date = new Date();
         return ctx
           .call('logs.create', {
@@ -103,40 +86,6 @@ const TheService: ServiceSchema = {
         // $$strict: true
       },
       handler(ctx: Context) {
-        if (!ctx.params.storeId && !ctx.params.topicId) {
-          ctx.meta.$statusCode = 422;
-          ctx.meta.$statusMessage = 'Missing Entity';
-          return {
-            name: 'ValidationError',
-            message: 'Parameters validation error!',
-            code: 422,
-            type: 'VALIDATION_ERROR',
-            data: [
-              {
-                type: 'required',
-                field: 'topicId | storeId',
-                message: "At least one of 'topicId | storeId' fields is required!"
-              }
-            ]
-          };
-        }
-        if (ctx.params.topicId && !ctx.params.topic) {
-          ctx.meta.$statusCode = 422;
-          ctx.meta.$statusMessage = 'Unprocessable Entity';
-          return {
-            name: 'ValidationError',
-            message: 'Parameters validation error!',
-            code: 422,
-            type: 'VALIDATION_ERROR',
-            data: [
-              {
-                type: 'required',
-                field: 'topic',
-                message: "The 'topic' field is required!"
-              }
-            ]
-          };
-        }
         const body: {
           size?: number;
           from?: number;
