@@ -258,10 +258,28 @@ const TheService: ServiceSchema = {
         // Save the ID separate into variable to use it to find the store
         const { id } = ctx.params;
         delete ctx.params.id;
+        // storeBefore
+        const storeBefore = this.adapter.findById(id);
+
+        // If the store not found return Not Found error
+        if(!storeBefore) {
+          ctx.meta.$statusMessage = 'Not Found';
+          ctx.meta.$statusCode = 404;
+          return {
+            errors: [{ message: 'Store Not Found' }]
+          };
+        }
+
         // Sanitize request params
         const store: Store = this.sanitizeStoreParams(ctx.params);
-        // Initial response variable
-        // let mReq: Store | ResError = { errors: [] };
+
+        // Check new values
+        Object.keys(store).forEach((key: keyof Store) => {
+          if(store[key] === storeBefore[key]) delete store[key];
+        });
+
+        // if no new updates
+        if(Object.keys(store).length === 0) return storeBefore;
 
         const myStore: Store = await this.adapter
           .updateById(id, { $set: store })
@@ -285,15 +303,6 @@ const TheService: ServiceSchema = {
               errors: [{ message: error.code === 11000 ? 'Duplicated entry!' : 'Internal Error!' }]
             };
           });
-
-        // If the store not found return Not Found error
-        if (!myStore) {
-          ctx.meta.$statusMessage = 'Not Found';
-          ctx.meta.$statusCode = 404;
-          return {
-            errors: [{ message: 'Store Not Found' }]
-          };
-        }
 
         // Clean cache if store updated
         this.broker.cacher.clean(`stores.findInstance:${myStore.consumer_key}*`);
@@ -502,18 +511,18 @@ const TheService: ServiceSchema = {
       const body: OmsStore = {};
       // Sanitized params keys
       const keys: string[] = [
-        'name',
-        'status',
-        'type',
-        'stock_status',
-        'price_status',
-        'sale_price',
-        'sale_price_operator',
-        'compared_at_price',
-        'compared_at_price_operator',
-        'currency',
+        // 'name',
+        // 'status',
+        // 'type',
+        // 'stock_status',
+        // 'price_status',
+        // 'sale_price',
+        // 'sale_price_operator',
+        // 'compared_at_price',
+        // 'compared_at_price_operator',
+        // 'currency',
         'users',
-        'languages',
+        // 'languages',
         'shipping_methods',
         'address'
       ];
@@ -588,7 +597,7 @@ const TheService: ServiceSchema = {
         const keyName: string = transformObj[key] || key;
         body[keyName] = params[key].$date || params[key];
       });
-      // if no attributes no update
+      // if no attributes no create
       if (Object.keys(body).length === 0) return;
       if (body.shippingMethods) {
         body.shippingMethods = (body.shippingMethods as Array<{ name: string }>).map(
