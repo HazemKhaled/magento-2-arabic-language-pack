@@ -543,7 +543,7 @@ const TheService: ServiceSchema = {
         body[keyName] = params[key].$date || params[key];
       });
       // if no attributes no update
-      if (Object.keys(body).length === 0) return;
+      if (Object.keys(body).length === 0) return Promise.resolve();
       if (body.shippingMethods) {
         body.shippingMethods = (body.shippingMethods as Array<{ name: string }>).map(
           method => method.name
