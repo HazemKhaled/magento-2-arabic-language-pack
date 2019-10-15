@@ -78,7 +78,7 @@ services:
     environment:
       SERVICES: currencies
 
-  currencies:
+  subscription:
     build:
       context: ../../
     image: microes
