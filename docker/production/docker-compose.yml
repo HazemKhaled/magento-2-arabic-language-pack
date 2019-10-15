@@ -76,7 +76,16 @@ services:
     restart: always
     env_file: .env
     environment:
-      SERVICES: currencies, subscription
+      SERVICES: currencies
+
+  currencies:
+    build:
+      context: ../../
+    image: microes
+    restart: always
+    env_file: .env
+    environment:
+      SERVICES: membership, subscription, coupons
 
   orders:
     build:
