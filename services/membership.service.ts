@@ -16,7 +16,10 @@ const TheService: ServiceSchema = {
                 ctx.params._id = `m-${Date.now()}`;
                 return this.adapter
                     .insert(ctx.params)
-                    .then((res: Membership) => this.normalizeId(res))
+                    .then((res: Membership) => {
+                        this.broker.cacher.clean(`membership.list:**`);
+                        return this.normalizeId(res)
+                    })
                     .catch((err: any) => {
                         if (err.name === 'MoleculerError') {
                             throw new MoleculerError(err.message, err.code);
@@ -29,6 +32,10 @@ const TheService: ServiceSchema = {
             auth: 'Basic',
             params: {
                 id: [{ type: 'string' }, { type: 'number' }]
+            },
+            cache: {
+              keys: ['id'],
+              ttl: 60 * 60 // 1 hour
             },
             handler(ctx: Context): Promise<Membership> {
                 return this.adapter
@@ -49,6 +56,9 @@ const TheService: ServiceSchema = {
         },
         list: {
             auth: 'Basic',
+            cache: {
+              ttl: 60 * 60 // 1 hour
+            },
             handler(): Promise<Membership[]> {
                 return this.adapter
                     .find()

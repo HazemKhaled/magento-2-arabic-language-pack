@@ -21,7 +21,10 @@ const TheService: ServiceSchema = {
                 ctx.params.endDate = new Date(ctx.params.endDate);
                 return this.adapter
                     .insert(ctx.params)
-                    .then((res: Coupon) => this.normalizeId(res))
+                    .then((res: Coupon) => {
+                        this.broker.cacher.clean(`coupons.list:**`);
+                        return this.normalizeId(res)
+                    })
                     .catch((err: any) => {
                         if (err.name === 'MoleculerError') {
                             throw new MoleculerError(err.message, err.code);
@@ -32,6 +35,10 @@ const TheService: ServiceSchema = {
         },
         get: {
             auth: 'Basic',
+            cache: {
+              keys: ['id', 'membership'],
+              ttl: 60 * 60 // 1 hour
+            },
             params: {
                 id: [{ type: 'string' }, { type: 'number' }],
                 membership: { type: 'string' }
@@ -58,6 +65,9 @@ const TheService: ServiceSchema = {
         },
         list: {
             auth: 'Basic',
+            cache: {
+              ttl: 60 * 60 // 1 hour
+            },
             handler(): Promise<Coupon[]> {
                 return this.adapter
                     .find()
@@ -77,13 +87,17 @@ const TheService: ServiceSchema = {
             auth: 'Basic',
             params: UpdateCouponValidation,
             async handler(ctx: Context): Promise<Coupon> {
-                const coupon = await this.adapter.updateById(ctx.params.id, { $set: ctx.params }).catch((err: any) => {
+                const {id} = ctx.params;
+                delete ctx.params.id;
+                const coupon = await this.adapter.updateById(id, { $set: ctx.params }).catch((err: any) => {
                     throw new MoleculerError(err, 500);
                 });
                 if (!coupon) {
                     throw new MoleculerError('No Coupons found!', 404);
                 }
 
+                this.broker.cacher.clean(`coupons.list:**`);
+                this.broker.cacher.clean(`coupons.get:${id}*`);
                 return coupon;
             }
         },
@@ -99,6 +113,9 @@ const TheService: ServiceSchema = {
                 if (!coupon) {
                     throw new MoleculerError('No Coupons found!', 404);
                 }
+
+                this.broker.cacher.clean(`coupons.list:**`);
+                this.broker.cacher.clean(`coupons.get:${ctx.params.id}*`);
                 return coupon;
             }
         }
