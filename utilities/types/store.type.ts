@@ -1,4 +1,4 @@
-import { Subscription } from "./user.type";
+import { Subscription } from ".";
 
 /**
  * Store Type definition

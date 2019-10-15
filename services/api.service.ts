@@ -1,5 +1,6 @@
 import { Context, ServiceSchema } from 'moleculer';
 import ApiGateway from 'moleculer-web';
+import { Log } from '../utilities/types';
 
 const { UnAuthorizedError, ERR_NO_TOKEN, ERR_INVALID_TOKEN } = ApiGateway.Errors;
 
@@ -76,7 +77,20 @@ const TheService: ServiceSchema = {
 
           // Payments
           'POST payments/:id': 'payments.add',
-          'GET payments': 'payments.get'
+          'GET payments': 'payments.get',
+
+          // Membership
+          'POST membership': 'membership.create',
+          'GET membership': 'membership.list',
+          'GET membership/:id': 'membership.get',
+
+          // Coupons
+          'POST coupons': 'coupons.create',
+          'GET coupons': 'coupons.list',
+          'GET coupons/:id': 'coupons.get',
+          'PUT coupons/:id': 'coupons.update',
+          'PUT coupons/:id/count': 'coupons.updateCount',
+
         },
 
         // Disable to call not-mapped actions
@@ -93,8 +107,34 @@ const TheService: ServiceSchema = {
           urlencoded: {
             extended: false
           }
+        },
+        async onError(req: any, res: any, err: {message: string, code: number, name: string, type: string, data: any[]}) {
+          res.setHeader("Content-Type", "application/json; charset=utf-8");
+          res.writeHead(err.code || 500);
+          if(err.code === 422 || err.code === 401){
+            res.end(JSON.stringify({
+              "name": err.name,
+              "message": err.message,
+              "code": err.code,
+              "type": err.type,
+              "data": err.data
+            }));
+          }
+          if(err.code === 500 || !err.code) {
+            const log = await this.sendLogs({
+              topic: `${req.$action.service.name}`,
+              topicId: `${req.$action.name}`,
+              message: `Something went wrong fetching the data`,
+              storeId: 'Unknown',
+              logLevel: 'error',
+              code: 500,
+              payload: { error: err.toString(), params: req.$params }
+            })
+            res.end(JSON.stringify({errors: [{message: `Something went wrong for more details Please check the log under ID: ${log.id}`}]}));
+          }
+          res.end(JSON.stringify({errors: [{message: err.message}]}));
         }
-      }
+      },
     ],
 
     assets: {
@@ -175,7 +215,16 @@ const TheService: ServiceSchema = {
             );
           }
         });
-    }
+    },
+    /**
+     * Log order errors
+     *
+     * @param {Log} log
+     * @returns {ServiceSchema}
+     */
+    sendLogs(log: Log): ServiceSchema {
+      return this.broker.call('logs.add', log);
+    },
   }
 };
 

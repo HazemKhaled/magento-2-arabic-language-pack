@@ -301,6 +301,8 @@ const TheService: ServiceSchema = {
         });
         const orderBeforeUpdate = await ctx.call('orders.getOrder', { order_id: ctx.params.id });
         if (orderBeforeUpdate.id === -1) {
+          ctx.meta.$statusCode = 404;
+          ctx.meta.$statusMessage = 'Not Found';
           return { message: 'Order Not Found!' };
         }
         // Change here
@@ -381,7 +383,7 @@ const TheService: ServiceSchema = {
               instance,
               ctx.params.shipping_method
             );
-            
+
             if(shipment) {
               data.shipmentCourier = shipment.courier;
               data.shippingCharge = shipment.cost;
@@ -694,6 +696,8 @@ const TheService: ServiceSchema = {
       async handler(ctx) {
         const orderBeforeUpdate = await ctx.call('orders.getOrder', { order_id: ctx.params.id });
         if (orderBeforeUpdate.id === -1) {
+          ctx.meta.$statusCode = 404;
+          ctx.meta.$statusMessage = 'Not Found';
           return { message: 'Order Not Found!' };
         }
         // Change here

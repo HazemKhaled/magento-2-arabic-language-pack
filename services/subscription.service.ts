@@ -1,7 +1,6 @@
 import { Context, ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
-import { StoreUser } from '../utilities/types/store.type';
-import { Subscription, User } from '../utilities/types/user.type';
+import { StoreUser, Subscription, User } from '../utilities/types';
 
 
 const TheService: ServiceSchema = {

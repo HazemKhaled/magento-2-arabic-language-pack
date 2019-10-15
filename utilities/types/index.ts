@@ -9,3 +9,6 @@ export * from './shipment.type';
 export * from './invoice.type';
 export * from './payment.type';
 export * from './omsStore.type';
+export * from './membership.type';
+export * from './subscription.type';
+export * from './coupon.type';
