@@ -9,7 +9,7 @@ import { I18n } from ".";
 export interface Membership {
     id: string;
     name: I18n;
-    tagline: string;
+    tagline: I18n;
     description: I18n;
     sort: number;
     active: boolean;

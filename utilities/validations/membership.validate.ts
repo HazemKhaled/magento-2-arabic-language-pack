@@ -8,7 +8,15 @@ export const CreateMembershipValidation = {
             $$strict: true
         }
     },
-    tagline: { type: 'string',},
+    tagline: {
+        type: 'object',
+        props: {
+            tr: { type: 'string', optional: true },
+            en: { type: 'string' },
+            ar: { type: 'string', optional: true },
+            $$strict: true
+        }
+    },
     description: {
         type: 'object',
         props: {
