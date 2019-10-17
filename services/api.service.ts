@@ -7,7 +7,6 @@ const { UnAuthorizedError, ERR_NO_TOKEN, ERR_INVALID_TOKEN } = ApiGateway.Errors
 const TheService: ServiceSchema = {
   name: 'api',
   mixins: [ApiGateway],
-
   settings: {
     port: process.env.PORT || 3000,
 
@@ -54,6 +53,7 @@ const TheService: ServiceSchema = {
           'GET products/:sku': 'products-list.get',
           'GET attributes': 'products.getAttributes',
 
+          // Categories
           'GET catalog/categories': 'categories.list',
 
           // Currencies
@@ -74,6 +74,8 @@ const TheService: ServiceSchema = {
 
           // Invoices
           'GET invoices': 'invoices.get',
+          'POST invoices': 'invoices.create',
+          'POST invoices/:id/credits': 'invoices.applyCredits',
 
           // Payments
           'POST payments/:id': 'payments.add',
@@ -90,6 +92,9 @@ const TheService: ServiceSchema = {
           'GET coupons/:id': 'coupons.get',
           'PUT coupons/:id': 'coupons.update',
           'PUT coupons/:id/count': 'coupons.updateCount',
+
+          // Subscription
+          'POST subscription': 'subscription.create',
 
         },
 
@@ -111,7 +116,7 @@ const TheService: ServiceSchema = {
         async onError(req: any, res: any, err: {message: string, code: number, name: string, type: string, data: any[]}) {
           res.setHeader("Content-Type", "application/json; charset=utf-8");
           res.writeHead(err.code || 500);
-          if(err.code === 422 || err.code === 401){
+          if(err.code === 422 || err.code === 401 || err.name === 'NotFoundError'){
             res.end(JSON.stringify({
               "name": err.name,
               "message": err.message,

@@ -5,18 +5,19 @@
  * @interface Subscription
  */
 export interface Subscription {
+    _id?: number;
     id: number;
-    membership_id: number;
-    membership_name: string;
-    gateway_id: string;
-    start_date: string;
-    expire_date: string;
-    trial_expire_date: string;
-    trial_period_completed: boolean;
+    membershipId: number;
+    membershipName: string;
+    gatewayId: string;
+    startDate: string;
+    expireDate: string;
+    trialExpireDate: string;
+    trialPeriodCompleted: boolean;
     status: string;
     payments: any[];
-    payment_type: string,
-    post_modified: string;
+    paymentType: string,
+    postModified: string;
     name?: string;
     title?: string;
     description?: string;

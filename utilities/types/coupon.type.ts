@@ -6,8 +6,8 @@
  */
 export interface Coupon {
     code: string;
-	discount: string;
-	discountType: string;
+	discount: number;
+	discountType: '$' | '%';
 	startDate: Date;
 	endDate: Date;
 	maxUses: number;

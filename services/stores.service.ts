@@ -104,7 +104,7 @@ const TheService: ServiceSchema = {
         return this.adapter.findById(ctx.params.id).then(async (res: Store | null) => {
           if (res) {
             if(res.users) {
-              res.subscription = await ctx.call('subscription.get',{ url: ctx.params.id });
+              res.subscription = await ctx.call('subscription.get',{ id: ctx.params.id });
             }
             if(res.internal_data && res.internal_data.omsId) {
               const omsData = (await fetch(
