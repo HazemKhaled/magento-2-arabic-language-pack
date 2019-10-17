@@ -46,7 +46,7 @@
     "ioredis": "^4.9.0",
     "jsonwebtoken": "^8.5.1",
     "mkdirp": "^0.5.1",
-    "moleculer": "^0.13.10",
+    "moleculer": "^0.13.11",
     "moleculer-cron": "0.0.2",
     "moleculer-db": "^0.8.1",
     "moleculer-db-adapter-mongo": "^0.4.3",
