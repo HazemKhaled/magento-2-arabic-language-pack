@@ -91,7 +91,6 @@ const TheService: ServiceSchema = {
           'GET coupons': 'coupons.list',
           'GET coupons/:id': 'coupons.get',
           'PUT coupons/:id': 'coupons.update',
-          'PUT coupons/:id/count': 'coupons.updateCount',
 
           // Subscription
           'POST subscription': 'subscription.create',

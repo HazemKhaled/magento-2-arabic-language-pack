@@ -39,12 +39,13 @@ const TheService: ServiceSchema = {
             },
             handler(ctx: Context): Promise<Membership> {
                 return this.adapter
-                    .findById(ctx.params.id)
+                    .findOne({_id: ctx.params.id, active: true})
                     .then((res: Membership) => {
-                        if (res) {
-                            return this.normalizeId(res);
+                        if (!res) {
+                            return this.adapter
+                            .findOne({isFree: true})
                         }
-                        throw new MoleculerError('No Membership found for this ID', 404);
+                        return this.normalizeId(res);
                     })
                     .catch((err: any) => {
                         if (err.name === 'MoleculerError') {

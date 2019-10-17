@@ -28,16 +28,8 @@ const TheService: ServiceSchema = {
             },
             async handler(ctx: Context): Promise<any | false> {
                 const subscription = await this.adapter.findOne({storeId: ctx.params.id, expireDate: {$gte: new Date()}, startDate: {$lte: new Date()}});
-                if(!subscription) {
-                    return {
-                        membershipId: 'm-0',
-                        name: {
-                            en: 'Free',
-                            ar: 'مجاني'
-                        }
-                    }
-                }
-                return subscription;
+                const membership = await ctx.call('membership.get', {id: subscription ? subscription.membershipId : 'free'});
+                return {id: subscription._id, ...subscription, _id: undefined, storeId: undefined, ...membership.attributes};
             }
         },
         list: {
@@ -52,15 +44,6 @@ const TheService: ServiceSchema = {
                 return this.adapter
                     .find({storeId: ctx.params.id, expireDate: { $gte: new Date() }})
                     .then((res: Subscription[]) => {
-                        if (res.length === 0) {
-                            return [{
-                                membershipId: 'm-0',
-                                name: {
-                                    en: 'Free',
-                                    ar: 'مجاني'
-                                }
-                            }];
-                        }
                         return res;
                     })
                     .catch((err: any) => {
@@ -93,19 +76,19 @@ const TheService: ServiceSchema = {
                     throw new MoleculerError('No membership found', 404);
                 }
                 let cost  = membership.cost;
-                if(coupon) {
+                let discount = 0;
+                if(coupon ) {
                     switch (coupon.discountType) {
                         case '$':
-                            cost = cost > coupon.discount ? cost - coupon.discount : 0
+                            discount = cost > coupon.discount ? cost - coupon.discount : 0
                             break;
                         case '%':
-                            cost = cost - cost * coupon.discount/100
-                            break;
-                        default:
-                            coupon = null;
+                            discount = cost - cost * coupon.discount/100
                             break;
                     }
                 }
+                discount = discount > membership.discount ? discount : membership.discount;
+                cost = cost - discount;
                 const instance = await ctx.call('stores.get', { id: ctx.params.storeId }).then(null, err => err);
                 if(isError(instance as {message: string; code: number})) {
                     throw new MoleculerError(instance.message, instance.code || 500);
@@ -141,7 +124,8 @@ const TheService: ServiceSchema = {
                     id: ctx.params.storeId
                 });
                 let startDate = new Date();
-                if(storeOldSubscription[0].membershipId !== 'm-0') {
+                startDate.setUTCHours(0,0,0,0);
+                if(storeOldSubscription.length > 0) {
                     storeOldSubscription.forEach((subscription: Subscription) => {
                         startDate = new Date(subscription.expireDate) > startDate ? new Date(subscription.expireDate) : startDate;
                     });
