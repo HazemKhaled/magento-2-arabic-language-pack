@@ -146,7 +146,7 @@ const TheService: ServiceSchema = {
                         startDate = new Date(subscription.expireDate) > startDate ? new Date(subscription.expireDate) : startDate;
                     });
                 }
-                const expireDate = startDate;
+                const expireDate = new Date(startDate);
                 switch (membership.paymentFrequencyType) {
                     case 'month':
                         expireDate.setDate(expireDate.getDate() + 30);
