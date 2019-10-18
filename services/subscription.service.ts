@@ -145,6 +145,7 @@ const TheService: ServiceSchema = {
                 return this.adapter.insert({
                     membershipId: membership.id,
                     storeId: ctx.params.storeId,
+                    invoiceId: invoice.invoice.invoiceId,
                     startDate,
                     expireDate
                 }).then((res: Subscription): {} => ({...res, id: res._id, _id: undefined}));
