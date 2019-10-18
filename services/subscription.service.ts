@@ -42,7 +42,7 @@ const TheService: ServiceSchema = {
             },
             async handler(ctx: Context): Promise<Subscription | false> {
                 return this.adapter
-                    .find({storeId: ctx.params.id, expireDate: { $gte: new Date() }})
+                    .find({query: {storeId: ctx.params.id, expireDate: { $gte: new Date() }}})
                     .then((res: Subscription[]) => {
                         return res;
                     })
@@ -139,7 +139,9 @@ const TheService: ServiceSchema = {
                         expireDate.setFullYear(expireDate.getFullYear() + 30);
                         break;
                 }
-
+                ctx.call('coupons.updateCount', {
+                    id: ctx.params.coupon
+                });
                 return this.adapter.insert({
                     membershipId: membership.id,
                     storeId: ctx.params.storeId,
