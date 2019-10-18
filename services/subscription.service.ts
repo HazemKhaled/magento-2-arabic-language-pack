@@ -38,7 +38,7 @@ const TheService: ServiceSchema = {
             },
             cache: {
                 keys: ['id'],
-                ttl: 5 // 1 hour
+                ttl: 60 * 60 // 1 hour
             },
             async handler(ctx: Context): Promise<Subscription | false> {
                 return this.adapter

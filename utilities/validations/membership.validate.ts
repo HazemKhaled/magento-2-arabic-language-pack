@@ -34,6 +34,6 @@ export const CreateMembershipValidation = {
 	paymentFrequency: { type: 'number', integer: true, positive: true },
 	paymentFrequencyType: { type: 'enum', values: ['month', 'year'] },
     attributes: { type: 'object' },
-    isFree: { type: 'boolean', optional: true },
+    isDefault: { type: 'boolean', optional: true },
     $$strict: true
 }

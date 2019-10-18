@@ -43,7 +43,7 @@ const TheService: ServiceSchema = {
                     .then((res: Membership) => {
                         if (!res) {
                             return this.adapter
-                            .findOne({isFree: true})
+                            .findOne({isDefault: true})
                         }
                         return this.normalizeId(res);
                     })
