@@ -1,8 +1,8 @@
-import Moleculer, { Context, ServiceSchema } from 'moleculer';
+import { Context, ServiceSchema } from 'moleculer';
 import { isError } from 'util';
 import DbService from '../utilities/mixins/mongo.mixin';
-import { Coupon, StoreUser, Subscription, User } from '../utilities/types';
-import { CreateSubscriptionValidation } from '../utilities/validations';
+import { Coupon, Subscription } from '../utilities/types';
+import { CreateSubscriptionValidation, UpdateSubscriptionValidation } from '../utilities/validations';
 // tslint:disable-next-line:no-var-requires
 const { MoleculerError } = require('moleculer').Errors;
 
@@ -29,7 +29,7 @@ const TheService: ServiceSchema = {
             async handler(ctx: Context): Promise<any | false> {
                 const subscription = await this.adapter.findOne({storeId: ctx.params.id, expireDate: {$gte: new Date()}, startDate: {$lte: new Date()}}) || {};
                 const membership = await ctx.call('membership.get', {id: subscription.membershipId || 'free'});
-                return {id: subscription._id, ...subscription, _id: undefined, storeId: undefined, ...membership.attributes};
+                return {id: subscription._id || -1, ...subscription, membershipId: undefined, membership: {id: subscription.membershipId, name: membership.name, sort: membership.sort}, _id: undefined, storeId: undefined, attributes: membership.attributes};
             }
         },
         list: {
@@ -133,15 +133,17 @@ const TheService: ServiceSchema = {
                 const expireDate = new Date(startDate);
                 switch (membership.paymentFrequencyType) {
                     case 'month':
-                        expireDate.setDate(expireDate.getDate() + 30);
+                        expireDate.setMonth(expireDate.getMonth() + membership.paymentFrequency);
                         break;
                     case 'year':
-                        expireDate.setFullYear(expireDate.getFullYear() + 30);
+                        expireDate.setFullYear(expireDate.getFullYear() + membership.paymentFrequency);
                         break;
                 }
-                ctx.call('coupons.updateCount', {
-                    id: ctx.params.coupon
-                });
+                if(ctx.params.coupon) {
+                    ctx.call('coupons.updateCount', {
+                        id: ctx.params.coupon
+                    });
+                }
                 return this.adapter.insert({
                     membershipId: membership.id,
                     storeId: ctx.params.storeId,
@@ -149,6 +151,61 @@ const TheService: ServiceSchema = {
                     startDate,
                     expireDate
                 }).then((res: Subscription): {} => ({...res, id: res._id, _id: undefined}));
+            }
+        },
+        getSubscriptionByExpireDate: {
+            cache: false,
+            params: { days: 'number' },
+            async handler(ctx: Context) {
+                const minDate = new Date();
+                minDate.setDate(minDate.getDate() - ctx.params.days);
+                const lastRetryDay = new Date();
+                lastRetryDay.setUTCHours(0,0,0,0);
+                const query = {
+                    expireDate: {
+                        $gte: minDate,
+                        $lte: new Date()
+                    },
+                    retries: {
+                        $ne : lastRetryDay
+                    },
+                    renewed: {
+                        $ne: true
+                    }
+                };
+
+                const expiredSubscription = await this.adapter.findOne(query).catch();
+                if(!expiredSubscription) {
+                    return null;
+                }
+                const currentSubscription = await ctx.call('subscription.get', {
+                    id: expiredSubscription.storeId
+                });
+                if (currentSubscription.id !== -1) {
+                    await ctx.call('subscription.updateSubscription', {
+                        id: expiredSubscription._id,
+                        renewed: true
+                    });
+                    return ctx.call('subscription.getSubscriptionByExpireDate', {days: ctx.params.days});
+                }
+                const date = new Date();
+                date.setUTCHours(0,0,0,0);
+                ctx.call('subscription.updateSubscription', {
+                    id: String(expiredSubscription._id),
+                    retries: expiredSubscription.retries ? [...expiredSubscription.retries, new Date(date)] : [new Date(date)]
+                });
+                return {...expiredSubscription, id: expiredSubscription._id};
+            }
+        },
+        updateSubscription: {
+            params: UpdateSubscriptionValidation,
+            handler(ctx: Context) {
+                let $set: {[key: string]: string} = {}
+                if(ctx.params.retries) {
+                    $set.retries = ctx.params.retries.map((i: Date) => new Date(i));
+                }
+                $set = {...ctx.params, ...$set};
+                return this.adapter.updateById(ctx.params.id, { $set });
             }
         }
     }

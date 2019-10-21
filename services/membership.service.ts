@@ -43,7 +43,7 @@ const TheService: ServiceSchema = {
                     .then((res: Membership) => {
                         if (!res) {
                             return this.adapter
-                            .findOne({isDefault: true})
+                            .findOne({isDefault: true}).then((def: Membership) => this.normalizeId(def))
                         }
                         return this.normalizeId(res);
                     })
