@@ -144,13 +144,19 @@ const TheService: ServiceSchema = {
                         id: ctx.params.coupon
                     });
                 }
+
                 return this.adapter.insert({
                     membershipId: membership.id,
                     storeId: ctx.params.storeId,
                     invoiceId: invoice.invoice.invoiceId,
                     startDate,
                     expireDate
-                }).then((res: Subscription): {} => ({...res, id: res._id, _id: undefined}));
+                }).then((res: Subscription): {} => {
+                    this.broker.cacher.clean(`subscription.get:${instance.url}*`);
+                    this.broker.cacher.clean(`stores.get:${instance.url}*`);
+                    this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
+                    return {...res, id: res._id, _id: undefined}
+                });
             }
         },
         getSubscriptionByExpireDate: {

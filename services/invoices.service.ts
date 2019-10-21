@@ -150,6 +150,8 @@ const TheService: ServiceSchema = {
         .then(res => this.responseCheck(res))
         .then(res => {
           this.broker.cacher.clean(`invoices.get:${instance.consumer_key}*`);
+          this.broker.cacher.clean(`stores.get:${instance.url}*`);
+          this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
           return res;
         })
         .catch(err => {throw new MoleculerError(err.message, err.code || 500)});
