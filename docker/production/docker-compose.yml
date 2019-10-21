@@ -64,7 +64,7 @@ services:
     restart: always
     env_file: .env
     environment:
-      SERVICES: categories,products-list
+      SERVICES: categories, products-list
     networks:
       - elastic
       - default
