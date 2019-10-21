@@ -136,16 +136,21 @@ const TheService: ServiceSchema = {
         data.shippingCharge = shipment.cost;
 
         // Calculate the order total
-        let total: number = data.items.reduce((accumulator: number, current: OrderItem) => accumulator + current.purchaseRate, 0) + data.shippingCharge;
+        const total: number = data.items.reduce((accumulator: number, current: OrderItem) => accumulator + current.purchaseRate, 0) + data.shippingCharge;
 
         // Getting the current user subscription
         const subscription = await ctx.call('subscription.get',{ url: instance.url });
-        if((Number(subscription.attr_order_processing_fees) === 0 || !Number(subscription.attr_order_processing_fees))
-          && subscription.attr_order_processing_fees_percentage) {
-          subscription.adjustment = subscription.attr_order_processing_fees_percentage/100 * total;
-          subscription.adjustmentDescription = `Processing Fees ${subscription.attr_order_processing_fees_percentage}%`;
-          total = total * (subscription.attr_order_processing_fees_percentage/100 + 1);
+        switch (subscription.attributes.orderProcessingType) {
+          case '$':
+            data.adjustment = subscription.attributes.orderProcessingFees;
+            data.adjustmentDescription = `Processing Fees`;
+            break;
+          case '%':
+            subscription.adjustment = subscription.attributes.orderProcessingFees/100 * total;
+            subscription.adjustmentDescription = `Processing Fees ${subscription.attributes.orderProcessingFees}%`;
+            break;
         }
+
         // Checking for processing fees
         this.sendLogs({
           topic: 'order',
@@ -156,14 +161,6 @@ const TheService: ServiceSchema = {
           code: 2103,
           payload: { subscription, params: ctx.params }
         });
-
-        if (
-          !subscription ||
-          (subscription.attr_order_processing_fees && subscription.attr_order_processing_fees > 0)
-            || subscription.attr_order_processing_fees) {
-          data.adjustment = subscription.adjustment || Number(subscription.attr_order_processing_fees || 2);
-          data.adjustmentDescription = subscription.adjustmentDescription || `Processing Fees`;
-        }
 
         data.status = ['pending', 'processing', 'cancelled'].includes(data.status)
           ? this.normalizeStatus(data.status)
@@ -393,10 +390,9 @@ const TheService: ServiceSchema = {
 
             // Getting the current user subscription
             const subscription = await ctx.call('subscription.get',{ url: instance.url });
-            if(Number(subscription.attr_order_processing_fees_percentage)) {
-              data.adjustment = subscription.attr_order_processing_fees_percentage/100 * total;
-              data.adjustmentDescription = `Processing Fees ${subscription.attr_order_processing_fees_percentage}%`;
-              data.subscription = subscription.membership_name;
+            if(subscription.attributes.orderProcessingType === '%') {
+                subscription.adjustment = subscription.attributes.orderProcessingFees/100 * total;
+                subscription.adjustmentDescription = `Processing Fees ${subscription.attributes.orderProcessingFees}%`;
             }
             // Initializing warnings array if we have a Warning
             const warnings = this.warningsMessenger(
