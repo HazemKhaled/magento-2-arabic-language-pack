@@ -27,8 +27,8 @@ const TheService: ServiceSchema = {
                 ttl: 60 * 60 // 1 hour
             },
             async handler(ctx: Context): Promise<any | false> {
-                const subscription = await this.adapter.findOne({storeId: ctx.params.id, expireDate: {$gte: new Date()}, startDate: {$lte: new Date()}});
-                const membership = await ctx.call('membership.get', {id: subscription ? subscription.membershipId : 'free'});
+                const subscription = await this.adapter.findOne({storeId: ctx.params.id, expireDate: {$gte: new Date()}, startDate: {$lte: new Date()}}) || {};
+                const membership = await ctx.call('membership.get', {id: subscription.membershipId || 'free'});
                 return {id: subscription._id, ...subscription, _id: undefined, storeId: undefined, ...membership.attributes};
             }
         },
