@@ -127,10 +127,11 @@ const TheService: ServiceSchema = {
                 startDate.setUTCHours(0,0,0,0);
                 if(storeOldSubscription.length > 0) {
                     storeOldSubscription.forEach((subscription: Subscription) => {
-                        startDate = new Date(subscription.expireDate) > startDate ? new Date(subscription.expireDate) : startDate;
+                        startDate = new Date(subscription.expireDate) > startDate ? new Date(new Date(subscription.expireDate).setMilliseconds(1000)) : startDate;
                     });
                 }
                 const expireDate = new Date(startDate);
+                expireDate.setMilliseconds(-1);
                 switch (membership.paymentFrequencyType) {
                     case 'month':
                         expireDate.setMonth(expireDate.getMonth() + membership.paymentFrequency);
@@ -153,6 +154,7 @@ const TheService: ServiceSchema = {
                     expireDate
                 }).then((res: Subscription): {} => {
                     this.broker.cacher.clean(`subscription.get:${instance.url}*`);
+                    this.broker.cacher.clean(`subscription.list:${instance.url}*`);
                     this.broker.cacher.clean(`stores.get:${instance.url}*`);
                     this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
                     return {...res, id: res._id, _id: undefined}
