@@ -75,7 +75,7 @@ const TheService: ServiceSchema = {
                 if(!membership) {
                     throw new MoleculerError('No membership found', 404);
                 }
-                let cost  = membership.cost;
+                const cost  = membership.cost;
                 let discount = 0;
                 if(coupon ) {
                     switch (coupon.discountType) {
@@ -83,12 +83,11 @@ const TheService: ServiceSchema = {
                             discount = cost > coupon.discount ? cost - coupon.discount : 0
                             break;
                         case '%':
-                            discount = cost - cost * coupon.discount/100
+                            discount = cost * coupon.discount/100
                             break;
                     }
                 }
                 discount = discount > membership.discount ? discount : membership.discount;
-                cost = cost - discount;
                 const instance = await ctx.call('stores.get', { id: ctx.params.storeId }).then(null, err => err);
                 if(isError(instance as {message: string; code: number})) {
                     throw new MoleculerError(instance.message, instance.code || 500);
@@ -100,7 +99,7 @@ const TheService: ServiceSchema = {
                 if(instance.credits < cost) {
                     throw new MoleculerError('User don\'t have enough balance!', 402);
                 }
-                const invoice = await ctx.call('invoices.create', {
+                const invoiceBody: {[key: string]: any} = {
                     storeId: ctx.params.storeId,
                     items: [{
                         sku: membership.id,
@@ -109,7 +108,14 @@ const TheService: ServiceSchema = {
                         rate: cost,
                         quantity: 1,
                     }]
-                }).then(null, err => err);
+                };
+                if(discount) {
+                    invoiceBody.discount = {
+                        value: discount,
+                        type: 'entity_level',
+                    }
+                }
+                const invoice = await ctx.call('invoices.create', invoiceBody).then(null, err => err);
                 if(isError(invoice as {message: string; code: number})) {
                     throw new MoleculerError(invoice.message, invoice.code || 500);
                 }

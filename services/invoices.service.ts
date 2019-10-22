@@ -110,6 +110,8 @@ const TheService: ServiceSchema = {
           method: 'post',
           body: JSON.stringify({
             customerId: instance.internal_data.omsId,
+            discount: ctx.params.discount && ctx.params.discount.value,
+            discountType: ctx.params.discount && ctx.params.discount.type,
             items: ctx.params.items
           }),
           headers: {

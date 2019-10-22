@@ -1,5 +1,13 @@
 export const CreateInvoiceValidation = {
     storeId: { type: 'string' },
+    discount: {
+        type: 'object',
+        props:{
+            value: { type: 'number', positive: true },
+            type: { type: 'enum', values: ["entity_level"] },
+        },
+        optional: true,
+    },
     items: {
         type: 'array',
         items: {
