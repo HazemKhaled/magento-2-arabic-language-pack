@@ -29,7 +29,7 @@ const TheService: ServiceSchema = {
             async handler(ctx: Context): Promise<any | false> {
                 const subscription = await this.adapter.findOne({storeId: ctx.params.id, expireDate: {$gte: new Date()}, startDate: {$lte: new Date()}}) || {};
                 const membership = await ctx.call('membership.get', {id: subscription.membershipId || 'free'});
-                return {id: subscription._id || -1, ...subscription, membershipId: undefined, membership: {id: subscription.membershipId, name: membership.name, sort: membership.sort}, _id: undefined, storeId: undefined, attributes: membership.attributes};
+                return {id: subscription._id || -1, ...subscription, membershipId: undefined, membership: {id: membership.membershipId, name: membership.name, sort: membership.sort}, _id: undefined, storeId: undefined, attributes: membership.attributes};
             }
         },
         list: {
