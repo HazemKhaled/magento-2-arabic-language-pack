@@ -41,11 +41,15 @@ const TheService: ServiceSchema = {
             },
             params: {
                 id: [{ type: 'string' }, { type: 'number' }],
-                membership: { type: 'string' }
+                membership: { type: 'string', optional: true }
             },
             handler(ctx: Context): Promise<Coupon> {
+                const query: {[key:string]: {}} = { _id: ctx.params.id, startDate: { $lte: new Date() }, endDate: { $gte: new Date() } };
+                if(ctx.params.membership) {
+                    query.appliedMemberships = ctx.params.membership
+                }
                 return this.adapter
-                    .findOne({ _id: ctx.params.id, appliedMemberships: ctx.params.membership, startDate: { $lte: new Date() }, endDate: { $gte: new Date() } })
+                    .findOne(query)
                     .then((res: Coupon) => {
                         if (!res) {
                             throw new MoleculerError('No Coupon found for this ID or Membership', 404);
