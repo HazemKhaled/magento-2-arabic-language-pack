@@ -139,7 +139,7 @@ const TheService: ServiceSchema = {
         const total: number = data.items.reduce((accumulator: number, current: OrderItem) => accumulator + current.purchaseRate, 0) + data.shippingCharge;
 
         // Getting the current user subscription
-        const subscription = await ctx.call('subscription.get',{ url: instance.url });
+        const subscription = await ctx.call('subscription.get',{ id: instance.url });
         switch (subscription.attributes.orderProcessingType) {
           case '$':
             data.adjustment = subscription.attributes.orderProcessingFees;
@@ -389,7 +389,7 @@ const TheService: ServiceSchema = {
             const total: number = data.items.reduce((accumulator: number, current: OrderItem) => accumulator + current.purchaseRate, 0) + (data.shippingCharge || orderBeforeUpdate.shippingCharge);
 
             // Getting the current user subscription
-            const subscription = await ctx.call('subscription.get',{ url: instance.url });
+            const subscription = await ctx.call('subscription.get',{ id: instance.url });
             if(subscription.attributes.orderProcessingType === '%') {
                 subscription.adjustment = subscription.attributes.orderProcessingFees/100 * total;
                 subscription.adjustmentDescription = `Processing Fees ${subscription.attributes.orderProcessingFees}%`;
