@@ -178,7 +178,7 @@ const TheService: ServiceSchema = {
             } Available Qty: ${item.quantity}\n`,
           ''
         )}${data.notes}`;
-        data.subscription = subscription.membership_name;
+        data.subscription = subscription.membership.name.en;
         this.logger.info(JSON.stringify(data));
         const result: OMSResponse = await fetch(`${process.env.OMS_BASEURL}/orders`, {
           method: 'POST',
