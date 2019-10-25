@@ -196,7 +196,7 @@ const TheService: ServiceSchema = {
             storeId: instance.url,
             logLevel: 'error',
             code: result.error.statusCode,
-            payload: { errors: result, params: ctx.params }
+            payload: { errors: (result.error && result.error.details) || result, params: ctx.params }
           });
           ctx.meta.$statusCode = result.error.statusCode;
           ctx.meta.$statusMessage = result.error.name;
@@ -435,7 +435,7 @@ const TheService: ServiceSchema = {
               storeId: instance.url,
               logLevel: 'error',
               code: result.error.statusCode,
-              payload: { errors: result, params: ctx.params }
+              payload: { errors: (result.error && result.error.details) || result, params: ctx.params }
             });
             ctx.meta.$statusCode = result.error.statusCode;
             ctx.meta.$statusMessage = result.error.name;
@@ -553,7 +553,8 @@ const TheService: ServiceSchema = {
           shipping: order.shipping,
           total: order.total,
           externalId: order.externalId,
-          createDate: order.date_created,
+          createDate: order.createDate,
+          updateDate: order.updateDate,
           knawat_order_status: order.status ? this.normalizeResponseStatus(order.status) : '',
           notes: order.notes,
           shipping_method: order.shipmentCourier,
