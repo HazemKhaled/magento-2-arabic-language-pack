@@ -45,18 +45,6 @@ export const createValidation = {
     }
   },
   languages: { type: 'array', min: 1, max: 10, items: 'string' },
-  logs: {
-    type: 'array',
-    items: {
-      type: 'object',
-      props: {
-        message: { type: 'string' },
-        level: { type: 'string' },
-        date: { type: 'date', optional: true, convert: true }
-      }
-    },
-    optional: true
-  },
   address: {
     type: 'object',
     props: {
@@ -129,18 +117,6 @@ export const updateValidation = {
     optional: true
   },
   languages: { type: 'array', min: 1, max: 10, items: 'string', optional: true },
-  logs: {
-    type: 'array',
-    items: {
-      type: 'object',
-      props: {
-        message: { type: 'string' },
-        level: { type: 'string' },
-        date: { type: 'date', optional: true, convert: true }
-      }
-    },
-    optional: true
-  },
   address: {
     type: 'object',
     props: {
