@@ -381,7 +381,7 @@ const TheService: ServiceSchema = {
               instance,
               ctx.params.shipping_method
             );
-            
+
             if(shipment) {
               data.shipmentCourier = shipment.courier;
               data.shippingCharge = shipment.cost;
@@ -555,7 +555,8 @@ const TheService: ServiceSchema = {
           shipping: order.shipping,
           total: order.total,
           externalId: order.externalId,
-          createDate: order.date_created,
+          createDate: order.createDate,
+          updateDate: order.updateDate,
           knawat_order_status: order.status ? this.normalizeResponseStatus(order.status) : '',
           notes: order.notes,
           shipping_method: order.shipmentCourier,
