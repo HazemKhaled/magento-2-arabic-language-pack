@@ -12,13 +12,8 @@ const TheService: ServiceSchema = {
             auth: 'Basic',
             params: CreateCouponValidation,
             handler(ctx: Context): Promise<Coupon> {
-                ctx.params._id = ctx.params.code;
-                delete ctx.params.code;
-                ctx.params.useCount = 0;
-                ctx.params.startDate = new Date(ctx.params.startDate);
-                ctx.params.endDate = new Date(ctx.params.endDate);
                 return this.adapter
-                    .insert(ctx.params)
+                    .insert(this.createCouponSanitize(ctx.params))
                     .then((res: Coupon) => {
                         this.broker.cacher.clean(`coupons.list:**`);
                         return this.normalizeId(res)
@@ -90,17 +85,19 @@ const TheService: ServiceSchema = {
             params: UpdateCouponValidation,
             async handler(ctx: Context): Promise<Coupon> {
                 const {id} = ctx.params;
-                delete ctx.params.id;
-                const coupon = await this.adapter.updateById(id, { $set: ctx.params }).catch((err: any) => {
-                    throw new MoleculerError(err, 500);
-                });
-                if (!coupon) {
-                    throw new MoleculerError('No Coupons found!', 404);
-                }
+                const updateBody = {...ctx.params};
+                delete updateBody.id;
+                return this.adapter.updateById(id, { $set: updateBody }).then((coupon: Coupon) => {
+                        if (!coupon) {
+                            throw new MoleculerError('No Coupons found!', 404);
+                        }
 
-                this.broker.cacher.clean(`coupons.list:**`);
-                this.broker.cacher.clean(`coupons.get:${id}*`);
-                return coupon;
+                        this.broker.cacher.clean(`coupons.list:**`);
+                        this.broker.cacher.clean(`coupons.get:${id}*`);
+                        return coupon;
+                    }).catch((err: any) => {
+                        throw new MoleculerError(err, 500);
+                    });
             }
         },
         updateCount: {
@@ -109,16 +106,17 @@ const TheService: ServiceSchema = {
                 id: { type: 'string' }
             },
             async handler(ctx: Context) {
-                const coupon = await this.adapter.updateById(ctx.params.id, { $inc: { useCount: 1 } }).catch((err: any) => {
+                return this.adapter.updateById(ctx.params.id, { $inc: { useCount: 1 } }).then((coupon: Coupon) => {
+                    if (!coupon) {
+                        throw new MoleculerError('No Coupons found!', 404);
+                    }
+
+                    this.broker.cacher.clean(`coupons.list:**`);
+                    this.broker.cacher.clean(`coupons.get:${ctx.params.id}*`);
+                    return coupon;
+                }).catch((err: any) => {
                     throw new MoleculerError(err, 500);
                 });
-                if (!coupon) {
-                    throw new MoleculerError('No Coupons found!', 404);
-                }
-
-                this.broker.cacher.clean(`coupons.list:**`);
-                this.broker.cacher.clean(`coupons.get:${ctx.params.id}*`);
-                return coupon;
             }
         }
     },
@@ -133,6 +131,20 @@ const TheService: ServiceSchema = {
             obj.code = obj._id;
             delete obj._id;
             return obj;
+        },
+        /**
+         *
+         *
+         * @param {*} params
+         * @returns Coupon
+         */
+        createCouponSanitize(params) {
+            return {
+                _id: params.code,
+                useCount: 0,
+                startDate: new Date(params.startDate),
+                endDate: new Date(params.endDate)
+            };
         }
     }
 };
