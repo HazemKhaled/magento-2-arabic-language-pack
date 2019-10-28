@@ -87,6 +87,15 @@ services:
     environment:
       SERVICES: membership, subscription, coupons
 
+  subscription-cron:
+      build:
+        context: ../../
+      image: microes
+      restart: always
+      env_file: .env
+      environment:
+        SERVICES: subscription-cron
+
   orders:
     build:
       context: ../../
