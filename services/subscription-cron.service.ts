@@ -46,8 +46,7 @@ const TheService: ServiceSchema = {
                 }
                 catch (err)
                 {
-                    // tslint:disable-next-line
-                    console.log(err);
+                    this.logger.error(err);
                 }
             }
         }
