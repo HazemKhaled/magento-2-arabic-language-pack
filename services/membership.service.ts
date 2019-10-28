@@ -80,14 +80,17 @@ const TheService: ServiceSchema = {
         /**
          * Convert object _id to id
          *
-         * @param {{_id: string, id?: string}} obj
+         * @param {({_id: string})} obj
          * @returns
          */
-        normalizeId(obj: { _id: string; id?: string }) {
-            obj.id = obj._id;
-            delete obj._id;
-            return obj;
-        }
+        normalizeId(obj: { _id: string;}) {
+            const newObj = {
+                id: obj._id,
+                ...obj
+            }
+            delete newObj._id;
+            return newObj;
+        },
     }
 };
 
