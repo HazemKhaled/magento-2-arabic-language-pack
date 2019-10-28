@@ -314,7 +314,7 @@ const TheService: ServiceSchema = {
         this.broker.cacher.clean(`products.getInstanceProduct:${myStore.consumer_key}*`);
 
         if (myStore.internal_data && myStore.internal_data.omsId) {
-          ctx.call('crm.updateStoreById', ctx.params).then(null, (error: unknown) => {
+          ctx.call('crm.updateStoreById', {id, ...ctx.params}).then(null, (error: unknown) => {
             this.sendLogs({
               topic: 'store',
               topicId: ctx.params.url,
