@@ -1,9 +1,8 @@
-import { Context, ServiceSchema } from 'moleculer';
+import { Context, Errors, ServiceSchema } from 'moleculer';
 import DbService from '../utilities/mixins/mongo.mixin';
 import { Membership } from '../utilities/types';
 import { CreateMembershipValidation } from '../utilities/validations';
-// tslint:disable-next-line:no-var-requires
-const { MoleculerError } = require('moleculer').Errors;
+const MoleculerError = Errors.MoleculerError;
 
 const TheService: ServiceSchema = {
     name: 'membership',
