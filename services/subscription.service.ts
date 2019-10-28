@@ -1,7 +1,7 @@
 import { Context, ServiceSchema } from 'moleculer';
 import { isError } from 'util';
 import DbService from '../utilities/mixins/mongo.mixin';
-import { Coupon, Subscription } from '../utilities/types';
+import { Coupon, Membership, Subscription } from '../utilities/types';
 import { CreateSubscriptionValidation, UpdateSubscriptionValidation } from '../utilities/validations';
 // tslint:disable-next-line:no-var-requires
 const { MoleculerError } = require('moleculer').Errors;
@@ -34,15 +34,45 @@ const TheService: ServiceSchema = {
         },
         list: {
             params: {
-                id: {type: 'string'}
+                id: {type: 'string'},
+                expireDate: {
+                    type: 'object',
+                    optional: true,
+                    props: {
+                        operation: {type: 'enum', values: ['lte', 'gte', 'gt', 'lt']},
+                        date: {type: 'date', convert: true, optional: true},
+                    }
+                },
+                limit: {type: 'number', optional: true},
+                sort: {
+                    type: 'object',
+                    optional: true,
+                    props: {
+                        field: {type: 'string'},
+                        order: {type: 'enum', values: [1, -1]}
+                    }
+                },
             },
             cache: {
-                keys: ['id'],
+                keys: ['id', 'expireDate', 'limit', 'sort'],
                 ttl: 60 * 60 // 1 hour
             },
             async handler(ctx: Context): Promise<Subscription | false> {
+                const query: {[key: string]: any} = {
+                    storeId: ctx.params.id
+                };
+                if(ctx.params.expireDate) {
+                    query.expireDate = {[`$${ctx.params.expireDate.operation}`]: ctx.params.expireDate.date ? new Date(ctx.params.expireDate.date) : new Date()};
+                }
+                const findBody: any = {query};
+                if(ctx.params.sort) {
+                    findBody.sort = {[ctx.params.sort.field]: ctx.params.sort.order};
+                }
+                if(ctx.params.limit) {
+                    findBody.limit = ctx.params.limit;
+                }
                 return this.adapter
-                    .find({query: {storeId: ctx.params.id, expireDate: { $gte: new Date() }}})
+                    .find(findBody)
                     .then((res: Subscription[]) => {
                         return res;
                     })
@@ -127,7 +157,8 @@ const TheService: ServiceSchema = {
                     throw new MoleculerError(applyCreditsResponse.message, applyCreditsResponse.code || 500);
                 }
                 const storeOldSubscription = await ctx.call('subscription.list', {
-                    id: ctx.params.storeId
+                    id: ctx.params.storeId,
+                    expireDate: {operation: 'gte'}
                 });
                 let startDate = new Date();
                 startDate.setUTCHours(0,0,0,0);
@@ -151,7 +182,6 @@ const TheService: ServiceSchema = {
                         id: ctx.params.coupon
                     });
                 }
-
                 return this.adapter.insert({
                     membershipId: membership.id,
                     storeId: ctx.params.storeId,
@@ -163,6 +193,9 @@ const TheService: ServiceSchema = {
                     this.broker.cacher.clean(`subscription.list:${instance.url}*`);
                     this.broker.cacher.clean(`stores.get:${instance.url}*`);
                     this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
+                    ctx.call('subscription.checkCurrentSubGradingStatus', {
+                        id: ctx.params.storeId
+                    });
                     return {...res, id: res._id, _id: undefined}
                 });
             }
@@ -200,6 +233,10 @@ const TheService: ServiceSchema = {
                         id: expiredSubscription._id,
                         renewed: true
                     });
+                    ctx.call('crm.addTagsByUrl', {
+                        id: expiredSubscription.storeId,
+                        tag: 'subscription-renew',
+                    });
                     return ctx.call('subscription.getSubscriptionByExpireDate', {days: ctx.params.days});
                 }
                 const date = new Date();
@@ -207,6 +244,10 @@ const TheService: ServiceSchema = {
                 ctx.call('subscription.updateSubscription', {
                     id: String(expiredSubscription._id),
                     retries: expiredSubscription.retries ? [...expiredSubscription.retries, new Date(date)] : [new Date(date)]
+                });
+                ctx.call('crm.addTagsByUrl', {
+                    id: expiredSubscription.storeId,
+                    tag: 'subscription-retry-fail',
                 });
                 return {...expiredSubscription, id: expiredSubscription._id};
             }
@@ -220,6 +261,41 @@ const TheService: ServiceSchema = {
                 }
                 $set = {...ctx.params, ...$set};
                 return this.adapter.updateById(ctx.params.id, { $set });
+            }
+        },
+        checkCurrentSubGradingStatus: {
+            params: {
+                id: {type: 'string'}
+            },
+            async handler(ctx: Context) {
+                const allSubBefore = await ctx.call('subscription.list', {
+                    id: ctx.params.id,
+                    expireDate: { operation: 'gte', date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7) },
+                    sort: { field: 'expireDate', order: -1 },
+                    limit: 2
+                });
+                const memberships = await ctx.call('membership.list');
+                if(allSubBefore.length === 0) return;
+                if (allSubBefore.length === 1) {
+                    return ctx.call('crm.addTagsByUrl', {
+                        id: ctx.params.id,
+                        tag: 'subscription-upgrade',
+                    });
+                }
+                const oldM = memberships.find((m: Membership) => allSubBefore[0].membershipId === m.id);
+                const lastM = memberships.find((m: Membership) => allSubBefore[1].membershipId === m.id);
+                if (oldM.sort > lastM.sort) {
+                    return ctx.call('crm.addTagsByUrl', {
+                        id: ctx.params.id,
+                        tag: 'subscription-upgrade',
+                    });
+                }
+                if (oldM.sort < lastM.sort) {
+                    return ctx.call('crm.addTagsByUrl', {
+                        id: ctx.params.id,
+                        tag: 'subscription-downgrade',
+                    });
+                }
             }
         }
     }
