@@ -1,4 +1,4 @@
-import { Subscription } from "./user.type";
+import { OrderAddress, Subscription } from ".";
 
 /**
  * Store Type definition
@@ -7,6 +7,7 @@ import { Subscription } from "./user.type";
  * @interface Store
  */
 export interface Store {
+  id: string;
   _id: string;
   currency: string;
   status: 'confirmed' | 'unconfirmed' | 'archived' | 'error';
@@ -19,10 +20,12 @@ export interface Store {
   compared_at_price_operator: number;
   users: StoreUser[];
   shipping_methods: ShippingMethod[];
+  languages: string[];
   credit: number;
   debit: number;
   internal_data: { [key: string]: unknown };
   subscription?: Subscription;
+  address: OrderAddress;
 }
 
 /**

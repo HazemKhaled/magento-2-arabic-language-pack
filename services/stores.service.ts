@@ -104,7 +104,7 @@ const TheService: ServiceSchema = {
         return this.adapter.findById(ctx.params.id).then(async (res: Store | null) => {
           if (res) {
             if(res.users) {
-              res.subscription = await ctx.call('subscription.get',{ url: ctx.params.id });
+              res.subscription = await ctx.call('subscription.get',{ id: ctx.params.id });
             }
             if(res.internal_data && res.internal_data.omsId) {
               const omsData = (await fetch(
@@ -314,7 +314,7 @@ const TheService: ServiceSchema = {
         this.broker.cacher.clean(`products.getInstanceProduct:${myStore.consumer_key}*`);
 
         if (myStore.internal_data && myStore.internal_data.omsId) {
-          this.updateOmsStore(myStore.internal_data.omsId, ctx.params).catch((error: unknown) => {
+          ctx.call('crm.updateStoreById', ctx.params).then(null, (error: unknown) => {
             this.sendLogs({
               topic: 'store',
               topicId: ctx.params.url,
@@ -507,60 +507,6 @@ const TheService: ServiceSchema = {
         store.credit = omsData.credit;
       }
       return store;
-    },
-    updateOmsStore(storeId, params) {
-      const body: OmsStore = {};
-      // Sanitized params keys
-      const keys: string[] = [
-        // 'name',
-        // 'status',
-        // 'type',
-        // 'stock_status',
-        // 'price_status',
-        // 'sale_price',
-        // 'sale_price_operator',
-        // 'compared_at_price',
-        // 'compared_at_price_operator',
-        // 'currency',
-        'users',
-        // 'languages',
-        'shipping_methods',
-        'address'
-      ];
-      const transformObj: { [key: string]: string } = {
-        type: 'platform',
-        compared_at_price: 'comparedPrice',
-        compared_at_price_operator: 'comparedOperator',
-        stock_status: 'stockStatus',
-        price_status: 'priceStatus',
-        sale_price: 'salePrice',
-        sale_price_operator: 'saleOperator',
-        shipping_methods: 'shippingMethods',
-        address: 'billing'
-      };
-      Object.keys(params).forEach(key => {
-        if (!keys.includes(key)) return;
-        const keyName: string = transformObj[key] || key;
-        body[keyName] = params[key].$date || params[key];
-      });
-      // if no attributes no update
-      if (Object.keys(body).length === 0) return Promise.resolve();
-      if (body.shippingMethods) {
-        body.shippingMethods = (body.shippingMethods as Array<{ name: string }>).map(
-          method => method.name
-        );
-      }
-      body.stockDate = params.stock_date;
-      body.priceDate = params.price_date;
-      return fetch(`${process.env.OMS_BASEURL}/stores/${storeId}`, {
-        method: 'put',
-        headers: {
-          Authorization: `Basic ${this.settings.AUTH}`,
-          'Content-Type': 'application/json',
-          Accept: 'application/json'
-        },
-        body: JSON.stringify(body)
-      }).then(response => response.json());
     },
     createOmsStore(params) {
       const body: OmsStore = {};

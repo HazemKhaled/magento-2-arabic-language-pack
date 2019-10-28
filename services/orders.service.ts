@@ -136,16 +136,21 @@ const TheService: ServiceSchema = {
         data.shippingCharge = shipment.cost;
 
         // Calculate the order total
-        let total: number = data.items.reduce((accumulator: number, current: OrderItem) => accumulator + current.purchaseRate, 0) + data.shippingCharge;
+        const total: number = data.items.reduce((accumulator: number, current: OrderItem) => accumulator + current.purchaseRate, 0) + data.shippingCharge;
 
         // Getting the current user subscription
-        const subscription = await ctx.call('subscription.get',{ url: instance.url });
-        if((Number(subscription.attr_order_processing_fees) === 0 || !Number(subscription.attr_order_processing_fees))
-          && subscription.attr_order_processing_fees_percentage) {
-          subscription.adjustment = subscription.attr_order_processing_fees_percentage/100 * total;
-          subscription.adjustmentDescription = `Processing Fees ${subscription.attr_order_processing_fees_percentage}%`;
-          total = total * (subscription.attr_order_processing_fees_percentage/100 + 1);
+        const subscription = await ctx.call('subscription.get',{ id: instance.url });
+        switch (subscription.attributes.orderProcessingType) {
+          case '$':
+            data.adjustment = subscription.attributes.orderProcessingFees;
+            data.adjustmentDescription = `Processing Fees`;
+            break;
+          case '%':
+            subscription.adjustment = subscription.attributes.orderProcessingFees/100 * total;
+            subscription.adjustmentDescription = `Processing Fees ${subscription.attributes.orderProcessingFees}%`;
+            break;
         }
+
         // Checking for processing fees
         this.sendLogs({
           topic: 'order',
@@ -156,14 +161,6 @@ const TheService: ServiceSchema = {
           code: 2103,
           payload: { subscription, params: ctx.params }
         });
-
-        if (
-          !subscription ||
-          (subscription.attr_order_processing_fees && subscription.attr_order_processing_fees > 0)
-            || subscription.attr_order_processing_fees) {
-          data.adjustment = subscription.adjustment || Number(subscription.attr_order_processing_fees || 2);
-          data.adjustmentDescription = subscription.adjustmentDescription || `Processing Fees`;
-        }
 
         data.status = ['pending', 'processing', 'cancelled'].includes(data.status)
           ? this.normalizeStatus(data.status)
@@ -181,7 +178,7 @@ const TheService: ServiceSchema = {
             } Available Qty: ${item.quantity}\n`,
           ''
         )}${data.notes}`;
-        data.subscription = subscription.membership_name;
+        data.subscription = subscription.membership.name.en;
         this.logger.info(JSON.stringify(data));
         const result: OMSResponse = await fetch(`${process.env.OMS_BASEURL}/orders`, {
           method: 'POST',
@@ -301,6 +298,8 @@ const TheService: ServiceSchema = {
         });
         const orderBeforeUpdate = await ctx.call('orders.getOrder', { order_id: ctx.params.id });
         if (orderBeforeUpdate.id === -1) {
+          ctx.meta.$statusCode = 404;
+          ctx.meta.$statusMessage = 'Not Found';
           return { message: 'Order Not Found!' };
         }
         // Change here
@@ -381,7 +380,7 @@ const TheService: ServiceSchema = {
               instance,
               ctx.params.shipping_method
             );
-            
+
             if(shipment) {
               data.shipmentCourier = shipment.courier;
               data.shippingCharge = shipment.cost;
@@ -390,11 +389,10 @@ const TheService: ServiceSchema = {
             const total: number = data.items.reduce((accumulator: number, current: OrderItem) => accumulator + current.purchaseRate, 0) + (data.shippingCharge || orderBeforeUpdate.shippingCharge);
 
             // Getting the current user subscription
-            const subscription = await ctx.call('subscription.get',{ url: instance.url });
-            if(Number(subscription.attr_order_processing_fees_percentage)) {
-              data.adjustment = subscription.attr_order_processing_fees_percentage/100 * total;
-              data.adjustmentDescription = `Processing Fees ${subscription.attr_order_processing_fees_percentage}%`;
-              data.subscription = subscription.membership_name;
+            const subscription = await ctx.call('subscription.get',{ id: instance.url });
+            if(subscription.attributes.orderProcessingType === '%') {
+                subscription.adjustment = subscription.attributes.orderProcessingFees/100 * total;
+                subscription.adjustmentDescription = `Processing Fees ${subscription.attributes.orderProcessingFees}%`;
             }
             // Initializing warnings array if we have a Warning
             const warnings = this.warningsMessenger(
@@ -555,7 +553,8 @@ const TheService: ServiceSchema = {
           shipping: order.shipping,
           total: order.total,
           externalId: order.externalId,
-          createDate: order.date_created,
+          createDate: order.createDate,
+          updateDate: order.updateDate,
           knawat_order_status: order.status ? this.normalizeResponseStatus(order.status) : '',
           notes: order.notes,
           shipping_method: order.shipmentCourier,
@@ -694,6 +693,8 @@ const TheService: ServiceSchema = {
       async handler(ctx) {
         const orderBeforeUpdate = await ctx.call('orders.getOrder', { order_id: ctx.params.id });
         if (orderBeforeUpdate.id === -1) {
+          ctx.meta.$statusCode = 404;
+          ctx.meta.$statusMessage = 'Not Found';
           return { message: 'Order Not Found!' };
         }
         // Change here

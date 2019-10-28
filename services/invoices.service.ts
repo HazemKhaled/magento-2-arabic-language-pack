@@ -1,6 +1,8 @@
-import { Context, ServiceSchema } from 'moleculer';
+import { Context, Errors, ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
 import { Invoice } from '../utilities/types';
+import { CreateInvoiceValidation } from '../utilities/validations';
+const MoleculerError = Errors.MoleculerError;
 
 const TheService: ServiceSchema = {
   name: 'invoices',
@@ -91,6 +93,79 @@ const TheService: ServiceSchema = {
           ]
         };
       }
+    },
+    create: {
+      auth: 'Basic',
+      params: CreateInvoiceValidation,
+      async handler(ctx: Context) {
+        const instance = await ctx.call('stores.findInstance', {
+          id: ctx.params.storeId
+        });
+        if(instance.errors) {
+          throw new MoleculerError('Store not found', 404);
+        }
+        const url = `${process.env.OMS_BASEURL}/invoices`
+        return fetch(url, {
+          method: 'post',
+          body: JSON.stringify({
+            customerId: instance.internal_data.omsId,
+            discount: ctx.params.discount && ctx.params.discount.value,
+            discountType: ctx.params.discount && ctx.params.discount.type,
+            items: ctx.params.items
+          }),
+          headers: {
+            Authorization: `Basic ${this.settings.AUTH}`,
+            'Content-Type': 'application/json',
+            Accept: 'application/json'
+          }
+        })
+        .then(res => this.responseCheck(res))
+        .then(res => {
+          this.broker.cacher.clean(`invoices.get:${instance.consumer_key}*`);
+          return res;
+        })
+        .catch(err => {throw new MoleculerError(err.message, err.code || 500)});
+      }
+    },
+    applyCredits: {
+      auth: 'Bearer',
+      params: {
+        id: { type: 'string' }
+      },
+      async handler(ctx: Context) {
+        const instance = await ctx.call('stores.findInstance', {
+          consumerKey: ctx.meta.user
+        });
+        if(instance.errors) {
+          throw new MoleculerError('Store not found', 404);
+        }
+        const url = `${process.env.OMS_BASEURL}/invoices/${instance.internal_data.omsId}/${ctx.params.id}/credits`;
+        return fetch(url, {
+          method: 'post',
+          headers: {
+            Authorization: `Basic ${this.settings.AUTH}`,
+            'Content-Type': 'application/json',
+            Accept: 'application/json'
+          }
+        })
+        .then(res => this.responseCheck(res))
+        .then(res => {
+          this.broker.cacher.clean(`invoices.get:${instance.consumer_key}*`);
+          this.broker.cacher.clean(`stores.get:${instance.url}*`);
+          this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
+          return res;
+        })
+        .catch(err => {throw new MoleculerError(err.message, err.code || 500)});
+      }
+    },
+  },
+  methods: {
+    async responseCheck(responseCursor) {
+      const response = await responseCursor.json();
+      if(!responseCursor.ok) {
+        throw new MoleculerError(response.message || response.error.message || response, responseCursor.status)
+      }
+      return response;
     }
   }
 };

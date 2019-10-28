@@ -64,7 +64,7 @@ services:
     restart: always
     env_file: .env
     environment:
-      SERVICES: categories,products-list
+      SERVICES: categories, products-list
     networks:
       - elastic
       - default
@@ -76,7 +76,25 @@ services:
     restart: always
     env_file: .env
     environment:
-      SERVICES: currencies, subscription
+      SERVICES: currencies
+
+  subscription:
+    build:
+      context: ../../
+    image: microes
+    restart: always
+    env_file: .env
+    environment:
+      SERVICES: membership, subscription, coupons
+
+  subscription-cron:
+      build:
+        context: ../../
+      image: microes
+      restart: always
+      env_file: .env
+      environment:
+        SERVICES: subscription-cron
 
   orders:
     build:
