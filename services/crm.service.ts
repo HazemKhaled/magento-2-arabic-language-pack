@@ -1,6 +1,7 @@
 import FormData from 'form-data';
 import { Context, Errors , ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
+import { CrmStore, OrderAddress, Store } from '../utilities/types';
 import { UpdateCrmStoreValidation } from '../utilities/validations';
 const MoleculerError = Errors.MoleculerError;
 
@@ -82,6 +83,20 @@ const TheService: ServiceSchema = {
         }
     },
     methods: {
+        /**
+         * General http requests methods for Zoho crm to handle variuos zoho requests
+         * Also checks errors for auth and reauth if the token expired
+         *
+         * @param {({
+         *             method: string,
+         *             path: string,
+         *             isAccountsUrl: boolean,
+         *             body: {[key: string]: unknown},
+         *             bodyType: 'json' | 'formData',
+         *             params: {[key: string]: string}
+         *         })} {method = 'get', path, isAccountsUrl = false, body, bodyType = 'json', params}
+         * @returns Promise<fetchedData>
+         */
         request({method = 'get', path, isAccountsUrl = false, body, bodyType = 'json', params}: {
             method: string,
             path: string,
@@ -127,7 +142,7 @@ const TheService: ServiceSchema = {
                 return parsedRes;
             }).catch(err => {throw new MoleculerError(err.message, err.code)});
         },
-        transformStoreParams(params: any) {
+        transformStoreParams(params: Store) {
             const newObj: any = {
                 id: params.id
             };
@@ -153,24 +168,24 @@ const TheService: ServiceSchema = {
                 last_name: 'Billing_Name',
                 phone: 'Billing_Phone',
             };
-            Object.keys(params).forEach(key => {
+            Object.keys(params).forEach((key: keyof Store) => {
                 if(typeof params[key] === 'string'){
-                    newObj[crmParams[key]] = params[key];
+                    newObj[crmParams[key] as keyof CrmStore] = params[key];
                 }
                 if(key === 'address') {
                     Object.keys(params[key]).forEach(attr => {
-                        newObj[crmParams[attr]] = params[key][attr];
+                        newObj[crmParams[attr] as keyof CrmStore] = params[key][attr as keyof OrderAddress];
                     })
                 }
             });
             if(params.languages) {
-                newObj.languages = params.languages.reduce((accumulator: string, lang: string) => `${accumulator ? accumulator + '-' : accumulator}${lang}`, '');
+                newObj.Languages = params.languages.reduce((accumulator: string, lang: string) => `${accumulator ? accumulator + '-' : accumulator}${lang}`, '');
             }
             if(params.shipping_methods) {
-                newObj.shipping_methods = params.shipping_methods.reduce((accumulator: string, method: {name: string}) => `${accumulator ? accumulator + '-' : accumulator}${method.name}`, '');
+                newObj.Shipping_Methods = params.shipping_methods.reduce((accumulator: string, method: {name: string}) => `${accumulator ? accumulator + '-' : accumulator}${method.name}`, '');
             }
             if(params.address && (params.address.first_name || params.address.last_name)) {
-                newObj.name = `${params.address.first_name}${params.address.last_name}`;
+                newObj.Billing_Name = `${params.address.first_name}${params.address.last_name}`;
             }
             return newObj;
         }

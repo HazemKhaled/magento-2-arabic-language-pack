@@ -12,3 +12,4 @@ export * from './omsStore.type';
 export * from './membership.type';
 export * from './subscription.type';
 export * from './coupon.type';
+export * from './crmStore.type';
