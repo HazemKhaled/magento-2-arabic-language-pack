@@ -12,9 +12,11 @@ const TheService: ServiceSchema = {
             auth: 'Basic',
             params: CreateMembershipValidation,
             handler(ctx: Context): Promise<Membership> {
-                ctx.params._id = `m-${Date.now()}`;
+                const {params} = ctx;
+                params._id = `m-${params.id || Date.now()}`;
+                delete params.id;
                 return this.adapter
-                    .insert(ctx.params)
+                    .insert(params)
                     .then((res: Membership) => {
                         this.broker.cacher.clean(`membership.list:**`);
                         return this.normalizeId(res)

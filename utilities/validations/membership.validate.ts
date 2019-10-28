@@ -1,4 +1,5 @@
 export const CreateMembershipValidation = {
+    id: { type: 'string', optional: true },
     name: {
         type: 'object',
         props: {
