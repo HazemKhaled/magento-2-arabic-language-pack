@@ -65,6 +65,22 @@ const TheService = {
                     body: {data: [this.transformStoreParams(ctx.params)]}
                 });
             }
+        },
+        addTagsByUrl: {
+            params: {
+                id: { type: 'string' },
+                tag: { type: 'string' }
+            },
+            async handler(ctx: Context) {
+                const crmStore = await ctx.call('crm.findStoreByUrl', {id: ctx.params.id});
+                return this.request({
+                    method: 'post',
+                    path: `crm/v2/accounts/${crmStore.id}/actions/add_tags`,
+                    params: {
+                        tag_names: ctx.params.tag
+                    }
+                });
+            }
         }
     },
     methods: {

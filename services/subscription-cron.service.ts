@@ -37,6 +37,10 @@ const TheService: ServiceSchema = {
                             id: String(subscription.id),
                             renewed: true
                         });
+                        ctx.call('crm.addTagByUrl', {
+                            id: subscription.storeId,
+                            tag: 'subscription-renew',
+                        });
                     }
                     return createSubResponse;
                 }
