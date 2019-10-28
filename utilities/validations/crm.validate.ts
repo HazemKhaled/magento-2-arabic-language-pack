@@ -6,7 +6,6 @@ export const UpdateCrmStoreValidation = {
         'woocommerce',
         'magento1',
         'magento2',
-        'salla',
         'expandcart',
         'opencart',
         'shopify',

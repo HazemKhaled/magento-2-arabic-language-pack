@@ -17,7 +17,7 @@ module.exports = {
       host: `http://${process.env.ELASTIC_AUTH}@${process.env.ELASTIC_HOST}:${
         process.env.ELASTIC_PORT
       }`,
-      apiVersion: process.env.ELASTIC_VERSION || '6.7'
+      apiVersion: process.env.ELASTIC_VERSION || '6.x'
     }
   },
   /**

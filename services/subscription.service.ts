@@ -94,7 +94,7 @@ const TheService: ServiceSchema = {
                         membership: ctx.params.membership
                     }).then(null, err => err);
                     if(isError(coupon)) {
-                        throw new MoleculerError(coupon.message, coupon.code);
+                        throw new MoleculerError(coupon.message, Number(coupon.code));
                     }
                 }
                 const membership = await ctx.call('membership.get', { id: ctx.params.membership }).then(null, err => err);
