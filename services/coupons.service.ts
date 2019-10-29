@@ -37,7 +37,7 @@ const TheService: ServiceSchema = {
                 membership: { type: 'string', optional: true }
             },
             handler(ctx: Context): Promise<Coupon> {
-                const query: {[key:string]: {}} = { _id: ctx.params.id, startDate: { $lte: new Date() }, endDate: { $gte: new Date() } };
+                const query: {[key:string]: {}} = { _id: ctx.params.id.toUpperCase(), startDate: { $lte: new Date() }, endDate: { $gte: new Date() } };
                 if(ctx.params.membership) {
                     query.appliedMemberships = ctx.params.membership
                 }
