@@ -84,7 +84,7 @@ const TheService: ServiceSchema = {
             auth: 'Basic',
             params: UpdateCouponValidation,
             async handler(ctx: Context): Promise<Coupon> {
-                const {id} = ctx.params;
+                const id = ctx.params.id.toUpperCase();
                 const updateBody = {...ctx.params};
                 delete updateBody.id;
                 return this.adapter.updateById(id, { $set: updateBody }).then((coupon: Coupon) => {
@@ -106,7 +106,7 @@ const TheService: ServiceSchema = {
                 id: { type: 'string' }
             },
             async handler(ctx: Context) {
-                return this.adapter.updateById(ctx.params.id, { $inc: { useCount: 1 } }).then((coupon: Coupon) => {
+                return this.adapter.updateById(ctx.params.id.toUpperCase(), { $inc: { useCount: 1 } }).then((coupon: Coupon) => {
                     if (!coupon) {
                         throw new MoleculerError('No Coupons found!', 404);
                     }
