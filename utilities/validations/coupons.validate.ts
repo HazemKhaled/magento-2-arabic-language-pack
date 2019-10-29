@@ -1,5 +1,5 @@
 export const CreateCouponValidation = {
-    "code": { type: "string" },
+    "code": { type: "string", pattern: '[A-Z]' },
 	"discount": { type: "number", positive: true },
 	"discountType": { type: "enum", values: ['$', '%'] },
 	"startDate": { type: "date", convert: true },
