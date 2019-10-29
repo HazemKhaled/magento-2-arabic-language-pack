@@ -133,7 +133,7 @@ const TheService: ServiceSchema = {
                     items: [{
                         sku: membership.id,
                         name: `${membership.name.en} subscription ${membership.paymentFrequency} ${membership.paymentFrequencyType}`,
-                        accountId: process.env.SUBSCRIPTION_LEDGER_ACCOUNT_ID,
+                        accountId: String(process.env.SUBSCRIPTION_LEDGER_ACCOUNT_ID),
                         description: membership.description.en,
                         rate: cost,
                         quantity: 1,
