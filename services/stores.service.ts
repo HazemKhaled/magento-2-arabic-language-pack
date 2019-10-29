@@ -63,7 +63,7 @@ const TheService: ServiceSchema = {
             let omsData: boolean | { store: Store } = false;
             if(res) {
               if(res.users) {
-                res.subscription = await ctx.call('subscription.get',{ url: res._id });
+                res.subscription = await ctx.call('subscription.get',{ id: res._id });
               }
               if (res.internal_data && res.internal_data.omsId) {
                 omsData = (await fetch(
