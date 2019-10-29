@@ -132,7 +132,8 @@ const TheService: ServiceSchema = {
                     storeId: ctx.params.storeId,
                     items: [{
                         sku: membership.id,
-                        name: membership.name.en,
+                        name: `${membership.name.en} subscription ${membership.paymentFrequency} ${membership.paymentFrequencyType}`,
+                        accountId: process.env.SUBSCRIPTION_LEDGER_ACCOUNT_ID,
                         description: membership.description.en,
                         rate: cost,
                         quantity: 1,
