@@ -184,6 +184,24 @@ const TheService: ServiceSchema = {
         });
       }
     },
+    storesList: {
+      auth: 'Basic',
+      params: {
+        id: {type: 'string', optional: true},
+        page: {type: 'number', optional: true, positive: true},
+        perPage: {type: 'number', optional: true, positive: true},
+      },
+      handler(ctx: Context) {
+        const query: any = {};
+        if(ctx.params.id) {
+          query._id = {$regex: new RegExp(`.*${ctx.params.id}.*`, 'i')};
+        }
+        const findBody: any = {query};
+        findBody.limit = ctx.params.perPage || 50;
+        findBody.offset = (ctx.params.perPage || 50) * ((ctx.params.perPage || 1) - 1);
+        return this.adapter.find(findBody);
+      }
+    },
     /**
      * Create new store
      *
