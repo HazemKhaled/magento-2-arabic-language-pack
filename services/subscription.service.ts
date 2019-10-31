@@ -43,6 +43,7 @@ const TheService: ServiceSchema = {
                         props: {
                             operation: {type: 'enum', values: ['lte', 'gte', 'gt', 'lt']},
                             date: {type: 'date', convert: true, optional: true},
+                            $$strict: true,
                         }
                     },
                     {
@@ -50,12 +51,12 @@ const TheService: ServiceSchema = {
                         optional: true,
                         max: 2,
                         min: 1,
-                        props: {
+                        items: {
                             type: 'object',
-                            optional: true,
                             props: {
                                 operation: {type: 'enum', values: ['lte', 'gte', 'gt', 'lt']},
                                 date: {type: 'date', convert: true},
+                                $$strict: true,
                             }
                         }
                     }
@@ -67,6 +68,7 @@ const TheService: ServiceSchema = {
                         props: {
                             operation: {type: 'enum', values: ['lte', 'gte', 'gt', 'lt']},
                             date: {type: 'date', convert: true, optional: true},
+                            $$strict: true,
                         }
                     },
                     {
@@ -76,10 +78,10 @@ const TheService: ServiceSchema = {
                         min: 1,
                         items: {
                             type: 'object',
-                            optional: true,
                             props: {
                                 operation: {type: 'enum', values: ['lte', 'gte', 'gt', 'lt']},
                                 date: {type: 'date', convert: true},
+                                $$strict: true,
                             }
                         }
                     }
