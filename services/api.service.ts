@@ -94,6 +94,7 @@ const TheService: ServiceSchema = {
 
           // Subscription
           'POST subscription': 'subscription.create',
+          'GET subscription': 'subscription.list',
 
         },
 

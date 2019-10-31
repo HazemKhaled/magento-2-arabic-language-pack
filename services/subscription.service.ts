@@ -32,17 +32,60 @@ const TheService: ServiceSchema = {
             }
         },
         list: {
+            auth: 'Basic',
             params: {
-                id: {type: 'string'},
-                expireDate: {
-                    type: 'object',
-                    optional: true,
-                    props: {
-                        operation: {type: 'enum', values: ['lte', 'gte', 'gt', 'lt']},
-                        date: {type: 'date', convert: true, optional: true},
+                storeId: {type: 'string', optional: true},
+                membershipId: {type: 'string', optional: true},
+                expireDate: [
+                    {
+                        type: 'object',
+                        optional: true,
+                        props: {
+                            operation: {type: 'enum', values: ['lte', 'gte', 'gt', 'lt']},
+                            date: {type: 'date', convert: true, optional: true},
+                        }
+                    },
+                    {
+                        type: 'array',
+                        optional: true,
+                        max: 2,
+                        min: 1,
+                        props: {
+                            type: 'object',
+                            optional: true,
+                            props: {
+                                operation: {type: 'enum', values: ['lte', 'gte', 'gt', 'lt']},
+                                date: {type: 'date', convert: true},
+                            }
+                        }
                     }
-                },
-                limit: {type: 'number', optional: true},
+                ],
+                startDate: [
+                    {
+                        type: 'object',
+                        optional: true,
+                        props: {
+                            operation: {type: 'enum', values: ['lte', 'gte', 'gt', 'lt']},
+                            date: {type: 'date', convert: true, optional: true},
+                        }
+                    },
+                    {
+                        type: 'array',
+                        optional: true,
+                        max: 2,
+                        min: 1,
+                        items: {
+                            type: 'object',
+                            optional: true,
+                            props: {
+                                operation: {type: 'enum', values: ['lte', 'gte', 'gt', 'lt']},
+                                date: {type: 'date', convert: true},
+                            }
+                        }
+                    }
+                ],
+                page: {type: 'number', positive: true, optional: true},
+                perPage: {type: 'number', positive: true, optional: true},
                 sort: {
                     type: 'object',
                     optional: true,
@@ -51,25 +94,42 @@ const TheService: ServiceSchema = {
                         order: {type: 'enum', values: [1, -1]}
                     }
                 },
+                $$strict: true,
             },
             cache: {
-                keys: ['id', 'expireDate', 'limit', 'sort'],
+                keys: ['storeId', 'membershipId', 'expireDate', 'startDate', 'page', 'perPage', 'sort'],
                 ttl: 60 * 60 // 1 hour
             },
             async handler(ctx: Context): Promise<Subscription | false> {
-                const query: {[key: string]: any} = {
-                    storeId: ctx.params.id
-                };
+                const query: {[key: string]: any} = {};
+                if(ctx.params.storeId) {
+                    query.storeId = ctx.params.storeId;
+                }
+                if(ctx.params.membershipId) {
+                    query.membershipId = ctx.params.membershipId;
+                }
                 if(ctx.params.expireDate) {
-                    query.expireDate = {[`$${ctx.params.expireDate.operation}`]: ctx.params.expireDate.date ? new Date(ctx.params.expireDate.date) : new Date()};
+                    const expireDate = Array.isArray(ctx.params.expireDate) ? ctx.params.expireDate : [ctx.params.expireDate];
+                    query.expireDate = {[`$${expireDate[0].operation}`]: expireDate[0].date ? new Date(expireDate[0].date) : new Date()};
+                    if(expireDate[1]) {
+                        query.expireDate[`$${expireDate[1].operation}`] = expireDate[1].date ? new Date(expireDate[1].date) : new Date();
+                    }
+                }
+                if(ctx.params.startDate) {
+                    const startDate = Array.isArray(ctx.params.startDate) ? ctx.params.startDate : [ctx.params.startDate];
+                    query.startDate = {[`$${startDate[0].operation}`]: startDate[0].date ? new Date(startDate[0].date) : new Date()};
+                    if(startDate[1]) {
+                        query.startDate[`$${startDate[1].operation}`] = startDate[1].date ? new Date(startDate[1].date) : new Date();
+                    }
                 }
                 const findBody: any = {query};
                 if(ctx.params.sort) {
                     findBody.sort = {[ctx.params.sort.field]: ctx.params.sort.order};
                 }
-                if(ctx.params.limit) {
-                    findBody.limit = ctx.params.limit;
+                if(ctx.params.perPage) {
+                    findBody.limit = ctx.params.perPage;
                 }
+                findBody.offset = (findBody.limit || 100) * (ctx.params.page ? ctx.params.page - 1 : 0);
                 return this.adapter
                     .find(findBody)
                     .then((res: Subscription[]) => {
@@ -156,7 +216,7 @@ const TheService: ServiceSchema = {
                     throw new MoleculerError(applyCreditsResponse.message, applyCreditsResponse.code || 500);
                 }
                 const storeOldSubscription = await ctx.call('subscription.list', {
-                    id: ctx.params.storeId,
+                    storeId: ctx.params.storeId,
                     expireDate: {operation: 'gte'}
                 });
                 let startDate = new Date();
@@ -268,10 +328,10 @@ const TheService: ServiceSchema = {
             },
             async handler(ctx: Context) {
                 const allSubBefore = await ctx.call('subscription.list', {
-                    id: ctx.params.id,
+                    storeId: ctx.params.id,
                     expireDate: { operation: 'gte', date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7) },
                     sort: { field: 'expireDate', order: -1 },
-                    limit: 2
+                    perPage: 2
                 });
                 const memberships = await ctx.call('membership.list');
                 if(allSubBefore.length === 0) return;
