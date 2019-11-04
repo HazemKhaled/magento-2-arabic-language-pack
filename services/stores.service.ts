@@ -1,6 +1,7 @@
-import { Context, ServiceSchema } from 'moleculer';
+import { Context, Errors, ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
 import DbService from '../utilities/mixins/mongo.mixin';
+const MoleculerError = Errors.MoleculerError;
 
 import { v1 as uuidv1, v4 as uuidv4 } from 'uuid';
 import { Log, OmsStore, ResError, Store, StoreUser } from '../utilities/types';
@@ -199,7 +200,16 @@ const TheService: ServiceSchema = {
         const findBody: any = {query};
         findBody.limit = ctx.params.perPage || 50;
         findBody.offset = (ctx.params.perPage || 50) * ((ctx.params.perPage || 1) - 1);
-        return this.adapter.find(findBody);
+        return this.adapter.find(findBody).then((res: Store[]) => {
+          if (res.length !== 0) return res.map(store => this.sanitizeResponse(store));
+          throw new MoleculerError('No Store found!', 404);
+        })
+        .catch((err: any) => {
+            if (err.name === 'MoleculerError') {
+                throw new MoleculerError(err.message, err.code);
+            }
+            throw new MoleculerError(err, 500);
+        });
       }
     },
     /**
