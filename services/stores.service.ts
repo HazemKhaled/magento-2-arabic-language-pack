@@ -127,7 +127,7 @@ const TheService: ServiceSchema = {
 
           // return store even if we didn't get balance from OMS
           if (res) {
-            return res;
+            return this.sanitizeResponse(res);
           }
 
           // If null return Not Found error
