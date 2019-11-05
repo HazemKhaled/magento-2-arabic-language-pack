@@ -255,7 +255,7 @@ const TheService: ServiceSchema = {
             orderNumber: order.orderNumber
           }
         };
-        if(order.id && data.status === 'processing') {
+        if(order.id && order.status === 'open') {
           ctx.call('invoices.createOrderInvoice', {
             storeId: instance.url,
             orderId: order.id,
