@@ -255,7 +255,18 @@ const TheService: ServiceSchema = {
             orderNumber: order.orderNumber
           }
         };
-
+        if(order.id && data.status === 'processing') {
+          ctx.call('invoices.createOrderInvoice', {
+            storeId: instance.url,
+            orderId: order.id,
+          }).then(async res => {
+            await ctx.call('invoices.markInvoiceSent', {
+              omsId: instance.internal_data.omsId,
+              invoiceId: res.invoice.invoiceId
+            });
+            this.broker.cacher.clean(`invoices.get:${instance.consumer_key}*`);
+          })
+        }
         // Initializing warnings array if we have a Warning
         const warnings = this.warningsMessenger(
           stock.outOfStock,
