@@ -1,19 +1,7 @@
 import { Context, ServiceSchema } from 'moleculer';
-import fetch from 'node-fetch';
 import { v1 as uuidv1 } from 'uuid';
-
 import { OrdersOperations } from '../utilities/mixins/orders.mixin';
-import {
-  Log,
-  OMSResponse,
-  Order,
-  OrderAddress,
-  OrderItem,
-  Product,
-  Store,
-  Subscription,
-  User
-} from '../utilities/types';
+import { Log, OMSResponse, Order, OrderAddress, OrderItem, Product } from '../utilities/types';
 import {
   createOrderValidation,
   updateOrderValidation
@@ -23,7 +11,6 @@ const TheService: ServiceSchema = {
   name: 'orders',
   mixins: [OrdersOperations],
   settings: {
-    AUTH: Buffer.from(`${process.env.BASIC_USER}:${process.env.BASIC_PASS}`).toString('base64'),
     BASEURL:
       process.env.NODE_ENV === 'production'
         ? 'https://mp.knawat.io/api'
@@ -136,18 +123,24 @@ const TheService: ServiceSchema = {
         data.shippingCharge = shipment.cost;
 
         // Calculate the order total
-        const total: number = data.items.reduce((accumulator: number, current: OrderItem) => accumulator + current.purchaseRate, 0) + data.shippingCharge;
+        const total: number =
+          data.items.reduce(
+            (accumulator: number, current: OrderItem) => accumulator + current.purchaseRate,
+            0
+          ) + data.shippingCharge;
 
         // Getting the current user subscription
-        const subscription = await ctx.call('subscription.get',{ id: instance.url });
+        const subscription = await ctx.call('subscription.get', { id: instance.url });
         switch (subscription.attributes.orderProcessingType) {
           case '$':
             data.adjustment = subscription.attributes.orderProcessingFees;
             data.adjustmentDescription = `Processing Fees`;
             break;
           case '%':
-            subscription.adjustment = subscription.attributes.orderProcessingFees/100 * total;
-            subscription.adjustmentDescription = `Processing Fees ${subscription.attributes.orderProcessingFees}%`;
+            subscription.adjustment = (subscription.attributes.orderProcessingFees / 100) * total;
+            subscription.adjustmentDescription = `Processing Fees ${
+              subscription.attributes.orderProcessingFees
+            }%`;
             break;
         }
 
@@ -180,15 +173,7 @@ const TheService: ServiceSchema = {
         )}${data.notes}`;
         data.subscription = subscription.membership.name.en;
         this.logger.info(JSON.stringify(data));
-        const result: OMSResponse = await fetch(`${process.env.OMS_BASEURL}/orders`, {
-          method: 'POST',
-          body: JSON.stringify(data),
-          headers: {
-            Authorization: `Basic ${this.settings.AUTH}`,
-            'Content-Type': 'application/json',
-            Accept: 'application/json'
-          }
-        }).then(createResponse => createResponse.json());
+        const result: OMSResponse = await ctx.call('oms.createNewOrder', data);
         if (!result.salesorder) {
           this.sendLogs({
             topicId: data.externalId,
@@ -196,7 +181,10 @@ const TheService: ServiceSchema = {
             storeId: instance.url,
             logLevel: 'error',
             code: result.error.statusCode,
-            payload: { errors: (result.error && result.error.details) || result, params: ctx.params }
+            payload: {
+              errors: (result.error && result.error.details) || result,
+              params: ctx.params
+            }
           });
           ctx.meta.$statusCode = result.error.statusCode;
           ctx.meta.$statusMessage = result.error.name;
@@ -255,17 +243,19 @@ const TheService: ServiceSchema = {
             orderNumber: order.orderNumber
           }
         };
-        if(order.id && order.status === 'open') {
-          ctx.call('invoices.createOrderInvoice', {
-            storeId: instance.url,
-            orderId: order.id,
-          }).then(async res => {
-            await ctx.call('invoices.markInvoiceSent', {
-              omsId: instance.internal_data.omsId,
-              invoiceId: res.invoice.invoiceId
+        if (order.id && order.status === 'open') {
+          ctx
+            .call('invoices.createOrderInvoice', {
+              storeId: instance.url,
+              orderId: order.id
+            })
+            .then(async res => {
+              await ctx.call('invoices.markInvoiceSent', {
+                omsId: instance.internal_data.omsId,
+                invoiceId: res.invoice.invoiceId
+              });
+              this.broker.cacher.clean(`invoices.get:${instance.consumer_key}*`);
             });
-            this.broker.cacher.clean(`invoices.get:${instance.consumer_key}*`);
-          })
         }
         // Initializing warnings array if we have a Warning
         const warnings = this.warningsMessenger(
@@ -392,18 +382,24 @@ const TheService: ServiceSchema = {
               ctx.params.shipping_method
             );
 
-            if(shipment) {
+            if (shipment) {
               data.shipmentCourier = shipment.courier;
               data.shippingCharge = shipment.cost;
             }
             // Calculate the order total
-            const total: number = data.items.reduce((accumulator: number, current: OrderItem) => accumulator + current.purchaseRate, 0) + (data.shippingCharge || orderBeforeUpdate.shippingCharge);
+            const total: number =
+              data.items.reduce(
+                (accumulator: number, current: OrderItem) => accumulator + current.purchaseRate,
+                0
+              ) + (data.shippingCharge || orderBeforeUpdate.shippingCharge);
 
             // Getting the current user subscription
-            const subscription = await ctx.call('subscription.get',{ id: instance.url });
-            if(subscription.attributes.orderProcessingType === '%') {
-                subscription.adjustment = subscription.attributes.orderProcessingFees/100 * total;
-                subscription.adjustmentDescription = `Processing Fees ${subscription.attributes.orderProcessingFees}%`;
+            const subscription = await ctx.call('subscription.get', { id: instance.url });
+            if (subscription.attributes.orderProcessingType === '%') {
+              subscription.adjustment = (subscription.attributes.orderProcessingFees / 100) * total;
+              subscription.adjustmentDescription = `Processing Fees ${
+                subscription.attributes.orderProcessingFees
+              }%`;
             }
             // Initializing warnings array if we have a Warning
             const warnings = this.warningsMessenger(
@@ -423,19 +419,10 @@ const TheService: ServiceSchema = {
             ? this.normalizeStatus(data.status)
             : data.status;
           // Update order
-          const result: OMSResponse = await fetch(
-            `${process.env.OMS_BASEURL}/orders/${instance.internal_data.omsId}/${ctx.params.id}`,
-            {
-              method: 'PUT',
-              body: JSON.stringify(data),
-              headers: {
-                Authorization: `Basic ${this.settings.AUTH}`,
-                'Content-Type': 'application/json',
-                Accept: 'application/json'
-              }
-            }
-          ).then(updateResponse => {
-            return updateResponse.json();
+          const result: OMSResponse = await ctx.call('oms.updateOrderById', {
+            customerId: instance.internal_data.omsId,
+            orderId: ctx.params.id,
+            ...data
           });
 
           this.logger.debug(JSON.stringify(result), '>>>>>>>>');
@@ -446,7 +433,10 @@ const TheService: ServiceSchema = {
               storeId: instance.url,
               logLevel: 'error',
               code: result.error.statusCode,
-              payload: { errors: (result.error && result.error.details) || result, params: ctx.params }
+              payload: {
+                errors: (result.error && result.error.details) || result,
+                params: ctx.params
+              }
             });
             ctx.meta.$statusCode = result.error.statusCode;
             ctx.meta.$statusMessage = result.error.name;
@@ -530,17 +520,10 @@ const TheService: ServiceSchema = {
           };
         }
 
-        let order = await fetch(
-          `${process.env.OMS_BASEURL}/orders/${instance.internal_data.omsId}/${
-            ctx.params.order_id
-          }`,
-          {
-            method: 'get',
-            headers: {
-              Authorization: `Basic ${this.settings.AUTH}`
-            }
-          }
-        ).then(response => response.json());
+        let order = await ctx.call('oms.getOrderById', {
+          customerId: instance.internal_data.omsId,
+          orderId: ctx.params.order_id
+        });
         if (order.error) {
           if (order.error.statusCode === 404) {
             ctx.meta.$statusCode = 404;
@@ -656,8 +639,8 @@ const TheService: ServiceSchema = {
             message: 'There is no orders for this store!'
           };
         }
-        const url = new URL(`${process.env.OMS_BASEURL}/orders/${instance.internal_data.omsId}`);
-        if (ctx.params.limit) url.searchParams.append('perPage', ctx.params.limit);
+        const queryParams: { [key: string]: string } = {};
+        if (ctx.params.limit) queryParams.perPage = ctx.params.limit;
         const keys = [
           'page',
           'sort',
@@ -676,14 +659,12 @@ const TheService: ServiceSchema = {
         ];
         Object.keys(ctx.params).forEach(key => {
           if (!keys.includes(key)) return;
-          url.searchParams.append(key, ctx.params[key]);
+          queryParams[key] = ctx.params[key];
         });
-        const orders = await fetch(url.href, {
-          method: 'get',
-          headers: {
-            Authorization: `Basic ${this.settings.AUTH}`
-          }
-        }).then(response => response.json());
+        const orders = await ctx.call('oms.listOrders', {
+          customerId: instance.internal_data.omsId,
+          queryParams
+        });
         return orders.salesorders.map((order: Order) => ({
           id: order.id,
           externalId: order.externalId,
@@ -731,72 +712,69 @@ const TheService: ServiceSchema = {
             params: ctx.params
           }
         });
-        return fetch(
-          `${process.env.OMS_BASEURL}/orders/${instance.internal_data.omsId}/${ctx.params.id}`,
-          {
-            method: 'delete',
-            headers: {
-              Authorization: `Basic ${this.settings.AUTH}`
-            }
-          }
-        )
-          .then(async response => {
-            const result = await response.json();
-            this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
-            this.broker.cacher.clean(`orders.getOrder:${ctx.params.id}**`);
-            if (result.salesorder) {
+        return ctx
+          .call('oms.deleteOrderById', {
+            customerId: instance.internal_data.omsId,
+            orderId: ctx.params.id
+          })
+          .then(
+            async result => {
+              this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
+              this.broker.cacher.clean(`orders.getOrder:${ctx.params.id}**`);
+              if (result.salesorder) {
+                return {
+                  status: 'success',
+                  data: {
+                    order_id: ctx.params.id
+                  }
+                };
+              }
+
+              this.logger.error(result);
+
+              this.sendLogs({
+                topicId: ctx.params.id,
+                message:
+                  result && result.error && result.error.message
+                    ? result.error.message
+                    : `Order Error`,
+                storeId: instance.url,
+                logLevel: 'error',
+                code: 500,
+                payload: { errors: result.error || result, params: ctx.params }
+              });
+              ctx.meta.$statusCode = 500;
+              ctx.meta.$statusMessage = 'Internal Server Error';
               return {
-                status: 'success',
-                data: {
-                  order_id: ctx.params.id
-                }
+                errors: [
+                  {
+                    status: 'fail',
+                    message: 'Internal Server Error'
+                  }
+                ]
+              };
+            },
+            err => {
+              this.sendLogs({
+                topicId: ctx.params.id,
+                message: err && err.error && err.error.message ? err.error.message : `Order Error`,
+                storeId: instance.url,
+                logLevel: 'error',
+                code: 500,
+                payload: { errors: err.error || err, params: ctx.params }
+              });
+              ctx.meta.$statusCode = 500;
+              ctx.meta.$statusMessage = 'Internal Server Error';
+              return {
+                errors: [
+                  {
+                    status: 'fail',
+                    message: 'Internal Server Error'
+                  }
+                ]
               };
             }
-
-            this.logger.error(result);
-
-            this.sendLogs({
-              topicId: ctx.params.id,
-              message:
-                result && result.error && result.error.message
-                  ? result.error.message
-                  : `Order Error`,
-              storeId: instance.url,
-              logLevel: 'error',
-              code: 500,
-              payload: { errors: result.error || result, params: ctx.params }
-            });
-            ctx.meta.$statusCode = 500;
-            ctx.meta.$statusMessage = 'Internal Server Error';
-            return {
-              errors: [
-                {
-                  status: 'fail',
-                  message: 'Internal Server Error'
-                }
-              ]
-            };
-          })
-          .catch(err => {
-            this.sendLogs({
-              topicId: ctx.params.id,
-              message: err && err.error && err.error.message ? err.error.message : `Order Error`,
-              storeId: instance.url,
-              logLevel: 'error',
-              code: 500,
-              payload: { errors: err.error || err, params: ctx.params }
-            });
-            ctx.meta.$statusCode = 500;
-            ctx.meta.$statusMessage = 'Internal Server Error';
-            return {
-              errors: [
-                {
-                  status: 'fail',
-                  message: 'Internal Server Error'
-                }
-              ]
-            };
-          });
+          );
       }
     }
   },

@@ -93,8 +93,7 @@ const TheService: ServiceSchema = {
           'PUT coupons/:id': 'coupons.update',
 
           // Subscription
-          'POST subscription': 'subscription.create',
-
+          'POST subscription': 'subscription.create'
         },
 
         // Disable to call not-mapped actions
@@ -112,19 +111,25 @@ const TheService: ServiceSchema = {
             extended: false
           }
         },
-        async onError(req: any, res: any, err: {message: string, code: number, name: string, type: string, data: any[]}) {
-          res.setHeader("Content-Type", "application/json; charset=utf-8");
+        async onError(
+          req: any,
+          res: any,
+          err: { message: string; code: number; name: string; type: string; data: any[] }
+        ) {
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
           res.writeHead(err.code || 500);
-          if(err.code === 422 || err.code === 401 || err.name === 'NotFoundError'){
-            res.end(JSON.stringify({
-              "name": err.name,
-              "message": err.message,
-              "code": err.code,
-              "type": err.type,
-              "data": err.data
-            }));
+          if (err.code === 422 || err.code === 401 || err.name === 'NotFoundError') {
+            res.end(
+              JSON.stringify({
+                name: err.name,
+                message: err.message,
+                code: err.code,
+                type: err.type,
+                data: err.data
+              })
+            );
           }
-          if(err.code === 500 || !err.code) {
+          if (err.code === 500 || !err.code) {
             const log = await this.sendLogs({
               topic: `${req.$action.service.name}`,
               topicId: `${req.$action.name}`,
@@ -132,13 +137,26 @@ const TheService: ServiceSchema = {
               storeId: 'Unknown',
               logLevel: 'error',
               code: 500,
-              payload: { error: err.toString(), params: req.$params }
-            })
-            res.end(JSON.stringify({errors: [{message: `Something went wrong for more details Please check the log under ID: ${log.id}`}]}));
+              payload: {
+                errorMsg: err.toString(),
+                params: req.$params
+              }
+            });
+            res.end(
+              JSON.stringify({
+                errors: [
+                  {
+                    message: `Something went wrong for more details Please check the log under ID: ${
+                      log.id
+                    }`
+                  }
+                ]
+              })
+            );
           }
-          res.end(JSON.stringify({errors: [{message: err.message}]}));
+          res.end(JSON.stringify({ errors: [{ message: err.message }] }));
         }
-      },
+      }
     ],
 
     assets: {
@@ -228,7 +246,7 @@ const TheService: ServiceSchema = {
      */
     sendLogs(log: Log): ServiceSchema {
       return this.broker.call('logs.add', log);
-    },
+    }
   }
 };
 

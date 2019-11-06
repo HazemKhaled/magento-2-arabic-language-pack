@@ -1,6 +1,6 @@
-import { Context, ServiceSchema } from 'moleculer';
-import fetch from 'node-fetch';
+import { Context, Errors, ServiceSchema } from 'moleculer';
 import DbService from '../utilities/mixins/mongo.mixin';
+const MoleculerError = Errors.MoleculerError;
 
 import { v1 as uuidv1, v4 as uuidv4 } from 'uuid';
 import { Log, OmsStore, ResError, Store, StoreUser } from '../utilities/types';
@@ -9,9 +9,6 @@ import { createValidation, updateValidation } from '../utilities/validations/sto
 const TheService: ServiceSchema = {
   name: 'stores',
   mixins: [DbService('stores')],
-  settings: {
-    AUTH: Buffer.from(`${process.env.BASIC_USER}:${process.env.BASIC_PASS}`).toString('base64')
-  },
   actions: {
     /**
      * This function is used locally by mp to get an instance with consumerKey
@@ -61,23 +58,18 @@ const TheService: ServiceSchema = {
           .findOne({ consumer_key: ctx.meta.user })
           .then(async (res: Store | null) => {
             let omsData: boolean | { store: Store } = false;
-            if(res) {
-              if(res.users) {
-                res.subscription = await ctx.call('subscription.get',{ id: res._id });
+            if (res) {
+              if (res.users) {
+                res.subscription = await ctx.call('subscription.get', { id: res._id });
               }
               if (res.internal_data && res.internal_data.omsId) {
-                omsData = (await fetch(
-                  `${process.env.OMS_BASEURL}/stores/${res.internal_data.omsId}`,
-                  {
-                    method: 'get',
-                    headers: {
-                      Authorization: `Basic ${this.settings.AUTH}`
-                    }
-                  }
-                ).then(response => response.json())) as { store: Store };
+                omsData = (await ctx.call('oms.getCustomer', {
+                  customerId: res.internal_data.omsId
+                })) as { store: Store };
                 // If the DB response not null will return the data
                 return this.sanitizeResponse(res, omsData.store);
-            }}
+              }
+            }
             // If null return Not Found error
             ctx.meta.$statusMessage = 'Not Found';
             ctx.meta.$statusCode = 404;
@@ -103,26 +95,21 @@ const TheService: ServiceSchema = {
       handler(ctx: Context) {
         return this.adapter.findById(ctx.params.id).then(async (res: Store | null) => {
           if (res) {
-            if(res.users) {
-              res.subscription = await ctx.call('subscription.get',{ id: ctx.params.id });
+            if (res.users) {
+              res.subscription = await ctx.call('subscription.get', { id: ctx.params.id });
             }
-            if(res.internal_data && res.internal_data.omsId) {
-              const omsData = (await fetch(
-              `${process.env.OMS_BASEURL}/stores/${res.internal_data.omsId}`,
-              {
-                method: 'get',
-                headers: {
-                  Authorization: `Basic ${this.settings.AUTH}`
-                }
-              }
-            ).then(response => response.json())) as { store: Store };
+            if (res.internal_data && res.internal_data.omsId) {
+              const omsData = (await ctx.call('oms.getCustomer', {
+                customerId: res.internal_data.omsId
+              })) as { store: Store };
 
-            // If the DB response not null will return the data
-            if (!omsData) {
-              this.logger.warn('Can not get balance', ctx.params);
-            } else {
-              return this.sanitizeResponse(res, omsData.store);
-            }}
+              // If the DB response not null will return the data
+              if (!omsData) {
+                this.logger.warn('Can not get balance', ctx.params);
+              } else {
+                return this.sanitizeResponse(res, omsData.store);
+              }
+            }
           }
 
           // return store even if we didn't get balance from OMS
@@ -262,7 +249,7 @@ const TheService: ServiceSchema = {
         const storeBefore = this.adapter.findById(id);
 
         // If the store not found return Not Found error
-        if(!storeBefore) {
+        if (!storeBefore) {
           ctx.meta.$statusMessage = 'Not Found';
           ctx.meta.$statusCode = 404;
           return {
@@ -275,11 +262,11 @@ const TheService: ServiceSchema = {
 
         // Check new values
         Object.keys(store).forEach((key: keyof Store) => {
-          if(store[key] === storeBefore[key]) delete store[key];
+          if (store[key] === storeBefore[key]) delete store[key];
         });
 
         // if no new updates
-        if(Object.keys(store).length === 0) return storeBefore;
+        if (Object.keys(store).length === 0) return storeBefore;
 
         const myStore: Store = await this.adapter
           .updateById(id, { $set: store })
@@ -314,7 +301,7 @@ const TheService: ServiceSchema = {
         this.broker.cacher.clean(`products.getInstanceProduct:${myStore.consumer_key}*`);
 
         if (myStore.internal_data && myStore.internal_data.omsId) {
-          ctx.call('crm.updateStoreById', {id, ...ctx.params}).then(null, (error: unknown) => {
+          ctx.call('crm.updateStoreById', { id, ...ctx.params }).then(null, (error: unknown) => {
             this.sendLogs({
               topic: 'store',
               topicId: ctx.params.url,
@@ -362,28 +349,19 @@ const TheService: ServiceSchema = {
           };
         }
         try {
-          const omsStore = await fetch(
-            `${process.env.OMS_BASEURL}/stores?url=${encodeURIComponent(storeId)}`,
-            {
-              method: 'get',
-              headers: {
-                Authorization: `Basic ${this.settings.AUTH}`
+          const omsStore = await ctx.call('oms.getCustomerByUrl', { storeId }).then(
+            response => response.store,
+            err => {
+              if (err.code !== 404) {
+                throw new MoleculerError(err.message, err.code || 500);
+              }
+              if (err.code === 404) {
+                return this.createOmsStore(instance).then((value: any) => {
+                  return value;
+                });
               }
             }
-          ).then(async res => {
-            const response = await res.json();
-            if (!res.ok && res.status !== 404) {
-              response.status = res.status;
-              response.statusText = res.statusText;
-              throw response;
-            }
-            if (!res.ok && res.status === 404) {
-              return this.createOmsStore(instance).then((value: any) => {
-                return value;
-              });
-            }
-            return response.store;
-          });
+          );
           instance.internal_data = {
             ...instance.internal_data,
             omsId: omsStore.id || (omsStore.store && omsStore.store.id)
@@ -553,15 +531,7 @@ const TheService: ServiceSchema = {
       }
       body.stockDate = params.stock_date;
       body.priceDate = params.price_date;
-      return fetch(`${process.env.OMS_BASEURL}/stores`, {
-        method: 'post',
-        headers: {
-          Authorization: `Basic ${this.settings.AUTH}`,
-          'Content-Type': 'application/json',
-          Accept: 'application/json'
-        },
-        body: JSON.stringify(body)
-      }).then(response => response.json());
+      return this.broker.call('oms.createCustomer', body);
     },
     /**
      * Log order errors

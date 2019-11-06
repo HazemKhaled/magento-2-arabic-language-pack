@@ -1,12 +1,9 @@
-import { Context, ServiceSchema } from 'moleculer';
-import fetch from 'node-fetch';
+import { Context, Errors, ServiceSchema } from 'moleculer';
 import { Payment, PaymentInvoice } from '../utilities/types';
+const MoleculerError = Errors.MoleculerError;
 
 const TheService: ServiceSchema = {
   name: 'payments',
-  settings: {
-    AUTH: Buffer.from(`${process.env.BASIC_USER}:${process.env.BASIC_PASS}`).toString('base64')
-  },
   actions: {
     add: {
       auth: 'Basic',
@@ -37,14 +34,9 @@ const TheService: ServiceSchema = {
           id: ctx.params.id
         });
         if (instance.internal_data && instance.internal_data.omsId) {
-          return fetch(`${process.env.OMS_BASEURL}/payments/${instance.internal_data.omsId}`, {
-            method: 'post',
-            headers: {
-              Authorization: `Basic ${this.settings.AUTH}`,
-              'Content-Type': 'application/json',
-              Accept: 'application/json'
-            },
-            body: JSON.stringify({
+          return ctx
+            .call('oms.createPayment', {
+              customerId: instance.internal_data.omsId,
               paymentMode: ctx.params.payment_mode,
               amount: ctx.params.amount,
               invoices: ctx.params.invoices
@@ -57,43 +49,21 @@ const TheService: ServiceSchema = {
               bankCharges: ctx.params.bank_charges,
               referenceNumber: String(ctx.params.reference)
             })
-          })
-            .then(async res => {
-              const response = await res.json();
-              if (!res.ok) {
-                response.status = res.status;
-                response.statusText = res.statusText;
-                throw response;
+            .then(
+              res => {
+                // Store balance
+                this.broker.cacher.clean(`stores.me:${instance.consumer_key}**`);
+                this.broker.cacher.clean(`stores.get:${instance.url}**`);
+                this.broker.cacher.clean(`payments.get:${instance.consumer_key}**`);
+                this.broker.cacher.clean(`invoices.get:${instance.consumer_key}**`);
+                return this.sanitizePayment(res.payment);
+              },
+              err => {
+                throw new MoleculerError(err.message, err.code || 500);
               }
-              // Store balance
-              this.broker.cacher.clean(`stores.me:${instance.consumer_key}**`);
-              this.broker.cacher.clean(`stores.get:${instance.url}**`);
-              this.broker.cacher.clean(`payments.get:${instance.consumer_key}**`);
-              this.broker.cacher.clean(`invoices.get:${instance.consumer_key}**`);
-              return this.sanitizePayment(response.payment);
-            })
-            .catch(err => {
-              ctx.meta.$statusCode = err.status || (err.error && err.error.statusCode) || 500;
-              ctx.meta.$statusMessage =
-                err.statusText || (err.error && err.error.name) || 'Internal Error';
-              return {
-                errors: [
-                  {
-                    message: err.error ? err.error.message : 'Internal Server Error'
-                  }
-                ]
-              };
-            });
+            );
         }
-        ctx.meta.$statusCode = 404;
-        ctx.meta.$statusMessage = 'Not Found';
-        return {
-          errors: [
-            {
-              message: 'No Record Found For This Store!'
-            }
-          ]
-        };
+        throw new MoleculerError('No Record Found For This Store!', 404);
       }
     },
     get: {
@@ -112,55 +82,30 @@ const TheService: ServiceSchema = {
         const instance = await ctx.call('stores.findInstance', {
           consumerKey: ctx.meta.user
         });
-        const url = new URL(`${process.env.OMS_BASEURL}/payments/${instance.internal_data.omsId}`);
         const keys: { [key: string]: string } = {
           page: 'page',
           limit: 'perPage',
           reference_number: 'reference_number',
           payment_mode: 'payment_mode'
         };
+        const queryParams: { [key: string]: string } = {};
         Object.keys(ctx.params).forEach(key => {
-          if (ctx.params[key]) url.searchParams.append(keys[key], ctx.params[key]);
+          if (ctx.params[key]) queryParams[keys[key]] = ctx.params[key];
         });
         if (instance.internal_data && instance.internal_data.omsId) {
-          return fetch(url.href, {
-            method: 'get',
-            headers: {
-              Authorization: `Basic ${this.settings.AUTH}`
-            }
-          })
-            .then(async res => {
-              const response = await res.json();
-              if (!res.ok) {
-                response.status = res.status;
-                response.statusText = res.statusText;
-                throw response;
-              }
-              return { payments: response.payments.map(this.sanitizePayment) };
+          return ctx
+            .call('oms.listPayments', {
+              customerId: instance.internal_data.omsId,
+              queryParams
             })
-            .catch(err => {
-              this.logger.info(err);
-              ctx.meta.$statusCode = err.status || (err.error && err.error.statusCode) || 500;
-              ctx.meta.$statusMessage =
-                err.statusText || (err.error && err.error.name) || 'Internal Error';
-              return {
-                errors: [
-                  {
-                    message: err.error ? err.error.message : 'Internal Server Error'
-                  }
-                ]
-              };
-            });
+            .then(
+              res => ({ payments: res.payments.map(this.sanitizePayment) }),
+              err => {
+                throw new MoleculerError(err.message, err.code || 500);
+              }
+            );
         }
-        ctx.meta.$statusCode = 404;
-        ctx.meta.$statusMessage = 'Not Found';
-        return {
-          errors: [
-            {
-              message: 'No Record Found For This Store!'
-            }
-          ]
-        };
+        throw new MoleculerError('No Record Found For This Store!', 404);
       }
     }
   },
