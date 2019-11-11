@@ -11,10 +11,16 @@ const TheService: ServiceSchema = {
         create: {
             auth: 'Basic',
             params: CreateMembershipValidation,
-            handler(ctx: Context): Promise<Membership> {
+            async handler(ctx: Context): Promise<Membership> {
                 const {params} = ctx;
                 params._id = `m-${params.id || Date.now()}`;
                 delete params.id;
+                if(params.isDefault) {
+                    const currentDefault = await this.adapter.findOne({isDefault: true, active: true});
+                    if(currentDefault) {
+                        throw new MoleculerError('There is an active default you add new one');
+                    }
+                }
                 return this.adapter
                     .insert(params)
                     .then((res: Membership) => {

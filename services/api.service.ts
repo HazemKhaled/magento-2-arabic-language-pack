@@ -47,6 +47,7 @@ const TheService: ServiceSchema = {
           'GET stores/:id': 'stores.get',
           'PUT stores/:id': 'stores.update',
           'PUT stores/:id/sync': 'stores.sync',
+          'GET admin/stores': 'stores.storesList',
 
           // All Products
           'GET products': 'products-list.list',
@@ -94,6 +95,7 @@ const TheService: ServiceSchema = {
 
           // Subscription
           'POST subscription': 'subscription.create',
+          'GET subscription': 'subscription.list',
 
         },
 
