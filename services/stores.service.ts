@@ -1,6 +1,7 @@
-import { Context, ServiceSchema } from 'moleculer';
+import { Context, Errors, ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
 import DbService from '../utilities/mixins/mongo.mixin';
+const MoleculerError = Errors.MoleculerError;
 
 import { v1 as uuidv1, v4 as uuidv4 } from 'uuid';
 import { Log, OmsStore, ResError, Store, StoreUser } from '../utilities/types';
@@ -181,6 +182,33 @@ const TheService: ServiceSchema = {
           ctx.meta.$statusMessage = 'Not Found';
           ctx.meta.$statusCode = 404;
           return { errors: [{ message: 'Store Not Found' }] };
+        });
+      }
+    },
+    storesList: {
+      auth: 'Basic',
+      params: {
+        id: {type: 'string', optional: true},
+        page: {type: 'number', optional: true, positive: true},
+        perPage: {type: 'number', optional: true, positive: true},
+      },
+      handler(ctx: Context) {
+        const query: any = {};
+        if(ctx.params.id) {
+          query._id = {$regex: new RegExp(`.*${ctx.params.id}.*`, 'i')};
+        }
+        const findBody: any = {query};
+        findBody.limit = ctx.params.perPage || 50;
+        findBody.offset = (ctx.params.perPage || 50) * ((ctx.params.perPage || 1) - 1);
+        return this.adapter.find(findBody).then((res: Store[]) => {
+          if (res.length !== 0) return res.map(store => this.sanitizeResponse(store));
+          throw new MoleculerError('No Store found!', 404);
+        })
+        .catch((err: any) => {
+            if (err.name === 'MoleculerError') {
+                throw new MoleculerError(err.message, err.code);
+            }
+            throw new MoleculerError(err, 500);
         });
       }
     },
