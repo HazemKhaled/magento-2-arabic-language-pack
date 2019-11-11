@@ -136,18 +136,24 @@ const TheService: ServiceSchema = {
         data.shippingCharge = shipment.cost;
 
         // Calculate the order total
-        const total: number = data.items.reduce((accumulator: number, current: OrderItem) => accumulator + current.purchaseRate, 0) + data.shippingCharge;
+        const total: number =
+          data.items.reduce(
+            (accumulator: number, current: OrderItem) => accumulator + current.purchaseRate,
+            0
+          ) + data.shippingCharge;
 
         // Getting the current user subscription
-        const subscription = await ctx.call('subscription.get',{ id: instance.url });
+        const subscription = await ctx.call('subscription.get', { id: instance.url });
         switch (subscription.attributes.orderProcessingType) {
           case '$':
             data.adjustment = subscription.attributes.orderProcessingFees;
             data.adjustmentDescription = `Processing Fees`;
             break;
           case '%':
-            subscription.adjustment = subscription.attributes.orderProcessingFees/100 * total;
-            subscription.adjustmentDescription = `Processing Fees ${subscription.attributes.orderProcessingFees}%`;
+            subscription.adjustment = (subscription.attributes.orderProcessingFees / 100) * total;
+            subscription.adjustmentDescription = `Processing Fees ${
+              subscription.attributes.orderProcessingFees
+            }%`;
             break;
         }
 
@@ -196,7 +202,10 @@ const TheService: ServiceSchema = {
             storeId: instance.url,
             logLevel: 'error',
             code: result.error.statusCode,
-            payload: { errors: (result.error && result.error.details) || result, params: ctx.params }
+            payload: {
+              errors: (result.error && result.error.details) || result,
+              params: ctx.params
+            }
           });
           ctx.meta.$statusCode = result.error.statusCode;
           ctx.meta.$statusMessage = result.error.name;
@@ -255,17 +264,22 @@ const TheService: ServiceSchema = {
             orderNumber: order.orderNumber
           }
         };
-        if(order.id && order.status === 'open') {
-          ctx.call('invoices.createOrderInvoice', {
-            storeId: instance.url,
-            orderId: order.id,
-          }).then(async res => {
-            await ctx.call('invoices.markInvoiceSent', {
-              omsId: instance.internal_data.omsId,
-              invoiceId: res.invoice.invoiceId
-            });
-            this.broker.cacher.clean(`invoices.get:${instance.consumer_key}*`);
-          })
+        if (order.id && order.status === 'open') {
+          ctx
+            .call('invoices.createOrderInvoice', {
+              storeId: instance.url,
+              orderId: order.id
+            })
+            .then(res =>
+              ctx.call('invoices.markInvoiceSent', {
+                omsId: instance.internal_data.omsId,
+                invoiceId: res.invoice.invoiceId
+              })
+            )
+            .then(
+              () => this.broker.cacher.clean(`invoices.get:${instance.consumer_key}*`),
+              this.logger.error
+            );
         }
         // Initializing warnings array if we have a Warning
         const warnings = this.warningsMessenger(
@@ -392,18 +406,24 @@ const TheService: ServiceSchema = {
               ctx.params.shipping_method
             );
 
-            if(shipment) {
+            if (shipment) {
               data.shipmentCourier = shipment.courier;
               data.shippingCharge = shipment.cost;
             }
             // Calculate the order total
-            const total: number = data.items.reduce((accumulator: number, current: OrderItem) => accumulator + current.purchaseRate, 0) + (data.shippingCharge || orderBeforeUpdate.shippingCharge);
+            const total: number =
+              data.items.reduce(
+                (accumulator: number, current: OrderItem) => accumulator + current.purchaseRate,
+                0
+              ) + (data.shippingCharge || orderBeforeUpdate.shippingCharge);
 
             // Getting the current user subscription
-            const subscription = await ctx.call('subscription.get',{ id: instance.url });
-            if(subscription.attributes.orderProcessingType === '%') {
-                subscription.adjustment = subscription.attributes.orderProcessingFees/100 * total;
-                subscription.adjustmentDescription = `Processing Fees ${subscription.attributes.orderProcessingFees}%`;
+            const subscription = await ctx.call('subscription.get', { id: instance.url });
+            if (subscription.attributes.orderProcessingType === '%') {
+              subscription.adjustment = (subscription.attributes.orderProcessingFees / 100) * total;
+              subscription.adjustmentDescription = `Processing Fees ${
+                subscription.attributes.orderProcessingFees
+              }%`;
             }
             // Initializing warnings array if we have a Warning
             const warnings = this.warningsMessenger(
@@ -446,7 +466,10 @@ const TheService: ServiceSchema = {
               storeId: instance.url,
               logLevel: 'error',
               code: result.error.statusCode,
-              payload: { errors: (result.error && result.error.details) || result, params: ctx.params }
+              payload: {
+                errors: (result.error && result.error.details) || result,
+                params: ctx.params
+              }
             });
             ctx.meta.$statusCode = result.error.statusCode;
             ctx.meta.$statusMessage = result.error.name;
