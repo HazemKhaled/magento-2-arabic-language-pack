@@ -265,21 +265,28 @@ const TheService: ServiceSchema = {
           }
         };
         if (order.id && order.status === 'open') {
-          ctx
-            .call('invoices.createOrderInvoice', {
-              storeId: instance.url,
-              orderId: order.id
-            })
-            .then(res =>
-              ctx.call('invoices.markInvoiceSent', {
-                omsId: instance.internal_data.omsId,
-                invoiceId: res.invoice.invoiceId
-              })
-            )
-            .then(
-              () => this.broker.cacher.clean(`invoices.get:${instance.consumer_key}*`),
-              this.logger.error
-            );
+          setTimeout(
+            (instanceCopy, orderCopy) => {
+              ctx
+                .call('invoices.createOrderInvoice', {
+                  storeId: instanceCopy.url,
+                  orderId: orderCopy.id
+                })
+                .then(res =>
+                  ctx.call('invoices.markInvoiceSent', {
+                    omsId: instanceCopy.internal_data.omsId,
+                    invoiceId: res.invoice.invoiceId
+                  })
+                )
+                .then(
+                  () => this.broker.cacher.clean(`invoices.get:${instanceCopy.consumer_key}*`),
+                  this.logger.error
+                );
+            },
+            5000,
+            instance,
+            order
+          );
         }
         // Initializing warnings array if we have a Warning
         const warnings = this.warningsMessenger(
