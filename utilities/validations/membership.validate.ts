@@ -40,7 +40,7 @@ export const CreateMembershipValidation = {
 };
 
 export const UpdateMembershipValidation = {
-  id: { type: 'string', optional: true },
+  id: { type: 'string' },
   name: {
     type: 'object',
     props: {
@@ -57,9 +57,9 @@ export const UpdateMembershipValidation = {
       tr: { type: 'string', optional: true },
       en: { type: 'string', optional: true },
       ar: { type: 'string', optional: true },
-      $$strict: true,
-      optional: true
-    }
+      $$strict: true
+    },
+    optional: true
   },
   description: {
     type: 'object',
@@ -67,9 +67,9 @@ export const UpdateMembershipValidation = {
       tr: { type: 'string', optional: true },
       en: { type: 'string', optional: true },
       ar: { type: 'string', optional: true },
-      $$strict: true,
-      optional: true
-    }
+      $$strict: true
+    },
+    optional: true
   },
   sort: { type: 'number', integer: true, positive: true, optional: true },
   active: { type: 'boolean', optional: true },
