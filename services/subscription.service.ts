@@ -376,10 +376,17 @@ const TheService: ServiceSchema = {
       params: UpdateSubscriptionValidation,
       handler(ctx: Context) {
         let $set: { [key: string]: string } = {};
+        const { params } = ctx;
         if (ctx.params.retries) {
           $set.retries = ctx.params.retries.map((i: Date) => new Date(i));
         }
-        $set = { ...ctx.params, ...$set };
+        if (ctx.params.startDate) {
+          params.startDate = new Date(params.startDate);
+        }
+        if (ctx.params.expireDate) {
+          params.expireDate = new Date(params.expireDate);
+        }
+        $set = { ...params, ...$set };
         return this.adapter.updateById(ctx.params.id, { $set });
       }
     },
