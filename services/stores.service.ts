@@ -201,8 +201,7 @@ const TheService: ServiceSchema = {
         }
         const findBody: any = { query };
         findBody.limit = Number(ctx.params.perPage) || 50;
-        findBody.offset =
-          (Number(ctx.params.perPage) || 50) * ((Number(ctx.params.perPage) || 1) - 1);
+        findBody.offset = (Number(ctx.params.perPage) || 50) * ((Number(ctx.params.page) || 1) - 1);
         return this.adapter
           .find(findBody)
           .then((res: Store[]) => {
