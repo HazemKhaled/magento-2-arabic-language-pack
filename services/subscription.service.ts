@@ -217,7 +217,7 @@ const TheService: ServiceSchema = {
               discount = cost > coupon.discount ? coupon.discount : cost;
               break;
             case '%':
-              discount = cost * (1 - (1 - coupon.discount / 100));
+              discount = (cost / 100) * coupon.discount;
               break;
           }
         }
