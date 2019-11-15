@@ -231,7 +231,7 @@ const TheService: ServiceSchema = {
         if (instance.errors) {
           throw new MoleculerError(instance.errors[0].message, 404);
         }
-        if (instance.credit < cost) {
+        if (instance.credit < cost - discount) {
           throw new MoleculerError("User don't have enough balance!", 402);
         }
         const invoiceBody: { [key: string]: any } = {
