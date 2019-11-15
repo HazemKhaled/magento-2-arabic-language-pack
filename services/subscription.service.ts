@@ -214,14 +214,14 @@ const TheService: ServiceSchema = {
         if (coupon) {
           switch (coupon.discountType) {
             case '$':
-              discount = cost > coupon.discount ? coupon.discount : cost;
+              discount = Math.min(coupon.discount, cost);
               break;
             case '%':
               discount = (cost / 100) * coupon.discount;
               break;
           }
         }
-        discount = discount > membership.discount ? discount : membership.discount;
+        discount = Math.max(discount, membership.discount);
         const instance = await ctx
           .call('stores.get', { id: ctx.params.storeId })
           .then(null, err => err);
