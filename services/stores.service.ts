@@ -189,6 +189,10 @@ const TheService: ServiceSchema = {
     },
     storesList: {
       auth: 'Basic',
+      cache: {
+        keys: ['id', 'page', 'perPage'],
+        ttl: 60 * 60 * 24 // 1 day
+      },
       params: {
         id: { type: 'string', optional: true },
         page: { type: 'number', optional: true, positive: true, convert: true, integer: true },
@@ -204,8 +208,12 @@ const TheService: ServiceSchema = {
         findBody.offset = (Number(ctx.params.perPage) || 50) * ((Number(ctx.params.page) || 1) - 1);
         return this.adapter
           .find(findBody)
-          .then((res: Store[]) => {
-            if (res.length !== 0) return res.map(store => this.sanitizeResponse(store));
+          .then(async (res: Store[]) => {
+            if (res.length !== 0)
+              return {
+                stores: res.map(store => this.sanitizeResponse(store)),
+                total: await ctx.call('stores.countStores', { query })
+              };
             throw new MoleculerError('No Store found!', 404);
           })
           .catch((err: any) => {
@@ -214,6 +222,18 @@ const TheService: ServiceSchema = {
             }
             throw new MoleculerError(err, 500);
           });
+      }
+    },
+    countStores: {
+      cache: {
+        keys: ['query'],
+        ttl: 60 * 60 * 24 // 1 day
+      },
+      params: {
+        query: 'object'
+      },
+      handler(ctx: Context) {
+        return this.adapter.count({ query: ctx.params.query });
       }
     },
     /**
@@ -231,6 +251,8 @@ const TheService: ServiceSchema = {
 
         // FIX: Clear only cache by email
         this.broker.cacher.clean(`stores.list:**`);
+        this.broker.cacher.clean(`stores.storesList:**`);
+        this.broker.cacher.clean(`stores.countStores:**`);
 
         // Sanitize request params
         const store: Store = this.sanitizeStoreParams(ctx.params, true);
@@ -342,6 +364,7 @@ const TheService: ServiceSchema = {
         this.broker.cacher.clean(`stores.me:${myStore.consumer_key}*`);
         this.broker.cacher.clean(`stores.get:${myStore.url}*`);
         this.broker.cacher.clean(`stores.list**`);
+        this.broker.cacher.clean(`stores.storesList:**`);
         this.broker.cacher.clean(`products.list:${myStore.consumer_key}*`);
         this.broker.cacher.clean(`products.getInstanceProduct:${myStore.consumer_key}*`);
 
