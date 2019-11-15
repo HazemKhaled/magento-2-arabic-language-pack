@@ -62,9 +62,9 @@ const TheService: ServiceSchema = {
           .findOne({ consumer_key: ctx.meta.user })
           .then(async (res: Store | null) => {
             let omsData: boolean | { store: Store } = false;
-            if(res) {
-              if(res.users) {
-                res.subscription = await ctx.call('subscription.get',{ id: res._id });
+            if (res) {
+              if (res.users) {
+                res.subscription = await ctx.call('subscription.get', { id: res._id });
               }
               if (res.internal_data && res.internal_data.omsId) {
                 omsData = (await fetch(
@@ -78,7 +78,8 @@ const TheService: ServiceSchema = {
                 ).then(response => response.json())) as { store: Store };
                 // If the DB response not null will return the data
                 return this.sanitizeResponse(res, omsData.store);
-            }}
+              }
+            }
             // If null return Not Found error
             ctx.meta.$statusMessage = 'Not Found';
             ctx.meta.$statusCode = 404;
@@ -104,26 +105,27 @@ const TheService: ServiceSchema = {
       handler(ctx: Context) {
         return this.adapter.findById(ctx.params.id).then(async (res: Store | null) => {
           if (res) {
-            if(res.users) {
-              res.subscription = await ctx.call('subscription.get',{ id: ctx.params.id });
+            if (res.users) {
+              res.subscription = await ctx.call('subscription.get', { id: ctx.params.id });
             }
-            if(res.internal_data && res.internal_data.omsId) {
+            if (res.internal_data && res.internal_data.omsId) {
               const omsData = (await fetch(
-              `${process.env.OMS_BASEURL}/stores/${res.internal_data.omsId}`,
-              {
-                method: 'get',
-                headers: {
-                  Authorization: `Basic ${this.settings.AUTH}`
+                `${process.env.OMS_BASEURL}/stores/${res.internal_data.omsId}`,
+                {
+                  method: 'get',
+                  headers: {
+                    Authorization: `Basic ${this.settings.AUTH}`
+                  }
                 }
-              }
-            ).then(response => response.json())) as { store: Store };
+              ).then(response => response.json())) as { store: Store };
 
-            // If the DB response not null will return the data
-            if (!omsData) {
-              this.logger.warn('Can not get balance', ctx.params);
-            } else {
-              return this.sanitizeResponse(res, omsData.store);
-            }}
+              // If the DB response not null will return the data
+              if (!omsData) {
+                this.logger.warn('Can not get balance', ctx.params);
+              } else {
+                return this.sanitizeResponse(res, omsData.store);
+              }
+            }
           }
 
           // return store even if we didn't get balance from OMS
@@ -188,28 +190,30 @@ const TheService: ServiceSchema = {
     storesList: {
       auth: 'Basic',
       params: {
-        id: {type: 'string', optional: true},
-        page: {type: 'number', optional: true, positive: true},
-        perPage: {type: 'number', optional: true, positive: true},
+        id: { type: 'string', optional: true },
+        page: { type: 'number', optional: true, positive: true, convert: true, integer: true },
+        perPage: { type: 'number', optional: true, positive: true, convert: true, integer: true }
       },
       handler(ctx: Context) {
         const query: any = {};
-        if(ctx.params.id) {
-          query._id = {$regex: new RegExp(`.*${ctx.params.id}.*`, 'i')};
+        if (ctx.params.id) {
+          query._id = { $regex: new RegExp(`.*${ctx.params.id}.*`, 'i') };
         }
-        const findBody: any = {query};
+        const findBody: any = { query };
         findBody.limit = ctx.params.perPage || 50;
         findBody.offset = (ctx.params.perPage || 50) * ((ctx.params.perPage || 1) - 1);
-        return this.adapter.find(findBody).then((res: Store[]) => {
-          if (res.length !== 0) return res.map(store => this.sanitizeResponse(store));
-          throw new MoleculerError('No Store found!', 404);
-        })
-        .catch((err: any) => {
+        return this.adapter
+          .find(findBody)
+          .then((res: Store[]) => {
+            if (res.length !== 0) return res.map(store => this.sanitizeResponse(store));
+            throw new MoleculerError('No Store found!', 404);
+          })
+          .catch((err: any) => {
             if (err.name === 'MoleculerError') {
-                throw new MoleculerError(err.message, err.code);
+              throw new MoleculerError(err.message, err.code);
             }
             throw new MoleculerError(err, 500);
-        });
+          });
       }
     },
     /**
@@ -290,7 +294,7 @@ const TheService: ServiceSchema = {
         const storeBefore = this.adapter.findById(id);
 
         // If the store not found return Not Found error
-        if(!storeBefore) {
+        if (!storeBefore) {
           ctx.meta.$statusMessage = 'Not Found';
           ctx.meta.$statusCode = 404;
           return {
@@ -303,11 +307,11 @@ const TheService: ServiceSchema = {
 
         // Check new values
         Object.keys(store).forEach((key: keyof Store) => {
-          if(store[key] === storeBefore[key]) delete store[key];
+          if (store[key] === storeBefore[key]) delete store[key];
         });
 
         // if no new updates
-        if(Object.keys(store).length === 0) return storeBefore;
+        if (Object.keys(store).length === 0) return storeBefore;
 
         const myStore: Store = await this.adapter
           .updateById(id, { $set: store })
@@ -342,7 +346,7 @@ const TheService: ServiceSchema = {
         this.broker.cacher.clean(`products.getInstanceProduct:${myStore.consumer_key}*`);
 
         if (myStore.internal_data && myStore.internal_data.omsId) {
-          ctx.call('crm.updateStoreById', {id, ...ctx.params}).then(null, (error: unknown) => {
+          ctx.call('crm.updateStoreById', { id, ...ctx.params }).then(null, (error: unknown) => {
             this.sendLogs({
               topic: 'store',
               topicId: ctx.params.url,
