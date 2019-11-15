@@ -214,10 +214,10 @@ const TheService: ServiceSchema = {
         if (coupon) {
           switch (coupon.discountType) {
             case '$':
-              discount = cost > coupon.discount ? cost - coupon.discount : 0;
+              discount = cost > coupon.discount ? coupon.discount : cost;
               break;
             case '%':
-              discount = (cost * coupon.discount) / 100;
+              discount = cost * (1 - (1 - coupon.discount / 100));
               break;
           }
         }
