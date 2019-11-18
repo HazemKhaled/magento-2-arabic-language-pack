@@ -11,4 +11,3 @@ deployDev.sh
 *.js
 *.js.map
 currency.db
-!public/*.js*
