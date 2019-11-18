@@ -41,11 +41,13 @@
     "typescript": "^3.4.5"
   },
   "dependencies": {
+    "@types/lodash": "^4.14.148",
     "bluebird": "^3.5.4",
     "elasticsearch": "^16.0.0",
     "form-data": "^2.5.1",
     "ioredis": "^4.9.0",
     "jsonwebtoken": "^8.5.1",
+    "lodash": "^4.17.15",
     "mkdirp": "^0.5.1",
     "moleculer": "^0.13.11",
     "moleculer-cron": "0.0.2",

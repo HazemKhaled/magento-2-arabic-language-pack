@@ -11,6 +11,73 @@ const TheService: ServiceSchema = {
   },
   actions: {
     get: {
+      openapi: {
+        $path: 'get /invoices',
+        summary: 'List Invoices',
+        tags: ['Invoices'],
+        parameters: [
+          {
+            name: 'page',
+            in: 'query',
+            required: false,
+            schema: {
+              type: 'number'
+            }
+          },
+          {
+            name: 'limit',
+            in: 'query',
+            required: false,
+            schema: {
+              type: 'number'
+            }
+          },
+          {
+            name: 'reference_number',
+            in: 'query',
+            required: false,
+            schema: {
+              type: 'string'
+            }
+          },
+          {
+            name: 'invoice_number',
+            in: 'query',
+            required: false,
+            schema: {
+              type: 'string'
+            }
+          }
+        ],
+        responses: {
+          '200': {
+            description: 'Status 200',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    invoices: {
+                      type: 'array',
+                      items: {
+                        $ref: '#/components/schemas/Invoice'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          '401': {
+            $ref: '#/components/responses/UnauthorizedErrorToken'
+          }
+        },
+        security: [
+          {
+            bearerAuth: []
+          }
+        ]
+      },
       auth: 'Bearer',
       cache: {
         keys: ['#user', 'page', 'limit', 'reference_number', 'invoice_number'],
@@ -101,10 +168,10 @@ const TheService: ServiceSchema = {
         const instance = await ctx.call('stores.findInstance', {
           id: ctx.params.storeId
         });
-        if(instance.errors) {
+        if (instance.errors) {
           throw new MoleculerError('Store not found', 404);
         }
-        const url = `${process.env.OMS_BASEURL}/invoices`
+        const url = `${process.env.OMS_BASEURL}/invoices`;
         return fetch(url, {
           method: 'post',
           body: JSON.stringify({
@@ -119,12 +186,14 @@ const TheService: ServiceSchema = {
             Accept: 'application/json'
           }
         })
-        .then(res => this.responseCheck(res))
-        .then(res => {
-          this.broker.cacher.clean(`invoices.get:${instance.consumer_key}*`);
-          return res;
-        })
-        .catch(err => {throw new MoleculerError(err.message, err.code || 500)});
+          .then(res => this.responseCheck(res))
+          .then(res => {
+            this.broker.cacher.clean(`invoices.get:${instance.consumer_key}*`);
+            return res;
+          })
+          .catch(err => {
+            throw new MoleculerError(err.message, err.code || 500);
+          });
       }
     },
     applyCredits: {
@@ -136,10 +205,12 @@ const TheService: ServiceSchema = {
         const instance = await ctx.call('stores.findInstance', {
           consumerKey: ctx.meta.user
         });
-        if(instance.errors) {
+        if (instance.errors) {
           throw new MoleculerError('Store not found', 404);
         }
-        const url = `${process.env.OMS_BASEURL}/invoices/${instance.internal_data.omsId}/${ctx.params.id}/credits`;
+        const url = `${process.env.OMS_BASEURL}/invoices/${instance.internal_data.omsId}/${
+          ctx.params.id
+        }/credits`;
         return fetch(url, {
           method: 'post',
           headers: {
@@ -148,26 +219,30 @@ const TheService: ServiceSchema = {
             Accept: 'application/json'
           }
         })
-        .then(res => this.responseCheck(res))
-        .then(res => {
-          this.broker.cacher.clean(`invoices.get:${instance.consumer_key}*`);
-          this.broker.cacher.clean(`stores.get:${instance.url}*`);
-          this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
-          return res;
-        })
-        .catch(err => {throw new MoleculerError(err.message, err.code || 500)});
+          .then(res => this.responseCheck(res))
+          .then(res => {
+            this.broker.cacher.clean(`invoices.get:${instance.consumer_key}*`);
+            this.broker.cacher.clean(`stores.get:${instance.url}*`);
+            this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
+            return res;
+          })
+          .catch(err => {
+            throw new MoleculerError(err.message, err.code || 500);
+          });
       }
     },
     createOrderInvoice: {
       params: {
         storeId: { type: 'string' },
-        orderId: { type: 'string' },
+        orderId: { type: 'string' }
       },
       async handler(ctx: Context) {
         const instance = await ctx.call('stores.findInstance', {
           id: ctx.params.storeId
         });
-        const url = `${process.env.OMS_BASEURL}/invoices/${instance.internal_data.omsId}/${ctx.params.orderId}`;
+        const url = `${process.env.OMS_BASEURL}/invoices/${instance.internal_data.omsId}/${
+          ctx.params.orderId
+        }`;
         return fetch(url, {
           method: 'post',
           headers: {
@@ -176,17 +251,21 @@ const TheService: ServiceSchema = {
             Accept: 'application/json'
           }
         })
-        .then(res => this.responseCheck(res))
-        .catch(err => {throw new MoleculerError(err.message, err.code || 500)});
-      },
+          .then(res => this.responseCheck(res))
+          .catch(err => {
+            throw new MoleculerError(err.message, err.code || 500);
+          });
+      }
     },
     markInvoiceSent: {
       params: {
         omsId: { type: 'string' },
-        invoiceId: { type: 'string' },
+        invoiceId: { type: 'string' }
       },
       handler(ctx: Context) {
-        const url = `${process.env.OMS_BASEURL}/invoices/${ctx.params.omsId}/${ctx.params.invoiceId}/sent`;
+        const url = `${process.env.OMS_BASEURL}/invoices/${ctx.params.omsId}/${
+          ctx.params.invoiceId
+        }/sent`;
         return fetch(url, {
           method: 'post',
           headers: {
@@ -195,16 +274,21 @@ const TheService: ServiceSchema = {
             Accept: 'application/json'
           }
         })
-        .then(res => this.responseCheck(res))
-        .catch(err => {throw new MoleculerError(err.message, err.code || 500)});
+          .then(res => this.responseCheck(res))
+          .catch(err => {
+            throw new MoleculerError(err.message, err.code || 500);
+          });
       }
     }
   },
   methods: {
     async responseCheck(responseCursor) {
       const response = await responseCursor.json();
-      if(!responseCursor.ok) {
-        throw new MoleculerError(response.message || response.error.message || response, responseCursor.status)
+      if (!responseCursor.ok) {
+        throw new MoleculerError(
+          response.message || response.error.message || response,
+          responseCursor.status
+        );
       }
       return response;
     }
