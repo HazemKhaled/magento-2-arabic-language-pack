@@ -18,7 +18,17 @@ export const createOrderValidation = {
     props: {
       first_name: { type: 'string', empty: false },
       last_name: { type: 'string', empty: false },
-      company: { type: 'string', optional: true },
+      company: [
+        { type: 'string', optional: true },
+        {
+          type: 'custom',
+          optional: true,
+          check(value: null) {
+            if (value !== null) return this.makeError('stringEnum', null, value);
+            return true;
+          }
+        }
+      ],
       address_1: { type: 'string', empty: false },
       address_2: { type: 'string', optional: true },
       city: { type: 'string', empty: false },
