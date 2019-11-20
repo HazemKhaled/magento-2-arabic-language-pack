@@ -264,7 +264,7 @@ const TheService: ServiceSchema = {
     list: {
       openapi: {
         $path: 'get /stores',
-        summary: 'All Stores',
+        summary: 'All User Stores',
         tags: ['Stores', 'Enterprise Only'],
         parameters: [
           {
@@ -372,6 +372,97 @@ const TheService: ServiceSchema = {
       }
     },
     storesList: {
+      openapi: {
+        $path: 'get /admin/stores',
+        summary: 'All Stores',
+        tags: ['Stores'],
+        parameters: [
+          {
+            name: 'id',
+            in: 'query',
+            required: false,
+            schema: {
+              type: 'string'
+            }
+          },
+          {
+            name: 'page',
+            in: 'query',
+            required: false,
+            schema: {
+              type: 'number'
+            }
+          },
+          {
+            name: 'perPage',
+            in: 'query',
+            required: false,
+            schema: {
+              type: 'number'
+            }
+          },
+          {
+            name: 'Authorization',
+            in: 'header',
+            required: true,
+            schema: {
+              type: 'string'
+            }
+          }
+        ],
+        responses: {
+          '200': {
+            description: 'Status 200',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    stores: {
+                      type: 'array',
+                      items: {
+                        $ref: '#/components/schemas/Store'
+                      }
+                    },
+                    total: { type: 'number' }
+                  }
+                }
+              }
+            }
+          },
+          '401': {
+            $ref: '#/components/responses/UnauthorizedErrorBasic'
+          },
+          '404': {
+            description: 'Status 404',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    errors: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          message: {
+                            type: 'string'
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        security: [
+          {
+            basicAuth: []
+          }
+        ]
+      },
       auth: 'Basic',
       cache: {
         keys: ['id', 'page', 'perPage'],

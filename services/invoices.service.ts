@@ -162,6 +162,68 @@ const TheService: ServiceSchema = {
       }
     },
     create: {
+      openapi: {
+        $path: 'post /invoices',
+        summary: 'Create new invoice',
+        tags: ['Invoices'],
+        parameters: [
+          {
+            name: 'Authorization',
+            in: 'header',
+            required: true,
+            schema: {
+              type: 'string'
+            }
+          }
+        ],
+        responses: {
+          '200': {
+            description: 'Status 200',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Invoice'
+                }
+              }
+            }
+          },
+          '401': {
+            $ref: '#/components/responses/UnauthorizedErrorBasic'
+          },
+          '500': {
+            description: 'Status 500',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    errors: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          message: {
+                            type: 'string'
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        security: [
+          {
+            basicAuth: []
+          }
+        ],
+        requestBody: {
+          $ref: '#/components/requestBodies/Invoice',
+          required: true
+        }
+      },
       auth: 'Basic',
       params: CreateInvoiceValidation,
       async handler(ctx: Context) {
@@ -197,6 +259,88 @@ const TheService: ServiceSchema = {
       }
     },
     applyCredits: {
+      openapi: {
+        $path: 'post /invoices/{id}/credits',
+        summary: 'Apply credits to invoice',
+        tags: ['Invoices'],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: {
+              type: 'string'
+            }
+          },
+          {
+            name: 'Authorization',
+            in: 'header',
+            required: true,
+            schema: {
+              type: 'string'
+            }
+          }
+        ],
+        responses: {
+          '200': {
+            description: 'Status 200',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    invoicePayments: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          invoicePaymentId: { type: 'string' },
+                          paymentId: { type: 'string' },
+                          invoiceId: { type: 'string' },
+                          amountUsed: { type: 'number' }
+                        }
+                      }
+                    },
+                    code: { type: 'number' },
+                    message: { type: 'string' }
+                  }
+                }
+              }
+            }
+          },
+          '401': {
+            $ref: '#/components/responses/UnauthorizedErrorBasic'
+          },
+          '500': {
+            description: 'Status 500',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    errors: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          message: {
+                            type: 'string'
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        security: [
+          {
+            basicAuth: []
+          }
+        ]
+      },
       auth: 'Bearer',
       params: {
         id: { type: 'string' }

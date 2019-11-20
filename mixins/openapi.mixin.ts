@@ -116,6 +116,107 @@ module.exports = (mixinOptions: { schema: any; routeOptions: { path: any } }) =>
                     }
                   },
                   required: true
+                },
+                Membership: {
+                  content: {
+                    'application/json': {
+                      schema: {
+                        type: 'object',
+                        properties: {
+                          name: {
+                            type: 'object',
+                            properties: {
+                              tr: { type: 'string' },
+                              en: { type: 'string' },
+                              ar: { type: 'string' }
+                            }
+                          },
+                          tagline: {
+                            type: 'object',
+                            properties: {
+                              tr: { type: 'string' },
+                              en: { type: 'string' },
+                              ar: { type: 'string' }
+                            }
+                          },
+                          description: {
+                            type: 'object',
+                            properties: {
+                              tr: { type: 'string' },
+                              en: { type: 'string' },
+                              ar: { type: 'string' }
+                            }
+                          },
+                          sort: { type: 'number' },
+                          active: { type: 'boolean' },
+                          public: { type: 'boolean' },
+                          cost: { type: 'number' },
+                          discount: { type: 'number' },
+                          paymentFrequency: { type: 'number' },
+                          paymentFrequencyType: { type: 'string', enum: ['month', 'year'] },
+                          attributes: { type: 'object', properties: {} }
+                        }
+                      }
+                    }
+                  }
+                },
+                Subscription: {
+                  content: {
+                    'application/json': {
+                      schema: {
+                        type: 'object',
+                        properties: {
+                          membershipId: { type: 'string' },
+                          storeId: { type: 'string' },
+                          invoiceId: { type: 'string' },
+                          startDate: { type: 'string', format: 'date-time' },
+                          expireDate: { type: 'string', format: 'date-time' },
+                          autoRenew: { type: 'boolean' },
+                          renewed: { type: 'boolean' },
+                          retries: { type: 'array', items: { type: 'string', format: 'date-time' } }
+                        }
+                      }
+                    }
+                  }
+                },
+                Invoice: {
+                  content: {
+                    'application/json': {
+                      schema: {
+                        type: 'object',
+                        properties: {
+                          storeId: { type: 'string' },
+                          discount: {
+                            type: 'object',
+                            properties: {
+                              value: { type: 'number', positive: true },
+                              type: { type: 'string', enum: ['entity_level'] }
+                            }
+                          },
+                          items: {
+                            type: 'array',
+                            items: {
+                              type: 'object',
+                              properties: {
+                                sku: { type: 'string' },
+                                barcode: { type: 'string' },
+                                name: { type: 'string' },
+                                description: { type: 'string' },
+                                url: { type: 'string' },
+                                image: { type: 'string' },
+                                weight: { type: 'number' },
+                                rate: { type: 'number' },
+                                quantity: { type: 'number' },
+                                accountId: { type: 'string' },
+                                purchaseRate: { type: 'number' },
+                                vendorId: { type: 'number' }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
                 }
               },
               securitySchemes: {
@@ -1079,6 +1180,71 @@ module.exports = (mixinOptions: { schema: any; routeOptions: { path: any } }) =>
                       type: 'string'
                     }
                   }
+                },
+                Subscription: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'string' },
+                    membershipId: { type: 'string' },
+                    storeId: { type: 'string' },
+                    invoiceId: { type: 'string' },
+                    startDate: { type: 'string', format: 'date-time' },
+                    expireDate: { type: 'string', format: 'date-time' },
+                    autoRenew: { type: 'boolean' },
+                    renewed: { type: 'boolean' },
+                    retries: { type: 'array', items: { type: 'string', format: 'date-time' } }
+                  }
+                },
+                Coupon: {
+                  type: 'object',
+                  properties: {
+                    code: { type: 'string' },
+                    discount: { type: 'number' },
+                    discountType: { type: 'string', enum: ['$', '%'] },
+                    startDate: { type: 'string', format: 'date-time' },
+                    endDate: { type: 'string', format: 'date-time' },
+                    maxUses: { type: 'number' },
+                    appliedMemberships: { type: 'array', items: { type: 'string' } },
+                    useCount: { type: 'number' }
+                  }
+                },
+                Membership: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'string' },
+                    name: {
+                      type: 'object',
+                      properties: {
+                        tr: { type: 'string' },
+                        en: { type: 'string' },
+                        ar: { type: 'string' }
+                      }
+                    },
+                    tagline: {
+                      type: 'object',
+                      properties: {
+                        tr: { type: 'string' },
+                        en: { type: 'string' },
+                        ar: { type: 'string' }
+                      }
+                    },
+                    description: {
+                      type: 'object',
+                      properties: {
+                        tr: { type: 'string' },
+                        en: { type: 'string' },
+                        ar: { type: 'string' }
+                      }
+                    },
+                    sort: { type: 'number' },
+                    active: { type: 'boolean' },
+                    public: { type: 'boolean' },
+                    cost: { type: 'number' },
+                    discount: { type: 'number' },
+                    paymentFrequency: { type: 'number' },
+                    paymentFrequencyType: { type: 'string', enum: ['month', 'year'] },
+                    attributes: { type: 'object', properties: {} }
+                  }
                 }
               }
             },
@@ -1137,6 +1303,15 @@ module.exports = (mixinOptions: { schema: any; routeOptions: { path: any } }) =>
               },
               {
                 name: 'Shipment'
+              },
+              {
+                name: 'Subscription'
+              },
+              {
+                name: 'Coupon'
+              },
+              {
+                name: 'Membership'
               }
             ],
 
