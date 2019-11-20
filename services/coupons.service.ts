@@ -220,7 +220,7 @@ const TheService: ServiceSchema = {
       return newObj;
     },
     /**
-     *
+     * Sanitizes Coupon entry data
      *
      * @param {*} params
      * @returns Coupon
@@ -230,7 +230,11 @@ const TheService: ServiceSchema = {
         _id: params.code,
         useCount: 0,
         startDate: new Date(params.startDate),
-        endDate: new Date(params.endDate)
+        endDate: new Date(params.endDate),
+        discount: params.discount,
+        discountType: params.discountType,
+        maxUses: params.maxUses,
+        appliedMemberships: params.appliedMemberships
       };
     }
   }

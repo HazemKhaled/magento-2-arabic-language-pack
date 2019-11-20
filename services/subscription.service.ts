@@ -423,14 +423,14 @@ const TheService: ServiceSchema = {
         if (coupon) {
           switch (coupon.discountType) {
             case '$':
-              discount = cost > coupon.discount ? cost - coupon.discount : 0;
+              discount = Math.min(coupon.discount, cost);
               break;
             case '%':
-              discount = (cost * coupon.discount) / 100;
+              discount = (cost / 100) * coupon.discount;
               break;
           }
         }
-        discount = discount > membership.discount ? discount : membership.discount;
+        discount = Math.max(discount, membership.discount);
         const instance = await ctx
           .call('stores.get', { id: ctx.params.storeId })
           .then(null, err => err);
@@ -440,7 +440,7 @@ const TheService: ServiceSchema = {
         if (instance.errors) {
           throw new MoleculerError(instance.errors[0].message, 404);
         }
-        if (instance.credit < cost) {
+        if (instance.credit < cost - discount) {
           throw new MoleculerError("User don't have enough balance!", 402);
         }
         const invoiceBody: { [key: string]: any } = {
