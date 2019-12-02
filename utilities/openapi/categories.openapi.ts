@@ -1,3 +1,70 @@
+export const CategoriesSettingsOpenapi = {
+  components: {
+    schemas: {
+      Category: {
+        type: 'array',
+        items: {
+          required: ['id', 'name'],
+          type: 'object',
+          properties: {
+            id: {
+              type: 'number'
+            },
+            name: {
+              required: ['productsCount', 'treeNodeLevel'],
+              type: 'object',
+              properties: {
+                tr: {
+                  type: 'string'
+                },
+                en: {
+                  type: 'string'
+                },
+                ar: {
+                  type: 'string'
+                },
+                treeNodeLevel: {
+                  type: 'number'
+                },
+                productsCount: {
+                  type: 'number'
+                },
+                parentId: {
+                  type: 'number'
+                }
+              }
+            }
+          }
+        },
+        example: [
+          {
+            id: 4857,
+            name: {
+              tr: 'Ayakkabı',
+              en: 'Shoes',
+              ar: 'حذاء'
+            },
+            parentId: 32423,
+            productsCount: 352,
+            treeNodeLevel: 1
+          },
+          {
+            id: 4859,
+            name: {
+              tr: 'Ayakkabı / Kadın',
+              en: 'Shoes / Women',
+              ar: 'حذاء / نسائي'
+            },
+            parentId: 2435,
+            productsCount: 456,
+            treeNodeLevel: 2
+          }
+        ]
+      }
+    }
+  }
+};
+
 export const CategoriesListOpenapi = {
   $path: 'get /catalog/categories',
   summary: 'Get list of categories',

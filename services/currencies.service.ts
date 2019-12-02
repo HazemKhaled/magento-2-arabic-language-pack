@@ -1,10 +1,11 @@
 import { Context, ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
-import { CurrenciesGetCurrenciesOpenapi, CurrenciesGetCurrencyOpenapi } from '../utilities/openapi';
+import { CurrenciesGetCurrenciesOpenapi, CurrenciesGetCurrencyOpenapi, CurrencySettingsOpenapi } from '../utilities/openapi';
 import { Currency } from './../types/currency.d';
 
 const TheService: ServiceSchema = {
   name: 'currencies',
+  settings: { openapi: CurrencySettingsOpenapi },
   actions: {
     /**
      * Gets the rates of asked currency according to the dollar as a base

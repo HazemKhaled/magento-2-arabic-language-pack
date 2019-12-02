@@ -541,66 +541,6 @@ export function OpenApiMixin(): ServiceSchema {
                   example:
                     '{\n  "id": 1,\n  "name": {\n    "tr": "Beden",\n    "en": "Size",\n    "ar": "مقاس"\n  },\n  "option": { "tr": "M", "en": "M", "ar": "M" }\n}\n'
                 },
-                Category: {
-                  type: 'array',
-                  items: {
-                    required: ['id', 'name'],
-                    type: 'object',
-                    properties: {
-                      id: {
-                        type: 'number'
-                      },
-                      name: {
-                        required: ['productsCount', 'treeNodeLevel'],
-                        type: 'object',
-                        properties: {
-                          tr: {
-                            type: 'string'
-                          },
-                          en: {
-                            type: 'string'
-                          },
-                          ar: {
-                            type: 'string'
-                          },
-                          treeNodeLevel: {
-                            type: 'number'
-                          },
-                          productsCount: {
-                            type: 'number'
-                          },
-                          parentId: {
-                            type: 'number'
-                          }
-                        }
-                      }
-                    }
-                  },
-                  example: [
-                    {
-                      id: 4857,
-                      name: {
-                        tr: 'Ayakkabı',
-                        en: 'Shoes',
-                        ar: 'حذاء'
-                      },
-                      parentId: 32423,
-                      productsCount: 352,
-                      treeNodeLevel: 1
-                    },
-                    {
-                      id: 4859,
-                      name: {
-                        tr: 'Ayakkabı / Kadın',
-                        en: 'Shoes / Women',
-                        ar: 'حذاء / نسائي'
-                      },
-                      parentId: 2435,
-                      productsCount: 456,
-                      treeNodeLevel: 2
-                    }
-                  ]
-                },
                 Order: {
                   type: 'object',
                   required: ['items', 'orderNumber', 'shipping', 'status'],
@@ -971,17 +911,6 @@ export function OpenApiMixin(): ServiceSchema {
                     credit: {
                       type: 'number',
                       description: 'Just with /stores/me & /stores/{url}'
-                    }
-                  }
-                },
-                Currency: {
-                  type: 'object',
-                  properties: {
-                    currencyCode: {
-                      type: 'string'
-                    },
-                    rate: {
-                      type: 'number'
                     }
                   }
                 },

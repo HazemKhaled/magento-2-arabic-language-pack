@@ -1,3 +1,21 @@
+export const CurrencySettingsOpenapi = {
+  components: {
+    schemas: {
+      Currency: {
+        type: 'object',
+        properties: {
+          currencyCode: {
+            type: 'string'
+          },
+          rate: {
+            type: 'number'
+          }
+        }
+      }
+    }
+  }
+};
+
 export const CurrenciesGetCurrencyOpenapi = {
   $path: 'get /currencies/{currencyCode}',
   summary: 'Get Currency By Code',
