@@ -1,27 +1,31 @@
-'use strict';
-
 import fs from 'fs';
 import _ from 'lodash';
-import { Action } from 'moleculer';
 
-// tslint:disable-next-line:no-var-requires
-const { MoleculerServerError } = require('moleculer').Errors;
+import { Action, Errors, ServiceSchema } from 'moleculer';
 
-// tslint:disable-next-line:no-var-requires
-const pkg = require('../package.json');
+const { MoleculerServerError } = Errors;
 
-module.exports = (mixinOptions: { schema: any; routeOptions: { path: any } }) => {
-  mixinOptions = _.defaultsDeep(mixinOptions, {
+import pkg from "../../package.json";
+
+/**
+ * OpenAPI mixin
+ *
+ * @export
+ * @returns {ServiceSchema}
+ */
+export function OpenApiMixin(): ServiceSchema {
+  const mixinOptions: { schema: any; routeOptions: { path: string } } = {
     routeOptions: {
-      path: '/openapi'
+      path: '/openapi',
     },
-    schema: null
-  });
+    schema: null,
+  };
 
   let shouldUpdateSchema = true;
   let schema: any = null;
 
   return {
+    name: 'openapi',
     events: {
       '$services.changed'() {
         this.invalidateOpenApiSchema();
@@ -46,8 +50,8 @@ module.exports = (mixinOptions: { schema: any; routeOptions: { path: any } }) =>
 
             // https://swagger.io/specification/#infoObject
             info: {
-              version: '1.2.7',
-              title: 'Knawat MP',
+              title: `${pkg.name} API Documentation`,
+              version: pkg.version,
               termsOfService: 'https://knawat.com/terms-and-conditions/',
               contact: {
                 email: 'support@knawat.com',
@@ -1333,8 +1337,8 @@ module.exports = (mixinOptions: { schema: any; routeOptions: { path: any } }) =>
               if (action.openapi) {
                 if (_.isObject(action.openapi)) {
                   const def: { $path?: string } = _.cloneDeep(action.openapi);
-                  // tslint:disable-next-line:one-variable-per-declaration
-                  let method: any, routePath: any;
+                  let method: any;
+                  let routePath: any;
                   if (def.$path) {
                     const p = def.$path.split(' ');
                     method = p[0].toLowerCase();
@@ -1427,7 +1431,7 @@ module.exports = (mixinOptions: { schema: any; routeOptions: { path: any } }) =>
     },
 
     started() {
-      this.logger.info(`📜 OpenAPI Docs server is available at ${mixinOptions.routeOptions.path}`);
-    }
+      return this.logger.info(`📜 OpenAPI Docs server is available at ${mixinOptions.routeOptions.path}`);
+    },
   };
-};
+}

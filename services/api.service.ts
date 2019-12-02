@@ -2,8 +2,8 @@ import { Context, ServiceSchema } from 'moleculer';
 import ApiGateway from 'moleculer-web';
 import { Log } from '../utilities/types';
 
-// tslint:disable-next-line:no-var-requires
-const OpenApiMixin = require('../mixins/openapi.mixin');
+import { OpenApiMixin } from '../utilities/mixins/openapi.mixin';
+
 const { UnAuthorizedError, ERR_NO_TOKEN, ERR_INVALID_TOKEN } = ApiGateway.Errors;
 
 const TheService: ServiceSchema = {
@@ -151,7 +151,7 @@ const TheService: ServiceSchema = {
                   {
                     message: `Something went wrong for more details Please check the log under ID: ${
                       log.id
-                    }`
+                      }`
                   }
                 ]
               })
