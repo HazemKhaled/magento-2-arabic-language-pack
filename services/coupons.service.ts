@@ -1,5 +1,6 @@
 import { Context, Errors, ServiceSchema } from 'moleculer';
 import DbService from '../utilities/mixins/mongo.mixin';
+import { CouponsGetOpenapi } from '../utilities/openapi';
 import { Coupon } from '../utilities/types';
 import { CreateCouponValidation, UpdateCouponValidation } from '../utilities/validations';
 const MoleculerError = Errors.MoleculerError;
@@ -27,80 +28,7 @@ const TheService: ServiceSchema = {
       }
     },
     get: {
-      openapi: {
-        $path: 'get coupons/:CODE',
-        summary: 'Get Coupon',
-        tags: ['Coupon'],
-        parameters: [
-          {
-            name: 'CODE',
-            in: 'path',
-            required: true,
-            schema: {
-              type: 'string'
-            }
-          },
-          {
-            name: 'membership',
-            in: 'query',
-            required: false,
-            schema: {
-              type: 'string'
-            }
-          },
-          {
-            name: 'Authorization',
-            in: 'header',
-            required: true,
-            schema: {
-              type: 'string'
-            }
-          }
-        ],
-        responses: {
-          '200': {
-            description: 'Status 200',
-            content: {
-              'application/json': {
-                schema: {
-                  $ref: '#/components/schemas/Coupon'
-                }
-              }
-            }
-          },
-          '401': {
-            $ref: '#/components/responses/UnauthorizedErrorBasic'
-          },
-          '404': {
-            description: 'Status 404',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    errors: {
-                      type: 'array',
-                      items: {
-                        type: 'object',
-                        properties: {
-                          message: {
-                            type: 'string'
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        security: [
-          {
-            basicAuth: []
-          }
-        ]
-      },
+      openapi: CouponsGetOpenapi,
       auth: 'Basic',
       cache: {
         keys: ['id', 'membership'],
