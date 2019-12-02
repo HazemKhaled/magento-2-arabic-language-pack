@@ -1,7 +1,7 @@
 {
     "openapi": "3.0.1",
     "info": {
-        "title": "microes API Documentation",
+        "title": "mp API Documentation",
         "version": "1.3.0",
         "termsOfService": "https://knawat.com/terms-and-conditions/",
         "contact": {
@@ -42,18 +42,6 @@
                         }
                     }
                 }
-            }
-        },
-        "securitySchemes": {
-            "bearerAuth": {
-                "type": "http",
-                "scheme": "bearer",
-                "bearerFormat": "JWT"
-            },
-            "basicAuth": {
-                "description": "Knawat provide <a href=\"#tag/Enterprise-Only\">extra endpoints</a> for enterprise subscriptions, check <a href=\"https://knawat.com/plans\">pricing here</a>.\n",
-                "type": "http",
-                "scheme": "basic"
             }
         },
         "requestBodies": {
@@ -272,6 +260,18 @@
                         }
                     }
                 }
+            }
+        },
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
+            },
+            "basicAuth": {
+                "description": "Knawat provide <a href=\"#tag/Enterprise-Only\">extra endpoints</a> for enterprise subscriptions, check <a href=\"https://knawat.com/plans\">pricing here</a>.\n",
+                "type": "http",
+                "scheme": "basic"
             }
         },
         "schemas": {
@@ -1087,17 +1087,6 @@
                     }
                 }
             },
-            "Currency": {
-                "type": "object",
-                "properties": {
-                    "currencyCode": {
-                        "type": "string"
-                    },
-                    "rate": {
-                        "type": "number"
-                    }
-                }
-            },
             "ShipmentPolicy": {
                 "type": "object",
                 "required": [
@@ -1473,6 +1462,1120 @@
         }
     },
     "paths": {
+        "/invoices": {
+            "get": {
+                "summary": "List Invoices",
+                "tags": [
+                    "Invoices"
+                ],
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "reference_number",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "invoice_number",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status 200",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "invoices": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Invoice"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedErrorToken"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "summary": "Create new invoice",
+                "tags": [
+                    "Invoices"
+                ],
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status 200",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Invoice"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedErrorBasic"
+                    },
+                    "500": {
+                        "description": "Status 500",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "message": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/Invoice",
+                    "required": true
+                }
+            }
+        },
+        "/invoices/{id}/credits": {
+            "post": {
+                "summary": "Apply credits to invoice",
+                "tags": [
+                    "Invoices"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status 200",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "invoicePayments": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "invoicePaymentId": {
+                                                        "type": "string"
+                                                    },
+                                                    "paymentId": {
+                                                        "type": "string"
+                                                    },
+                                                    "invoiceId": {
+                                                        "type": "string"
+                                                    },
+                                                    "amountUsed": {
+                                                        "type": "number"
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "code": {
+                                            "type": "number"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedErrorBasic"
+                    },
+                    "500": {
+                        "description": "Status 500",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "message": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": []
+                    }
+                ]
+            }
+        },
+        "/orders": {
+            "post": {
+                "summary": "Create order",
+                "tags": [
+                    "Orders"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OrderResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedErrorToken"
+                    },
+                    "404": {
+                        "description": "Status 404",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                },
+                                "examples": {
+                                    "response": {
+                                        "value": {
+                                            "errorCode": 404,
+                                            "errorMessage": "SKU(s) out of stock.",
+                                            "data": {
+                                                "outOfStock": [
+                                                    "sku1",
+                                                    "sku2"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "428": {
+                        "description": "Status 428",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "description": "```\n{\n              errors: [\n                {\n                  status: 'fail',\n                  message: 'No Billing Address Or Address Missing Data. Your order failed!',\n                  solution: `Please fill on your store billing address from here: https://app.knawat.com/settings/store`\n                }\n              ]\n            }\n```",
+                                    "properties": {
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {
+                                                "required": [
+                                                    "message",
+                                                    "solution",
+                                                    "status"
+                                                ],
+                                                "type": "object",
+                                                "properties": {
+                                                    "status": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "fail"
+                                                        ]
+                                                    },
+                                                    "message": {
+                                                        "type": "string"
+                                                    },
+                                                    "solution": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Status 500",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "message": {
+                                                        "type": "string"
+                                                    },
+                                                    "status": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "order"
+                                ],
+                                "properties": {
+                                    "order": {
+                                        "$ref": "#/components/schemas/Order"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "required": true
+                }
+            },
+            "get": {
+                "summary": "Get Order(s)",
+                "tags": [
+                    "Orders"
+                ],
+                "description": "To get all the order info you could use get order by id end-point",
+                "parameters": [
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "description": "Size of the page to retrieve.",
+                        "schema": {
+                            "type": "number",
+                            "minimum": 1,
+                            "maximum": 50,
+                            "default": 10
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "number",
+                            "minimum": 1,
+                            "default": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status 200",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "string"
+                                            },
+                                            "status": {
+                                                "type": "string"
+                                            },
+                                            "createDate": {
+                                                "type": "string",
+                                                "format": "date"
+                                            },
+                                            "updateDate": {
+                                                "type": "string",
+                                                "format": "date"
+                                            },
+                                            "total": {
+                                                "type": "number"
+                                            },
+                                            "knawat_order_status": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedErrorToken"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/orders/{order_id}": {
+            "put": {
+                "parameters": [
+                    {
+                        "name": "order_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "summary": "Update order",
+                "tags": [
+                    "Orders"
+                ],
+                "description": "Update order by id",
+                "responses": {
+                    "200": {
+                        "description": "Status 200",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OrderResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedErrorToken"
+                    },
+                    "404": {
+                        "description": "Status 404",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                },
+                                "examples": {
+                                    "response": {
+                                        "value": {
+                                            "errorCode": 404,
+                                            "errorMessage": "Order not found.",
+                                            "data": {}
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Status 500",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "errors": {
+                                            "type": "object",
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string"
+                                                },
+                                                "status": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "id",
+                                    "order"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "type": "string"
+                                    },
+                                    "order": {
+                                        "$ref": "#/components/schemas/Order"
+                                    }
+                                },
+                                "description": "Order Confirmation"
+                            }
+                        }
+                    },
+                    "required": true
+                }
+            },
+            "get": {
+                "summary": "Order by id",
+                "tags": [
+                    "Orders"
+                ],
+                "parameters": [
+                    {
+                        "name": "order_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status 200",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "order": {
+                                            "$ref": "#/components/schemas/Order"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Status 400",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "description": "There is an error"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedErrorToken"
+                    },
+                    "404": {
+                        "description": "Status 404",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                },
+                                "examples": {
+                                    "response": {
+                                        "value": {
+                                            "errorMessage": "Order not found."
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "parameters": [
+                    {
+                        "name": "order_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "summary": "Cancel order",
+                "tags": [
+                    "Orders"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status 200",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OrderResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedErrorToken"
+                    },
+                    "404": {
+                        "description": "Status 404"
+                    },
+                    "500": {
+                        "description": "Status 500",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "message": {
+                                                        "type": "string"
+                                                    },
+                                                    "status": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/payments/{storeId}": {
+            "post": {
+                "parameters": [
+                    {
+                        "name": "storeId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "summary": "Add Payment",
+                "description": "This service available for some Enterprise subscriptions Only",
+                "tags": [
+                    "Payments",
+                    "Enterprise Only"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status 200",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Payment"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedErrorBasic"
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "amount",
+                                    "payment_mode"
+                                ],
+                                "properties": {
+                                    "payment_mode": {
+                                        "type": "string"
+                                    },
+                                    "amount": {
+                                        "type": "number"
+                                    },
+                                    "invoices": {
+                                        "type": "array",
+                                        "items": {
+                                            "required": [
+                                                "amount_applied",
+                                                "invoice_id"
+                                            ],
+                                            "type": "object",
+                                            "properties": {
+                                                "amount_applied": {
+                                                    "type": "number"
+                                                },
+                                                "invoice_id": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "account_id": {
+                                        "type": "string"
+                                    },
+                                    "bank_charges": {
+                                        "type": "string",
+                                        "description": "Requires account_id when used"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "required": true
+                }
+            }
+        },
+        "/payments": {
+            "get": {
+                "summary": "List Payments",
+                "tags": [
+                    "Payments"
+                ],
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "reference_number",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "payment_mode",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status 200",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "payments": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Payment"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedErrorToken"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/token": {
+            "post": {
+                "summary": "Get token",
+                "tags": [
+                    "Authentication"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status 200",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "description": "Channel information",
+                                    "properties": {
+                                        "channel": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Status 422",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "description": "consumerKey or consumerSecret is wrong"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "consumerKey",
+                                    "consumerSecret"
+                                ],
+                                "properties": {
+                                    "consumerKey": {
+                                        "type": "string"
+                                    },
+                                    "consumerSecret": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "required": true
+                }
+            }
+        },
+        "/logs": {
+            "post": {
+                "summary": "Add Log",
+                "tags": [
+                    "Shipment",
+                    "Enterprise Only"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status 200",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "enum": [
+                                                "success"
+                                            ]
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "id": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedErrorBasic"
+                    },
+                    "500": {
+                        "description": "Status 500",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "enum": [
+                                                "failed"
+                                            ]
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "code": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Log"
+                            }
+                        }
+                    },
+                    "required": true
+                }
+            },
+            "get": {
+                "summary": "Get Logs",
+                "tags": [
+                    "Shipment",
+                    "Enterprise Only"
+                ],
+                "parameters": [
+                    {
+                        "name": "topic",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "topicId",
+                        "in": "query",
+                        "required": false,
+                        "description": "Required if no storeId",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "storeId",
+                        "in": "query",
+                        "required": false,
+                        "description": "Required if no topicId",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "logLevel",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "info",
+                                "debug",
+                                "warn",
+                                "error"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "number",
+                            "minimum": 1,
+                            "maximum": 500,
+                            "default": 10
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "number",
+                            "default": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status 200",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Log"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedErrorBasic"
+                    },
+                    "404": {
+                        "description": "Status 404",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Status 500",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "code": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": []
+                    }
+                ]
+            }
+        },
         "/products/{sku}": {
             "get": {
                 "parameters": [
@@ -2125,322 +3228,6 @@
                 }
             }
         },
-        "/currencies/{currencyCode}": {
-            "get": {
-                "summary": "Get Currency By Code",
-                "tags": [
-                    "Currencies",
-                    "Enterprise Only"
-                ],
-                "description": "Gets currency code, name and rate",
-                "parameters": [
-                    {
-                        "name": "currencyCode",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "type": "string",
-                            "minLength": 3,
-                            "maxLength": 3
-                        }
-                    },
-                    {
-                        "name": "currencyCode",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Status 200",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Currency"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/UnauthorizedErrorBasic"
-                    },
-                    "404": {
-                        "description": "Status 404"
-                    }
-                },
-                "security": [
-                    {
-                        "basicAuth": []
-                    }
-                ]
-            }
-        },
-        "/currencies": {
-            "get": {
-                "summary": "Get Currencies",
-                "tags": [
-                    "Currencies",
-                    "Enterprise Only"
-                ],
-                "description": "Get all currencies with names, code and rates info",
-                "responses": {
-                    "200": {
-                        "description": "Status 200",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/Currency"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/UnauthorizedErrorBasic"
-                    }
-                },
-                "security": [
-                    {
-                        "basicAuth": []
-                    }
-                ]
-            }
-        },
-        "/invoices": {
-            "get": {
-                "summary": "List Invoices",
-                "tags": [
-                    "Invoices"
-                ],
-                "parameters": [
-                    {
-                        "name": "page",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "type": "number"
-                        }
-                    },
-                    {
-                        "name": "limit",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "type": "number"
-                        }
-                    },
-                    {
-                        "name": "reference_number",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "invoice_number",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Status 200",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "invoices": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Invoice"
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/UnauthorizedErrorToken"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            },
-            "post": {
-                "summary": "Create new invoice",
-                "tags": [
-                    "Invoices"
-                ],
-                "parameters": [
-                    {
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Status 200",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Invoice"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/UnauthorizedErrorBasic"
-                    },
-                    "500": {
-                        "description": "Status 500",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "errors": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "message": {
-                                                        "type": "string"
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "basicAuth": []
-                    }
-                ],
-                "requestBody": {
-                    "$ref": "#/components/requestBodies/Invoice",
-                    "required": true
-                }
-            }
-        },
-        "/invoices/{id}/credits": {
-            "post": {
-                "summary": "Apply credits to invoice",
-                "tags": [
-                    "Invoices"
-                ],
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Status 200",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "invoicePayments": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "invoicePaymentId": {
-                                                        "type": "string"
-                                                    },
-                                                    "paymentId": {
-                                                        "type": "string"
-                                                    },
-                                                    "invoiceId": {
-                                                        "type": "string"
-                                                    },
-                                                    "amountUsed": {
-                                                        "type": "number"
-                                                    }
-                                                }
-                                            }
-                                        },
-                                        "code": {
-                                            "type": "number"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/UnauthorizedErrorBasic"
-                    },
-                    "500": {
-                        "description": "Status 500",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "errors": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "message": {
-                                                        "type": "string"
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "basicAuth": []
-                    }
-                ]
-            }
-        },
         "coupons/:CODE": {
             "get": {
                 "summary": "Get Coupon",
@@ -2516,1111 +3303,6 @@
                         "basicAuth": []
                     }
                 ]
-            }
-        },
-        "/catalog/categories": {
-            "get": {
-                "summary": "Get list of categories",
-                "tags": [
-                    "Products"
-                ],
-                "description": "Get all categories related to my products.",
-                "parameters": [
-                    {
-                        "name": "parentId",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "type": "number"
-                        }
-                    },
-                    {
-                        "name": "treeNodeLevel",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "type": "number"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Status 200",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "count": {
-                                            "type": "number"
-                                        },
-                                        "categories": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Category"
-                                            }
-                                        }
-                                    }
-                                },
-                                "examples": {
-                                    "response": {
-                                        "value": {
-                                            "count": 123,
-                                            "categories": [
-                                                {
-                                                    "id": 4857,
-                                                    "name": {
-                                                        "tr": "Ayakkabı",
-                                                        "en": "Shoes",
-                                                        "ar": "حذاء"
-                                                    },
-                                                    "parentId": 455,
-                                                    "productsCount": 100,
-                                                    "treeNodeLevel": 1
-                                                }
-                                            ]
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/UnauthorizedErrorToken"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/payments/{storeId}": {
-            "post": {
-                "parameters": [
-                    {
-                        "name": "storeId",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "summary": "Add Payment",
-                "description": "This service available for some Enterprise subscriptions Only",
-                "tags": [
-                    "Payments",
-                    "Enterprise Only"
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Status 200",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Payment"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/UnauthorizedErrorBasic"
-                    }
-                },
-                "security": [
-                    {
-                        "basicAuth": []
-                    }
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "required": [
-                                    "amount",
-                                    "payment_mode"
-                                ],
-                                "properties": {
-                                    "payment_mode": {
-                                        "type": "string"
-                                    },
-                                    "amount": {
-                                        "type": "number"
-                                    },
-                                    "invoices": {
-                                        "type": "array",
-                                        "items": {
-                                            "required": [
-                                                "amount_applied",
-                                                "invoice_id"
-                                            ],
-                                            "type": "object",
-                                            "properties": {
-                                                "amount_applied": {
-                                                    "type": "number"
-                                                },
-                                                "invoice_id": {
-                                                    "type": "string"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    "account_id": {
-                                        "type": "string"
-                                    },
-                                    "bank_charges": {
-                                        "type": "string",
-                                        "description": "Requires account_id when used"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "required": true
-                }
-            }
-        },
-        "/payments": {
-            "get": {
-                "summary": "List Payments",
-                "tags": [
-                    "Payments"
-                ],
-                "parameters": [
-                    {
-                        "name": "page",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "type": "number"
-                        }
-                    },
-                    {
-                        "name": "limit",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "type": "number"
-                        }
-                    },
-                    {
-                        "name": "reference_number",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "payment_mode",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Status 200",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "payments": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Payment"
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/UnauthorizedErrorToken"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/logs": {
-            "post": {
-                "summary": "Add Log",
-                "tags": [
-                    "Shipment",
-                    "Enterprise Only"
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Status 200",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "status": {
-                                            "type": "string",
-                                            "enum": [
-                                                "success"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "id": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/UnauthorizedErrorBasic"
-                    },
-                    "500": {
-                        "description": "Status 500",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "status": {
-                                            "type": "string",
-                                            "enum": [
-                                                "failed"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "code": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "basicAuth": []
-                    }
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/Log"
-                            }
-                        }
-                    },
-                    "required": true
-                }
-            },
-            "get": {
-                "summary": "Get Logs",
-                "tags": [
-                    "Shipment",
-                    "Enterprise Only"
-                ],
-                "parameters": [
-                    {
-                        "name": "topic",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "topicId",
-                        "in": "query",
-                        "required": false,
-                        "description": "Required if no storeId",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "storeId",
-                        "in": "query",
-                        "required": false,
-                        "description": "Required if no topicId",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "logLevel",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "info",
-                                "debug",
-                                "warn",
-                                "error"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "sort",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "asc",
-                                "desc"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "limit",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "type": "number",
-                            "minimum": 1,
-                            "maximum": 500,
-                            "default": 10
-                        }
-                    },
-                    {
-                        "name": "page",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "type": "number",
-                            "default": 1
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Status 200",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/Log"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/UnauthorizedErrorBasic"
-                    },
-                    "404": {
-                        "description": "Status 404",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Status 500",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "code": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "basicAuth": []
-                    }
-                ]
-            }
-        },
-        "/orders": {
-            "post": {
-                "summary": "Create order",
-                "tags": [
-                    "Orders"
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/OrderResponse"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/UnauthorizedErrorToken"
-                    },
-                    "404": {
-                        "description": "Status 404",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Error"
-                                },
-                                "examples": {
-                                    "response": {
-                                        "value": {
-                                            "errorCode": 404,
-                                            "errorMessage": "SKU(s) out of stock.",
-                                            "data": {
-                                                "outOfStock": [
-                                                    "sku1",
-                                                    "sku2"
-                                                ]
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "428": {
-                        "description": "Status 428",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "description": "```\n{\n              errors: [\n                {\n                  status: 'fail',\n                  message: 'No Billing Address Or Address Missing Data. Your order failed!',\n                  solution: `Please fill on your store billing address from here: https://app.knawat.com/settings/store`\n                }\n              ]\n            }\n```",
-                                    "properties": {
-                                        "errors": {
-                                            "type": "array",
-                                            "items": {
-                                                "required": [
-                                                    "message",
-                                                    "solution",
-                                                    "status"
-                                                ],
-                                                "type": "object",
-                                                "properties": {
-                                                    "status": {
-                                                        "type": "string",
-                                                        "enum": [
-                                                            "fail"
-                                                        ]
-                                                    },
-                                                    "message": {
-                                                        "type": "string"
-                                                    },
-                                                    "solution": {
-                                                        "type": "string"
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Status 500",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "errors": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "message": {
-                                                        "type": "string"
-                                                    },
-                                                    "status": {
-                                                        "type": "string"
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "required": [
-                                    "order"
-                                ],
-                                "properties": {
-                                    "order": {
-                                        "$ref": "#/components/schemas/Order"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "required": true
-                }
-            },
-            "get": {
-                "summary": "Get Order(s)",
-                "tags": [
-                    "Orders"
-                ],
-                "description": "To get all the order info you could use get order by id end-point",
-                "parameters": [
-                    {
-                        "name": "limit",
-                        "in": "query",
-                        "required": false,
-                        "description": "Size of the page to retrieve.",
-                        "schema": {
-                            "type": "number",
-                            "minimum": 1,
-                            "maximum": 50,
-                            "default": 10
-                        }
-                    },
-                    {
-                        "name": "page",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "type": "number",
-                            "minimum": 1,
-                            "default": 1
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Status 200",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object",
-                                        "properties": {
-                                            "id": {
-                                                "type": "string"
-                                            },
-                                            "status": {
-                                                "type": "string"
-                                            },
-                                            "createDate": {
-                                                "type": "string",
-                                                "format": "date"
-                                            },
-                                            "updateDate": {
-                                                "type": "string",
-                                                "format": "date"
-                                            },
-                                            "total": {
-                                                "type": "number"
-                                            },
-                                            "knawat_order_status": {
-                                                "type": "string"
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/UnauthorizedErrorToken"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/orders/{order_id}": {
-            "put": {
-                "parameters": [
-                    {
-                        "name": "order_id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "summary": "Update order",
-                "tags": [
-                    "Orders"
-                ],
-                "description": "Update order by id",
-                "responses": {
-                    "200": {
-                        "description": "Status 200",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/OrderResponse"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/UnauthorizedErrorToken"
-                    },
-                    "404": {
-                        "description": "Status 404",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Error"
-                                },
-                                "examples": {
-                                    "response": {
-                                        "value": {
-                                            "errorCode": 404,
-                                            "errorMessage": "Order not found.",
-                                            "data": {}
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Status 500",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "errors": {
-                                            "type": "object",
-                                            "properties": {
-                                                "message": {
-                                                    "type": "string"
-                                                },
-                                                "status": {
-                                                    "type": "string"
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "required": [
-                                    "id",
-                                    "order"
-                                ],
-                                "properties": {
-                                    "id": {
-                                        "type": "string"
-                                    },
-                                    "order": {
-                                        "$ref": "#/components/schemas/Order"
-                                    }
-                                },
-                                "description": "Order Confirmation"
-                            }
-                        }
-                    },
-                    "required": true
-                }
-            },
-            "get": {
-                "summary": "Order by id",
-                "tags": [
-                    "Orders"
-                ],
-                "parameters": [
-                    {
-                        "name": "order_id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Status 200",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "order": {
-                                            "$ref": "#/components/schemas/Order"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Status 400",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "description": "There is an error"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/UnauthorizedErrorToken"
-                    },
-                    "404": {
-                        "description": "Status 404",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Error"
-                                },
-                                "examples": {
-                                    "response": {
-                                        "value": {
-                                            "errorMessage": "Order not found."
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            },
-            "delete": {
-                "parameters": [
-                    {
-                        "name": "order_id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "summary": "Cancel order",
-                "tags": [
-                    "Orders"
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Status 200",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/OrderResponse"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/UnauthorizedErrorToken"
-                    },
-                    "404": {
-                        "description": "Status 404"
-                    },
-                    "500": {
-                        "description": "Status 500",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "errors": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "message": {
-                                                        "type": "string"
-                                                    },
-                                                    "status": {
-                                                        "type": "string"
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/token": {
-            "post": {
-                "summary": "Get token",
-                "tags": [
-                    "Authentication"
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Status 200",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "description": "Channel information",
-                                    "properties": {
-                                        "channel": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Status 422",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "description": "consumerKey or consumerSecret is wrong"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "required": [
-                                    "consumerKey",
-                                    "consumerSecret"
-                                ],
-                                "properties": {
-                                    "consumerKey": {
-                                        "type": "string"
-                                    },
-                                    "consumerSecret": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "required": true
-                }
-            }
-        },
-        "/membership": {
-            "post": {
-                "summary": "Create new membership",
-                "tags": [
-                    "Membership"
-                ],
-                "parameters": [
-                    {
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Status 200",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Membership"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/UnauthorizedErrorBasic"
-                    },
-                    "500": {
-                        "description": "Status 500",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "errors": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "message": {
-                                                        "type": "string"
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "basicAuth": []
-                    }
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/Membership"
-                            }
-                        }
-                    },
-                    "required": true
-                }
-            }
-        },
-        "/membership/{id}": {
-            "put": {
-                "summary": "Update Membership",
-                "tags": [
-                    "Membership"
-                ],
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Status 200",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Membership"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/UnauthorizedErrorBasic"
-                    },
-                    "500": {
-                        "description": "Status 500",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "errors": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "message": {
-                                                        "type": "string"
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "basicAuth": []
-                    }
-                ],
-                "requestBody": {
-                    "$ref": "#/components/requestBodies/Membership"
-                }
             }
         },
         "/subscription": {
@@ -4599,6 +4281,149 @@
                     }
                 ]
             }
+        },
+        "/membership": {
+            "post": {
+                "summary": "Create new membership",
+                "tags": [
+                    "Membership"
+                ],
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status 200",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Membership"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedErrorBasic"
+                    },
+                    "500": {
+                        "description": "Status 500",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "message": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Membership"
+                            }
+                        }
+                    },
+                    "required": true
+                }
+            }
+        },
+        "/membership/{id}": {
+            "put": {
+                "summary": "Update Membership",
+                "tags": [
+                    "Membership"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status 200",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Membership"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedErrorBasic"
+                    },
+                    "500": {
+                        "description": "Status 500",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "message": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/Membership"
+                }
+            }
         }
     },
     "security": [
@@ -4606,6 +4431,57 @@
             "basicAuth": []
         }
     ],
-    "tags": [],
+    "tags": [
+        {
+            "name": "Authentication",
+            "description": "text here"
+        },
+        {
+            "name": "My Products",
+            "description": "How products can come to your API?\n![](https://www.dropbox.com/s/tb8708y269pccx0/ZApp%20-%20products.png?dl=1)\n",
+            "externalDocs": {
+                "description": "Register and import some products",
+                "url": "https://app.knawat.com"
+            }
+        },
+        {
+            "name": "Orders"
+        },
+        {
+            "name": "Invoices"
+        },
+        {
+            "name": "Payments"
+        },
+        {
+            "name": "Enterprise Only",
+            "description": "Ask sales for enterprise subscriptions",
+            "externalDocs": {
+                "url": "https://knawat.com/pricing"
+            }
+        },
+        {
+            "name": "Stores"
+        },
+        {
+            "name": "Products",
+            "description": "This is how you can get all Knawat products to list it directly on your store, this endpoint for enterprise only customers only"
+        },
+        {
+            "name": "Currencies"
+        },
+        {
+            "name": "Shipment"
+        },
+        {
+            "name": "Subscription"
+        },
+        {
+            "name": "Coupon"
+        },
+        {
+            "name": "Membership"
+        }
+    ],
     "externalDocs": []
 }
