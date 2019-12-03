@@ -10,12 +10,6 @@ services:
     environment:
       SERVICES: api
       PORT: 80
-    links:
-      - nats
-      - redis
-    depends_on:
-      - nats
-      - redis
     labels:
       - 'traefik.enable=true'
       - 'traefik.backend=production'
@@ -29,12 +23,10 @@ services:
     image: microes
     restart: always
     env_file: .env
-    depends_on:
-      - mongodb
-    links:
-      - mongodb
     environment:
       SERVICES: stores
+    depends_on:
+      - mongodb
 
   users:
     build:
@@ -44,6 +36,8 @@ services:
     env_file: .env
     environment:
       SERVICES: users
+    depends_on:
+      - mongodb
 
   catalog:
     build:
@@ -57,7 +51,7 @@ services:
       - elastic
       - default
 
-  list:
+  products-list:
     build:
       context: ../../
     image: microes
@@ -85,16 +79,16 @@ services:
     restart: always
     env_file: .env
     environment:
-      SERVICES: membership, subscription, coupons
+      SERVICES: membership, subscription, coupons, crm
 
   subscription-cron:
-      build:
-        context: ../../
-      image: microes
-      restart: always
-      env_file: .env
-      environment:
-        SERVICES: subscription-cron
+    build:
+      context: ../../
+    image: microes
+    restart: always
+    env_file: .env
+    environment:
+      SERVICES: subscription-cron
 
   orders:
     build:
@@ -150,6 +144,7 @@ services:
     networks:
       - elastic
       - default
+
   redis:
     image: redis:alpine
 

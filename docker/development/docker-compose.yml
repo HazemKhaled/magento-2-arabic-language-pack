@@ -25,12 +25,10 @@ services:
     image: microes
     restart: always
     env_file: .env
-    depends_on:
-      - mongodb
-    links:
-      - mongodb
     environment:
       SERVICES: stores
+    depends_on:
+      - mongodb
 
   users:
     build:
@@ -40,24 +38,8 @@ services:
     env_file: .env
     environment:
       SERVICES: users
-
-  invoices:
-    build:
-      context: ../../
-    image: microes
-    restart: always
-    env_file: .env
-    environment:
-      SERVICES: invoices, payments
-
-  subscription-cron:
-      build:
-        context: ../../
-      image: microes
-      restart: always
-      env_file: .env
-      environment:
-        SERVICES: subscription-cron
+    depends_on:
+      - mongodb
 
   catalog:
     build:
@@ -71,7 +53,7 @@ services:
       - elastic
       - default
 
-  list:
+  products-list:
     build:
       context: ../../
     image: microes
@@ -82,40 +64,6 @@ services:
     networks:
       - elastic
       - default
-
-  logs:
-    build:
-      context: ../../
-    image: microes
-    restart: always
-    env_file: .env
-    environment:
-      SERVICES: logs
-    networks:
-      - elastic
-      - default
-
-  orders:
-    build:
-      context: ../../
-    image: microes
-    restart: always
-    env_file: .env
-    environment:
-      SERVICES: orders
-
-  shipment:
-    build:
-      context: ../../
-    image: microes
-    restart: always
-    env_file: .env
-    depends_on:
-      - mongodb
-    links:
-      - mongodb
-    environment:
-      SERVICES: shipment
 
   currencies:
     build:
@@ -133,7 +81,45 @@ services:
     restart: always
     env_file: .env
     environment:
-      SERVICES: membership, subscription, coupons
+      SERVICES: membership, subscription, coupons, crm
+
+  subscription-cron:
+    build:
+      context: ../../
+    image: microes
+    restart: always
+    env_file: .env
+    environment:
+      SERVICES: subscription-cron
+
+  orders:
+    build:
+      context: ../../
+    image: microes
+    restart: always
+    env_file: .env
+    environment:
+      SERVICES: orders
+
+  invoices:
+    build:
+      context: ../../
+    image: microes
+    restart: always
+    env_file: .env
+    environment:
+      SERVICES: invoices, payments
+
+  shipment:
+    build:
+      context: ../../
+    image: microes
+    restart: always
+    env_file: .env
+    environment:
+      SERVICES: shipment
+    depends_on:
+      - mongodb
 
   elastic-update:
     build:
@@ -149,6 +135,18 @@ services:
       - elastic
       - default
 
+  logs:
+    build:
+      context: ../../
+    image: microes
+    restart: always
+    env_file: .env
+    environment:
+      SERVICES: logs
+    networks:
+      - elastic
+      - default
+
   redis:
     image: redis:alpine
 
@@ -160,7 +158,7 @@ services:
     restart: always
     env_file: .env
     volumes:
-      - ~/data/db/mp-dev:/data/db
+      - ~/data/db/mp:/data/db
       - ../docker-mongodb-init/:/docker-entrypoint-initdb.d/
     ports:
       - '21985:27017'
@@ -176,9 +174,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./traefik.toml:/traefik.toml
       - ./acme.json:/acme.json
-    networks:
-      - elastic
-      - default
 
 networks:
   elastic:
