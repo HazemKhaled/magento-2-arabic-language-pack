@@ -652,7 +652,7 @@ const TheService: ServiceSchema = {
         }
       },
       params: UpdateSubscriptionValidation,
-      handler(ctx: Context) {
+      async handler(ctx: Context) {
         let $set: { [key: string]: string } = {};
         const { params } = ctx;
         if (ctx.params.retries) {
@@ -665,7 +665,12 @@ const TheService: ServiceSchema = {
           params.expireDate = new Date(params.expireDate);
         }
         $set = { ...params, ...$set };
-        return this.adapter.updateById(ctx.params.id, { $set });
+        const instance = await this.adapter.updateById(ctx.params.id, { $set });
+        this.broker.cacher.clean(`subscription.get:${instance.url}*`);
+        this.broker.cacher.clean(`subscription.list:${instance.url}*`);
+        this.broker.cacher.clean(`stores.get:${instance.url}*`);
+        this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
+        return instance;
       }
     },
     checkCurrentSubGradingStatus: {
