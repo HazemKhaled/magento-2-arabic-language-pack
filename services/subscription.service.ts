@@ -1,7 +1,7 @@
 import { Context, Errors, ServiceSchema } from 'moleculer';
 import { isError } from 'util';
 import DbService from '../utilities/mixins/mongo.mixin';
-import { Coupon, Membership, Subscription } from '../utilities/types';
+import { Coupon, Membership, Store, Subscription } from '../utilities/types';
 import {
   CreateSubscriptionValidation,
   UpdateSubscriptionValidation
@@ -665,7 +665,18 @@ const TheService: ServiceSchema = {
           params.expireDate = new Date(params.expireDate);
         }
         $set = { ...params, ...$set };
-        return this.adapter.updateById(ctx.params.id, { $set });
+        return this.adapter
+          .updateById(ctx.params.id, { $set })
+          .then((instance: Store) => {
+            this.broker.cacher.clean(`subscription.get:${instance.url}*`);
+            this.broker.cacher.clean(`subscription.list:${instance.url}*`);
+            this.broker.cacher.clean(`stores.get:${instance.url}*`);
+            this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
+            return instance;
+          })
+          .catch((err: any) => {
+            throw new MoleculerError(err, 500);
+          });
       }
     },
     checkCurrentSubGradingStatus: {
