@@ -225,12 +225,16 @@ const TheService: ServiceSchema = {
       params: UpdateMembershipValidation,
       async handler(ctx: Context): Promise<Membership> {
         const { params } = ctx;
+        const id = params.id;
         delete params.id;
         return this.adapter
-          .updateById(ctx.params.id, { $set: { ...params } })
+          .updateById(id, { $set: { ...params } })
           .then((res: Membership) => {
             this.broker.cacher.clean(`membership.list:**`);
             this.broker.cacher.clean(`membership.get:${ctx.params.id}**`);
+            if (!res) {
+              throw new MoleculerError('Membership not found', 404);
+            }
             return this.normalizeId(res);
           })
           .catch((err: any) => {
