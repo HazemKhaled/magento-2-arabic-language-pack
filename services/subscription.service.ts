@@ -652,7 +652,7 @@ const TheService: ServiceSchema = {
         }
       },
       params: UpdateSubscriptionValidation,
-      async handler(ctx: Context) {
+      handler(ctx: Context) {
         let $set: { [key: string]: string } = {};
         const { params } = ctx;
         if (ctx.params.retries) {
