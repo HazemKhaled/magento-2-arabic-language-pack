@@ -52,6 +52,54 @@ const TheService: ServiceSchema = {
      * @returns {Store}
      */
     me: {
+      openapi: {
+        $path: 'get /stores/me',
+        summary: 'My Store info',
+        tags: ['Stores'],
+        responses: {
+          '200': {
+            description: 'Status 200',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Store'
+                }
+              }
+            }
+          },
+          '401': {
+            $ref: '#/components/responses/UnauthorizedErrorToken'
+          },
+          '404': {
+            description: 'Status 404',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    errors: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          message: {
+                            type: 'string'
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        security: [
+          {
+            bearerAuth: []
+          }
+        ]
+      },
       auth: 'Bearer',
       cache: {
         keys: ['#user'],
@@ -62,9 +110,9 @@ const TheService: ServiceSchema = {
           .findOne({ consumer_key: ctx.meta.user })
           .then(async (res: Store | null) => {
             let omsData: boolean | { store: Store } = false;
-            if(res) {
-              if(res.users) {
-                res.subscription = await ctx.call('subscription.get',{ id: res._id });
+            if (res) {
+              if (res.users) {
+                res.subscription = await ctx.call('subscription.get', { id: res._id });
               }
               if (res.internal_data && res.internal_data.omsId) {
                 omsData = (await fetch(
@@ -78,7 +126,8 @@ const TheService: ServiceSchema = {
                 ).then(response => response.json())) as { store: Store };
                 // If the DB response not null will return the data
                 return this.sanitizeResponse(res, omsData.store);
-            }}
+              }
+            }
             // If null return Not Found error
             ctx.meta.$statusMessage = 'Not Found';
             ctx.meta.$statusCode = 404;
@@ -93,6 +142,73 @@ const TheService: ServiceSchema = {
      * @returns {Store}
      */
     get: {
+      openapi: {
+        $path: 'get /stores/{url}',
+        summary: 'Get Store by url',
+        tags: ['Stores', 'Enterprise Only'],
+        parameters: [
+          {
+            name: 'Authorization',
+            in: 'header',
+            required: true,
+            schema: {
+              type: 'string'
+            }
+          },
+
+          {
+            name: 'url',
+            in: 'path',
+            required: true,
+            schema: {
+              type: 'string'
+            }
+          }
+        ],
+        responses: {
+          '200': {
+            description: 'Status 200',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Store'
+                }
+              }
+            }
+          },
+          '401': {
+            $ref: '#/components/responses/UnauthorizedErrorBasic'
+          },
+          '404': {
+            description: 'Status 404',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    errors: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          message: {
+                            type: 'string'
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        security: [
+          {
+            basicAuth: []
+          }
+        ]
+      },
       auth: 'Basic',
       cache: {
         keys: ['id'],
@@ -104,26 +220,27 @@ const TheService: ServiceSchema = {
       handler(ctx: Context) {
         return this.adapter.findById(ctx.params.id).then(async (res: Store | null) => {
           if (res) {
-            if(res.users) {
-              res.subscription = await ctx.call('subscription.get',{ id: ctx.params.id });
+            if (res.users) {
+              res.subscription = await ctx.call('subscription.get', { id: ctx.params.id });
             }
-            if(res.internal_data && res.internal_data.omsId) {
+            if (res.internal_data && res.internal_data.omsId) {
               const omsData = (await fetch(
-              `${process.env.OMS_BASEURL}/stores/${res.internal_data.omsId}`,
-              {
-                method: 'get',
-                headers: {
-                  Authorization: `Basic ${this.settings.AUTH}`
+                `${process.env.OMS_BASEURL}/stores/${res.internal_data.omsId}`,
+                {
+                  method: 'get',
+                  headers: {
+                    Authorization: `Basic ${this.settings.AUTH}`
+                  }
                 }
-              }
-            ).then(response => response.json())) as { store: Store };
+              ).then(response => response.json())) as { store: Store };
 
-            // If the DB response not null will return the data
-            if (!omsData) {
-              this.logger.warn('Can not get balance', ctx.params);
-            } else {
-              return this.sanitizeResponse(res, omsData.store);
-            }}
+              // If the DB response not null will return the data
+              if (!omsData) {
+                this.logger.warn('Can not get balance', ctx.params);
+              } else {
+                return this.sanitizeResponse(res, omsData.store);
+              }
+            }
           }
 
           // return store even if we didn't get balance from OMS
@@ -145,6 +262,75 @@ const TheService: ServiceSchema = {
      * @returns {Store[]}
      */
     list: {
+      openapi: {
+        $path: 'get /stores',
+        summary: 'All User Stores',
+        tags: ['Stores', 'Enterprise Only'],
+        parameters: [
+          {
+            name: 'filter',
+            in: 'query',
+            required: false,
+            schema: {
+              type: 'string'
+            }
+          },
+          {
+            name: 'Authorization',
+            in: 'header',
+            required: true,
+            schema: {
+              type: 'string'
+            }
+          }
+        ],
+        responses: {
+          '200': {
+            description: 'Status 200',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'array',
+                  items: {
+                    $ref: '#/components/schemas/Store'
+                  }
+                }
+              }
+            }
+          },
+          '401': {
+            $ref: '#/components/responses/UnauthorizedErrorBasic'
+          },
+          '404': {
+            description: 'Status 404',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    errors: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          message: {
+                            type: 'string'
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        security: [
+          {
+            basicAuth: []
+          }
+        ]
+      },
       auth: 'Basic',
       cache: {
         keys: ['filter'],
@@ -186,30 +372,143 @@ const TheService: ServiceSchema = {
       }
     },
     storesList: {
+      openapi: {
+        $path: 'get /admin/stores',
+        summary: 'All Stores',
+        tags: ['Stores'],
+        parameters: [
+          {
+            name: 'id',
+            in: 'query',
+            required: false,
+            schema: {
+              type: 'string'
+            }
+          },
+          {
+            name: 'page',
+            in: 'query',
+            required: false,
+            schema: {
+              type: 'number'
+            }
+          },
+          {
+            name: 'perPage',
+            in: 'query',
+            required: false,
+            schema: {
+              type: 'number'
+            }
+          },
+          {
+            name: 'Authorization',
+            in: 'header',
+            required: true,
+            schema: {
+              type: 'string'
+            }
+          }
+        ],
+        responses: {
+          '200': {
+            description: 'Status 200',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    stores: {
+                      type: 'array',
+                      items: {
+                        $ref: '#/components/schemas/Store'
+                      }
+                    },
+                    total: { type: 'number' }
+                  }
+                }
+              }
+            }
+          },
+          '401': {
+            $ref: '#/components/responses/UnauthorizedErrorBasic'
+          },
+          '404': {
+            description: 'Status 404',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    errors: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          message: {
+                            type: 'string'
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        security: [
+          {
+            basicAuth: []
+          }
+        ]
+      },
       auth: 'Basic',
+      cache: {
+        keys: ['id', 'page', 'perPage'],
+        ttl: 60 * 60 * 24 // 1 day
+      },
       params: {
-        id: {type: 'string', optional: true},
-        page: {type: 'number', optional: true, positive: true},
-        perPage: {type: 'number', optional: true, positive: true},
+        id: { type: 'string', optional: true },
+        page: { type: 'number', optional: true, positive: true, convert: true, integer: true },
+        perPage: { type: 'number', optional: true, positive: true, convert: true, integer: true }
       },
       handler(ctx: Context) {
         const query: any = {};
-        if(ctx.params.id) {
-          query._id = {$regex: new RegExp(`.*${ctx.params.id}.*`, 'i')};
+        if (ctx.params.id) {
+          query._id = { $regex: new RegExp(`.*${ctx.params.id}.*`, 'i') };
         }
-        const findBody: any = {query};
-        findBody.limit = ctx.params.perPage || 50;
-        findBody.offset = (ctx.params.perPage || 50) * ((ctx.params.perPage || 1) - 1);
-        return this.adapter.find(findBody).then((res: Store[]) => {
-          if (res.length !== 0) return res.map(store => this.sanitizeResponse(store));
-          throw new MoleculerError('No Store found!', 404);
-        })
-        .catch((err: any) => {
+        const findBody: any = { query };
+        findBody.limit = Number(ctx.params.perPage) || 50;
+        findBody.offset = (Number(ctx.params.perPage) || 50) * ((Number(ctx.params.page) || 1) - 1);
+        return this.adapter
+          .find(findBody)
+          .then(async (res: Store[]) => {
+            if (res.length !== 0)
+              return {
+                stores: res.map(store => this.sanitizeResponse(store)),
+                total: await ctx.call('stores.countStores', { query })
+              };
+            throw new MoleculerError('No Store found!', 404);
+          })
+          .catch((err: any) => {
             if (err.name === 'MoleculerError') {
-                throw new MoleculerError(err.message, err.code);
+              throw new MoleculerError(err.message, err.code);
             }
             throw new MoleculerError(err, 500);
-        });
+          });
+      }
+    },
+    countStores: {
+      cache: {
+        keys: ['query'],
+        ttl: 60 * 60 * 24 // 1 day
+      },
+      params: {
+        query: 'object'
+      },
+      handler(ctx: Context) {
+        return this.adapter.count({ query: ctx.params.query });
       }
     },
     /**
@@ -219,6 +518,67 @@ const TheService: ServiceSchema = {
      * @returns {Store}
      */
     create: {
+      openapi: {
+        $path: 'post /stores',
+        summary: 'Create new store',
+        tags: ['Stores', 'Enterprise Only'],
+        parameters: [
+          {
+            name: 'Authorization',
+            in: 'header',
+            required: true,
+            schema: {
+              type: 'string'
+            }
+          }
+        ],
+        responses: {
+          '200': {
+            description: 'Status 200',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Store'
+                }
+              }
+            }
+          },
+          '401': {
+            $ref: '#/components/responses/UnauthorizedErrorBasic'
+          },
+          '500': {
+            description: 'Status 500',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    errors: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          message: {
+                            type: 'string'
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        security: [
+          {
+            basicAuth: []
+          }
+        ],
+        requestBody: {
+          $ref: '#/components/requestBodies/Store'
+        }
+      },
       auth: 'Basic',
       params: createValidation,
       async handler(ctx: Context) {
@@ -227,6 +587,8 @@ const TheService: ServiceSchema = {
 
         // FIX: Clear only cache by email
         this.broker.cacher.clean(`stores.list:**`);
+        this.broker.cacher.clean(`stores.storesList:**`);
+        this.broker.cacher.clean(`stores.countStores:**`);
 
         // Sanitize request params
         const store: Store = this.sanitizeStoreParams(ctx.params, true);
@@ -280,6 +642,75 @@ const TheService: ServiceSchema = {
      * @returns {Store}
      */
     update: {
+      openapi: {
+        $path: 'put /stores/{url}',
+        summary: 'Update Store by URL',
+        tags: ['Stores', 'Enterprise Only'],
+        parameters: [
+          {
+            name: 'url',
+            in: 'path',
+            required: true,
+            schema: {
+              type: 'string'
+            }
+          },
+          {
+            name: 'Authorization',
+            in: 'header',
+            required: true,
+            schema: {
+              type: 'string'
+            }
+          }
+        ],
+        responses: {
+          '200': {
+            description: 'Status 200',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Store'
+                }
+              }
+            }
+          },
+          '401': {
+            $ref: '#/components/responses/UnauthorizedErrorBasic'
+          },
+          '500': {
+            description: 'Status 500',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    errors: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          message: {
+                            type: 'string'
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        security: [
+          {
+            basicAuth: []
+          }
+        ],
+        requestBody: {
+          $ref: '#/components/requestBodies/Store'
+        }
+      },
       auth: 'Basic',
       params: updateValidation,
       async handler(ctx: Context) {
@@ -290,7 +721,7 @@ const TheService: ServiceSchema = {
         const storeBefore = this.adapter.findById(id);
 
         // If the store not found return Not Found error
-        if(!storeBefore) {
+        if (!storeBefore) {
           ctx.meta.$statusMessage = 'Not Found';
           ctx.meta.$statusCode = 404;
           return {
@@ -303,11 +734,11 @@ const TheService: ServiceSchema = {
 
         // Check new values
         Object.keys(store).forEach((key: keyof Store) => {
-          if(store[key] === storeBefore[key]) delete store[key];
+          if (store[key] === storeBefore[key]) delete store[key];
         });
 
         // if no new updates
-        if(Object.keys(store).length === 0) return storeBefore;
+        if (Object.keys(store).length === 0) return storeBefore;
 
         const myStore: Store = await this.adapter
           .updateById(id, { $set: store })
@@ -338,11 +769,12 @@ const TheService: ServiceSchema = {
         this.broker.cacher.clean(`stores.me:${myStore.consumer_key}*`);
         this.broker.cacher.clean(`stores.get:${myStore.url}*`);
         this.broker.cacher.clean(`stores.list**`);
+        this.broker.cacher.clean(`stores.storesList:**`);
         this.broker.cacher.clean(`products.list:${myStore.consumer_key}*`);
         this.broker.cacher.clean(`products.getInstanceProduct:${myStore.consumer_key}*`);
 
         if (myStore.internal_data && myStore.internal_data.omsId) {
-          ctx.call('crm.updateStoreById', {id, ...ctx.params}).then(null, (error: unknown) => {
+          ctx.call('crm.updateStoreById', { id, ...ctx.params }).then(null, (error: unknown) => {
             this.sendLogs({
               topic: 'store',
               topicId: ctx.params.url,
