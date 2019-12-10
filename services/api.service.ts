@@ -2,11 +2,13 @@ import { Context, ServiceSchema } from 'moleculer';
 import ApiGateway from 'moleculer-web';
 import { Log } from '../utilities/types';
 
+import { OpenApiMixin } from '../utilities/mixins/openapi.mixin';
+
 const { UnAuthorizedError, ERR_NO_TOKEN, ERR_INVALID_TOKEN } = ApiGateway.Errors;
 
 const TheService: ServiceSchema = {
   name: 'api',
-  mixins: [ApiGateway],
+  mixins: [ApiGateway, OpenApiMixin()],
   settings: {
     port: process.env.PORT || 3000,
 
@@ -86,6 +88,7 @@ const TheService: ServiceSchema = {
           'POST membership': 'membership.create',
           'GET membership': 'membership.list',
           'GET membership/:id': 'membership.get',
+          'PUT membership/:id': 'membership.update',
 
           // Coupons
           'POST coupons': 'coupons.create',
@@ -96,7 +99,7 @@ const TheService: ServiceSchema = {
           // Subscription
           'POST subscription': 'subscription.create',
           'GET subscription': 'subscription.list',
-
+          'PUT subscription/:id': 'subscription.updateSubscription'
         },
 
         // Disable to call not-mapped actions
@@ -114,19 +117,25 @@ const TheService: ServiceSchema = {
             extended: false
           }
         },
-        async onError(req: any, res: any, err: {message: string, code: number, name: string, type: string, data: any[]}) {
-          res.setHeader("Content-Type", "application/json; charset=utf-8");
+        async onError(
+          req: any,
+          res: any,
+          err: { message: string; code: number; name: string; type: string; data: any[] }
+        ) {
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
           res.writeHead(err.code || 500);
-          if(err.code === 422 || err.code === 401 || err.name === 'NotFoundError'){
-            res.end(JSON.stringify({
-              "name": err.name,
-              "message": err.message,
-              "code": err.code,
-              "type": err.type,
-              "data": err.data
-            }));
+          if (err.code === 422 || err.code === 401 || err.name === 'NotFoundError') {
+            res.end(
+              JSON.stringify({
+                name: err.name,
+                message: err.message,
+                code: err.code,
+                type: err.type,
+                data: err.data
+              })
+            );
           }
-          if(err.code === 500 || !err.code) {
+          if (err.code === 500 || !err.code) {
             const log = await this.sendLogs({
               topic: `${req.$action.service.name}`,
               topicId: `${req.$action.name}`,
@@ -135,12 +144,22 @@ const TheService: ServiceSchema = {
               logLevel: 'error',
               code: 500,
               payload: { error: err.toString(), params: req.$params }
-            })
-            res.end(JSON.stringify({errors: [{message: `Something went wrong for more details Please check the log under ID: ${log.id}`}]}));
+            });
+            res.end(
+              JSON.stringify({
+                errors: [
+                  {
+                    message: `Something went wrong for more details Please check the log under ID: ${
+                      log.id
+                      }`
+                  }
+                ]
+              })
+            );
           }
-          res.end(JSON.stringify({errors: [{message: err.message}]}));
+          res.end(JSON.stringify({ errors: [{ message: err.message }] }));
         }
-      },
+      }
     ],
 
     assets: {
@@ -230,7 +249,7 @@ const TheService: ServiceSchema = {
      */
     sendLogs(log: Log): ServiceSchema {
       return this.broker.call('logs.add', log);
-    },
+    }
   }
 };
 
