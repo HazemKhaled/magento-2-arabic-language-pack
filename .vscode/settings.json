@@ -50,8 +50,12 @@
     "**/acme.json": true,
     "**/.env": false,
     "**/deployDev.sh": true,
+    "services/*.js": true,
+    "services/*.js.map": true,
     "utilities/*/*.js": true,
     "utilities/*/*.js.map": true,
+    "utilities/*/*/*.js": true,
+    "utilities/*/*/*.js.map": true,
     "**/currency.db": true,
     "test": true
   }
