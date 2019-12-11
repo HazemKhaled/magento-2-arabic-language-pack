@@ -1,5 +1,55 @@
 import { ServiceSchema } from 'moleculer';
 
+const Payment = {
+  type: 'object',
+  required: ['amount', 'customer_id', 'date', 'payment_id', 'payment_mode', 'unused_amount'],
+  properties: {
+    payment_id: {
+      type: 'string'
+    },
+    customer_id: {
+      type: 'string'
+    },
+    payment_mode: {
+      type: 'string'
+    },
+    amount: {
+      type: 'number'
+    },
+    unused_amount: {
+      type: 'number'
+    },
+    invoices: {
+      type: 'array',
+      items: {
+        required: ['amount_applied', 'invoice_id'],
+        type: 'object',
+        properties: {
+          amount_applied: {
+            type: 'number'
+          },
+          invoice_id: {
+            type: 'string'
+          }
+        }
+      }
+    },
+    bank_charges: {
+      type: 'number'
+    },
+    date: {
+      type: 'string',
+      format: 'date'
+    },
+    account_id: {
+      type: 'string'
+    },
+    account_name: {
+      type: 'string'
+    }
+  }
+};
+
 const PaymentsAddOpenapi = {
   $path: 'post /payments/{storeId}',
   parameters: [
@@ -148,6 +198,13 @@ const PaymentsGetOpenapi = {
 
 export const PaymentsOpenapi: ServiceSchema = {
   name: 'openapi',
+  settings: {
+    components: {
+      schemas: {
+        Payment
+      }
+    }
+  },
   actions: {
     add: {
       openapi: PaymentsAddOpenapi

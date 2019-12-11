@@ -1,5 +1,40 @@
 import { ServiceSchema } from 'moleculer';
 
+const SubscriptionSchema = {
+  type: 'object',
+  properties: {
+    id: { type: 'string' },
+    membershipId: { type: 'string' },
+    storeId: { type: 'string' },
+    invoiceId: { type: 'string' },
+    startDate: { type: 'string', format: 'date-time' },
+    expireDate: { type: 'string', format: 'date-time' },
+    autoRenew: { type: 'boolean' },
+    renewed: { type: 'boolean' },
+    retries: { type: 'array', items: { type: 'string', format: 'date-time' } }
+  }
+};
+
+const SubscriptionResponse = {
+  content: {
+    'application/json': {
+      schema: {
+        type: 'object',
+        properties: {
+          membershipId: { type: 'string' },
+          storeId: { type: 'string' },
+          invoiceId: { type: 'string' },
+          startDate: { type: 'string', format: 'date-time' },
+          expireDate: { type: 'string', format: 'date-time' },
+          autoRenew: { type: 'boolean' },
+          renewed: { type: 'boolean' },
+          retries: { type: 'array', items: { type: 'string', format: 'date-time' } }
+        }
+      }
+    }
+  }
+};
+
 const SubscriptionListOpenapi = {
   $path: 'get /subscription',
   summary: 'List subscription',
@@ -283,6 +318,16 @@ const SubscriptionUpdateOpenapi = {
 
 export const SubscriptionOpenapi: ServiceSchema = {
   name: 'openapi',
+  settings: {
+    components: {
+      schemas: {
+        Subscription: SubscriptionSchema
+      },
+      requestBodies: {
+        subscription: SubscriptionResponse
+      }
+    }
+  },
   actions: {
     list: {
       openapi: SubscriptionListOpenapi

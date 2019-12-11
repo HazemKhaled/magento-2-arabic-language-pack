@@ -1,5 +1,19 @@
 import { ServiceSchema } from 'moleculer';
 
+const Coupon = {
+  type: 'object',
+  properties: {
+    code: { type: 'string' },
+    discount: { type: 'number' },
+    discountType: { type: 'string', enum: ['$', '%'] },
+    startDate: { type: 'string', format: 'date-time' },
+    endDate: { type: 'string', format: 'date-time' },
+    maxUses: { type: 'number' },
+    appliedMemberships: { type: 'array', items: { type: 'string' } },
+    useCount: { type: 'number' }
+  }
+};
+
 const CouponsGetOpenapi = {
   $path: 'get coupons/:CODE',
   summary: 'Get Coupon',
@@ -77,6 +91,13 @@ const CouponsGetOpenapi = {
 
 export const CouponsOpenapi: ServiceSchema = {
   name: 'openapi',
+  settings: {
+    components: {
+      schemas: {
+        Coupon
+      }
+    }
+  },
   actions: {
     get: {
       openapi: CouponsGetOpenapi

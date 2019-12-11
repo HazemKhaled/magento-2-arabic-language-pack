@@ -1,5 +1,295 @@
 import { ServiceSchema } from 'moleculer';
 
+const Product = {
+  type: 'object',
+  required: [
+    'attributes',
+    'description',
+    'images',
+    'last_stock_check',
+    'name',
+    'sku',
+    'supplier',
+    'variations'
+  ],
+  properties: {
+    sku: {
+      type: 'string',
+      description: 'Product ID'
+    },
+    supplier: {
+      type: 'number',
+      description: 'Supplier ref'
+    },
+    name: {
+      required: ['tr'],
+      type: 'object',
+      properties: {
+        tr: {
+          type: 'string'
+        },
+        ar: {
+          type: 'string'
+        },
+        en: {
+          type: 'string'
+        }
+      }
+    },
+    description: {
+      required: ['tr'],
+      type: 'object',
+      properties: {
+        tr: {
+          type: 'string'
+        },
+        en: {
+          type: 'string'
+        },
+        ar: {
+          type: 'string'
+        }
+      }
+    },
+    last_stock_check: {
+      type: 'string',
+      format: 'date-time',
+      example: '2016-02-28T16:41:41.090Z'
+    },
+    images: {
+      type: 'array',
+      description: 'List of images links from Knawat CDN servers',
+      items: {
+        type: 'string'
+      }
+    },
+    categories: {
+      type: 'array',
+      description: 'Array of categories',
+      items: {
+        $ref: '#/components/schemas/Category'
+      }
+    },
+    attributes: {
+      type: 'array',
+      description: 'Any other information about this product, materials, gender … etc',
+      items: {
+        $ref: '#/components/schemas/Attribute'
+      }
+    },
+    variations: {
+      type: 'array',
+      description: 'Product variations',
+      items: {
+        $ref: '#/components/schemas/ProductVariation'
+      }
+    }
+  },
+  description: 'An object that represents a Product.',
+  example: {
+    sku: '4646030019238',
+    name: {
+      tr: 'DAR KALIP PEMBE GÖMLEK',
+      ar: 'قميص وردي قصير',
+      en: 'Slimline Pink Shirt'
+    },
+    description: {
+      tr:
+        '%100 Pamuk<br>*Cep Detay <br>*Uzun Katlanabilir Kol<br>*Önden Düğmeli<br>*Yanları Düğmeli <br>*Dar Kalıp <br>*Boy Uzunluğu:63 cm<br>Numune Bedeni: 36/S/1<br>Modelin Ölçüleri: Boy:1,76, Göğüs:86, Bel:60, Kalça: 91',
+      en:
+        "<ul><li>100% Cotton</li><li>*Pocket Detailed</li><li>*Long Layered Sleeves</li><li>*Front Buttons</li><li>*Buttons on Sides</li><li>*Narrow Cut</li><li>*Length:63 cm</li><li>Sample Size: 36/S/1</li><li>Model's Measurements: Height:1,76, Chest:86, Waist:60, Hip: 91</li></ul>",
+      ar:
+        '<ul><li>%100 قطن</li><li>مزين بجيب</li><li>بكم طويل قابل للازالة</li><li>بأزرار من الامام</li><li>بأزرار من الجوانب</li><li>سليم فت</li><li>الطول:63 سم</li><li>مقاس الجسم: 36/S/1</li><li>قياسات العارض: الطول:1,76, الصدر:86, الوسط:60, الخصر: 91</li></ul>'
+    },
+    last_stock_check: '2018-03-15T06:53:06.949Z',
+    supplier: 1615,
+    categories: [
+      {
+        id: 4856,
+        name: {
+          tr: 'Outdoors / Kadın',
+          en: 'Outdoors / Women',
+          ar: 'أوت دور / نسائي'
+        }
+      }
+    ],
+    images: [
+      'https://cdnp4.knawat.com/buyuk/788f8a17-d5d8-4ccb-b218-9e428b199228.jpg',
+      'https://cdnp4.knawat.com/buyuk/d8f20963-1772-45af-849d-da84e66d9a95.jpg',
+      'https://cdnp4.knawat.com/buyuk/fa36c9d4-51c4-434f-9ffd-94fb343ce0d8.jpg'
+    ],
+    attributes: [
+      {
+        id: 1,
+        name: {
+          tr: 'Beden',
+          en: 'Size',
+          ar: 'مقاس'
+        },
+        options: [
+          {
+            tr: 'M',
+            en: 'M',
+            ar: 'M'
+          },
+          {
+            tr: 'XXL',
+            en: 'XXL',
+            ar: 'XXL'
+          }
+        ]
+      },
+      {
+        id: 2,
+        name: {
+          tr: 'Renk',
+          en: 'Color',
+          ar: 'لون'
+        },
+        options: [
+          {
+            tr: 'Kırmızı',
+            en: 'Red',
+            ar: 'احمر'
+          }
+        ]
+      },
+      {
+        id: 3,
+        name: 'Material',
+        options: ['15% Cotton', '25% Polyester']
+      }
+    ],
+    variations: [
+      {
+        sku: '4646030019238-36',
+        price: 9.74,
+        market_price: 11.99,
+        weight: 0.5,
+        quantity: 10,
+        attributes: [
+          {
+            id: 1,
+            name: {
+              tr: 'Beden',
+              en: 'Size',
+              ar: 'مقاس'
+            },
+            option: {
+              tr: 'M',
+              en: 'M',
+              ar: 'M'
+            }
+          }
+        ]
+      },
+      {
+        sku: '4646030019238-38',
+        price: 9.74,
+        market_price: 11.99,
+        weight: 0.5,
+        quantity: 10,
+        barcode: 45234526,
+        attributes: [
+          {
+            id: 1,
+            name: {
+              tr: 'Beden',
+              en: 'Size',
+              ar: 'مقاس'
+            },
+            option: {
+              tr: 'XXL',
+              en: 'XXL',
+              ar: 'XXL'
+            }
+          }
+        ]
+      }
+    ]
+  }
+};
+
+const ProductVariation = {
+  type: 'object',
+  required: ['cost_price', 'quantity', 'sale_price', 'sku', 'weight'],
+  properties: {
+    sku: {
+      type: 'string',
+      description: 'Variation id'
+    },
+    cost_price: {
+      type: 'number',
+      description: 'Your cost, Knawat sale product with this price'
+    },
+    sale_price: {
+      type: 'number',
+      description: 'This is the listed price on your store'
+    },
+    market_price: {
+      type: 'number',
+      description: 'Price before the discount'
+    },
+    weight: {
+      type: 'number',
+      description: 'Product weight'
+    },
+    quantity: {
+      type: 'number'
+    },
+    attributes: {
+      type: 'array',
+      items: {
+        $ref: '#/components/schemas/Attribute'
+      }
+    }
+  },
+  example:
+    '{\n  "sku": "4646030019238-36",\n  "cost_price": 5.22,\n  "sale_price": 9.74,\n  "market_price": 11.99,\n  "weight": 0.5,\n  "quantity": 10,\n  "attributes": [\n    {\n      "id": 1,\n      "name": {\n        "tr": "Beden",\n        "en": "Size",\n        "ar": "مقاس"\n      },\n      "option": { "tr": "M", "en": "M", "ar": "M" }\n    }\n  ]\n}\n'
+};
+
+const Attribute = {
+  type: 'object',
+  required: ['id', 'name', 'option'],
+  properties: {
+    id: {
+      type: 'number'
+    },
+    name: {
+      required: ['tr'],
+      type: 'object',
+      properties: {
+        tr: {
+          type: 'string'
+        },
+        en: {
+          type: 'string'
+        },
+        ar: {
+          type: 'string'
+        }
+      }
+    },
+    option: {
+      required: ['tr'],
+      type: 'object',
+      properties: {
+        tr: {
+          type: 'string'
+        },
+        en: {
+          type: 'string'
+        },
+        ar: {
+          type: 'string'
+        }
+      }
+    }
+  },
+  example:
+    '{\n  "id": 1,\n  "name": {\n    "tr": "Beden",\n    "en": "Size",\n    "ar": "مقاس"\n  },\n  "option": { "tr": "M", "en": "M", "ar": "M" }\n}\n'
+};
+
 const GetInstanceProduct = {
   $path: 'get /catalog/products/{sku}',
   summary: 'Get product by SKU',
@@ -585,6 +875,15 @@ const BulkProductInstance = {
 
 export const ProductsOpenapi: ServiceSchema = {
   name: 'openapi',
+  settings: {
+    components: {
+      schemas: {
+        Product,
+        ProductVariation,
+        Attribute
+      }
+    }
+  },
   actions: {
     getInstanceProduct: {
       openapi: GetInstanceProduct

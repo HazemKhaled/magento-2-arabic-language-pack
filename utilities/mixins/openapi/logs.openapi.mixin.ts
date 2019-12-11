@@ -1,5 +1,40 @@
 import { ServiceSchema } from 'moleculer';
 
+const Log = {
+  type: 'object',
+  required: ['code', 'topic'],
+  properties: {
+    topic: {
+      type: 'string'
+    },
+    code: {
+      type: 'number',
+      example:
+        '100 =>  Informational status response code indicates that everything so far is OK and that the client should continue with the request or ignore it if it is already finished.'
+    },
+    topicId: {
+      type: 'string'
+    },
+    storeId: {
+      type: 'string'
+    },
+    timestamp: {
+      type: 'string',
+      format: 'date'
+    },
+    message: {
+      type: 'string'
+    },
+    logLevel: {
+      type: 'string',
+      enum: ['info', 'debug', 'warn', 'error']
+    },
+    payload: {
+      type: 'object'
+    }
+  }
+};
+
 const LogsAddOpenapi = {
   $path: 'post /logs',
   summary: 'Add Log',
@@ -200,6 +235,13 @@ const LogsGetLogsOpenapi = {
 
 export const LogsOpenapi: ServiceSchema = {
   name: 'openapi',
+  settings: {
+    components: {
+      schemas: {
+        Log
+      }
+    }
+  },
   actions: {
     add: {
       openapi: LogsAddOpenapi
