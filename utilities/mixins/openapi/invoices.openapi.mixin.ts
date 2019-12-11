@@ -1,4 +1,6 @@
-export const InvoicesGetOpenapi = {
+import { ServiceSchema } from 'moleculer';
+
+const InvoicesGetOpenapi = {
   $path: 'get /invoices',
   summary: 'List Invoices',
   tags: ['Invoices'],
@@ -66,7 +68,7 @@ export const InvoicesGetOpenapi = {
   ]
 };
 
-export const InvoicesCreateOpenapi = {
+const InvoicesCreateOpenapi = {
   $path: 'post /invoices',
   summary: 'Create new invoice',
   tags: ['Invoices'],
@@ -129,7 +131,7 @@ export const InvoicesCreateOpenapi = {
   }
 };
 
-export const InvoicesApplyCreditsOpenapi = {
+const InvoicesApplyCreditsOpenapi = {
   $path: 'post /invoices/{id}/credits',
   summary: 'Apply credits to invoice',
   tags: ['Invoices'],
@@ -210,4 +212,19 @@ export const InvoicesApplyCreditsOpenapi = {
       basicAuth: [] as any[]
     }
   ]
+};
+
+export const InvoicesOpenapi: ServiceSchema = {
+  name: 'openapi',
+  actions: {
+    get: {
+      openapi: InvoicesGetOpenapi
+    },
+    create: {
+      openapi: InvoicesCreateOpenapi
+    },
+    applyCredits: {
+      openapi: InvoicesApplyCreditsOpenapi
+    }
+  }
 };

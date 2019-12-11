@@ -1,4 +1,6 @@
-export const CouponsGetOpenapi = {
+import { ServiceSchema } from 'moleculer';
+
+const CouponsGetOpenapi = {
   $path: 'get coupons/:CODE',
   summary: 'Get Coupon',
   tags: ['Coupon'],
@@ -71,4 +73,13 @@ export const CouponsGetOpenapi = {
       basicAuth: [] as any[]
     }
   ]
+};
+
+export const CouponsOpenapi: ServiceSchema = {
+  name: 'openapi',
+  actions: {
+    get: {
+      openapi: CouponsGetOpenapi
+    }
+  }
 };

@@ -1,82 +1,15 @@
 import { Context, Errors, ServiceSchema } from 'moleculer';
 import DbService from '../utilities/mixins/mongo.mixin';
+import { MembershipOpenapi } from '../utilities/mixins/openapi';
 import { Membership } from '../utilities/types';
 import { CreateMembershipValidation, UpdateMembershipValidation } from '../utilities/validations';
 const MoleculerError = Errors.MoleculerError;
 
 const TheService: ServiceSchema = {
   name: 'membership',
-  mixins: [DbService('membership')],
+  mixins: [DbService('membership'), MembershipOpenapi],
   actions: {
     create: {
-      openapi: {
-        $path: 'post /membership',
-        summary: 'Create new membership',
-        tags: ['Membership'],
-        parameters: [
-          {
-            name: 'Authorization',
-            in: 'header',
-            required: true,
-            schema: {
-              type: 'string'
-            }
-          }
-        ],
-        responses: {
-          '200': {
-            description: 'Status 200',
-            content: {
-              'application/json': {
-                schema: {
-                  $ref: '#/components/schemas/Membership'
-                }
-              }
-            }
-          },
-          '401': {
-            $ref: '#/components/responses/UnauthorizedErrorBasic'
-          },
-          '500': {
-            description: 'Status 500',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    errors: {
-                      type: 'array',
-                      items: {
-                        type: 'object',
-                        properties: {
-                          message: {
-                            type: 'string'
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        security: [
-          {
-            basicAuth: []
-          }
-        ],
-        requestBody: {
-          content: {
-            'application/json': {
-              schema: {
-                $ref: '#/components/schemas/Membership'
-              }
-            }
-          },
-          required: true
-        }
-      },
       auth: 'Basic',
       params: CreateMembershipValidation,
       async handler(ctx: Context): Promise<Membership> {
@@ -152,75 +85,6 @@ const TheService: ServiceSchema = {
       }
     },
     update: {
-      openapi: {
-        $path: 'put /membership/{id}',
-        summary: 'Update Membership',
-        tags: ['Membership'],
-        parameters: [
-          {
-            name: 'id',
-            in: 'path',
-            required: true,
-            schema: {
-              type: 'string'
-            }
-          },
-          {
-            name: 'Authorization',
-            in: 'header',
-            required: true,
-            schema: {
-              type: 'string'
-            }
-          }
-        ],
-        responses: {
-          '200': {
-            description: 'Status 200',
-            content: {
-              'application/json': {
-                schema: {
-                  $ref: '#/components/schemas/Membership'
-                }
-              }
-            }
-          },
-          '401': {
-            $ref: '#/components/responses/UnauthorizedErrorBasic'
-          },
-          '500': {
-            description: 'Status 500',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    errors: {
-                      type: 'array',
-                      items: {
-                        type: 'object',
-                        properties: {
-                          message: {
-                            type: 'string'
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        security: [
-          {
-            basicAuth: []
-          }
-        ],
-        requestBody: {
-          $ref: '#/components/requestBodies/Membership'
-        }
-      },
       auth: 'Basic',
       params: UpdateMembershipValidation,
       async handler(ctx: Context): Promise<Membership> {
