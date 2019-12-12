@@ -158,7 +158,7 @@ services:
     restart: always
     env_file: .env
     volumes:
-      - ~/data/db/mp-dev:/data/db
+      - ~/data/db/mp:/data/db
       - ../docker-mongodb-init/:/docker-entrypoint-initdb.d/
     ports:
       - '21985:27017'

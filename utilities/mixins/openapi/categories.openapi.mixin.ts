@@ -1,4 +1,6 @@
-export const CategoriesSettingsOpenapi = {
+import { ServiceSchema } from 'moleculer';
+
+const CategoriesSettingsOpenapi = {
   components: {
     schemas: {
       Category: {
@@ -65,7 +67,7 @@ export const CategoriesSettingsOpenapi = {
   }
 };
 
-export const CategoriesListOpenapi = {
+const CategoriesListOpenapi = {
   $path: 'get /catalog/categories',
   summary: 'Get list of categories',
   tags: ['Products'],
@@ -139,4 +141,14 @@ export const CategoriesListOpenapi = {
       bearerAuth: [] as any[]
     }
   ]
+};
+
+export const CategoriesOpenapi: ServiceSchema = {
+  name: 'openapi',
+  settings: {
+    openapi: CategoriesSettingsOpenapi
+  },
+  actions: {
+    list: { openapi: CategoriesListOpenapi }
+  }
 };

@@ -1,4 +1,6 @@
-export const CurrencySettingsOpenapi = {
+import { ServiceSchema } from 'moleculer';
+
+const CurrencySettingsOpenapi = {
   components: {
     schemas: {
       Currency: {
@@ -16,7 +18,7 @@ export const CurrencySettingsOpenapi = {
   }
 };
 
-export const CurrenciesGetCurrencyOpenapi = {
+const CurrenciesGetCurrencyOpenapi = {
   $path: 'get /currencies/{currencyCode}',
   summary: 'Get Currency By Code',
   tags: ['Currencies', 'Enterprise Only'],
@@ -66,7 +68,7 @@ export const CurrenciesGetCurrencyOpenapi = {
   ]
 };
 
-export const CurrenciesGetCurrenciesOpenapi = {
+const CurrenciesGetCurrenciesOpenapi = {
   $path: 'get /currencies',
   summary: 'Get Currencies',
   tags: ['Currencies', 'Enterprise Only'],
@@ -94,4 +96,19 @@ export const CurrenciesGetCurrenciesOpenapi = {
       basicAuth: [] as any[]
     }
   ]
+};
+
+export const CurrenciesOpenapi: ServiceSchema = {
+  name: 'openapi',
+  settings: {
+    openapi: CurrencySettingsOpenapi
+  },
+  actions: {
+    getCurrency: {
+      openapi: CurrenciesGetCurrencyOpenapi
+    },
+    getCurrencies: {
+      openapi: CurrenciesGetCurrenciesOpenapi
+    }
+  }
 };

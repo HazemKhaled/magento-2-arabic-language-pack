@@ -1,13 +1,13 @@
 import { Context, Errors, ServiceSchema } from 'moleculer';
 import DbService from '../utilities/mixins/mongo.mixin';
-import { CouponsGetOpenapi } from '../utilities/openapi';
+import { CouponsOpenapi } from '../utilities/mixins/openapi';
 import { Coupon } from '../utilities/types';
 import { CreateCouponValidation, UpdateCouponValidation } from '../utilities/validations';
 const MoleculerError = Errors.MoleculerError;
 
 const TheService: ServiceSchema = {
   name: 'coupons',
-  mixins: [DbService('coupons')],
+  mixins: [DbService('coupons'), CouponsOpenapi],
   actions: {
     create: {
       auth: 'Basic',
@@ -28,7 +28,6 @@ const TheService: ServiceSchema = {
       }
     },
     get: {
-      openapi: CouponsGetOpenapi,
       auth: 'Basic',
       cache: {
         keys: ['id', 'membership'],

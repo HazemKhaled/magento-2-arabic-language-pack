@@ -1,6 +1,7 @@
 import { Context, ServiceSchema } from 'moleculer';
 import ESService from 'moleculer-elasticsearch';
 import { v1 as uuidv1 } from 'uuid';
+import { LogsOpenapi } from '../utilities/mixins/openapi';
 import { Log } from '../utilities/types';
 
 const TheService: ServiceSchema = {
@@ -16,78 +17,9 @@ const TheService: ServiceSchema = {
       apiVersion: process.env.ELASTIC_VERSION || '6.x'
     }
   },
-  mixins: [ESService],
+  mixins: [ESService, LogsOpenapi],
   actions: {
     add: {
-      openapi: {
-        $path: 'post /logs',
-        summary: 'Add Log',
-        tags: ['Shipment', 'Enterprise Only'],
-        responses: {
-          '200': {
-            description: 'Status 200',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    status: {
-                      type: 'string',
-                      enum: ['success']
-                    },
-                    message: {
-                      type: 'string'
-                    },
-                    id: {
-                      type: 'string'
-                    }
-                  }
-                }
-              }
-            }
-          },
-          '401': {
-            $ref: '#/components/responses/UnauthorizedErrorBasic'
-          },
-          '500': {
-            description: 'Status 500',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    status: {
-                      type: 'string',
-                      enum: ['failed']
-                    },
-                    message: {
-                      type: 'string'
-                    },
-                    code: {
-                      type: 'string'
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        security: [
-          {
-            basicAuth: []
-          }
-        ],
-        requestBody: {
-          content: {
-            'application/json': {
-              schema: {
-                $ref: '#/components/schemas/Log'
-              }
-            }
-          },
-          required: true
-        }
-      },
       auth: 'Basic',
       params: {
         topic: { type: 'string' },
@@ -140,133 +72,6 @@ const TheService: ServiceSchema = {
       }
     },
     getLogs: {
-      openapi: {
-        $path: 'get /logs',
-        summary: 'Get Logs',
-        tags: ['Shipment', 'Enterprise Only'],
-        parameters: [
-          {
-            name: 'topic',
-            in: 'query',
-            required: true,
-            schema: {
-              type: 'string'
-            }
-          },
-          {
-            name: 'topicId',
-            in: 'query',
-            required: false,
-            description: 'Required if no storeId',
-            schema: {
-              type: 'string'
-            }
-          },
-          {
-            name: 'storeId',
-            in: 'query',
-            required: false,
-            description: 'Required if no topicId',
-            schema: {
-              type: 'string'
-            }
-          },
-          {
-            name: 'logLevel',
-            in: 'query',
-            required: false,
-            schema: {
-              type: 'string',
-              enum: ['info', 'debug', 'warn', 'error']
-            }
-          },
-          {
-            name: 'sort',
-            in: 'query',
-            required: false,
-            schema: {
-              type: 'string',
-              enum: ['asc', 'desc']
-            }
-          },
-          {
-            name: 'limit',
-            in: 'query',
-            required: false,
-            schema: {
-              type: 'number',
-              minimum: 1,
-              maximum: 500,
-              default: 10
-            }
-          },
-          {
-            name: 'page',
-            in: 'query',
-            required: false,
-            schema: {
-              type: 'number',
-              default: 1
-            }
-          }
-        ],
-        responses: {
-          '200': {
-            description: 'Status 200',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'array',
-                  items: {
-                    $ref: '#/components/schemas/Log'
-                  }
-                }
-              }
-            }
-          },
-          '401': {
-            $ref: '#/components/responses/UnauthorizedErrorBasic'
-          },
-          '404': {
-            description: 'Status 404',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    message: {
-                      type: 'string'
-                    }
-                  }
-                }
-              }
-            }
-          },
-          '500': {
-            description: 'Status 500',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    message: {
-                      type: 'string'
-                    },
-                    code: {
-                      type: 'string'
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        security: [
-          {
-            basicAuth: []
-          }
-        ]
-      },
       auth: 'Basic',
       params: {
         topic: { type: 'string', optional: true },

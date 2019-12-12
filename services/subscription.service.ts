@@ -1,6 +1,7 @@
 import { Context, Errors, ServiceSchema } from 'moleculer';
 import { isError } from 'util';
 import DbService from '../utilities/mixins/mongo.mixin';
+import { SubscriptionOpenapi } from '../utilities/mixins/openapi';
 import { Coupon, Membership, Store, Subscription } from '../utilities/types';
 import {
   CreateSubscriptionValidation,
@@ -10,7 +11,7 @@ const MoleculerError = Errors.MoleculerError;
 
 const TheService: ServiceSchema = {
   name: 'subscription',
-  mixins: [DbService('subscription')],
+  mixins: [DbService('subscription'), SubscriptionOpenapi],
 
   actions: {
     /**
@@ -55,142 +56,6 @@ const TheService: ServiceSchema = {
       }
     },
     list: {
-      openapi: {
-        $path: 'get /subscription',
-        summary: 'List subscription',
-        tags: ['Subscription'],
-        parameters: [
-          {
-            name: 'storeId',
-            in: 'query',
-            required: false,
-            schema: {
-              type: 'string'
-            }
-          },
-          {
-            name: 'membershipId',
-            in: 'query',
-            required: false,
-            schema: {
-              type: 'string'
-            }
-          },
-          {
-            name: 'expireDate',
-            in: 'query',
-            schema: {
-              type: 'array',
-              max: 2,
-              min: 1,
-              items: {
-                type: 'object',
-                properties: {
-                  operation: { type: 'string', values: ['lte', 'gte', 'gt', 'lt'] },
-                  date: { type: 'date' }
-                }
-              }
-            }
-          },
-          {
-            name: 'startDate',
-            in: 'query',
-            schema: {
-              type: 'array',
-              max: 2,
-              min: 1,
-              items: {
-                type: 'object',
-                properties: {
-                  operation: { type: 'string', enum: ['lte', 'gte', 'gt', 'lt'] },
-                  date: { type: 'date' }
-                }
-              }
-            }
-          },
-          {
-            name: 'page',
-            in: 'query',
-            required: false,
-            schema: {
-              type: 'number'
-            }
-          },
-          {
-            name: 'perPage',
-            in: 'query',
-            required: false,
-            schema: {
-              type: 'number'
-            }
-          },
-          {
-            name: 'sort',
-            in: 'query',
-            schema: {
-              type: 'object',
-              properties: {
-                field: { type: 'string' },
-                order: { type: 'number', enum: [1, -1] }
-              }
-            }
-          },
-          {
-            name: 'Authorization',
-            in: 'header',
-            required: true,
-            schema: {
-              type: 'string'
-            }
-          }
-        ],
-        responses: {
-          '200': {
-            description: 'Status 200',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'array',
-                  items: {
-                    $ref: '#/components/schemas/Subscription'
-                  }
-                }
-              }
-            }
-          },
-          '401': {
-            $ref: '#/components/responses/UnauthorizedErrorBasic'
-          },
-          '404': {
-            description: 'Status 404',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    errors: {
-                      type: 'array',
-                      items: {
-                        type: 'object',
-                        properties: {
-                          message: {
-                            type: 'string'
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        security: [
-          {
-            basicAuth: []
-          }
-        ]
-      },
       auth: 'Basic',
       params: {
         storeId: { type: 'string', optional: true },
@@ -321,79 +186,6 @@ const TheService: ServiceSchema = {
       }
     },
     create: {
-      openapi: {
-        $path: 'post /subscription',
-        summary: 'Create new Subscription',
-        tags: ['Subscription'],
-        parameters: [
-          {
-            name: 'Authorization',
-            in: 'header',
-            required: true,
-            schema: {
-              type: 'string'
-            }
-          }
-        ],
-        responses: {
-          '200': {
-            description: 'Status 200',
-            content: {
-              'application/json': {
-                schema: {
-                  $ref: '#/components/schemas/Subscription'
-                }
-              }
-            }
-          },
-          '401': {
-            $ref: '#/components/responses/UnauthorizedErrorBasic'
-          },
-          '500': {
-            description: 'Status 500',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    errors: {
-                      type: 'array',
-                      items: {
-                        type: 'object',
-                        properties: {
-                          message: {
-                            type: 'string'
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        security: [
-          {
-            basicAuth: []
-          }
-        ],
-        requestBody: {
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                properties: {
-                  storeId: { type: 'string', format: 'url', required: true },
-                  membership: { type: 'string', required: true },
-                  coupon: { type: 'string' }
-                }
-              }
-            }
-          },
-          required: true
-        }
-      },
       auth: 'Basic',
       params: CreateSubscriptionValidation,
       async handler(ctx: Context) {
@@ -582,75 +374,6 @@ const TheService: ServiceSchema = {
       }
     },
     updateSubscription: {
-      openapi: {
-        $path: 'put /subscription/{id}',
-        summary: 'Update Store Subscription',
-        tags: ['Subscription'],
-        parameters: [
-          {
-            name: 'id',
-            in: 'path',
-            required: true,
-            schema: {
-              type: 'string'
-            }
-          },
-          {
-            name: 'Authorization',
-            in: 'header',
-            required: true,
-            schema: {
-              type: 'string'
-            }
-          }
-        ],
-        responses: {
-          '200': {
-            description: 'Status 200',
-            content: {
-              'application/json': {
-                schema: {
-                  $ref: '#/components/schemas/Subscription'
-                }
-              }
-            }
-          },
-          '401': {
-            $ref: '#/components/responses/UnauthorizedErrorBasic'
-          },
-          '500': {
-            description: 'Status 500',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    errors: {
-                      type: 'array',
-                      items: {
-                        type: 'object',
-                        properties: {
-                          message: {
-                            type: 'string'
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        security: [
-          {
-            basicAuth: []
-          }
-        ],
-        requestBody: {
-          $ref: '#/components/requestBodies/Subscription'
-        }
-      },
       params: UpdateSubscriptionValidation,
       handler(ctx: Context) {
         let $set: { [key: string]: string } = {};

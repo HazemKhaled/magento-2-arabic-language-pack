@@ -1,22 +1,18 @@
 import { Context, Errors, ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
-import {
-  InvoicesApplyCreditsOpenapi,
-  InvoicesCreateOpenapi,
-  InvoicesGetOpenapi
-} from '../utilities/openapi';
+import { InvoicesOpenapi } from '../utilities/mixins/openapi';
 import { Invoice } from '../utilities/types';
 import { CreateInvoiceValidation } from '../utilities/validations';
 const MoleculerError = Errors.MoleculerError;
 
 const TheService: ServiceSchema = {
   name: 'invoices',
+  mixins: [InvoicesOpenapi],
   settings: {
     AUTH: Buffer.from(`${process.env.BASIC_USER}:${process.env.BASIC_PASS}`).toString('base64')
   },
   actions: {
     get: {
-      openapi: InvoicesGetOpenapi,
       auth: 'Bearer',
       cache: {
         keys: ['#user', 'page', 'limit', 'reference_number', 'invoice_number'],
@@ -101,7 +97,6 @@ const TheService: ServiceSchema = {
       }
     },
     create: {
-      openapi: InvoicesCreateOpenapi,
       auth: 'Basic',
       params: CreateInvoiceValidation,
       async handler(ctx: Context) {
@@ -137,7 +132,6 @@ const TheService: ServiceSchema = {
       }
     },
     applyCredits: {
-      openapi: InvoicesApplyCreditsOpenapi,
       auth: 'Bearer',
       params: {
         id: { type: 'string' }

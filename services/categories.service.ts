@@ -2,7 +2,7 @@ import { Errors, ServiceSchema } from 'moleculer';
 import ESService, { SearchResponse } from 'moleculer-elasticsearch';
 
 import { I18nService } from '../utilities/mixins/i18n.mixin';
-import { CategoriesListOpenapi, CategoriesSettingsOpenapi } from '../utilities/openapi';
+import { CategoriesOpenapi } from '../utilities/mixins/openapi';
 import { Category } from '../utilities/types';
 
 const { MoleculerClientError } = Errors;
@@ -14,17 +14,16 @@ const TheService: ServiceSchema = {
    * Service metadata
    */
   metadata: {},
-  mixins: [ESService, I18nService],
+  mixins: [ESService, I18nService, CategoriesOpenapi],
 
   /**
    * Service settings
    */
   settings: {
-    openapi: CategoriesSettingsOpenapi,
     elasticsearch: {
       host: `http://${process.env.ELASTIC_AUTH}@${process.env.ELASTIC_HOST}:${
         process.env.ELASTIC_PORT
-        }`,
+      }`,
       apiVersion: process.env.ELASTIC_VERSION || '6.x'
     }
   },
@@ -39,7 +38,6 @@ const TheService: ServiceSchema = {
      * @returns {Array} Categories
      */
     list: {
-      openapi: CategoriesListOpenapi,
       auth: 'Bearer',
       cache: {
         ttl: 60 * 60, // 1 hour
