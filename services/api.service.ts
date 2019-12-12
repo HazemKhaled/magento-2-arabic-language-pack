@@ -101,7 +101,7 @@ const TheService: ServiceSchema = {
           'GET subscription': 'subscription.list',
           'PUT subscription/:id': 'subscription.updateSubscription',
 
-          // Subscription
+          // Taxes
           'POST tax': 'taxes.tCreate',
           'PUT tax/:id': 'taxes.tUpdate',
           'GET tax/:country': 'taxes.tFindByCountry',
