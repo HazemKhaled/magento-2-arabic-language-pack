@@ -16,8 +16,8 @@
     "deps": "npm-check -u",
     "ci": "jest --watch",
     "test": "jest --coverage",
-    "lint": "npx eslint . --ext .ts,.tsx",
-    "lint-fix": "npx eslint . --ext .ts,.tsx --fix",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint-fix": "eslint . --ext .ts,.tsx --fix",
     "prettier": "prettier services/*.ts utilities/**/*.ts *.ts --write"
   },
   "devDependencies": {
