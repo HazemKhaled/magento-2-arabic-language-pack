@@ -145,7 +145,7 @@ const TheService: ServiceSchema = {
             const log = await this.sendLogs({
               topic: `${req.$action.service.name}`,
               topicId: `${req.$action.name}`,
-              message: `Something went wrong fetching the data`,
+              message: 'Something went wrong fetching the data',
               storeId: 'Unknown',
               logLevel: 'error',
               code: 500,

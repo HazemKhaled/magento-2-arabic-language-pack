@@ -131,7 +131,7 @@ const TheService: ServiceSchema = {
               }
             }
           })
-          .catch((error: any) => {
+          .catch(() => {
             return false;
           });
       }

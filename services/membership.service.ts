@@ -25,7 +25,7 @@ const TheService: ServiceSchema = {
         return this.adapter
           .insert(params)
           .then((res: Membership) => {
-            this.broker.cacher.clean(`membership.list:**`);
+            this.broker.cacher.clean('membership.list:**');
             return this.normalizeId(res);
           })
           .catch((err: any) => {
@@ -94,7 +94,7 @@ const TheService: ServiceSchema = {
         return this.adapter
           .updateById(id, { $set: { ...params } })
           .then((res: Membership) => {
-            this.broker.cacher.clean(`membership.list:**`);
+            this.broker.cacher.clean('membership.list:**');
             this.broker.cacher.clean(`membership.get:${ctx.params.id}**`);
             if (!res) {
               throw new MoleculerError('Membership not found', 404);

@@ -214,12 +214,12 @@ const TheService: ServiceSchema = {
         let discount = 0;
         if (coupon) {
           switch (coupon.discountType) {
-            case '$':
-              discount = Math.min(coupon.discount, cost);
-              break;
-            case '%':
-              discount = (cost / 100) * coupon.discount;
-              break;
+          case '$':
+            discount = Math.min(coupon.discount, cost);
+            break;
+          case '%':
+            discount = (cost / 100) * coupon.discount;
+            break;
           }
         }
         discount = Math.max(discount, membership.discount);
@@ -233,7 +233,7 @@ const TheService: ServiceSchema = {
           throw new MoleculerError(instance.errors[0].message, 404);
         }
         if (instance.credit < cost - discount) {
-          throw new MoleculerError("User don't have enough balance!", 402);
+          throw new MoleculerError('User don\'t have enough balance!', 402);
         }
         const invoiceBody: { [key: string]: any } = {
           storeId: ctx.params.storeId,
@@ -285,12 +285,12 @@ const TheService: ServiceSchema = {
         const expireDate = new Date(startDate);
         expireDate.setMilliseconds(-1);
         switch (membership.paymentFrequencyType) {
-          case 'month':
-            expireDate.setMonth(expireDate.getMonth() + membership.paymentFrequency);
-            break;
-          case 'year':
-            expireDate.setFullYear(expireDate.getFullYear() + membership.paymentFrequency);
-            break;
+        case 'month':
+          expireDate.setMonth(expireDate.getMonth() + membership.paymentFrequency);
+          break;
+        case 'year':
+          expireDate.setFullYear(expireDate.getFullYear() + membership.paymentFrequency);
+          break;
         }
         if (ctx.params.coupon) {
           ctx.call('coupons.updateCount', {

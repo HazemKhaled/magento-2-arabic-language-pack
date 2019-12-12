@@ -59,14 +59,15 @@ export const ProductTransformation: ServiceSchema = {
      * @returns {Category[]}
      */
     formatCategories(categories: Category[]): Category[] {
-      if(categories) {
-      return categories.map(category => ({
-        id: category.id,
-        name: this.formatI18nText(category.name || category.name_i18n),
-        parentId: category.parentId,
-        productsCount: category.productsCount,
-        treeNodeLevel: category.treeNodeLevel
-      }));}
+      if (categories) {
+        return categories.map(category => ({
+          id: category.id,
+          name: this.formatI18nText(category.name || category.name_i18n),
+          parentId: category.parentId,
+          productsCount: category.productsCount,
+          treeNodeLevel: category.treeNodeLevel
+        }));
+      }
       return [];
     },
 

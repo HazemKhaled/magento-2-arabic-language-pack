@@ -58,5 +58,10 @@
     "utilities/*/*/*.js.map": true,
     "**/currency.db": true,
     "test": true
-  }
+  },
+  "eslint.autoFixOnSave": true,
+  "eslint.validate": [{
+    "autoFix": true,
+    "language": "typescript"
+  }]
 }

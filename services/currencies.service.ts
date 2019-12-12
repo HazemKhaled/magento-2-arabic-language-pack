@@ -46,7 +46,7 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 // 1 hour
       },
       handler() {
-        return fetch(`https://openexchangerates.org/api/latest.json`, {
+        return fetch('https://openexchangerates.org/api/latest.json', {
           method: 'get',
           headers: { Authorization: `Token ${process.env.OPENEXCHANGE_TOKEN}` }
         })

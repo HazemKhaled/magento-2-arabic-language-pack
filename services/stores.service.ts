@@ -251,9 +251,9 @@ const TheService: ServiceSchema = {
         this.broker.cacher.clean(`stores.get:${ctx.params.url}`);
 
         // FIX: Clear only cache by email
-        this.broker.cacher.clean(`stores.list:**`);
-        this.broker.cacher.clean(`stores.storesList:**`);
-        this.broker.cacher.clean(`stores.countStores:**`);
+        this.broker.cacher.clean('stores.list:**');
+        this.broker.cacher.clean('stores.storesList:**');
+        this.broker.cacher.clean('stores.countStores:**');
 
         // Sanitize request params
         const store: Store = this.sanitizeStoreParams(ctx.params, true);
@@ -289,7 +289,7 @@ const TheService: ServiceSchema = {
             this.sendLogs({
               topic: 'store',
               topicId: ctx.params.url,
-              message: `Create in OMS`,
+              message: 'Create in OMS',
               storeId: ctx.params.url,
               logLevel: 'error',
               code: 500,
@@ -345,7 +345,7 @@ const TheService: ServiceSchema = {
             this.sendLogs({
               topic: 'store',
               topicId: id,
-              message: `update Store`,
+              message: 'update Store',
               storeId: id,
               logLevel: 'error',
               code: 500,
@@ -364,8 +364,8 @@ const TheService: ServiceSchema = {
         this.broker.cacher.clean(`stores.findInstance:*${myStore.url}*`);
         this.broker.cacher.clean(`stores.me:${myStore.consumer_key}*`);
         this.broker.cacher.clean(`stores.get:${myStore.url}*`);
-        this.broker.cacher.clean(`stores.list**`);
-        this.broker.cacher.clean(`stores.storesList:**`);
+        this.broker.cacher.clean('stores.list**');
+        this.broker.cacher.clean('stores.storesList:**');
         this.broker.cacher.clean(`products.list:${myStore.consumer_key}*`);
         this.broker.cacher.clean(`products.getInstanceProduct:${myStore.consumer_key}*`);
 
@@ -374,7 +374,7 @@ const TheService: ServiceSchema = {
             this.sendLogs({
               topic: 'store',
               topicId: ctx.params.url,
-              message: `Update in OMS`,
+              message: 'Update in OMS',
               storeId: ctx.params.url,
               logLevel: 'error',
               code: 500,
@@ -385,7 +385,7 @@ const TheService: ServiceSchema = {
           this.sendLogs({
             topic: 'store',
             topicId: ctx.params.url,
-            message: `Update in OMS, omsId not found`,
+            message: 'Update in OMS, omsId not found',
             storeId: ctx.params.url,
             logLevel: 'error',
             code: 500,

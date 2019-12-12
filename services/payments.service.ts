@@ -51,9 +51,9 @@ const TheService: ServiceSchema = {
               amount: ctx.params.amount,
               invoices: ctx.params.invoices
                 ? ctx.params.invoices.map((invoice: { [key: string]: string }) => ({
-                    invoiceId: invoice.invoice_id,
-                    amountApplied: invoice.amount_applied
-                  }))
+                  invoiceId: invoice.invoice_id,
+                  amountApplied: invoice.amount_applied
+                }))
                 : undefined,
               accountId: ctx.params.account_id,
               bankCharges: ctx.params.bank_charges,
