@@ -228,7 +228,7 @@ const OrdersCreateOpenapi = {
           schema: {
             type: 'object',
             description:
-              "```\n{\n              errors: [\n                {\n                  status: 'fail',\n                  message: 'No Billing Address Or Address Missing Data. Your order failed!',\n                  solution: `Please fill on your store billing address from here: https://app.knawat.com/settings/store`\n                }\n              ]\n            }\n```",
+              '```\n{\n              errors: [\n                {\n                  status: \'fail\',\n                  message: \'No Billing Address Or Address Missing Data. Your order failed!\',\n                  solution: `Please fill on your store billing address from here: https://app.knawat.com/settings/store`\n                }\n              ]\n            }\n```',
             properties: {
               errors: {
                 type: 'array',

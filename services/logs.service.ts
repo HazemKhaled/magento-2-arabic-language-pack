@@ -106,12 +106,12 @@ const TheService: ServiceSchema = {
         if (ctx.params.logLevel) {
           const logLevel: string[] = ['error'];
           switch (ctx.params.logLevel) {
-            case 'debug':
-              logLevel.push('debug');
-            case 'info':
-              logLevel.push('info');
-            case 'warn':
-              logLevel.push('warn');
+          case 'debug':
+            logLevel.push('debug');
+          case 'info':
+            logLevel.push('info');
+          case 'warn':
+            logLevel.push('warn');
           }
           query.bool.filter.push({ terms: { logLevel } });
         }

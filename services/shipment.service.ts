@@ -62,7 +62,7 @@ const Shipment: ServiceSchema = {
             rules: ctx.params.rules
           })
           .then(() => {
-            this.broker.cacher.clean(`shipment.**`);
+            this.broker.cacher.clean('shipment.**');
             return this.adapter.findById(ctx.params.name);
           })
           .then((data: ShipmentPolicy) => this.shipmentTransform(data));
@@ -108,7 +108,7 @@ const Shipment: ServiceSchema = {
             }
           )
           .then(() => {
-            this.broker.cacher.clean(`shipment.**`);
+            this.broker.cacher.clean('shipment.**');
             return this.adapter.findById(ctx.params.id);
           })
           .then((data: ShipmentPolicy) => this.shipmentTransform(data));

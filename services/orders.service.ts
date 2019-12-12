@@ -35,7 +35,7 @@ const TheService: ServiceSchema = {
         this.sendLogs({
           topic: 'order',
           topicId: data.externalId,
-          message: `Order Received!`,
+          message: 'Order Received!',
           storeId: instance.url,
           logLevel: 'info',
           code: 100,
@@ -59,7 +59,8 @@ const TheService: ServiceSchema = {
         if (stock.items.length === 0) {
           this.sendLogs({
             topicId: data.externalId,
-            message: `The products you ordered are not Knawat products, The order has not been created!`,
+            message:
+              'The products you ordered are not Knawat products, The order has not been created!',
             storeId: instance.url,
             logLevel: 'warn',
             code: 1101,
@@ -136,16 +137,16 @@ const TheService: ServiceSchema = {
         // Getting the current user subscription
         const subscription = await ctx.call('subscription.get', { id: instance.url });
         switch (subscription.attributes.orderProcessingType) {
-          case '$':
-            data.adjustment = subscription.attributes.orderProcessingFees;
-            data.adjustmentDescription = `Processing Fees`;
-            break;
-          case '%':
-            subscription.adjustment = (subscription.attributes.orderProcessingFees / 100) * total;
-            subscription.adjustmentDescription = `Processing Fees ${
-              subscription.attributes.orderProcessingFees
-            }%`;
-            break;
+        case '$':
+          data.adjustment = subscription.attributes.orderProcessingFees;
+          data.adjustmentDescription = 'Processing Fees';
+          break;
+        case '%':
+          subscription.adjustment = (subscription.attributes.orderProcessingFees / 100) * total;
+          subscription.adjustmentDescription = `Processing Fees ${
+            subscription.attributes.orderProcessingFees
+          }%`;
+          break;
         }
 
         // Checking for processing fees
@@ -293,7 +294,7 @@ const TheService: ServiceSchema = {
         if (warnings.length > 0) message.warnings = warnings;
         this.sendLogs({
           topicId: data.externalId,
-          message: `Order created successfully`,
+          message: 'Order created successfully',
           storeId: instance.url,
           logLevel: 'info',
           code: 200
@@ -311,7 +312,7 @@ const TheService: ServiceSchema = {
         this.sendLogs({
           topic: 'order',
           topicId: ctx.params.id,
-          message: `Cancel Order Received!`,
+          message: 'Cancel Order Received!',
           storeId: instance.url,
           logLevel: 'info',
           code: 100,
@@ -364,7 +365,8 @@ const TheService: ServiceSchema = {
             if (stock.enoughStock.length === 0) {
               this.sendLogs({
                 topicId: orderBeforeUpdate.externalId,
-                message: `The products you ordered are not Knawat products, The order has not been created!`,
+                message:
+                  'The products you ordered are not Knawat products, The order has not been created!',
                 storeId: instance.url,
                 logLevel: 'warn',
                 code: 1101,
@@ -501,7 +503,7 @@ const TheService: ServiceSchema = {
           };
           this.sendLogs({
             topicId: data.externalId,
-            message: `Order updated successfully`,
+            message: 'Order updated successfully',
             storeId: instance.url,
             logLevel: 'info',
             code: 200
@@ -511,7 +513,7 @@ const TheService: ServiceSchema = {
           this.logger.error(err);
           this.sendLogs({
             topicId: orderBeforeUpdate.externalId,
-            message: err && err.error && err.error.message ? err.error.message : `Order Error`,
+            message: err && err.error && err.error.message ? err.error.message : 'Order Error',
             storeId: instance.url,
             logLevel: 'error',
             code: 500,
@@ -744,7 +746,7 @@ const TheService: ServiceSchema = {
         this.sendLogs({
           topic: 'order',
           topicId: ctx.params.id,
-          message: `Cancel Order Received!`,
+          message: 'Cancel Order Received!',
           storeId: instance.url,
           logLevel: 'info',
           code: 100,
@@ -781,7 +783,7 @@ const TheService: ServiceSchema = {
               message:
                 result && result.error && result.error.message
                   ? result.error.message
-                  : `Order Error`,
+                  : 'Order Error',
               storeId: instance.url,
               logLevel: 'error',
               code: 500,
@@ -801,7 +803,7 @@ const TheService: ServiceSchema = {
           .catch(err => {
             this.sendLogs({
               topicId: ctx.params.id,
-              message: err && err.error && err.error.message ? err.error.message : `Order Error`,
+              message: err && err.error && err.error.message ? err.error.message : 'Order Error',
               storeId: instance.url,
               logLevel: 'error',
               code: 500,
@@ -830,17 +832,17 @@ const TheService: ServiceSchema = {
      */
     normalizeStatus(status: string) {
       switch (status) {
-        case 'pending':
-          status = 'draft';
-          break;
-        case 'processing':
-          status = 'open';
-          break;
-        case 'cancelled':
-          status = 'void';
-          break;
-        default:
-          status = 'draft';
+      case 'pending':
+        status = 'draft';
+        break;
+      case 'processing':
+        status = 'open';
+        break;
+      case 'cancelled':
+        status = 'void';
+        break;
+      default:
+        status = 'draft';
       }
       return status;
     },
@@ -852,17 +854,15 @@ const TheService: ServiceSchema = {
      */
     normalizeResponseStatus(status: string) {
       switch (status) {
-        case 'draft':
-          status = 'Order Placed';
-          break;
-        case 'open':
-          status = 'Processing';
-          break;
-        case 'void':
-          status = 'Cancelled';
-          break;
-        default:
-          status = status;
+      case 'draft':
+        status = 'Order Placed';
+        break;
+      case 'open':
+        status = 'Processing';
+        break;
+      case 'void':
+        status = 'Cancelled';
+        break;
       }
       return status;
     },
@@ -874,17 +874,15 @@ const TheService: ServiceSchema = {
      */
     normalizeUpdateRequestStatus(status: string) {
       switch (status) {
-        case 'Order Placed':
-          status = 'draft';
-          break;
-        case 'Processing':
-          status = 'open';
-          break;
-        case 'Cancelled':
-          status = 'void';
-          break;
-        default:
-          status = status;
+      case 'Order Placed':
+        status = 'draft';
+        break;
+      case 'Processing':
+        status = 'open';
+        break;
+      case 'Cancelled':
+        status = 'void';
+        break;
       }
       return status;
     },
@@ -943,7 +941,7 @@ const TheService: ServiceSchema = {
           this.sendLogs({
             topic: 'order',
             topicId: data.externalId,
-            message: `Some products are out of stock`,
+            message: 'Some products are out of stock',
             storeId: instance.url,
             logLevel: 'warn',
             code: 1102,
@@ -961,7 +959,7 @@ const TheService: ServiceSchema = {
           this.sendLogs({
             topic: 'order',
             topicId: data.externalId,
-            message: `This items quantities are not enough stock`,
+            message: 'This items quantities are not enough stock',
             storeId: instance.url,
             logLevel: 'warn',
             code: 1103,
@@ -1013,7 +1011,7 @@ const TheService: ServiceSchema = {
         }
         if (!this.checkAddress(instance, data.externalId)) {
           warnings.push({
-            message: `Billing address not found`,
+            message: 'Billing address not found',
             code: 1104
           });
         }
@@ -1048,10 +1046,10 @@ const TheService: ServiceSchema = {
           instance.internal_data && instance.internal_data.omsId
             ? { id: instance.internal_data.omsId }
             : {
-                url: instance.url,
-                name: instance.name,
-                users: instance.users
-              };
+              url: instance.url,
+              name: instance.name,
+              users: instance.users
+            };
       }
       return data;
     },
@@ -1067,7 +1065,7 @@ const TheService: ServiceSchema = {
         this.sendLogs({
           topic: 'order',
           topicId: externalId,
-          message: `No Billing Address Or Address Missing Data.`,
+          message: 'No Billing Address Or Address Missing Data.',
           storeId: instance.url,
           logLevel: 'warn',
           code: 1104

@@ -1,4 +1,4 @@
-import { Subscription } from ".";
+import { Subscription } from '.';
 
 /**
  * User
@@ -15,4 +15,3 @@ export interface User {
   contact_email: string;
   subscriptions: Subscription[];
 }
-

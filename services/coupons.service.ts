@@ -16,7 +16,7 @@ const TheService: ServiceSchema = {
         return this.adapter
           .insert(this.createCouponSanitize(ctx.params))
           .then((res: Coupon) => {
-            this.broker.cacher.clean(`coupons.list:**`);
+            this.broker.cacher.clean('coupons.list:**');
             return this.normalizeId(res);
           })
           .catch((err: any) => {
@@ -99,7 +99,7 @@ const TheService: ServiceSchema = {
               throw new MoleculerError('No Coupons found!', 404);
             }
 
-            this.broker.cacher.clean(`coupons.list:**`);
+            this.broker.cacher.clean('coupons.list:**');
             this.broker.cacher.clean(`coupons.get:${id}*`);
             return coupon;
           })
@@ -121,7 +121,7 @@ const TheService: ServiceSchema = {
               throw new MoleculerError('No Coupons found!', 404);
             }
 
-            this.broker.cacher.clean(`coupons.list:**`);
+            this.broker.cacher.clean('coupons.list:**');
             this.broker.cacher.clean(`coupons.get:${ctx.params.id}*`);
             return coupon;
           })

@@ -97,7 +97,7 @@ const Product = {
       tr:
         '%100 Pamuk<br>*Cep Detay <br>*Uzun Katlanabilir Kol<br>*Önden Düğmeli<br>*Yanları Düğmeli <br>*Dar Kalıp <br>*Boy Uzunluğu:63 cm<br>Numune Bedeni: 36/S/1<br>Modelin Ölçüleri: Boy:1,76, Göğüs:86, Bel:60, Kalça: 91',
       en:
-        "<ul><li>100% Cotton</li><li>*Pocket Detailed</li><li>*Long Layered Sleeves</li><li>*Front Buttons</li><li>*Buttons on Sides</li><li>*Narrow Cut</li><li>*Length:63 cm</li><li>Sample Size: 36/S/1</li><li>Model's Measurements: Height:1,76, Chest:86, Waist:60, Hip: 91</li></ul>",
+        '<ul><li>100% Cotton</li><li>*Pocket Detailed</li><li>*Long Layered Sleeves</li><li>*Front Buttons</li><li>*Buttons on Sides</li><li>*Narrow Cut</li><li>*Length:63 cm</li><li>Sample Size: 36/S/1</li><li>Model\'s Measurements: Height:1,76, Chest:86, Waist:60, Hip: 91</li></ul>',
       ar:
         '<ul><li>%100 قطن</li><li>مزين بجيب</li><li>بكم طويل قابل للازالة</li><li>بأزرار من الامام</li><li>بأزرار من الجوانب</li><li>سليم فت</li><li>الطول:63 سم</li><li>مقاس الجسم: 36/S/1</li><li>قياسات العارض: الطول:1,76, الصدر:86, الوسط:60, الخصر: 91</li></ul>'
     },

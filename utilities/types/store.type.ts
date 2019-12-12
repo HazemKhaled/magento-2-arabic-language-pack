@@ -1,4 +1,4 @@
-import { OrderAddress, Subscription } from ".";
+import { OrderAddress, Subscription } from '.';
 
 /**
  * Store Type definition
