@@ -112,6 +112,11 @@ const TaxesService: ServiceSchema = {
             );
           });
       }
+    },
+    taxStatus: {
+      handler(): boolean {
+        return process.env.IS_INCLUSIVE_TAX ? true : false;
+      }
     }
   },
   methods: {
