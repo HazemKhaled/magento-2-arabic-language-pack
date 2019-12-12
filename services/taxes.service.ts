@@ -116,8 +116,8 @@ const TaxesService: ServiceSchema = {
     taxStatus: {
       handler(): { sales: boolean; subscription: boolean } {
         return {
-          sales: !!process.env.IS_SALES_TAX_INCLUSIVE,
-          subscription: !!process.env.IS_SUB_TAX_INCLUSIVE
+          sales: !!Number(process.env.IS_SALES_TAX_INCLUSIVE),
+          subscription: !!Number(process.env.IS_SUB_TAX_INCLUSIVE)
         };
       }
     }
