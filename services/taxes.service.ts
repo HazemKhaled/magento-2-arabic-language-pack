@@ -114,8 +114,11 @@ const TaxesService: ServiceSchema = {
       }
     },
     taxStatus: {
-      handler(): boolean {
-        return process.env.IS_INCLUSIVE_TAX ? true : false;
+      handler(): { sales: boolean; subscription: boolean } {
+        return {
+          sales: !!process.env.IS_SALES_TAX_INCLUSIVE,
+          subscription: !!process.env.IS_SUB_TAX_INCLUSIVE
+        };
       }
     }
   },
