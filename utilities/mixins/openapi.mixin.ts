@@ -196,6 +196,9 @@ export function OpenApiMixin(): ServiceSchema {
               },
               {
                 name: 'Membership'
+              },
+              {
+                name: 'Taxes'
               }
             ],
 

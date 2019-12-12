@@ -99,7 +99,13 @@ const TheService: ServiceSchema = {
           // Subscription
           'POST subscription': 'subscription.create',
           'GET subscription': 'subscription.list',
-          'PUT subscription/:id': 'subscription.updateSubscription'
+          'PUT subscription/:id': 'subscription.updateSubscription',
+
+          // Subscription
+          'POST tax': 'taxes.tCreate',
+          'PUT tax/:id': 'taxes.tUpdate',
+          'GET tax/:country': 'taxes.tFindByCountry',
+          'DELETE tax/:id': 'taxes.tDelete'
         },
 
         // Disable to call not-mapped actions
@@ -151,7 +157,7 @@ const TheService: ServiceSchema = {
                   {
                     message: `Something went wrong for more details Please check the log under ID: ${
                       log.id
-                      }`
+                    }`
                   }
                 ]
               })
