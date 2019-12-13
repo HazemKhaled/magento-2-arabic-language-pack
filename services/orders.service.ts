@@ -18,6 +18,127 @@ const TheService: ServiceSchema = {
   },
   actions: {
     createOrder: {
+      openapi: {
+        $path: 'post /orders',
+        summary: 'Create order',
+        tags: ['Orders'],
+        responses: {
+          '200': {
+            description: 'Success',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/OrderResponse'
+                }
+              }
+            }
+          },
+          '401': {
+            $ref: '#/components/responses/UnauthorizedErrorToken'
+          },
+          '404': {
+            description: 'Status 404',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error'
+                },
+                examples: {
+                  response: {
+                    value: {
+                      errorCode: 404,
+                      errorMessage: 'SKU(s) out of stock.',
+                      data: {
+                        outOfStock: ['sku1', 'sku2']
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          '428': {
+            description: 'Status 428',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  description:
+                    "```\n{\n              errors: [\n                {\n                  status: 'fail',\n                  message: 'No Billing Address Or Address Missing Data. Your order failed!',\n                  solution: `Please fill on your store billing address from here: https://app.knawat.com/settings/store`\n                }\n              ]\n            }\n```",
+                  properties: {
+                    errors: {
+                      type: 'array',
+                      items: {
+                        required: ['message', 'solution', 'status'],
+                        type: 'object',
+                        properties: {
+                          status: {
+                            type: 'string',
+                            enum: ['fail']
+                          },
+                          message: {
+                            type: 'string'
+                          },
+                          solution: {
+                            type: 'string'
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          '500': {
+            description: 'Status 500',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    errors: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          message: {
+                            type: 'string'
+                          },
+                          status: {
+                            type: 'string'
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        security: [
+          {
+            bearerAuth: []
+          }
+        ],
+        requestBody: {
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['order'],
+                properties: {
+                  order: {
+                    $ref: '#/components/schemas/Order'
+                  }
+                }
+              }
+            }
+          },
+          required: true
+        }
+      },
       auth: 'Bearer',
       params: createOrderValidation,
       async handler(ctx: Context) {
@@ -140,7 +261,7 @@ const TheService: ServiceSchema = {
             subscription.adjustment = (subscription.attributes.orderProcessingFees / 100) * total;
             subscription.adjustmentDescription = `Processing Fees ${
               subscription.attributes.orderProcessingFees
-            }%`;
+              }%`;
             break;
         }
 
@@ -161,13 +282,13 @@ const TheService: ServiceSchema = {
         data.notes = `${stock.outOfStock.reduce(
           (accumulator, item) =>
             `${accumulator} SKU: ${item.sku} Required Qty: ${
-              item.quantityRequired
+            item.quantityRequired
             } Available Qty: ${item.quantity}\n`,
           ''
         )}${stock.notEnoughStock.reduce(
           (accumulator, item) =>
             `${accumulator} SKU: ${item.sku} Required Qty: ${
-              item.quantityRequired
+            item.quantityRequired
             } Available Qty: ${item.quantity}\n`,
           ''
         )}${data.notes}`;
@@ -244,18 +365,28 @@ const TheService: ServiceSchema = {
           }
         };
         if (order.id && order.status === 'open') {
-          ctx
-            .call('invoices.createOrderInvoice', {
-              storeId: instance.url,
-              orderId: order.id
-            })
-            .then(async res => {
-              await ctx.call('invoices.markInvoiceSent', {
-                omsId: instance.internal_data.omsId,
-                invoiceId: res.invoice.invoiceId
-              });
-              this.broker.cacher.clean(`invoices.get:${instance.consumer_key}*`);
-            });
+          setTimeout(
+            (instanceCopy, orderCopy) => {
+              ctx
+                .call('invoices.createOrderInvoice', {
+                  storeId: instanceCopy.url,
+                  orderId: orderCopy.id
+                })
+                .then(res =>
+                  ctx.call('invoices.markInvoiceSent', {
+                    omsId: instanceCopy.internal_data.omsId,
+                    invoiceId: res.invoice.invoiceId
+                  })
+                )
+                .then(
+                  () => this.broker.cacher.clean(`invoices.get:${instanceCopy.consumer_key}*`),
+                  this.logger.error
+                );
+            },
+            5000,
+            instance,
+            order
+          );
         }
         // Initializing warnings array if we have a Warning
         const warnings = this.warningsMessenger(
@@ -280,6 +411,104 @@ const TheService: ServiceSchema = {
       }
     },
     updateOrder: {
+      openapi: {
+        $path: 'put /orders/{order_id}',
+        parameters: [
+          {
+            name: 'order_id',
+            in: 'path',
+            required: true,
+            schema: {
+              type: 'string'
+            }
+          }
+        ],
+        summary: 'Update order',
+        tags: ['Orders'],
+        description: 'Update order by id',
+        responses: {
+          '200': {
+            description: 'Status 200',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/OrderResponse'
+                }
+              }
+            }
+          },
+          '401': {
+            $ref: '#/components/responses/UnauthorizedErrorToken'
+          },
+          '404': {
+            description: 'Status 404',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error'
+                },
+                examples: {
+                  response: {
+                    value: {
+                      errorCode: 404,
+                      errorMessage: 'Order not found.',
+                      data: {}
+                    }
+                  }
+                }
+              }
+            }
+          },
+          '500': {
+            description: 'Status 500',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    errors: {
+                      type: 'object',
+                      properties: {
+                        message: {
+                          type: 'string'
+                        },
+                        status: {
+                          type: 'string'
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        security: [
+          {
+            bearerAuth: []
+          }
+        ],
+        requestBody: {
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['id', 'order'],
+                properties: {
+                  id: {
+                    type: 'string'
+                  },
+                  order: {
+                    $ref: '#/components/schemas/Order'
+                  }
+                },
+                description: 'Order Confirmation'
+              }
+            }
+          },
+          required: true
+        }
+      },
       auth: 'Bearer',
       params: updateOrderValidation,
       async handler(ctx) {
@@ -399,7 +628,7 @@ const TheService: ServiceSchema = {
               subscription.adjustment = (subscription.attributes.orderProcessingFees / 100) * total;
               subscription.adjustmentDescription = `Processing Fees ${
                 subscription.attributes.orderProcessingFees
-              }%`;
+                }%`;
             }
             // Initializing warnings array if we have a Warning
             const warnings = this.warningsMessenger(
@@ -500,6 +729,79 @@ const TheService: ServiceSchema = {
       }
     },
     getOrder: {
+      openapi: {
+        $path: 'get /orders/{order_id}',
+        summary: 'Order by id',
+        tags: ['Orders'],
+        parameters: [
+          {
+            name: 'order_id',
+            in: 'path',
+            required: true,
+            schema: {
+              type: 'string'
+            }
+          }
+        ],
+        responses: {
+          '200': {
+            description: 'Status 200',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    order: {
+                      $ref: '#/components/schemas/Order'
+                    }
+                  }
+                }
+              }
+            }
+          },
+          '400': {
+            description: 'Status 400',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    message: {
+                      type: 'string',
+                      description: 'There is an error'
+                    }
+                  }
+                }
+              }
+            }
+          },
+          '401': {
+            $ref: '#/components/responses/UnauthorizedErrorToken'
+          },
+          '404': {
+            description: 'Status 404',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error'
+                },
+                examples: {
+                  response: {
+                    value: {
+                      errorMessage: 'Order not found.'
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        security: [
+          {
+            bearerAuth: []
+          }
+        ]
+      },
       auth: 'Bearer',
       cache: {
         keys: ['order_id'],
@@ -578,6 +880,81 @@ const TheService: ServiceSchema = {
       }
     },
     list: {
+      openapi: {
+        $path: 'get /orders',
+        summary: 'Get Order(s)',
+        tags: ['Orders'],
+        description: 'To get all the order info you could use get order by id end-point',
+        parameters: [
+          {
+            name: 'limit',
+            in: 'query',
+            required: false,
+            description: 'Size of the page to retrieve.',
+            schema: {
+              type: 'number',
+              minimum: 1,
+              maximum: 50,
+              default: 10
+            }
+          },
+          {
+            name: 'page',
+            in: 'query',
+            required: false,
+            schema: {
+              type: 'number',
+              minimum: 1,
+              default: 1
+            }
+          }
+        ],
+        responses: {
+          '200': {
+            description: 'Status 200',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      id: {
+                        type: 'string'
+                      },
+                      status: {
+                        type: 'string'
+                      },
+                      createDate: {
+                        type: 'string',
+                        format: 'date'
+                      },
+                      updateDate: {
+                        type: 'string',
+                        format: 'date'
+                      },
+                      total: {
+                        type: 'number'
+                      },
+                      knawat_order_status: {
+                        type: 'string'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          '401': {
+            $ref: '#/components/responses/UnauthorizedErrorToken'
+          }
+        },
+        security: [
+          {
+            bearerAuth: []
+          }
+        ]
+      },
       auth: 'Bearer',
       cache: {
         keys: ['#user', 'limit', 'page', 'sort', 'sortOrder', 'status', 'externalId'],
@@ -678,6 +1055,70 @@ const TheService: ServiceSchema = {
       }
     },
     deleteOrder: {
+      openapi: {
+        $path: 'delete /orders/{order_id}',
+        parameters: [
+          {
+            name: 'order_id',
+            in: 'path',
+            required: true,
+            schema: {
+              type: 'string'
+            }
+          }
+        ],
+        summary: 'Cancel order',
+        tags: ['Orders'],
+        responses: {
+          '200': {
+            description: 'Status 200',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/OrderResponse'
+                }
+              }
+            }
+          },
+          '401': {
+            $ref: '#/components/responses/UnauthorizedErrorToken'
+          },
+          '404': {
+            description: 'Status 404'
+          },
+          '500': {
+            description: 'Status 500',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    errors: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          message: {
+                            type: 'string'
+                          },
+                          status: {
+                            type: 'string'
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        security: [
+          {
+            bearerAuth: []
+          }
+        ]
+      },
       auth: 'Bearer',
       params: {
         id: { type: 'string', convert: true }
@@ -951,7 +1392,7 @@ const TheService: ServiceSchema = {
           warnings.push({
             message: `Can’t ship to ${
               shipping.country
-            } with provided courier, It’ll be shipped with ${shipment.courier ||
+              } with provided courier, It’ll be shipped with ${shipment.courier ||
               'Standard'}, Contact our customer support for more info`,
             code: 2101
           });
@@ -960,7 +1401,7 @@ const TheService: ServiceSchema = {
             topicId: data.externalId,
             message: `Can’t ship to ${
               shipping.country
-            } with provided courier, It’ll be shipped with ${shipment.courier ||
+              } with provided courier, It’ll be shipped with ${shipment.courier ||
               'Standard'}, Contact our customer support for more info`,
             storeId: instance.url,
             logLevel: 'warn',
@@ -998,17 +1439,17 @@ const TheService: ServiceSchema = {
         data.externalInvoice =
           params.invoice_url ||
           `${this.settings.BASEURL}/invoice/${encodeURIComponent(instance.url)}/external/${
-            data.externalId
+          data.externalId
           }`;
         // Order store data
         data.store =
           instance.internal_data && instance.internal_data.omsId
             ? { id: instance.internal_data.omsId }
             : {
-                url: instance.url,
-                name: instance.name,
-                users: instance.users
-              };
+              url: instance.url,
+              name: instance.name,
+              users: instance.users
+            };
       }
       return data;
     },

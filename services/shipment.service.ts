@@ -13,6 +13,44 @@ const Shipment: ServiceSchema = {
      * @returns
      */
     getShipments: {
+      openapi: {
+        $path: 'get /shipment/{id}',
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: false,
+            schema: {
+              type: 'string'
+            }
+          }
+        ],
+        summary: 'Get All Shipment Policies or Get By Id',
+        tags: ['Shipment', 'Enterprise Only'],
+        responses: {
+          '200': {
+            description: 'Status 200',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'array',
+                  items: {
+                    $ref: '#/components/schemas/ShipmentPolicy'
+                  }
+                }
+              }
+            }
+          },
+          '401': {
+            $ref: '#/components/responses/UnauthorizedErrorBasic'
+          }
+        },
+        security: [
+          {
+            basicAuth: []
+          }
+        ]
+      },
       auth: 'Basic',
       cache: { keys: ['id'], ttl: 60 * 60 * 24 * 30 },
       params: { id: { type: 'string', optional: true } },
@@ -29,6 +67,34 @@ const Shipment: ServiceSchema = {
      * @returns
      */
     insertShipment: {
+      openapi: {
+        $path: 'post /shipment',
+        summary: 'Insert Shipment Policy',
+        tags: ['Shipment', 'Enterprise Only'],
+        responses: {
+          '200': {
+            description: 'Status 200',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ShipmentPolicy'
+                }
+              }
+            }
+          },
+          '401': {
+            $ref: '#/components/responses/UnauthorizedErrorBasic'
+          }
+        },
+        security: [
+          {
+            basicAuth: []
+          }
+        ],
+        requestBody: {
+          $ref: '#/components/requestBodies/ShipmentPolicy'
+        }
+      },
       auth: 'Basic',
       params: {
         name: { type: 'string' },
@@ -74,6 +140,44 @@ const Shipment: ServiceSchema = {
      * @returns
      */
     updateShipment: {
+      openapi: {
+        $path: 'put /shipment/{id}',
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: {
+              type: 'string'
+            }
+          }
+        ],
+        summary: 'Update Shipment Policy',
+        tags: ['Shipment', 'Enterprise Only'],
+        responses: {
+          '200': {
+            description: 'Status 200',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ShipmentPolicy'
+                }
+              }
+            }
+          },
+          '401': {
+            $ref: '#/components/responses/UnauthorizedErrorBasic'
+          }
+        },
+        security: [
+          {
+            basicAuth: []
+          }
+        ],
+        requestBody: {
+          $ref: '#/components/requestBodies/ShipmentPolicy'
+        }
+      },
       auth: 'Basic',
       params: {
         id: { type: 'string' },
@@ -120,6 +224,71 @@ const Shipment: ServiceSchema = {
      * @returns
      */
     ruleByCountry: {
+      openapi: {
+        $path: 'get /shipment/rules',
+        summary: 'Get Shipment Cost',
+        tags: ['Shipment', 'Enterprise Only'],
+        parameters: [
+          {
+            name: 'country',
+            in: 'query',
+            required: true,
+            schema: {
+              type: 'string',
+              minLength: 2,
+              maxLength: 2
+            }
+          },
+          {
+            name: 'weight',
+            in: 'query',
+            required: true,
+            schema: {
+              type: 'number'
+            }
+          },
+          {
+            name: 'price',
+            in: 'query',
+            required: true,
+            schema: {
+              type: 'number'
+            }
+          }
+        ],
+        responses: {
+          '200': {
+            description: 'Status 200',
+            content: {
+              'application/json': {
+                schema: {
+                  required: ['cost', 'courier', 'duration'],
+                  type: 'object',
+                  properties: {
+                    courier: {
+                      type: 'string'
+                    },
+                    cost: {
+                      type: 'number'
+                    },
+                    duration: {
+                      type: 'string'
+                    }
+                  }
+                }
+              }
+            }
+          },
+          '401': {
+            $ref: '#/components/responses/UnauthorizedErrorBasic'
+          }
+        },
+        security: [
+          {
+            basicAuth: []
+          }
+        ]
+      },
       auth: 'Basic',
       cache: { keys: ['country', 'weight', 'price'], ttl: 60 * 60 * 24 * 30 },
       params: {
@@ -168,6 +337,46 @@ const Shipment: ServiceSchema = {
      * @returns {string[]} string array of couriers
      */
     getCouriers: {
+      openapi: {
+        $path: 'get /shipment/couriers',
+        summary: 'Get All Couriers',
+        tags: ['Shipment', 'Enterprise Only'],
+        parameters: [
+          {
+            name: 'country',
+            in: 'query',
+            required: false,
+            schema: {
+              type: 'string',
+              minLength: 2,
+              maxLength: 2
+            }
+          }
+        ],
+        responses: {
+          '200': {
+            description: 'Status 200',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'array',
+                  items: {
+                    type: 'string'
+                  }
+                }
+              }
+            }
+          },
+          '401': {
+            $ref: '#/components/responses/UnauthorizedErrorBasic'
+          }
+        },
+        security: [
+          {
+            basicAuth: []
+          }
+        ]
+      },
       auth: 'Basic',
       cache: { keys: ['country'], ttl: 60 * 60 * 24 * 30 },
       params: {

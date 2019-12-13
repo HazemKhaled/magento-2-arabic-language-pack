@@ -2,11 +2,13 @@ import { Context, ServiceSchema } from 'moleculer';
 import ApiGateway from 'moleculer-web';
 import { Log } from '../utilities/types';
 
+import { OpenApiMixin } from '../utilities/mixins/openapi.mixin';
+
 const { UnAuthorizedError, ERR_NO_TOKEN, ERR_INVALID_TOKEN } = ApiGateway.Errors;
 
 const TheService: ServiceSchema = {
   name: 'api',
-  mixins: [ApiGateway],
+  mixins: [ApiGateway, OpenApiMixin()],
   settings: {
     port: process.env.PORT || 3000,
 
@@ -47,6 +49,7 @@ const TheService: ServiceSchema = {
           'GET stores/:id': 'stores.get',
           'PUT stores/:id': 'stores.update',
           'PUT stores/:id/sync': 'stores.sync',
+          'GET admin/stores': 'stores.storesList',
 
           // All Products
           'GET products': 'products-list.list',
@@ -85,6 +88,7 @@ const TheService: ServiceSchema = {
           'POST membership': 'membership.create',
           'GET membership': 'membership.list',
           'GET membership/:id': 'membership.get',
+          'PUT membership/:id': 'membership.update',
 
           // Coupons
           'POST coupons': 'coupons.create',
@@ -93,7 +97,9 @@ const TheService: ServiceSchema = {
           'PUT coupons/:id': 'coupons.update',
 
           // Subscription
-          'POST subscription': 'subscription.create'
+          'POST subscription': 'subscription.create',
+          'GET subscription': 'subscription.list',
+          'PUT subscription/:id': 'subscription.updateSubscription'
         },
 
         // Disable to call not-mapped actions
@@ -137,10 +143,7 @@ const TheService: ServiceSchema = {
               storeId: 'Unknown',
               logLevel: 'error',
               code: 500,
-              payload: {
-                errorMsg: err.toString(),
-                params: req.$params
-              }
+              payload: { error: err.toString(), params: req.$params }
             });
             res.end(
               JSON.stringify({
@@ -148,7 +151,7 @@ const TheService: ServiceSchema = {
                   {
                     message: `Something went wrong for more details Please check the log under ID: ${
                       log.id
-                    }`
+                      }`
                   }
                 ]
               })
