@@ -317,7 +317,7 @@ const SubscriptionUpdateOpenapi = {
 };
 
 export const SubscriptionOpenapi: ServiceSchema = {
-  name: 'openapi',
+  name: 'subscription',
   settings: {
     components: {
       schemas: {

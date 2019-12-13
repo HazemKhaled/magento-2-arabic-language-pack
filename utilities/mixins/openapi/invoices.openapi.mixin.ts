@@ -310,7 +310,7 @@ const InvoicesApplyCreditsOpenapi = {
 };
 
 export const InvoicesOpenapi: ServiceSchema = {
-  name: 'openapi',
+  name: 'invoices',
   settings: {
     components: {
       schemas: {

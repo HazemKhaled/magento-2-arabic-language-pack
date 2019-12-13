@@ -223,7 +223,7 @@ const MembershipUpdateOpenapi = {
 };
 
 export const MembershipOpenapi: ServiceSchema = {
-  name: 'openapi',
+  name: 'membership',
   settings: {
     components: {
       schemas: {

@@ -49,7 +49,7 @@ const ProductsListGetOpenapi = {
 };
 
 export const ProductsListOpenapi: ServiceSchema = {
-  name: 'openapi',
+  name: 'products-list',
   actions: {
     list: {
       openapi: ProductsListListOpenapi,

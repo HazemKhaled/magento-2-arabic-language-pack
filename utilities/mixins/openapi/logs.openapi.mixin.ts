@@ -234,7 +234,7 @@ const LogsGetLogsOpenapi = {
 };
 
 export const LogsOpenapi: ServiceSchema = {
-  name: 'openapi',
+  name: 'logs',
   settings: {
     components: {
       schemas: {

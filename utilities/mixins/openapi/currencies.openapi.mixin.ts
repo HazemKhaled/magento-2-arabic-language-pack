@@ -99,7 +99,7 @@ const CurrenciesGetCurrenciesOpenapi = {
 };
 
 export const CurrenciesOpenapi: ServiceSchema = {
-  name: 'openapi',
+  name: 'currencies',
   settings: {
     openapi: CurrencySettingsOpenapi,
   },

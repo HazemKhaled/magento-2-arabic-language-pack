@@ -308,7 +308,7 @@ const TaxDelete = {
 };
 
 export const TaxOpenapi: ServiceSchema = {
-  name: 'openapi',
+  name: 'taxes',
   settings: {
     components: {
       schemas: {
