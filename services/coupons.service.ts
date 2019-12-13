@@ -25,23 +25,23 @@ const TheService: ServiceSchema = {
             }
             throw new MoleculerError(err, 500);
           });
-      }
+      },
     },
     get: {
       auth: 'Basic',
       cache: {
         keys: ['id', 'membership'],
-        ttl: 60 * 60 // 1 hour
+        ttl: 60 * 60, // 1 hour
       },
       params: {
         id: [{ type: 'string' }, { type: 'number' }],
-        membership: { type: 'string', optional: true }
+        membership: { type: 'string', optional: true },
       },
       handler(ctx: Context): Promise<Coupon> {
         const query: { [key: string]: {} } = {
           _id: ctx.params.id.toUpperCase(),
           startDate: { $lte: new Date() },
-          endDate: { $gte: new Date() }
+          endDate: { $gte: new Date() },
         };
         if (ctx.params.membership) {
           query.appliedMemberships = ctx.params.membership;
@@ -63,12 +63,12 @@ const TheService: ServiceSchema = {
             }
             throw new MoleculerError(err, 500);
           });
-      }
+      },
     },
     list: {
       auth: 'Basic',
       cache: {
-        ttl: 60 * 60 // 1 hour
+        ttl: 60 * 60, // 1 hour
       },
       handler(): Promise<Coupon[]> {
         return this.adapter
@@ -83,7 +83,7 @@ const TheService: ServiceSchema = {
             }
             throw new MoleculerError(err, 500);
           });
-      }
+      },
     },
     update: {
       auth: 'Basic',
@@ -106,12 +106,12 @@ const TheService: ServiceSchema = {
           .catch((err: any) => {
             throw new MoleculerError(err, 500);
           });
-      }
+      },
     },
     updateCount: {
       auth: 'Basic',
       params: {
-        id: { type: 'string' }
+        id: { type: 'string' },
       },
       async handler(ctx: Context) {
         return this.adapter
@@ -128,8 +128,8 @@ const TheService: ServiceSchema = {
           .catch((err: any) => {
             throw new MoleculerError(err, 500);
           });
-      }
-    }
+      },
+    },
   },
   methods: {
     /**
@@ -141,7 +141,7 @@ const TheService: ServiceSchema = {
     normalizeId(obj: { _id: string }) {
       const newObj = {
         code: obj._id,
-        ...obj
+        ...obj,
       };
       delete newObj._id;
       return newObj;
@@ -161,10 +161,10 @@ const TheService: ServiceSchema = {
         discount: params.discount,
         discountType: params.discountType,
         maxUses: params.maxUses,
-        appliedMemberships: params.appliedMemberships
+        appliedMemberships: params.appliedMemberships,
       };
-    }
-  }
+    },
+  },
 };
 
 export = TheService;

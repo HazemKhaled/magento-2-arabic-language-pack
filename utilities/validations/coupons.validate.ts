@@ -6,7 +6,7 @@ export const CreateCouponValidation = {
   endDate: { type: 'date', convert: true },
   maxUses: { type: 'number', integer: true, positive: true },
   appliedMemberships: { type: 'array', items: { type: 'string' } },
-  $$strict: true
+  $$strict: true,
 };
 
 export const UpdateCouponValidation = {
@@ -17,5 +17,5 @@ export const UpdateCouponValidation = {
   endDate: { type: 'date', convert: true, optional: true },
   maxUses: { type: 'number', integer: true, positive: true, optional: true },
   appliedMemberships: { type: 'array', items: { type: 'string' }, optional: true },
-  $$strict: true
+  $$strict: true,
 };

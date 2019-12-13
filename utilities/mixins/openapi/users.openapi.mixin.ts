@@ -14,12 +14,12 @@ const UsersLoginOpenapi = {
             description: 'Channel information',
             properties: {
               channel: {
-                type: 'object'
-              }
-            }
-          }
-        }
-      }
+                type: 'object',
+              },
+            },
+          },
+        },
+      },
     },
     '422': {
       description: 'Status 422',
@@ -27,11 +27,11 @@ const UsersLoginOpenapi = {
         'application/json': {
           schema: {
             type: 'object',
-            description: 'consumerKey or consumerSecret is wrong'
-          }
-        }
-      }
-    }
+            description: 'consumerKey or consumerSecret is wrong',
+          },
+        },
+      },
+    },
   },
   security: [] as [],
   requestBody: {
@@ -42,24 +42,24 @@ const UsersLoginOpenapi = {
           required: ['consumerKey', 'consumerSecret'],
           properties: {
             consumerKey: {
-              type: 'string'
+              type: 'string',
             },
             consumerSecret: {
-              type: 'string'
-            }
-          }
-        }
-      }
+              type: 'string',
+            },
+          },
+        },
+      },
     },
-    required: true
-  }
+    required: true,
+  },
 };
 
 export const UsersOpenapi: ServiceSchema = {
   name: 'openapi',
   actions: {
     login: {
-      openapi: UsersLoginOpenapi
-    }
-  }
+      openapi: UsersLoginOpenapi,
+    },
+  },
 };

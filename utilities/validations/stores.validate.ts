@@ -15,8 +15,8 @@ export const createValidation = {
       'csv',
       'ebay',
       'api',
-      'other'
-    ]
+      'other',
+    ],
   },
   stock_date: { type: 'date', optional: true, convert: true },
   stock_status: { type: 'enum', values: ['idle', 'in-progress'], optional: true },
@@ -39,10 +39,10 @@ export const createValidation = {
         email: { type: 'email' },
         roles: {
           type: 'array',
-          items: { type: 'enum', values: ['owner', 'accounting', 'products', 'orders'] }
-        }
-      }
-    }
+          items: { type: 'enum', values: ['owner', 'accounting', 'products', 'orders'] },
+        },
+      },
+    },
   },
   languages: { type: 'array', min: 1, max: 10, items: 'string' },
   address: {
@@ -58,10 +58,10 @@ export const createValidation = {
       postcode: { type: 'number', optional: true },
       country: { type: 'string', max: 2 },
       email: { type: 'email', optional: true },
-      phone: { type: 'string', optional: true, convert: true }
+      phone: { type: 'string', optional: true, convert: true },
     },
-    optional: true
-  }
+    optional: true,
+  },
 };
 
 export const updateValidation = {
@@ -70,7 +70,7 @@ export const updateValidation = {
   status: {
     type: 'enum',
     values: ['confirmed', 'unconfirmed', 'archived', 'error'],
-    optional: true
+    optional: true,
   },
   type: {
     type: 'enum',
@@ -85,9 +85,9 @@ export const updateValidation = {
       'csv',
       'ebay',
       'api',
-      'other'
+      'other',
     ],
-    optional: true
+    optional: true,
   },
   stock_date: { type: 'date', optional: true, convert: true },
   stock_status: { type: 'enum', values: ['idle', 'in-progress'], optional: true },
@@ -110,11 +110,11 @@ export const updateValidation = {
         email: { type: 'email' },
         roles: {
           type: 'array',
-          items: { type: 'enum', values: ['owner', 'accounting', 'products', 'orders'] }
-        }
-      }
+          items: { type: 'enum', values: ['owner', 'accounting', 'products', 'orders'] },
+        },
+      },
     },
-    optional: true
+    optional: true,
   },
   languages: { type: 'array', min: 1, max: 10, items: 'string', optional: true },
   address: {
@@ -130,8 +130,8 @@ export const updateValidation = {
       postcode: { type: 'number', optional: true },
       country: { type: 'string', max: 2 },
       email: { type: 'email', optional: true },
-      phone: { type: 'string', optional: true, convert: true }
+      phone: { type: 'string', optional: true, convert: true },
     },
-    optional: true
-  }
+    optional: true,
+  },
 };

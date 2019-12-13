@@ -7,8 +7,8 @@ const TaxSchema = {
     name: { type: 'string' },
     country: { type: 'string' },
     class: { type: 'array', items: { type: 'string' } },
-    percentage: { type: 'number' }
-  }
+    percentage: { type: 'number' },
+  },
 };
 
 const TaxCreateReq = {
@@ -20,11 +20,11 @@ const TaxCreateReq = {
           name: { type: 'string', required: true },
           country: { type: 'string', required: true },
           class: { type: 'array', items: { type: 'string' }, required: true },
-          percentage: { type: 'number', required: true }
-        }
-      }
-    }
-  }
+          percentage: { type: 'number', required: true },
+        },
+      },
+    },
+  },
 };
 
 const TaxUpdateReq = {
@@ -37,11 +37,11 @@ const TaxUpdateReq = {
           name: { type: 'string' },
           country: { type: 'string' },
           class: { type: 'array', items: { type: 'string' } },
-          percentage: { type: 'number' }
-        }
-      }
-    }
-  }
+          percentage: { type: 'number' },
+        },
+      },
+    },
+  },
 };
 
 const TaxCreate = {
@@ -54,9 +54,9 @@ const TaxCreate = {
       in: 'header',
       required: true,
       schema: {
-        type: 'string'
-      }
-    }
+        type: 'string',
+      },
+    },
   ],
   responses: {
     '200': {
@@ -65,13 +65,13 @@ const TaxCreate = {
         'application/json': {
           schema: {
             type: 'object',
-            properties: { tax: { $ref: '#/components/schemas/Tax' } }
-          }
-        }
-      }
+            properties: { tax: { $ref: '#/components/schemas/Tax' } },
+          },
+        },
+      },
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorBasic'
+      $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
     '500': {
       description: 'Status 500',
@@ -86,26 +86,26 @@ const TaxCreate = {
                   type: 'object',
                   properties: {
                     message: {
-                      type: 'string'
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                      type: 'string',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
   security: [
     {
-      basicAuth: [] as any[]
-    }
+      basicAuth: [] as any[],
+    },
   ],
   requestBody: {
     $ref: '#/components/requestBodies/TaxCreate',
-    required: true
-  }
+    required: true,
+  },
 };
 
 const TaxUpdate = {
@@ -118,9 +118,9 @@ const TaxUpdate = {
       in: 'header',
       required: true,
       schema: {
-        type: 'string'
-      }
-    }
+        type: 'string',
+      },
+    },
   ],
   responses: {
     '200': {
@@ -129,13 +129,13 @@ const TaxUpdate = {
         'application/json': {
           schema: {
             type: 'object',
-            properties: { tax: { $ref: '#/components/schemas/Tax' } }
-          }
-        }
-      }
+            properties: { tax: { $ref: '#/components/schemas/Tax' } },
+          },
+        },
+      },
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorBasic'
+      $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
     '500': {
       description: 'Status 500',
@@ -150,26 +150,26 @@ const TaxUpdate = {
                   type: 'object',
                   properties: {
                     message: {
-                      type: 'string'
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                      type: 'string',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
   security: [
     {
-      basicAuth: [] as any[]
-    }
+      basicAuth: [] as any[],
+    },
   ],
   requestBody: {
     $ref: '#/components/requestBodies/TaxUpdate',
-    required: true
-  }
+    required: true,
+  },
 };
 
 const TaxFind = {
@@ -182,8 +182,8 @@ const TaxFind = {
       in: 'path',
       required: true,
       schema: {
-        type: 'string'
-      }
+        type: 'string',
+      },
     },
     {
       name: 'class',
@@ -191,10 +191,10 @@ const TaxFind = {
       schema: {
         type: 'array',
         items: {
-          type: 'string'
-        }
-      }
-    }
+          type: 'string',
+        },
+      },
+    },
   ],
   responses: {
     '200': {
@@ -206,15 +206,15 @@ const TaxFind = {
             properties: {
               taxes: {
                 type: 'array',
-                items: { $ref: '#/components/schemas/Tax' }
-              }
-            }
-          }
-        }
-      }
+                items: { $ref: '#/components/schemas/Tax' },
+              },
+            },
+          },
+        },
+      },
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorBasic'
+      $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
     '500': {
       description: 'Status 500',
@@ -229,22 +229,22 @@ const TaxFind = {
                   type: 'object',
                   properties: {
                     message: {
-                      type: 'string'
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                      type: 'string',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
   security: [
     {
-      basicAuth: [] as any[]
-    }
-  ]
+      basicAuth: [] as any[],
+    },
+  ],
 };
 
 const TaxDelete = {
@@ -257,9 +257,9 @@ const TaxDelete = {
       in: 'path',
       required: true,
       schema: {
-        type: 'string'
-      }
-    }
+        type: 'string',
+      },
+    },
   ],
   responses: {
     '200': {
@@ -268,13 +268,13 @@ const TaxDelete = {
         'application/json': {
           schema: {
             type: 'array',
-            items: { $ref: '#/components/schemas/Tax' }
-          }
-        }
-      }
+            items: { $ref: '#/components/schemas/Tax' },
+          },
+        },
+      },
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorBasic'
+      $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
     '500': {
       description: 'Status 500',
@@ -289,22 +289,22 @@ const TaxDelete = {
                   type: 'object',
                   properties: {
                     message: {
-                      type: 'string'
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                      type: 'string',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
   security: [
     {
-      basicAuth: [] as any[]
-    }
-  ]
+      basicAuth: [] as any[],
+    },
+  ],
 };
 
 export const TaxOpenapi: ServiceSchema = {
@@ -312,26 +312,26 @@ export const TaxOpenapi: ServiceSchema = {
   settings: {
     components: {
       schemas: {
-        Tax: TaxSchema
+        Tax: TaxSchema,
       },
       requestBodies: {
         TaxCreate: TaxCreateReq,
-        TaxUpdate: TaxUpdateReq
-      }
-    }
+        TaxUpdate: TaxUpdateReq,
+      },
+    },
   },
   actions: {
     tCreate: {
-      openapi: TaxCreate
+      openapi: TaxCreate,
     },
     tUpdate: {
-      openapi: TaxUpdate
+      openapi: TaxUpdate,
     },
     tFindByCountry: {
-      openapi: TaxFind
+      openapi: TaxFind,
     },
     tDelete: {
-      openapi: TaxDelete
-    }
-  }
+      openapi: TaxDelete,
+    },
+  },
 };

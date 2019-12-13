@@ -1,7 +1,7 @@
 export const createOrderValidation = {
   id: [
     { type: 'string', empty: false, optional: true },
-    { type: 'number', integer: true, convert: true, optional: true }
+    { type: 'number', integer: true, convert: true, optional: true },
   ],
   status: { type: 'enum', values: ['pending', 'processing', 'cancelled'] },
   items: {
@@ -10,8 +10,8 @@ export const createOrderValidation = {
     min: 1,
     props: {
       quantity: { type: 'number', min: 1, max: 10 },
-      sku: { type: 'string', empty: false }
-    }
+      sku: { type: 'string', empty: false },
+    },
   },
   shipping: {
     type: 'object',
@@ -26,8 +26,8 @@ export const createOrderValidation = {
           check(value: null) {
             if (value !== null) return this.makeError('stringEnum', null, value);
             return true;
-          }
-        }
+          },
+        },
       ],
       address_1: { type: 'string', empty: false },
       address_2: { type: 'string', optional: true },
@@ -36,12 +36,12 @@ export const createOrderValidation = {
       postcode: { type: 'string', optional: true },
       country: { type: 'string', length: 2 },
       phone: { type: 'string', optional: true },
-      email: { type: 'email', optional: true }
-    }
+      email: { type: 'email', optional: true },
+    },
   },
   invoice_url: { type: 'string', optional: true },
   notes: { type: 'string', optional: true },
-  shipping_method: { type: 'string', optional: true }
+  shipping_method: { type: 'string', optional: true },
 };
 
 export const updateOrderValidation = {
@@ -49,7 +49,7 @@ export const updateOrderValidation = {
   status: {
     type: 'enum',
     values: ['pending', 'processing', 'cancelled'],
-    optional: true
+    optional: true,
   },
   items: {
     type: 'array',
@@ -58,8 +58,8 @@ export const updateOrderValidation = {
     min: 1,
     props: {
       quantity: { type: 'number', min: 1, max: 10 },
-      sku: { type: 'string', empty: false }
-    }
+      sku: { type: 'string', empty: false },
+    },
   },
   shipping: {
     type: 'object',
@@ -75,10 +75,10 @@ export const updateOrderValidation = {
       postcode: { type: 'string', optional: true },
       country: { type: 'string', length: 2 },
       phone: { type: 'string', optional: true },
-      email: { type: 'email', optional: true }
-    }
+      email: { type: 'email', optional: true },
+    },
   },
   invoice_url: { type: 'string', optional: true },
   notes: { type: 'string', optional: true },
-  shipping_method: { type: 'string', optional: true }
+  shipping_method: { type: 'string', optional: true },
 };

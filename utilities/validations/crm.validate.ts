@@ -12,9 +12,9 @@ export const UpdateCrmStoreValidation = {
       'csv',
       'ebay',
       'api',
-      'other'
+      'other',
     ],
-    optional: true
+    optional: true,
   },
   stock_date: { type: 'date', optional: true, convert: true },
   stock_status: { type: 'enum', values: ['idle', 'in-progress'], optional: true },
@@ -39,9 +39,9 @@ export const UpdateCrmStoreValidation = {
       postcode: { type: 'number', optional: true },
       country: { type: 'string', max: 2, optional: true },
       email: { type: 'email', optional: true },
-      phone: { type: 'string', optional: true, convert: true }
+      phone: { type: 'string', optional: true, convert: true },
     },
-    optional: true
+    optional: true,
   },
   shipping_methods: {
     type: 'array',
@@ -49,9 +49,9 @@ export const UpdateCrmStoreValidation = {
       type: 'object',
       props: {
         name: { type: 'string' },
-        sort: { type: 'number' }
-      }
+        sort: { type: 'number' },
+      },
     },
-    optional: true
-  }
+    optional: true,
+  },
 };

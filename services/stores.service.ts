@@ -12,7 +12,7 @@ const TheService: ServiceSchema = {
   name: 'stores',
   mixins: [DbService('stores'), StoresOpenapi],
   settings: {
-    AUTH: Buffer.from(`${process.env.BASIC_USER}:${process.env.BASIC_PASS}`).toString('base64')
+    AUTH: Buffer.from(`${process.env.BASIC_USER}:${process.env.BASIC_PASS}`).toString('base64'),
   },
   actions: {
     /**
@@ -25,11 +25,11 @@ const TheService: ServiceSchema = {
       auth: 'Basic',
       cache: {
         keys: ['consumerKey', 'id'],
-        ttl: 60 * 60 // 1 hour
+        ttl: 60 * 60, // 1 hour
       },
       params: {
         consumerKey: { type: 'string', convert: true, optional: true },
-        id: { type: 'string', convert: true, optional: true }
+        id: { type: 'string', convert: true, optional: true },
       },
       handler(ctx: Context) {
         let query: { _id?: string } | false = false;
@@ -44,7 +44,7 @@ const TheService: ServiceSchema = {
             ctx.meta.$statusCode = 404;
             return { errors: [{ message: 'Store Not Found' }] };
           });
-      }
+      },
     },
     /**
      * Get the store for the authenticated token
@@ -56,7 +56,7 @@ const TheService: ServiceSchema = {
       auth: 'Bearer',
       cache: {
         keys: ['#user'],
-        ttl: 60 * 60 // 1 hour
+        ttl: 60 * 60, // 1 hour
       },
       handler(ctx: Context) {
         return this.adapter
@@ -73,9 +73,9 @@ const TheService: ServiceSchema = {
                   {
                     method: 'get',
                     headers: {
-                      Authorization: `Basic ${this.settings.AUTH}`
-                    }
-                  }
+                      Authorization: `Basic ${this.settings.AUTH}`,
+                    },
+                  },
                 ).then(response => response.json())) as { store: Store };
                 // If the DB response not null will return the data
                 return this.sanitizeResponse(res, omsData.store);
@@ -86,7 +86,7 @@ const TheService: ServiceSchema = {
             ctx.meta.$statusCode = 404;
             return { errors: [{ message: 'Store Not Found' }] };
           });
-      }
+      },
     },
     /**
      * Get store with it's url
@@ -98,10 +98,10 @@ const TheService: ServiceSchema = {
       auth: 'Basic',
       cache: {
         keys: ['id'],
-        ttl: 60 * 60 // 1 hour
+        ttl: 60 * 60, // 1 hour
       },
       params: {
-        id: { type: 'string' }
+        id: { type: 'string' },
       },
       handler(ctx: Context) {
         return this.adapter.findById(ctx.params.id).then(async (res: Store | null) => {
@@ -115,9 +115,9 @@ const TheService: ServiceSchema = {
                 {
                   method: 'get',
                   headers: {
-                    Authorization: `Basic ${this.settings.AUTH}`
-                  }
-                }
+                    Authorization: `Basic ${this.settings.AUTH}`,
+                  },
+                },
               ).then(response => response.json())) as { store: Store };
 
               // If the DB response not null will return the data
@@ -139,7 +139,7 @@ const TheService: ServiceSchema = {
           ctx.meta.$statusCode = 404;
           return { errors: [{ message: 'Store Not Found' }] };
         });
-      }
+      },
     },
     /**
      * Search in stores for stores that matches the filter query
@@ -151,10 +151,10 @@ const TheService: ServiceSchema = {
       auth: 'Basic',
       cache: {
         keys: ['filter'],
-        ttl: 60 * 60 // 1 hour
+        ttl: 60 * 60, // 1 hour
       },
       params: {
-        filter: { type: 'string' }
+        filter: { type: 'string' },
       },
       handler(ctx: Context) {
         let params: { where?: {}; limit?: {}; order?: string; sort?: {} } = {};
@@ -170,7 +170,7 @@ const TheService: ServiceSchema = {
         const query = {
           query: { ...params.where } || {},
           limit: params.limit || 100,
-          sort: params.sort
+          sort: params.sort,
         };
         if (params.order) {
           const sortArray = params.order.split(' ');
@@ -186,18 +186,18 @@ const TheService: ServiceSchema = {
           ctx.meta.$statusCode = 404;
           return { errors: [{ message: 'Store Not Found' }] };
         });
-      }
+      },
     },
     storesList: {
       auth: 'Basic',
       cache: {
         keys: ['id', 'page', 'perPage'],
-        ttl: 60 * 60 * 24 // 1 day
+        ttl: 60 * 60 * 24, // 1 day
       },
       params: {
         id: { type: 'string', optional: true },
         page: { type: 'number', optional: true, positive: true, convert: true, integer: true },
-        perPage: { type: 'number', optional: true, positive: true, convert: true, integer: true }
+        perPage: { type: 'number', optional: true, positive: true, convert: true, integer: true },
       },
       handler(ctx: Context) {
         const query: any = {};
@@ -213,7 +213,7 @@ const TheService: ServiceSchema = {
             if (res.length !== 0)
               return {
                 stores: res.map(store => this.sanitizeResponse(store)),
-                total: await ctx.call('stores.countStores', { query })
+                total: await ctx.call('stores.countStores', { query }),
               };
             throw new MoleculerError('No Store found!', 404);
           })
@@ -223,19 +223,19 @@ const TheService: ServiceSchema = {
             }
             throw new MoleculerError(err, 500);
           });
-      }
+      },
     },
     countStores: {
       cache: {
         keys: ['query'],
-        ttl: 60 * 60 * 24 // 1 day
+        ttl: 60 * 60 * 24, // 1 day
       },
       params: {
-        query: 'object'
+        query: 'object',
       },
       handler(ctx: Context) {
         return this.adapter.count({ query: ctx.params.query });
-      }
+      },
     },
     /**
      * Create new store
@@ -270,7 +270,7 @@ const TheService: ServiceSchema = {
             ctx.meta.$statusCode = 500;
 
             error = {
-              errors: [{ message: err.code === 11000 ? 'Duplicated entry!' : 'Internal Error!' }]
+              errors: [{ message: err.code === 11000 ? 'Duplicated entry!' : 'Internal Error!' }],
             };
           });
 
@@ -282,7 +282,7 @@ const TheService: ServiceSchema = {
             internal.omsId = response.store && response.store.id;
             ctx.call('stores.update', {
               id: ctx.params.url,
-              internal_data: internal
+              internal_data: internal,
             });
           })
           .catch((err: unknown) => {
@@ -293,12 +293,12 @@ const TheService: ServiceSchema = {
               storeId: ctx.params.url,
               logLevel: 'error',
               code: 500,
-              payload: { error: err, params: ctx.params }
+              payload: { error: err, params: ctx.params },
             });
           });
 
         return myStore || error;
-      }
+      },
     },
     /**
      * Update store
@@ -321,7 +321,7 @@ const TheService: ServiceSchema = {
           ctx.meta.$statusMessage = 'Not Found';
           ctx.meta.$statusCode = 404;
           return {
-            errors: [{ message: 'Store Not Found' }]
+            errors: [{ message: 'Store Not Found' }],
           };
         }
 
@@ -349,13 +349,13 @@ const TheService: ServiceSchema = {
               storeId: id,
               logLevel: 'error',
               code: 500,
-              payload: { error, params: ctx.params }
+              payload: { error, params: ctx.params },
             });
             ctx.meta.$statusMessage = 'Internal Server Error';
             ctx.meta.$statusCode = 500;
 
             return {
-              errors: [{ message: error.code === 11000 ? 'Duplicated entry!' : 'Internal Error!' }]
+              errors: [{ message: error.code === 11000 ? 'Duplicated entry!' : 'Internal Error!' }],
             };
           });
 
@@ -378,7 +378,7 @@ const TheService: ServiceSchema = {
               storeId: ctx.params.url,
               logLevel: 'error',
               code: 500,
-              payload: { error, params: ctx.params }
+              payload: { error, params: ctx.params },
             });
           });
         } else {
@@ -389,22 +389,22 @@ const TheService: ServiceSchema = {
             storeId: ctx.params.url,
             logLevel: 'error',
             code: 500,
-            payload: { params: ctx.params }
+            payload: { params: ctx.params },
           });
         }
 
         return myStore;
-      }
+      },
     },
     sync: {
       auth: 'Basic',
       params: {
-        id: { type: 'string' }
+        id: { type: 'string' },
       },
       async handler(ctx) {
         const storeId = ctx.params.id;
         const instance = await ctx.call('stores.findInstance', {
-          id: storeId
+          id: storeId,
         });
         if (!instance.url) {
           ctx.meta.$statusCode = 404;
@@ -412,9 +412,9 @@ const TheService: ServiceSchema = {
           return {
             errors: [
               {
-                message: 'Store not found!'
-              }
-            ]
+                message: 'Store not found!',
+              },
+            ],
           };
         }
         try {
@@ -423,9 +423,9 @@ const TheService: ServiceSchema = {
             {
               method: 'get',
               headers: {
-                Authorization: `Basic ${this.settings.AUTH}`
-              }
-            }
+                Authorization: `Basic ${this.settings.AUTH}`,
+              },
+            },
           ).then(async res => {
             const response = await res.json();
             if (!res.ok && res.status !== 404) {
@@ -442,7 +442,7 @@ const TheService: ServiceSchema = {
           });
           instance.internal_data = {
             ...instance.internal_data,
-            omsId: omsStore.id || (omsStore.store && omsStore.store.id)
+            omsId: omsStore.id || (omsStore.store && omsStore.store.id),
           };
           this.broker.cacher.clean(`orders.getOrder:${instance.consumer_key}*`);
           this.broker.cacher.clean(`orders.list:${instance.consumer_key}*`);
@@ -455,7 +455,7 @@ const TheService: ServiceSchema = {
             stock_date: '2010-01-01T00:00:00.000Z',
             price_date: '2010-01-01T00:00:00.000Z',
             stock_status: 'idle',
-            price_status: 'idle'
+            price_status: 'idle',
           });
         } catch (err) {
           ctx.meta.$statusCode = err.status || (err.error && err.error.statusCode) || 500;
@@ -464,13 +464,13 @@ const TheService: ServiceSchema = {
           return {
             errors: [
               {
-                message: err.error ? err.error.message : 'Internal Server Error'
-              }
-            ]
+                message: err.error ? err.error.message : 'Internal Server Error',
+              },
+            ],
           };
         }
-      }
-    }
+      },
+    },
   },
   methods: {
     /**
@@ -501,23 +501,23 @@ const TheService: ServiceSchema = {
         store.shipping_methods = [
           {
             name: 'Standard',
-            sort: 0
+            sort: 0,
           },
           {
             name: 'TNT',
-            sort: 1
+            sort: 1,
           },
           {
             name: 'DHL',
-            sort: 2
-          }
+            sort: 2,
+          },
         ];
         if (!store.internal_data) store.internal_data = {};
       }
       if (params.users) {
         params.users = params.users.map((user: StoreUser) => ({
           email: user.email.toLowerCase(),
-          roles: user.roles
+          roles: user.roles,
         }));
       }
       // Sanitized params keys
@@ -541,7 +541,7 @@ const TheService: ServiceSchema = {
         'languages',
         'shipping_methods',
         'logs',
-        'address'
+        'address',
       ];
       Object.keys(params).forEach(key => {
         if (!keys.includes(key)) return;
@@ -582,7 +582,7 @@ const TheService: ServiceSchema = {
         'users',
         'languages',
         'shipping_methods',
-        'address'
+        'address',
       ];
       const transformObj: { [key: string]: string } = {
         type: 'platform',
@@ -593,7 +593,7 @@ const TheService: ServiceSchema = {
         sale_price: 'salePrice',
         sale_price_operator: 'saleOperator',
         shipping_methods: 'shippingMethods',
-        address: 'billing'
+        address: 'billing',
       };
       Object.keys(params).forEach(key => {
         if (!keys.includes(key)) return;
@@ -604,7 +604,7 @@ const TheService: ServiceSchema = {
       if (Object.keys(body).length === 0) return;
       if (body.shippingMethods) {
         body.shippingMethods = (body.shippingMethods as Array<{ name: string }>).map(
-          method => method.name
+          method => method.name,
         );
       }
       body.stockDate = params.stock_date;
@@ -614,9 +614,9 @@ const TheService: ServiceSchema = {
         headers: {
           Authorization: `Basic ${this.settings.AUTH}`,
           'Content-Type': 'application/json',
-          Accept: 'application/json'
+          Accept: 'application/json',
         },
-        body: JSON.stringify(body)
+        body: JSON.stringify(body),
       }).then(response => response.json());
     },
     /**
@@ -628,8 +628,8 @@ const TheService: ServiceSchema = {
     sendLogs(log: Log): ServiceSchema {
       log.topic = 'store';
       return this.broker.call('logs.add', log);
-    }
-  }
+    },
+  },
 };
 
 export = TheService;

@@ -6,8 +6,8 @@ export const CreateMembershipValidation = {
       tr: { type: 'string', optional: true },
       en: { type: 'string' },
       ar: { type: 'string', optional: true },
-      $$strict: true
-    }
+      $$strict: true,
+    },
   },
   tagline: {
     type: 'object',
@@ -15,8 +15,8 @@ export const CreateMembershipValidation = {
       tr: { type: 'string', optional: true },
       en: { type: 'string' },
       ar: { type: 'string', optional: true },
-      $$strict: true
-    }
+      $$strict: true,
+    },
   },
   description: {
     type: 'object',
@@ -24,8 +24,8 @@ export const CreateMembershipValidation = {
       tr: { type: 'string', optional: true },
       en: { type: 'string' },
       ar: { type: 'string', optional: true },
-      $$strict: true
-    }
+      $$strict: true,
+    },
   },
   sort: { type: 'number', integer: true, positive: true },
   active: { type: 'boolean' },
@@ -36,7 +36,7 @@ export const CreateMembershipValidation = {
   paymentFrequencyType: { type: 'enum', values: ['month', 'year'] },
   attributes: { type: 'object' },
   isDefault: { type: 'boolean', optional: true },
-  $$strict: true
+  $$strict: true,
 };
 
 export const UpdateMembershipValidation = {
@@ -47,9 +47,9 @@ export const UpdateMembershipValidation = {
       tr: { type: 'string', optional: true },
       en: { type: 'string', optional: true },
       ar: { type: 'string', optional: true },
-      $$strict: true
+      $$strict: true,
     },
-    optional: true
+    optional: true,
   },
   tagline: {
     type: 'object',
@@ -57,9 +57,9 @@ export const UpdateMembershipValidation = {
       tr: { type: 'string', optional: true },
       en: { type: 'string', optional: true },
       ar: { type: 'string', optional: true },
-      $$strict: true
+      $$strict: true,
     },
-    optional: true
+    optional: true,
   },
   description: {
     type: 'object',
@@ -67,9 +67,9 @@ export const UpdateMembershipValidation = {
       tr: { type: 'string', optional: true },
       en: { type: 'string', optional: true },
       ar: { type: 'string', optional: true },
-      $$strict: true
+      $$strict: true,
     },
-    optional: true
+    optional: true,
   },
   sort: { type: 'number', integer: true, positive: true, optional: true },
   active: { type: 'boolean', optional: true },
@@ -80,5 +80,5 @@ export const UpdateMembershipValidation = {
   paymentFrequencyType: { type: 'enum', values: ['month', 'year'], optional: true },
   attributes: { type: 'object', optional: true },
   isDefault: { type: 'boolean', optional: true },
-  $$strict: true
+  $$strict: true,
 };

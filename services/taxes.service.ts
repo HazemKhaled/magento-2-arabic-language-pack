@@ -17,7 +17,7 @@ const TaxesService: ServiceSchema = {
         class: { type: 'array', items: { type: 'string' } },
         country: { type: 'string', min: 2, max: 2, pattern: /[a-zA-Z]/ },
         percentage: { type: 'number', convert: true },
-        $$strict: true
+        $$strict: true,
       },
       handler(ctx: Context): RTax {
         return this.adapter
@@ -26,7 +26,7 @@ const TaxesService: ServiceSchema = {
           .catch((err: any) => {
             throw new MoleculerError(err, 500);
           });
-      }
+      },
     },
     tUpdate: {
       params: {
@@ -35,7 +35,7 @@ const TaxesService: ServiceSchema = {
         class: { type: 'array', items: { type: 'string' }, optional: true },
         country: { type: 'string', min: 2, max: 2, pattern: /[a-zA-Z]/, optional: true },
         percentage: { type: 'number', convert: true, optional: true },
-        $$strict: true
+        $$strict: true,
       },
       auth: 'Basic',
       handler(ctx: Context): RTax {
@@ -50,16 +50,16 @@ const TaxesService: ServiceSchema = {
               throw new MoleculerError('There is no tax with that ID', 404);
             }
             return {
-              tax: this.sanitizer(tax)
+              tax: this.sanitizer(tax),
             };
           })
           .catch((err: any) => {
             throw new MoleculerError(
               err.message ? err.message : 'Something went wrong.',
-              err.code < 500 ? err.code : 500
+              err.code < 500 ? err.code : 500,
             );
           });
-      }
+      },
     },
     tFindByCountry: {
       auth: 'Basic',
@@ -67,9 +67,9 @@ const TaxesService: ServiceSchema = {
         country: { type: 'string', min: 2, max: 2, pattern: /[a-zA-Z]/ },
         class: [
           { type: 'string', optional: true },
-          { type: 'array', items: { type: 'string' }, optional: true }
+          { type: 'array', items: { type: 'string' }, optional: true },
         ],
-        $$strict: true
+        $$strict: true,
       },
       handler(ctx: Context): RTax[] {
         const query = ctx.params;
@@ -86,12 +86,12 @@ const TaxesService: ServiceSchema = {
           .catch((err: any) => {
             throw new MoleculerError(err, 500);
           });
-      }
+      },
     },
     tDelete: {
       auth: 'Basic',
       params: {
-        id: { type: 'string' }
+        id: { type: 'string' },
       },
       handler(ctx: Context) {
         return this.adapter
@@ -102,33 +102,33 @@ const TaxesService: ServiceSchema = {
             }
             return {
               tax: this.sanitizer(tax),
-              message: 'Tax deleted successfully!'
+              message: 'Tax deleted successfully!',
             };
           })
           .catch((err: any) => {
             throw new MoleculerError(
               err.message ? err.message : 'Something went wrong.',
-              err.code < 500 ? err.code : 500
+              err.code < 500 ? err.code : 500,
             );
           });
-      }
+      },
     },
     taxStatus: {
       handler(): { sales: boolean; subscription: boolean } {
         return {
           sales: !!Number(process.env.IS_SALES_TAX_INCLUSIVE),
-          subscription: !!Number(process.env.IS_SUB_TAX_INCLUSIVE)
+          subscription: !!Number(process.env.IS_SUB_TAX_INCLUSIVE),
         };
-      }
-    }
+      },
+    },
   },
   methods: {
     sanitizer(dbTax: DbTax): RTax {
       const id = dbTax._id;
       delete dbTax._id;
       return { id, ...dbTax };
-    }
-  }
+    },
+  },
 };
 
 export = TaxesService;

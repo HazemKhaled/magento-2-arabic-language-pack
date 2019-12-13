@@ -4,9 +4,9 @@ export const CreateInvoiceValidation = {
     type: 'object',
     props: {
       value: { type: 'number', positive: true },
-      type: { type: 'enum', values: ['entity_level'] }
+      type: { type: 'enum', values: ['entity_level'] },
     },
-    optional: true
+    optional: true,
   },
   items: {
     type: 'array',
@@ -25,9 +25,9 @@ export const CreateInvoiceValidation = {
         accountId: { type: 'string', optional: true },
         purchaseRate: { type: 'number', optional: true },
         vendorId: { type: 'number', optional: true },
-        $$strict: true
-      }
-    }
+        $$strict: true,
+      },
+    },
   },
-  $$strict: true
+  $$strict: true,
 };

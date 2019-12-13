@@ -24,8 +24,8 @@ const TheService: ServiceSchema = {
     /** Validator schema for entity */
     entityValidator: {
       consumerKey: { type: 'string' },
-      consumerSecret: { type: 'string' }
-    }
+      consumerSecret: { type: 'string' },
+    },
   },
 
   /**
@@ -43,13 +43,13 @@ const TheService: ServiceSchema = {
     login: {
       params: {
         consumerKey: { type: 'string' },
-        consumerSecret: { type: 'string' }
+        consumerSecret: { type: 'string' },
       },
       handler(ctx: Context) {
         const { consumerKey, consumerSecret } = ctx.params;
 
         return this.Promise.resolve(
-          this.broker.call('stores.findInstance', { consumerKey, consumerSecret })
+          this.broker.call('stores.findInstance', { consumerKey, consumerSecret }),
         )
           .then((instance: Store) => {
             if (
@@ -60,7 +60,7 @@ const TheService: ServiceSchema = {
                 _id: instance.consumer_key,
                 url: instance.url,
                 status: instance.status,
-                currency: instance.currency
+                currency: instance.currency,
               };
             }
             this.broker.cacher.clean(`stores.findInstance:${ctx.params.consumerKey}`);
@@ -70,8 +70,8 @@ const TheService: ServiceSchema = {
             return {
               errors: [
                 { field: 'consumerKey', message: 'is not valid' },
-                { field: 'consumerSecret', message: 'is not valid' }
-              ]
+                { field: 'consumerSecret', message: 'is not valid' },
+              ],
             };
           })
           .then((user: StoreUser) => this.transformEntity(user, true, ctx.meta.token))
@@ -83,11 +83,11 @@ const TheService: ServiceSchema = {
             return {
               errors: [
                 { field: 'consumerKey', message: 'is not valid' },
-                { field: 'consumerSecret', message: 'is not valid' }
-              ]
+                { field: 'consumerSecret', message: 'is not valid' },
+              ],
             };
           });
-      }
+      },
     },
 
     /**
@@ -101,10 +101,10 @@ const TheService: ServiceSchema = {
     resolveBearerToken: {
       cache: {
         keys: ['token'],
-        ttl: 60 * 60 // 1 hour
+        ttl: 60 * 60, // 1 hour
       },
       params: {
-        token: 'string'
+        token: 'string',
       },
       handler(ctx: Context) {
         return new this.Promise((resolve: any, reject: any) => {
@@ -117,14 +117,14 @@ const TheService: ServiceSchema = {
               }
 
               resolve(decoded);
-            }
+            },
           );
         })
           .then(async (decoded: { id: any }) => {
             if (decoded.id) {
               // Get instance info
               const instance = await this.broker.call('stores.findInstance', {
-                consumerKey: decoded.id
+                consumerKey: decoded.id,
               });
               if (instance.status) {
                 return decoded;
@@ -134,7 +134,7 @@ const TheService: ServiceSchema = {
           .catch(() => {
             return false;
           });
-      }
+      },
     },
 
     /**
@@ -148,16 +148,16 @@ const TheService: ServiceSchema = {
     resolveBasicToken: {
       cache: {
         keys: ['token'],
-        ttl: 60 * 60 // 1 hour
+        ttl: 60 * 60, // 1 hour
       },
       params: {
-        token: 'string'
+        token: 'string',
       },
       handler(ctx: Context) {
         return fetch(`${process.env.AUTH_BASEURL}/login`, {
           headers: {
-            Authorization: `Basic ${ctx.params.token}`
-          }
+            Authorization: `Basic ${ctx.params.token}`,
+          },
         })
           .then(res => {
             if (res.ok) {
@@ -169,8 +169,8 @@ const TheService: ServiceSchema = {
           .catch(error => {
             throw new MoleculerClientError(error);
           });
-      }
-    }
+      },
+    },
   },
 
   /**
@@ -191,9 +191,9 @@ const TheService: ServiceSchema = {
         {
           id: user._id,
           consumerKey: user.consumerKey,
-          exp: Math.floor(exp.getTime() / 1000)
+          exp: Math.floor(exp.getTime() / 1000),
         },
-        this.settings.JWT_SECRET
+        this.settings.JWT_SECRET,
       );
     },
 
@@ -211,8 +211,8 @@ const TheService: ServiceSchema = {
       }
 
       return { channel: user };
-    }
-  }
+    },
+  },
 };
 
 export = TheService;

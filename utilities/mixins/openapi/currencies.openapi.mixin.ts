@@ -7,15 +7,15 @@ const CurrencySettingsOpenapi = {
         type: 'object',
         properties: {
           currencyCode: {
-            type: 'string'
+            type: 'string',
           },
           rate: {
-            type: 'number'
-          }
-        }
-      }
-    }
-  }
+            type: 'number',
+          },
+        },
+      },
+    },
+  },
 };
 
 const CurrenciesGetCurrencyOpenapi = {
@@ -31,17 +31,17 @@ const CurrenciesGetCurrencyOpenapi = {
       schema: {
         type: 'string',
         minLength: 3,
-        maxLength: 3
-      }
+        maxLength: 3,
+      },
     },
     {
       name: 'currencyCode',
       in: 'path',
       required: true,
       schema: {
-        type: 'string'
-      }
-    }
+        type: 'string',
+      },
+    },
   ],
   responses: {
     '200': {
@@ -49,23 +49,23 @@ const CurrenciesGetCurrencyOpenapi = {
       content: {
         'application/json': {
           schema: {
-            $ref: '#/components/schemas/Currency'
-          }
-        }
-      }
+            $ref: '#/components/schemas/Currency',
+          },
+        },
+      },
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorBasic'
+      $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
     '404': {
-      description: 'Status 404'
-    }
+      description: 'Status 404',
+    },
   },
   security: [
     {
-      basicAuth: [] as any[]
-    }
-  ]
+      basicAuth: [] as any[],
+    },
+  ],
 };
 
 const CurrenciesGetCurrenciesOpenapi = {
@@ -81,34 +81,34 @@ const CurrenciesGetCurrenciesOpenapi = {
           schema: {
             type: 'array',
             items: {
-              $ref: '#/components/schemas/Currency'
-            }
-          }
-        }
-      }
+              $ref: '#/components/schemas/Currency',
+            },
+          },
+        },
+      },
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorBasic'
-    }
+      $ref: '#/components/responses/UnauthorizedErrorBasic',
+    },
   },
   security: [
     {
-      basicAuth: [] as any[]
-    }
-  ]
+      basicAuth: [] as any[],
+    },
+  ],
 };
 
 export const CurrenciesOpenapi: ServiceSchema = {
   name: 'openapi',
   settings: {
-    openapi: CurrencySettingsOpenapi
+    openapi: CurrencySettingsOpenapi,
   },
   actions: {
     getCurrency: {
-      openapi: CurrenciesGetCurrencyOpenapi
+      openapi: CurrenciesGetCurrencyOpenapi,
     },
     getCurrencies: {
-      openapi: CurrenciesGetCurrenciesOpenapi
-    }
-  }
+      openapi: CurrenciesGetCurrenciesOpenapi,
+    },
+  },
 };

@@ -9,24 +9,24 @@ const MembershipSchema = {
       properties: {
         tr: { type: 'string' },
         en: { type: 'string' },
-        ar: { type: 'string' }
-      }
+        ar: { type: 'string' },
+      },
     },
     tagline: {
       type: 'object',
       properties: {
         tr: { type: 'string' },
         en: { type: 'string' },
-        ar: { type: 'string' }
-      }
+        ar: { type: 'string' },
+      },
     },
     description: {
       type: 'object',
       properties: {
         tr: { type: 'string' },
         en: { type: 'string' },
-        ar: { type: 'string' }
-      }
+        ar: { type: 'string' },
+      },
     },
     sort: { type: 'number' },
     active: { type: 'boolean' },
@@ -35,8 +35,8 @@ const MembershipSchema = {
     discount: { type: 'number' },
     paymentFrequency: { type: 'number' },
     paymentFrequencyType: { type: 'string', enum: ['month', 'year'] },
-    attributes: { type: 'object', properties: {} }
-  }
+    attributes: { type: 'object', properties: {} },
+  },
 };
 
 const MembershipResponse = {
@@ -50,24 +50,24 @@ const MembershipResponse = {
             properties: {
               tr: { type: 'string' },
               en: { type: 'string' },
-              ar: { type: 'string' }
-            }
+              ar: { type: 'string' },
+            },
           },
           tagline: {
             type: 'object',
             properties: {
               tr: { type: 'string' },
               en: { type: 'string' },
-              ar: { type: 'string' }
-            }
+              ar: { type: 'string' },
+            },
           },
           description: {
             type: 'object',
             properties: {
               tr: { type: 'string' },
               en: { type: 'string' },
-              ar: { type: 'string' }
-            }
+              ar: { type: 'string' },
+            },
           },
           sort: { type: 'number' },
           active: { type: 'boolean' },
@@ -76,11 +76,11 @@ const MembershipResponse = {
           discount: { type: 'number' },
           paymentFrequency: { type: 'number' },
           paymentFrequencyType: { type: 'string', enum: ['month', 'year'] },
-          attributes: { type: 'object', properties: {} }
-        }
-      }
-    }
-  }
+          attributes: { type: 'object', properties: {} },
+        },
+      },
+    },
+  },
 };
 
 const MembershipCreateOpenapi = {
@@ -93,9 +93,9 @@ const MembershipCreateOpenapi = {
       in: 'header',
       required: true,
       schema: {
-        type: 'string'
-      }
-    }
+        type: 'string',
+      },
+    },
   ],
   responses: {
     '200': {
@@ -103,13 +103,13 @@ const MembershipCreateOpenapi = {
       content: {
         'application/json': {
           schema: {
-            $ref: '#/components/schemas/Membership'
-          }
-        }
-      }
+            $ref: '#/components/schemas/Membership',
+          },
+        },
+      },
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorBasic'
+      $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
     '500': {
       description: 'Status 500',
@@ -124,32 +124,32 @@ const MembershipCreateOpenapi = {
                   type: 'object',
                   properties: {
                     message: {
-                      type: 'string'
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                      type: 'string',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
   security: [
     {
-      basicAuth: [] as []
-    }
+      basicAuth: [] as [],
+    },
   ],
   requestBody: {
     content: {
       'application/json': {
         schema: {
-          $ref: '#/components/schemas/Membership'
-        }
-      }
+          $ref: '#/components/schemas/Membership',
+        },
+      },
     },
-    required: true
-  }
+    required: true,
+  },
 };
 
 const MembershipUpdateOpenapi = {
@@ -162,17 +162,17 @@ const MembershipUpdateOpenapi = {
       in: 'path',
       required: true,
       schema: {
-        type: 'string'
-      }
+        type: 'string',
+      },
     },
     {
       name: 'Authorization',
       in: 'header',
       required: true,
       schema: {
-        type: 'string'
-      }
-    }
+        type: 'string',
+      },
+    },
   ],
   responses: {
     '200': {
@@ -180,13 +180,13 @@ const MembershipUpdateOpenapi = {
       content: {
         'application/json': {
           schema: {
-            $ref: '#/components/schemas/Membership'
-          }
-        }
-      }
+            $ref: '#/components/schemas/Membership',
+          },
+        },
+      },
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorBasic'
+      $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
     '500': {
       description: 'Status 500',
@@ -201,25 +201,25 @@ const MembershipUpdateOpenapi = {
                   type: 'object',
                   properties: {
                     message: {
-                      type: 'string'
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                      type: 'string',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
   security: [
     {
-      basicAuth: [] as []
-    }
+      basicAuth: [] as [],
+    },
   ],
   requestBody: {
-    $ref: '#/components/requestBodies/Membership'
-  }
+    $ref: '#/components/requestBodies/Membership',
+  },
 };
 
 export const MembershipOpenapi: ServiceSchema = {
@@ -227,19 +227,19 @@ export const MembershipOpenapi: ServiceSchema = {
   settings: {
     components: {
       schemas: {
-        Membership: MembershipSchema
+        Membership: MembershipSchema,
       },
       requestBodies: {
-        Membership: MembershipResponse
-      }
-    }
+        Membership: MembershipResponse,
+      },
+    },
   },
   actions: {
     create: {
-      openapi: MembershipCreateOpenapi
+      openapi: MembershipCreateOpenapi,
     },
     update: {
-      openapi: MembershipUpdateOpenapi
-    }
-  }
+      openapi: MembershipUpdateOpenapi,
+    },
+  },
 };
