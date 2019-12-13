@@ -6,11 +6,11 @@ const Order = {
   properties: {
     id: {
       type: 'string',
-      description: 'Order External ID'
+      description: 'Order External ID',
     },
     status: {
       type: 'string',
-      enum: ['pending', 'processing', 'cancelled']
+      enum: ['pending', 'processing', 'cancelled'],
     },
     items: {
       type: 'array',
@@ -21,74 +21,74 @@ const Order = {
           quantity: {
             type: 'number',
             minimum: 1,
-            maximum: 10
+            maximum: 10,
           },
           sku: {
-            type: 'string'
-          }
-        }
+            type: 'string',
+          },
+        },
       },
-      minItems: 1
+      minItems: 1,
     },
     shipping: {
       required: ['address_1', 'city', 'country', 'first_name', 'last_name', 'state'],
       type: 'object',
       properties: {
         first_name: {
-          type: 'string'
+          type: 'string',
         },
         last_name: {
-          type: 'string'
+          type: 'string',
         },
         company: {
-          type: 'string'
+          type: 'string',
         },
         address_1: {
-          type: 'string'
+          type: 'string',
         },
         address_2: {
-          type: 'string'
+          type: 'string',
         },
         city: {
-          type: 'string'
+          type: 'string',
         },
         state: {
-          type: 'string'
+          type: 'string',
         },
         postcode: {
-          type: 'string'
+          type: 'string',
         },
         country: {
           type: 'string',
           description: 'ISO 3166-1 alpha-2 codes are two-letter country codes',
           minLength: 2,
           maxLength: 2,
-          example: 'TR'
+          example: 'TR',
         },
         email: {
-          type: 'string'
+          type: 'string',
         },
         phone: {
-          type: 'string'
-        }
-      }
+          type: 'string',
+        },
+      },
     },
     invoice_url: {
       type: 'string',
-      description: 'Optional invoice to print with the order'
+      description: 'Optional invoice to print with the order',
     },
     notes: {
-      type: 'string'
+      type: 'string',
     },
     shipping_method: {
-      type: 'string'
+      type: 'string',
     },
     orderNumber: {
-      type: 'string'
+      type: 'string',
     },
     trackingNumber: {
-      type: 'string'
-    }
+      type: 'string',
+    },
   },
   example: {
     id: '12763',
@@ -96,8 +96,8 @@ const Order = {
     items: [
       {
         quantity: 1,
-        sku: 'H3576AZ17HSNM13-XS'
-      }
+        sku: 'H3576AZ17HSNM13-XS',
+      },
     ],
     shipping: {
       first_name: 'John',
@@ -110,21 +110,21 @@ const Order = {
       postcode: '34371',
       country: 'TR',
       email: 'info@knawat.com',
-      phone: '(0212) 296 11 94'
+      phone: '(0212) 296 11 94',
     },
     invoice_url: 'http://example.com/invoice.pdf',
-    notes: 'My Orders'
-  }
+    notes: 'My Orders',
+  },
 };
 const OrderResponse = {
   type: 'object',
   properties: {
     status: {
       type: 'string',
-      enum: ['success', 'fail']
+      enum: ['success', 'fail'],
     },
     order: {
-      $ref: '#/components/schemas/Order'
+      $ref: '#/components/schemas/Order',
     },
     warning: {
       type: 'array',
@@ -133,20 +133,20 @@ const OrderResponse = {
         type: 'object',
         properties: {
           message: {
-            type: 'string'
+            type: 'string',
           },
           code: {
             type: 'number',
-            example: '1102 => This items are out of stock'
+            example: '1102 => This items are out of stock',
           },
           skus: {
             type: 'array',
             items: {
-              type: 'string'
-            }
-          }
-        }
-      }
+              type: 'string',
+            },
+          },
+        },
+      },
     },
     errors: {
       type: 'array',
@@ -156,30 +156,30 @@ const OrderResponse = {
         properties: {
           status: {
             type: 'string',
-            enum: ['fail']
+            enum: ['fail'],
           },
           message: {
-            type: 'string'
+            type: 'string',
           },
           solution: {
-            type: 'string'
+            type: 'string',
           },
           code: {
             type: 'number',
             example:
-              '1101 => The products you ordered is not in-stock, The order has not been created!'
-          }
-        }
-      }
-    }
+              '1101 => The products you ordered is not in-stock, The order has not been created!',
+          },
+        },
+      },
+    },
   },
   example: {
     status: 'success',
     order: {
       id: '3435344',
-      '...': null as any
-    }
-  }
+      '...': null as any,
+    },
+  },
 };
 
 const OrdersCreateOpenapi = {
@@ -192,20 +192,20 @@ const OrdersCreateOpenapi = {
       content: {
         'application/json': {
           schema: {
-            $ref: '#/components/schemas/OrderResponse'
-          }
-        }
-      }
+            $ref: '#/components/schemas/OrderResponse',
+          },
+        },
+      },
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorToken'
+      $ref: '#/components/responses/UnauthorizedErrorToken',
     },
     '404': {
       description: 'Status 404',
       content: {
         'application/json': {
           schema: {
-            $ref: '#/components/schemas/Error'
+            $ref: '#/components/schemas/Error',
           },
           examples: {
             response: {
@@ -213,13 +213,13 @@ const OrdersCreateOpenapi = {
                 errorCode: 404,
                 errorMessage: 'SKU(s) out of stock.',
                 data: {
-                  outOfStock: ['sku1', 'sku2']
-                }
-              }
-            }
-          }
-        }
-      }
+                  outOfStock: ['sku1', 'sku2'],
+                },
+              },
+            },
+          },
+        },
+      },
     },
     '428': {
       description: 'Status 428',
@@ -238,21 +238,21 @@ const OrdersCreateOpenapi = {
                   properties: {
                     status: {
                       type: 'string',
-                      enum: ['fail']
+                      enum: ['fail'],
                     },
                     message: {
-                      type: 'string'
+                      type: 'string',
                     },
                     solution: {
-                      type: 'string'
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+                      type: 'string',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     },
     '500': {
       description: 'Status 500',
@@ -267,24 +267,24 @@ const OrdersCreateOpenapi = {
                   type: 'object',
                   properties: {
                     message: {
-                      type: 'string'
+                      type: 'string',
                     },
                     status: {
-                      type: 'string'
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                      type: 'string',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
   security: [
     {
-      bearerAuth: [] as []
-    }
+      bearerAuth: [] as [],
+    },
   ],
   requestBody: {
     content: {
@@ -294,14 +294,14 @@ const OrdersCreateOpenapi = {
           required: ['order'],
           properties: {
             order: {
-              $ref: '#/components/schemas/Order'
-            }
-          }
-        }
-      }
+              $ref: '#/components/schemas/Order',
+            },
+          },
+        },
+      },
     },
-    required: true
-  }
+    required: true,
+  },
 };
 
 const OrdersUpdateOpenapi = {
@@ -312,9 +312,9 @@ const OrdersUpdateOpenapi = {
       in: 'path',
       required: true,
       schema: {
-        type: 'string'
-      }
-    }
+        type: 'string',
+      },
+    },
   ],
   summary: 'Update order',
   tags: ['Orders'],
@@ -325,32 +325,32 @@ const OrdersUpdateOpenapi = {
       content: {
         'application/json': {
           schema: {
-            $ref: '#/components/schemas/OrderResponse'
-          }
-        }
-      }
+            $ref: '#/components/schemas/OrderResponse',
+          },
+        },
+      },
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorToken'
+      $ref: '#/components/responses/UnauthorizedErrorToken',
     },
     '404': {
       description: 'Status 404',
       content: {
         'application/json': {
           schema: {
-            $ref: '#/components/schemas/Error'
+            $ref: '#/components/schemas/Error',
           },
           examples: {
             response: {
               value: {
                 errorCode: 404,
                 errorMessage: 'Order not found.',
-                data: {}
-              }
-            }
-          }
-        }
-      }
+                data: {},
+              },
+            },
+          },
+        },
+      },
     },
     '500': {
       description: 'Status 500',
@@ -363,23 +363,23 @@ const OrdersUpdateOpenapi = {
                 type: 'object',
                 properties: {
                   message: {
-                    type: 'string'
+                    type: 'string',
                   },
                   status: {
-                    type: 'string'
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                    type: 'string',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
   security: [
     {
-      bearerAuth: [] as []
-    }
+      bearerAuth: [] as [],
+    },
   ],
   requestBody: {
     content: {
@@ -389,18 +389,18 @@ const OrdersUpdateOpenapi = {
           required: ['id', 'order'],
           properties: {
             id: {
-              type: 'string'
+              type: 'string',
             },
             order: {
-              $ref: '#/components/schemas/Order'
-            }
+              $ref: '#/components/schemas/Order',
+            },
           },
-          description: 'Order Confirmation'
-        }
-      }
+          description: 'Order Confirmation',
+        },
+      },
     },
-    required: true
-  }
+    required: true,
+  },
 };
 
 const OrdersGetOpenapi = {
@@ -413,9 +413,9 @@ const OrdersGetOpenapi = {
       in: 'path',
       required: true,
       schema: {
-        type: 'string'
-      }
-    }
+        type: 'string',
+      },
+    },
   ],
   responses: {
     '200': {
@@ -426,12 +426,12 @@ const OrdersGetOpenapi = {
             type: 'object',
             properties: {
               order: {
-                $ref: '#/components/schemas/Order'
-              }
-            }
-          }
-        }
-      }
+                $ref: '#/components/schemas/Order',
+              },
+            },
+          },
+        },
+      },
     },
     '400': {
       description: 'Status 400',
@@ -442,39 +442,39 @@ const OrdersGetOpenapi = {
             properties: {
               message: {
                 type: 'string',
-                description: 'There is an error'
-              }
-            }
-          }
-        }
-      }
+                description: 'There is an error',
+              },
+            },
+          },
+        },
+      },
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorToken'
+      $ref: '#/components/responses/UnauthorizedErrorToken',
     },
     '404': {
       description: 'Status 404',
       content: {
         'application/json': {
           schema: {
-            $ref: '#/components/schemas/Error'
+            $ref: '#/components/schemas/Error',
           },
           examples: {
             response: {
               value: {
-                errorMessage: 'Order not found.'
-              }
-            }
-          }
-        }
-      }
-    }
+                errorMessage: 'Order not found.',
+              },
+            },
+          },
+        },
+      },
+    },
   },
   security: [
     {
-      bearerAuth: [] as []
-    }
-  ]
+      bearerAuth: [] as [],
+    },
+  ],
 };
 
 const OrdersListOpenapi = {
@@ -492,8 +492,8 @@ const OrdersListOpenapi = {
         type: 'number',
         minimum: 1,
         maximum: 50,
-        default: 10
-      }
+        default: 10,
+      },
     },
     {
       name: 'page',
@@ -502,9 +502,9 @@ const OrdersListOpenapi = {
       schema: {
         type: 'number',
         minimum: 1,
-        default: 1
-      }
-    }
+        default: 1,
+      },
+    },
   ],
   responses: {
     '200': {
@@ -517,40 +517,40 @@ const OrdersListOpenapi = {
               type: 'object',
               properties: {
                 id: {
-                  type: 'string'
+                  type: 'string',
                 },
                 status: {
-                  type: 'string'
+                  type: 'string',
                 },
                 createDate: {
                   type: 'string',
-                  format: 'date'
+                  format: 'date',
                 },
                 updateDate: {
                   type: 'string',
-                  format: 'date'
+                  format: 'date',
                 },
                 total: {
-                  type: 'number'
+                  type: 'number',
                 },
                 knawat_order_status: {
-                  type: 'string'
-                }
-              }
-            }
-          }
-        }
-      }
+                  type: 'string',
+                },
+              },
+            },
+          },
+        },
+      },
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorToken'
-    }
+      $ref: '#/components/responses/UnauthorizedErrorToken',
+    },
   },
   security: [
     {
-      bearerAuth: [] as []
-    }
-  ]
+      bearerAuth: [] as [],
+    },
+  ],
 };
 
 const OrdersDeleteOpenapi = {
@@ -561,9 +561,9 @@ const OrdersDeleteOpenapi = {
       in: 'path',
       required: true,
       schema: {
-        type: 'string'
-      }
-    }
+        type: 'string',
+      },
+    },
   ],
   summary: 'Cancel order',
   tags: ['Orders'],
@@ -573,16 +573,16 @@ const OrdersDeleteOpenapi = {
       content: {
         'application/json': {
           schema: {
-            $ref: '#/components/schemas/OrderResponse'
-          }
-        }
-      }
+            $ref: '#/components/schemas/OrderResponse',
+          },
+        },
+      },
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorToken'
+      $ref: '#/components/responses/UnauthorizedErrorToken',
     },
     '404': {
-      description: 'Status 404'
+      description: 'Status 404',
     },
     '500': {
       description: 'Status 500',
@@ -597,25 +597,25 @@ const OrdersDeleteOpenapi = {
                   type: 'object',
                   properties: {
                     message: {
-                      type: 'string'
+                      type: 'string',
                     },
                     status: {
-                      type: 'string'
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                      type: 'string',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
   security: [
     {
-      bearerAuth: [] as []
-    }
-  ]
+      bearerAuth: [] as [],
+    },
+  ],
 };
 
 export const OrdersOpenapi: ServiceSchema = {
@@ -624,25 +624,25 @@ export const OrdersOpenapi: ServiceSchema = {
     components: {
       schemas: {
         Order,
-        OrderResponse
-      }
-    }
+        OrderResponse,
+      },
+    },
   },
   actions: {
     createOrder: {
-      openapi: OrdersCreateOpenapi
+      openapi: OrdersCreateOpenapi,
     },
     updateOrder: {
-      openapi: OrdersUpdateOpenapi
+      openapi: OrdersUpdateOpenapi,
     },
     getOrder: {
-      openapi: OrdersGetOpenapi
+      openapi: OrdersGetOpenapi,
     },
     list: {
-      openapi: OrdersListOpenapi
+      openapi: OrdersListOpenapi,
     },
     deleteOrder: {
-      openapi: OrdersDeleteOpenapi
-    }
-  }
+      openapi: OrdersDeleteOpenapi,
+    },
+  },
 };

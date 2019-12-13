@@ -22,7 +22,7 @@ export const ProductTransformation: ServiceSchema = {
       instance: Store,
       rate: number,
       archive: boolean,
-      variationsInstance: Variation[]
+      variationsInstance: Variation[],
     ): Variation[] {
       return variations.map((variation, n) => {
         const variant: Variation = {
@@ -38,7 +38,7 @@ export const ProductTransformation: ServiceSchema = {
               : variation.sale * rate + instance.compared_at_price,
           weight: variation.weight,
           attributes: this.formatAttributes(variation.attributes),
-          quantity: archive ? 0 : variation.quantity
+          quantity: archive ? 0 : variation.quantity,
         };
 
         try {
@@ -65,7 +65,7 @@ export const ProductTransformation: ServiceSchema = {
           name: this.formatI18nText(category.name || category.name_i18n),
           parentId: category.parentId,
           productsCount: category.productsCount,
-          treeNodeLevel: category.treeNodeLevel
+          treeNodeLevel: category.treeNodeLevel,
         }));
       }
       return [];
@@ -83,16 +83,16 @@ export const ProductTransformation: ServiceSchema = {
           return {
             id: attribute.id,
             name: {
-              en: attribute.name
+              en: attribute.name,
             },
             option: {
-              en: attribute.option
-            }
+              en: attribute.option,
+            },
           };
         }
 
         return attribute;
       });
-    }
-  }
+    },
+  },
 };

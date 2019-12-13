@@ -5,34 +5,34 @@ const Log = {
   required: ['code', 'topic'],
   properties: {
     topic: {
-      type: 'string'
+      type: 'string',
     },
     code: {
       type: 'number',
       example:
-        '100 =>  Informational status response code indicates that everything so far is OK and that the client should continue with the request or ignore it if it is already finished.'
+        '100 =>  Informational status response code indicates that everything so far is OK and that the client should continue with the request or ignore it if it is already finished.',
     },
     topicId: {
-      type: 'string'
+      type: 'string',
     },
     storeId: {
-      type: 'string'
+      type: 'string',
     },
     timestamp: {
       type: 'string',
-      format: 'date'
+      format: 'date',
     },
     message: {
-      type: 'string'
+      type: 'string',
     },
     logLevel: {
       type: 'string',
-      enum: ['info', 'debug', 'warn', 'error']
+      enum: ['info', 'debug', 'warn', 'error'],
     },
     payload: {
-      type: 'object'
-    }
-  }
+      type: 'object',
+    },
+  },
 };
 
 const LogsAddOpenapi = {
@@ -49,21 +49,21 @@ const LogsAddOpenapi = {
             properties: {
               status: {
                 type: 'string',
-                enum: ['success']
+                enum: ['success'],
               },
               message: {
-                type: 'string'
+                type: 'string',
               },
               id: {
-                type: 'string'
-              }
-            }
-          }
-        }
-      }
+                type: 'string',
+              },
+            },
+          },
+        },
+      },
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorBasic'
+      $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
     '500': {
       description: 'Status 500',
@@ -74,35 +74,35 @@ const LogsAddOpenapi = {
             properties: {
               status: {
                 type: 'string',
-                enum: ['failed']
+                enum: ['failed'],
               },
               message: {
-                type: 'string'
+                type: 'string',
               },
               code: {
-                type: 'string'
-              }
-            }
-          }
-        }
-      }
-    }
+                type: 'string',
+              },
+            },
+          },
+        },
+      },
+    },
   },
   security: [
     {
-      basicAuth: [] as []
-    }
+      basicAuth: [] as [],
+    },
   ],
   requestBody: {
     content: {
       'application/json': {
         schema: {
-          $ref: '#/components/schemas/Log'
-        }
-      }
+          $ref: '#/components/schemas/Log',
+        },
+      },
     },
-    required: true
-  }
+    required: true,
+  },
 };
 
 const LogsGetLogsOpenapi = {
@@ -115,8 +115,8 @@ const LogsGetLogsOpenapi = {
       in: 'query',
       required: true,
       schema: {
-        type: 'string'
-      }
+        type: 'string',
+      },
     },
     {
       name: 'topicId',
@@ -124,8 +124,8 @@ const LogsGetLogsOpenapi = {
       required: false,
       description: 'Required if no storeId',
       schema: {
-        type: 'string'
-      }
+        type: 'string',
+      },
     },
     {
       name: 'storeId',
@@ -133,8 +133,8 @@ const LogsGetLogsOpenapi = {
       required: false,
       description: 'Required if no topicId',
       schema: {
-        type: 'string'
-      }
+        type: 'string',
+      },
     },
     {
       name: 'logLevel',
@@ -142,8 +142,8 @@ const LogsGetLogsOpenapi = {
       required: false,
       schema: {
         type: 'string',
-        enum: ['info', 'debug', 'warn', 'error']
-      }
+        enum: ['info', 'debug', 'warn', 'error'],
+      },
     },
     {
       name: 'sort',
@@ -151,8 +151,8 @@ const LogsGetLogsOpenapi = {
       required: false,
       schema: {
         type: 'string',
-        enum: ['asc', 'desc']
-      }
+        enum: ['asc', 'desc'],
+      },
     },
     {
       name: 'limit',
@@ -162,8 +162,8 @@ const LogsGetLogsOpenapi = {
         type: 'number',
         minimum: 1,
         maximum: 500,
-        default: 10
-      }
+        default: 10,
+      },
     },
     {
       name: 'page',
@@ -171,9 +171,9 @@ const LogsGetLogsOpenapi = {
       required: false,
       schema: {
         type: 'number',
-        default: 1
-      }
-    }
+        default: 1,
+      },
+    },
   ],
   responses: {
     '200': {
@@ -183,14 +183,14 @@ const LogsGetLogsOpenapi = {
           schema: {
             type: 'array',
             items: {
-              $ref: '#/components/schemas/Log'
-            }
-          }
-        }
-      }
+              $ref: '#/components/schemas/Log',
+            },
+          },
+        },
+      },
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorBasic'
+      $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
     '404': {
       description: 'Status 404',
@@ -200,12 +200,12 @@ const LogsGetLogsOpenapi = {
             type: 'object',
             properties: {
               message: {
-                type: 'string'
-              }
-            }
-          }
-        }
-      }
+                type: 'string',
+              },
+            },
+          },
+        },
+      },
     },
     '500': {
       description: 'Status 500',
@@ -215,22 +215,22 @@ const LogsGetLogsOpenapi = {
             type: 'object',
             properties: {
               message: {
-                type: 'string'
+                type: 'string',
               },
               code: {
-                type: 'string'
-              }
-            }
-          }
-        }
-      }
-    }
+                type: 'string',
+              },
+            },
+          },
+        },
+      },
+    },
   },
   security: [
     {
-      basicAuth: [] as []
-    }
-  ]
+      basicAuth: [] as [],
+    },
+  ],
 };
 
 export const LogsOpenapi: ServiceSchema = {
@@ -238,16 +238,16 @@ export const LogsOpenapi: ServiceSchema = {
   settings: {
     components: {
       schemas: {
-        Log
-      }
-    }
+        Log,
+      },
+    },
   },
   actions: {
     add: {
-      openapi: LogsAddOpenapi
+      openapi: LogsAddOpenapi,
     },
     getLogs: {
-      openapi: LogsGetLogsOpenapi
-    }
-  }
+      openapi: LogsGetLogsOpenapi,
+    },
+  },
 };

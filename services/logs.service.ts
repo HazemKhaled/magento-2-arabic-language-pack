@@ -14,8 +14,8 @@ const TheService: ServiceSchema = {
       host: `http://${process.env.ELASTIC_AUTH}@${process.env.ELASTIC_HOST}:${
         process.env.ELASTIC_PORT
       }`,
-      apiVersion: process.env.ELASTIC_VERSION || '6.x'
-    }
+      apiVersion: process.env.ELASTIC_VERSION || '6.x',
+    },
   },
   mixins: [ESService, LogsOpenapi],
   actions: {
@@ -28,10 +28,10 @@ const TheService: ServiceSchema = {
         storeId: { type: 'string' },
         topicId: [
           { type: 'string', optional: true },
-          { type: 'number', optional: true, convert: true, integer: true }
+          { type: 'number', optional: true, convert: true, integer: true },
         ],
         payload: { type: 'object', optional: true },
-        code: { type: 'number', convert: true, integer: true }
+        code: { type: 'number', convert: true, integer: true },
         // Remove until it's added to index.d
         // $$strict: true
       },
@@ -51,25 +51,25 @@ const TheService: ServiceSchema = {
               storeId: ctx.params.storeId,
               message: ctx.params.message,
               payload: ctx.params.payload,
-              code: ctx.params.code
-            }
+              code: ctx.params.code,
+            },
           })
           .then(res => {
             if (res.result === 'created')
               return {
                 status: 'success',
                 message: 'created',
-                id: res._id
+                id: res._id,
               };
             ctx.meta.$statusCode = 500;
             ctx.meta.$statusMessage = 'Internal Server Error';
             return {
               status: 'failed',
               message: 'Something went wrong! Please contact customer support with the error code.',
-              code: res.code || 999
+              code: res.code || 999,
             };
           });
-      }
+      },
     },
     getLogs: {
       auth: 'Basic',
@@ -79,11 +79,11 @@ const TheService: ServiceSchema = {
         logLevel: { type: 'enum', values: ['info', 'debug', 'error', 'warn'], optional: true },
         storeId: [
           { type: 'string', optional: true },
-          { type: 'number', optional: true, convert: true, integer: true }
+          { type: 'number', optional: true, convert: true, integer: true },
         ],
         topicId: { type: 'string', optional: true },
         limit: { type: 'number', optional: true, min: 1, max: 500, convert: true },
-        page: { type: 'number', optional: true, min: 1, convert: true }
+        page: { type: 'number', optional: true, min: 1, convert: true },
         // Remove until it's added to index.d
         // $$strict: true
       },
@@ -119,7 +119,7 @@ const TheService: ServiceSchema = {
         return ctx
           .call('logs.search', {
             index: 'logsmp-*',
-            body
+            body,
           })
           .then(res => {
             if (res.hits.total > 0)
@@ -128,19 +128,19 @@ const TheService: ServiceSchema = {
               ctx.meta.$statusCode = 404;
               ctx.meta.$statusMessage = 'Not Found';
               return {
-                message: 'No record found!'
+                message: 'No record found!',
               };
             }
             ctx.meta.$statusCode = 500;
             ctx.meta.$statusMessage = 'Internal Server Error';
             return {
               message: 'Something went wrong! Please contact customer support with the error code.',
-              code: res.code || 999
+              code: res.code || 999,
             };
           });
-      }
-    }
-  }
+      },
+    },
+  },
 };
 
 export = TheService;

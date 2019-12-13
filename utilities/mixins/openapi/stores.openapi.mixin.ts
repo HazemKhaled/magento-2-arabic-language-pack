@@ -7,15 +7,15 @@ const StoreSchema = {
     url: {
       type: 'string',
       description: 'URL is the store ID',
-      example: 'https://www.example.com'
+      example: 'https://www.example.com',
     },
     name: {
       type: 'string',
-      minLength: 3
+      minLength: 3,
     },
     status: {
       type: 'string',
-      enum: ['confirmed', 'unconfirmed', 'archived', 'error']
+      enum: ['confirmed', 'unconfirmed', 'archived', 'error'],
     },
     type: {
       type: 'string',
@@ -29,67 +29,67 @@ const StoreSchema = {
         'csv',
         'ebay',
         'api',
-        'other'
-      ]
+        'other',
+      ],
     },
     created: {
       type: 'string',
-      format: 'date'
+      format: 'date',
     },
     updated: {
       type: 'string',
-      format: 'date'
+      format: 'date',
     },
     stock_date: {
       type: 'string',
-      format: 'date'
+      format: 'date',
     },
     stock_status: {
       type: 'string',
       default: 'idle',
-      enum: ['idle', 'in-progress']
+      enum: ['idle', 'in-progress'],
     },
     price_date: {
       type: 'string',
-      format: 'date'
+      format: 'date',
     },
     price_status: {
       type: 'string',
       default: 'idle',
-      enum: ['idle', 'in-progress']
+      enum: ['idle', 'in-progress'],
     },
     sale_price: {
       type: 'number',
       default: 1.7,
-      example: '1 = Same as Knawat price'
+      example: '1 = Same as Knawat price',
     },
     compared_at_price: {
       type: 'number',
       default: 2,
-      example: '2 = Same as sale price'
+      example: '2 = Same as sale price',
     },
     currency: {
       type: 'string',
       description: '3 digit numeric ISO 4217 codes',
       minLength: 3,
       maxLength: 3,
-      pattern: '^[A-Z]{3}$'
+      pattern: '^[A-Z]{3}$',
     },
     consumer_key: {
       type: 'string',
-      default: 'Auto generated'
+      default: 'Auto generated',
     },
     consumer_secret: {
       type: 'string',
-      default: 'Auto generated'
+      default: 'Auto generated',
     },
     external_data: {
       type: 'object',
-      description: 'Free object to save external IDs, token ... etc'
+      description: 'Free object to save external IDs, token ... etc',
     },
     internal_data: {
       type: 'object',
-      description: 'Free object to save OMS references'
+      description: 'Free object to save OMS references',
     },
     users: {
       type: 'array',
@@ -99,28 +99,28 @@ const StoreSchema = {
         type: 'object',
         properties: {
           email: {
-            type: 'string'
+            type: 'string',
           },
           roles: {
             type: 'array',
             items: {
               type: 'string',
-              enum: ['owner', 'accounting', 'products', 'orders']
+              enum: ['owner', 'accounting', 'products', 'orders'],
             },
             minItems: 1,
-            maxItems: 4
-          }
-        }
-      }
+            maxItems: 4,
+          },
+        },
+      },
     },
     languages: {
       type: 'array',
       items: {
         type: 'string',
-        pattern: '^[a-z]{2}-[A-Z]{2}$]'
+        pattern: '^[a-z]{2}-[A-Z]{2}$]',
       },
       minItems: 1,
-      maxItems: 10
+      maxItems: 10,
     },
     address: {
       required: ['address_1', 'country', 'email', 'first_name', 'last_name'],
@@ -129,72 +129,72 @@ const StoreSchema = {
         first_name: {
           type: 'string',
           minLength: 3,
-          pattern: '^[A-Za-z ]{3,}$'
+          pattern: '^[A-Za-z ]{3,}$',
         },
         last_name: {
           type: 'string',
           minLength: 3,
-          pattern: '^[A-Za-z ]{3,}$'
+          pattern: '^[A-Za-z ]{3,}$',
         },
         company: {
-          type: 'string'
+          type: 'string',
         },
         address_1: {
           type: 'string',
           minLength: 3,
-          pattern: '^[A-Za-z0-9 -.,]{3,}$'
+          pattern: '^[A-Za-z0-9 -.,]{3,}$',
         },
         address_2: {
           type: 'string',
           minLength: 3,
-          pattern: '^[A-Za-z0-9 -.,]{3,}$'
+          pattern: '^[A-Za-z0-9 -.,]{3,}$',
         },
         city: {
           type: 'string',
-          description: 'City or Status, one of them is required'
+          description: 'City or Status, one of them is required',
         },
         state: {
           type: 'string',
-          description: 'City or Status, one of them is required'
+          description: 'City or Status, one of them is required',
         },
         postcode: {
-          type: 'string'
+          type: 'string',
         },
         country: {
           type: 'string',
           description: 'ISO 3166-1 alpha-2, capital letters only',
           minLength: 2,
           maxLength: 2,
-          pattern: '^[A-Z]{2}$'
+          pattern: '^[A-Z]{2}$',
         },
         email: {
-          type: 'string'
+          type: 'string',
         },
         phone: {
-          type: 'string'
-        }
-      }
+          type: 'string',
+        },
+      },
     },
     debit: {
       type: 'number',
-      description: 'Just with /stores/me & /stores/{url}'
+      description: 'Just with /stores/me & /stores/{url}',
     },
     credit: {
       type: 'number',
-      description: 'Just with /stores/me & /stores/{url}'
-    }
-  }
+      description: 'Just with /stores/me & /stores/{url}',
+    },
+  },
 };
 
 const StoreResponse = {
   content: {
     'application/json': {
       schema: {
-        $ref: '#/components/schemas/Store'
-      }
-    }
+        $ref: '#/components/schemas/Store',
+      },
+    },
   },
-  required: true
+  required: true,
 };
 
 const StoresMeOpenapi = {
@@ -207,13 +207,13 @@ const StoresMeOpenapi = {
       content: {
         'application/json': {
           schema: {
-            $ref: '#/components/schemas/Store'
-          }
-        }
-      }
+            $ref: '#/components/schemas/Store',
+          },
+        },
+      },
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorToken'
+      $ref: '#/components/responses/UnauthorizedErrorToken',
     },
     '404': {
       description: 'Status 404',
@@ -228,22 +228,22 @@ const StoresMeOpenapi = {
                   type: 'object',
                   properties: {
                     message: {
-                      type: 'string'
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                      type: 'string',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
   security: [
     {
-      bearerAuth: [] as []
-    }
-  ]
+      bearerAuth: [] as [],
+    },
+  ],
 };
 
 const StoresGetOpenapi = {
@@ -256,8 +256,8 @@ const StoresGetOpenapi = {
       in: 'header',
       required: true,
       schema: {
-        type: 'string'
-      }
+        type: 'string',
+      },
     },
 
     {
@@ -265,9 +265,9 @@ const StoresGetOpenapi = {
       in: 'path',
       required: true,
       schema: {
-        type: 'string'
-      }
-    }
+        type: 'string',
+      },
+    },
   ],
   responses: {
     '200': {
@@ -275,13 +275,13 @@ const StoresGetOpenapi = {
       content: {
         'application/json': {
           schema: {
-            $ref: '#/components/schemas/Store'
-          }
-        }
-      }
+            $ref: '#/components/schemas/Store',
+          },
+        },
+      },
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorBasic'
+      $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
     '404': {
       description: 'Status 404',
@@ -296,22 +296,22 @@ const StoresGetOpenapi = {
                   type: 'object',
                   properties: {
                     message: {
-                      type: 'string'
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                      type: 'string',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
   security: [
     {
-      basicAuth: [] as []
-    }
-  ]
+      basicAuth: [] as [],
+    },
+  ],
 };
 
 const StoresListOpenapi = {
@@ -324,17 +324,17 @@ const StoresListOpenapi = {
       in: 'query',
       required: false,
       schema: {
-        type: 'string'
-      }
+        type: 'string',
+      },
     },
     {
       name: 'Authorization',
       in: 'header',
       required: true,
       schema: {
-        type: 'string'
-      }
-    }
+        type: 'string',
+      },
+    },
   ],
   responses: {
     '200': {
@@ -344,14 +344,14 @@ const StoresListOpenapi = {
           schema: {
             type: 'array',
             items: {
-              $ref: '#/components/schemas/Store'
-            }
-          }
-        }
-      }
+              $ref: '#/components/schemas/Store',
+            },
+          },
+        },
+      },
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorBasic'
+      $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
     '404': {
       description: 'Status 404',
@@ -366,22 +366,22 @@ const StoresListOpenapi = {
                   type: 'object',
                   properties: {
                     message: {
-                      type: 'string'
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                      type: 'string',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
   security: [
     {
-      basicAuth: [] as []
-    }
-  ]
+      basicAuth: [] as [],
+    },
+  ],
 };
 
 const StoresSListOpenapi = {
@@ -394,33 +394,33 @@ const StoresSListOpenapi = {
       in: 'query',
       required: false,
       schema: {
-        type: 'string'
-      }
+        type: 'string',
+      },
     },
     {
       name: 'page',
       in: 'query',
       required: false,
       schema: {
-        type: 'number'
-      }
+        type: 'number',
+      },
     },
     {
       name: 'perPage',
       in: 'query',
       required: false,
       schema: {
-        type: 'number'
-      }
+        type: 'number',
+      },
     },
     {
       name: 'Authorization',
       in: 'header',
       required: true,
       schema: {
-        type: 'string'
-      }
-    }
+        type: 'string',
+      },
+    },
   ],
   responses: {
     '200': {
@@ -433,17 +433,17 @@ const StoresSListOpenapi = {
               stores: {
                 type: 'array',
                 items: {
-                  $ref: '#/components/schemas/Store'
-                }
+                  $ref: '#/components/schemas/Store',
+                },
               },
-              total: { type: 'number' }
-            }
-          }
-        }
-      }
+              total: { type: 'number' },
+            },
+          },
+        },
+      },
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorBasic'
+      $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
     '404': {
       description: 'Status 404',
@@ -458,22 +458,22 @@ const StoresSListOpenapi = {
                   type: 'object',
                   properties: {
                     message: {
-                      type: 'string'
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                      type: 'string',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
   security: [
     {
-      basicAuth: [] as []
-    }
-  ]
+      basicAuth: [] as [],
+    },
+  ],
 };
 
 const StoresCreateOpenapi = {
@@ -486,9 +486,9 @@ const StoresCreateOpenapi = {
       in: 'header',
       required: true,
       schema: {
-        type: 'string'
-      }
-    }
+        type: 'string',
+      },
+    },
   ],
   responses: {
     '200': {
@@ -496,13 +496,13 @@ const StoresCreateOpenapi = {
       content: {
         'application/json': {
           schema: {
-            $ref: '#/components/schemas/Store'
-          }
-        }
-      }
+            $ref: '#/components/schemas/Store',
+          },
+        },
+      },
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorBasic'
+      $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
     '500': {
       description: 'Status 500',
@@ -517,25 +517,25 @@ const StoresCreateOpenapi = {
                   type: 'object',
                   properties: {
                     message: {
-                      type: 'string'
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                      type: 'string',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
   security: [
     {
-      basicAuth: [] as []
-    }
+      basicAuth: [] as [],
+    },
   ],
   requestBody: {
-    $ref: '#/components/requestBodies/Store'
-  }
+    $ref: '#/components/requestBodies/Store',
+  },
 };
 
 const StoresUpdateOpenapi = {
@@ -548,17 +548,17 @@ const StoresUpdateOpenapi = {
       in: 'path',
       required: true,
       schema: {
-        type: 'string'
-      }
+        type: 'string',
+      },
     },
     {
       name: 'Authorization',
       in: 'header',
       required: true,
       schema: {
-        type: 'string'
-      }
-    }
+        type: 'string',
+      },
+    },
   ],
   responses: {
     '200': {
@@ -566,13 +566,13 @@ const StoresUpdateOpenapi = {
       content: {
         'application/json': {
           schema: {
-            $ref: '#/components/schemas/Store'
-          }
-        }
-      }
+            $ref: '#/components/schemas/Store',
+          },
+        },
+      },
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorBasic'
+      $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
     '500': {
       description: 'Status 500',
@@ -587,25 +587,25 @@ const StoresUpdateOpenapi = {
                   type: 'object',
                   properties: {
                     message: {
-                      type: 'string'
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                      type: 'string',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
   security: [
     {
-      basicAuth: [] as []
-    }
+      basicAuth: [] as [],
+    },
   ],
   requestBody: {
-    $ref: '#/components/requestBodies/Store'
-  }
+    $ref: '#/components/requestBodies/Store',
+  },
 };
 
 export const StoresOpenapi: ServiceSchema = {
@@ -613,31 +613,31 @@ export const StoresOpenapi: ServiceSchema = {
   settings: {
     components: {
       schemas: {
-        Store: StoreSchema
+        Store: StoreSchema,
       },
       requestBodies: {
-        Store: StoreResponse
-      }
-    }
+        Store: StoreResponse,
+      },
+    },
   },
   actions: {
     me: {
-      openapi: StoresMeOpenapi
+      openapi: StoresMeOpenapi,
     },
     get: {
-      openapi: StoresGetOpenapi
+      openapi: StoresGetOpenapi,
     },
     list: {
-      openapi: StoresListOpenapi
+      openapi: StoresListOpenapi,
     },
     storesList: {
-      openapi: StoresSListOpenapi
+      openapi: StoresSListOpenapi,
     },
     create: {
-      openapi: StoresCreateOpenapi
+      openapi: StoresCreateOpenapi,
     },
     update: {
-      openapi: StoresUpdateOpenapi
-    }
-  }
+      openapi: StoresUpdateOpenapi,
+    },
+  },
 };

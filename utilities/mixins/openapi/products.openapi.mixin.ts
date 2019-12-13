@@ -10,80 +10,80 @@ const Product = {
     'name',
     'sku',
     'supplier',
-    'variations'
+    'variations',
   ],
   properties: {
     sku: {
       type: 'string',
-      description: 'Product ID'
+      description: 'Product ID',
     },
     supplier: {
       type: 'number',
-      description: 'Supplier ref'
+      description: 'Supplier ref',
     },
     name: {
       required: ['tr'],
       type: 'object',
       properties: {
         tr: {
-          type: 'string'
+          type: 'string',
         },
         ar: {
-          type: 'string'
+          type: 'string',
         },
         en: {
-          type: 'string'
-        }
-      }
+          type: 'string',
+        },
+      },
     },
     description: {
       required: ['tr'],
       type: 'object',
       properties: {
         tr: {
-          type: 'string'
+          type: 'string',
         },
         en: {
-          type: 'string'
+          type: 'string',
         },
         ar: {
-          type: 'string'
-        }
-      }
+          type: 'string',
+        },
+      },
     },
     last_stock_check: {
       type: 'string',
       format: 'date-time',
-      example: '2016-02-28T16:41:41.090Z'
+      example: '2016-02-28T16:41:41.090Z',
     },
     images: {
       type: 'array',
       description: 'List of images links from Knawat CDN servers',
       items: {
-        type: 'string'
-      }
+        type: 'string',
+      },
     },
     categories: {
       type: 'array',
       description: 'Array of categories',
       items: {
-        $ref: '#/components/schemas/Category'
-      }
+        $ref: '#/components/schemas/Category',
+      },
     },
     attributes: {
       type: 'array',
       description: 'Any other information about this product, materials, gender … etc',
       items: {
-        $ref: '#/components/schemas/Attribute'
-      }
+        $ref: '#/components/schemas/Attribute',
+      },
     },
     variations: {
       type: 'array',
       description: 'Product variations',
       items: {
-        $ref: '#/components/schemas/ProductVariation'
-      }
-    }
+        $ref: '#/components/schemas/ProductVariation',
+      },
+    },
   },
   description: 'An object that represents a Product.',
   example: {
@@ -91,7 +91,7 @@ const Product = {
     name: {
       tr: 'DAR KALIP PEMBE GÖMLEK',
       ar: 'قميص وردي قصير',
-      en: 'Slimline Pink Shirt'
+      en: 'Slimline Pink Shirt',
     },
     description: {
       tr:
@@ -99,7 +99,7 @@ const Product = {
       en:
         '<ul><li>100% Cotton</li><li>*Pocket Detailed</li><li>*Long Layered Sleeves</li><li>*Front Buttons</li><li>*Buttons on Sides</li><li>*Narrow Cut</li><li>*Length:63 cm</li><li>Sample Size: 36/S/1</li><li>Model\'s Measurements: Height:1,76, Chest:86, Waist:60, Hip: 91</li></ul>',
       ar:
-        '<ul><li>%100 قطن</li><li>مزين بجيب</li><li>بكم طويل قابل للازالة</li><li>بأزرار من الامام</li><li>بأزرار من الجوانب</li><li>سليم فت</li><li>الطول:63 سم</li><li>مقاس الجسم: 36/S/1</li><li>قياسات العارض: الطول:1,76, الصدر:86, الوسط:60, الخصر: 91</li></ul>'
+        '<ul><li>%100 قطن</li><li>مزين بجيب</li><li>بكم طويل قابل للازالة</li><li>بأزرار من الامام</li><li>بأزرار من الجوانب</li><li>سليم فت</li><li>الطول:63 سم</li><li>مقاس الجسم: 36/S/1</li><li>قياسات العارض: الطول:1,76, الصدر:86, الوسط:60, الخصر: 91</li></ul>',
     },
     last_stock_check: '2018-03-15T06:53:06.949Z',
     supplier: 1615,
@@ -109,14 +109,14 @@ const Product = {
         name: {
           tr: 'Outdoors / Kadın',
           en: 'Outdoors / Women',
-          ar: 'أوت دور / نسائي'
-        }
-      }
+          ar: 'أوت دور / نسائي',
+        },
+      },
     ],
     images: [
       'https://cdnp4.knawat.com/buyuk/788f8a17-d5d8-4ccb-b218-9e428b199228.jpg',
       'https://cdnp4.knawat.com/buyuk/d8f20963-1772-45af-849d-da84e66d9a95.jpg',
-      'https://cdnp4.knawat.com/buyuk/fa36c9d4-51c4-434f-9ffd-94fb343ce0d8.jpg'
+      'https://cdnp4.knawat.com/buyuk/fa36c9d4-51c4-434f-9ffd-94fb343ce0d8.jpg',
     ],
     attributes: [
       {
@@ -124,41 +124,41 @@ const Product = {
         name: {
           tr: 'Beden',
           en: 'Size',
-          ar: 'مقاس'
+          ar: 'مقاس',
         },
         options: [
           {
             tr: 'M',
             en: 'M',
-            ar: 'M'
+            ar: 'M',
           },
           {
             tr: 'XXL',
             en: 'XXL',
-            ar: 'XXL'
-          }
-        ]
+            ar: 'XXL',
+          },
+        ],
       },
       {
         id: 2,
         name: {
           tr: 'Renk',
           en: 'Color',
-          ar: 'لون'
+          ar: 'لون',
         },
         options: [
           {
             tr: 'Kırmızı',
             en: 'Red',
-            ar: 'احمر'
-          }
-        ]
+            ar: 'احمر',
+          },
+        ],
       },
       {
         id: 3,
         name: 'Material',
-        options: ['15% Cotton', '25% Polyester']
-      }
+        options: ['15% Cotton', '25% Polyester'],
+      },
     ],
     variations: [
       {
@@ -173,15 +173,15 @@ const Product = {
             name: {
               tr: 'Beden',
               en: 'Size',
-              ar: 'مقاس'
+              ar: 'مقاس',
             },
             option: {
               tr: 'M',
               en: 'M',
-              ar: 'M'
-            }
-          }
-        ]
+              ar: 'M',
+            },
+          },
+        ],
       },
       {
         sku: '4646030019238-38',
@@ -196,18 +196,18 @@ const Product = {
             name: {
               tr: 'Beden',
               en: 'Size',
-              ar: 'مقاس'
+              ar: 'مقاس',
             },
             option: {
               tr: 'XXL',
               en: 'XXL',
-              ar: 'XXL'
-            }
-          }
-        ]
-      }
-    ]
-  }
+              ar: 'XXL',
+            },
+          },
+        ],
+      },
+    ],
+  },
 };
 
 const ProductVariation = {
@@ -216,36 +216,36 @@ const ProductVariation = {
   properties: {
     sku: {
       type: 'string',
-      description: 'Variation id'
+      description: 'Variation id',
     },
     cost_price: {
       type: 'number',
-      description: 'Your cost, Knawat sale product with this price'
+      description: 'Your cost, Knawat sale product with this price',
     },
     sale_price: {
       type: 'number',
-      description: 'This is the listed price on your store'
+      description: 'This is the listed price on your store',
     },
     market_price: {
       type: 'number',
-      description: 'Price before the discount'
+      description: 'Price before the discount',
     },
     weight: {
       type: 'number',
-      description: 'Product weight'
+      description: 'Product weight',
     },
     quantity: {
-      type: 'number'
+      type: 'number',
     },
     attributes: {
       type: 'array',
       items: {
-        $ref: '#/components/schemas/Attribute'
-      }
-    }
+        $ref: '#/components/schemas/Attribute',
+      },
+    },
   },
   example:
-    '{\n  "sku": "4646030019238-36",\n  "cost_price": 5.22,\n  "sale_price": 9.74,\n  "market_price": 11.99,\n  "weight": 0.5,\n  "quantity": 10,\n  "attributes": [\n    {\n      "id": 1,\n      "name": {\n        "tr": "Beden",\n        "en": "Size",\n        "ar": "مقاس"\n      },\n      "option": { "tr": "M", "en": "M", "ar": "M" }\n    }\n  ]\n}\n'
+    '{\n  "sku": "4646030019238-36",\n  "cost_price": 5.22,\n  "sale_price": 9.74,\n  "market_price": 11.99,\n  "weight": 0.5,\n  "quantity": 10,\n  "attributes": [\n    {\n      "id": 1,\n      "name": {\n        "tr": "Beden",\n        "en": "Size",\n        "ar": "مقاس"\n      },\n      "option": { "tr": "M", "en": "M", "ar": "M" }\n    }\n  ]\n}\n',
 };
 
 const Attribute = {
@@ -253,41 +253,41 @@ const Attribute = {
   required: ['id', 'name', 'option'],
   properties: {
     id: {
-      type: 'number'
+      type: 'number',
     },
     name: {
       required: ['tr'],
       type: 'object',
       properties: {
         tr: {
-          type: 'string'
+          type: 'string',
         },
         en: {
-          type: 'string'
+          type: 'string',
         },
         ar: {
-          type: 'string'
-        }
-      }
+          type: 'string',
+        },
+      },
     },
     option: {
       required: ['tr'],
       type: 'object',
       properties: {
         tr: {
-          type: 'string'
+          type: 'string',
         },
         en: {
-          type: 'string'
+          type: 'string',
         },
         ar: {
-          type: 'string'
-        }
-      }
-    }
+          type: 'string',
+        },
+      },
+    },
   },
   example:
-    '{\n  "id": 1,\n  "name": {\n    "tr": "Beden",\n    "en": "Size",\n    "ar": "مقاس"\n  },\n  "option": { "tr": "M", "en": "M", "ar": "M" }\n}\n'
+    '{\n  "id": 1,\n  "name": {\n    "tr": "Beden",\n    "en": "Size",\n    "ar": "مقاس"\n  },\n  "option": { "tr": "M", "en": "M", "ar": "M" }\n}\n',
 };
 
 const GetInstanceProduct = {
@@ -305,31 +305,31 @@ const GetInstanceProduct = {
             type: 'object',
             properties: {
               product: {
-                $ref: '#/components/schemas/Product'
-              }
-            }
-          }
-        }
-      }
+                $ref: '#/components/schemas/Product',
+              },
+            },
+          },
+        },
+      },
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorToken'
+      $ref: '#/components/responses/UnauthorizedErrorToken',
     },
     '404': {
       description: 'SKU not found',
       content: {
         'application/json': {
           schema: {
-            $ref: '#/components/schemas/Error'
-          }
-        }
-      }
-    }
+            $ref: '#/components/schemas/Error',
+          },
+        },
+      },
+    },
   },
   security: [
     {
-      bearerAuth: [] as []
-    }
+      bearerAuth: [] as [],
+    },
   ],
   parameters: [
     {
@@ -339,10 +339,10 @@ const GetInstanceProduct = {
       description: 'Identifier of the Task',
       example: '47ee3550-b619',
       schema: {
-        type: 'string'
-      }
-    }
-  ]
+        type: 'string',
+      },
+    },
+  ],
 };
 
 const ProductsTotal = {
@@ -359,15 +359,15 @@ const ProductsTotal = {
             type: 'object',
             properties: {
               total: {
-                type: 'number'
-              }
-            }
-          }
-        }
-      }
+                type: 'number',
+              },
+            },
+          },
+        },
+      },
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorToken'
+      $ref: '#/components/responses/UnauthorizedErrorToken',
     },
     '500': {
       description: 'Internal  Server Error',
@@ -382,22 +382,22 @@ const ProductsTotal = {
                   type: 'object',
                   properties: {
                     message: {
-                      type: 'string'
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                      type: 'string',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
   security: [
     {
-      bearerAuth: [] as []
-    }
-  ]
+      bearerAuth: [] as [],
+    },
+  ],
 };
 
 const ProductsList = {
@@ -414,8 +414,8 @@ const ProductsList = {
       schema: {
         type: 'integer',
         maximum: 100,
-        default: 10
-      }
+        default: 10,
+      },
     },
     {
       name: 'page',
@@ -425,8 +425,8 @@ const ProductsList = {
       schema: {
         type: 'integer',
         minimum: 1,
-        default: 1
-      }
+        default: 1,
+      },
     },
     {
       name: 'lastupdate',
@@ -437,8 +437,8 @@ const ProductsList = {
       example: '1542794072 for 21-11-2018 @ 9:54am',
       schema: {
         type: 'string',
-        format: 'date-time'
-      }
+        format: 'date-time',
+      },
     },
     {
       name: 'keyword',
@@ -446,8 +446,8 @@ const ProductsList = {
       required: false,
       description: 'Full text search in sku field',
       schema: {
-        type: 'string'
-      }
+        type: 'string',
+      },
     },
     {
       name: 'hideOutOfStock',
@@ -456,8 +456,8 @@ const ProductsList = {
       description: 'Hide out of stock products',
       example: '1 => Hide archived products else will not hide',
       schema: {
-        type: 'number'
-      }
+        type: 'number',
+      },
     },
     {
       name: 'currency',
@@ -468,9 +468,9 @@ const ProductsList = {
         type: 'string',
         minLength: 3,
         maxLength: 3,
-        pattern: '^[A-Z]{3}$'
-      }
-    }
+        pattern: '^[A-Z]{3}$',
+      },
+    },
   ],
   responses: {
     '200': {
@@ -484,27 +484,27 @@ const ProductsList = {
               products: {
                 type: 'array',
                 items: {
-                  $ref: '#/components/schemas/Product'
-                }
+                  $ref: '#/components/schemas/Product',
+                },
               },
               total: {
                 type: 'number',
-                description: 'total products across all pages'
-              }
-            }
-          }
-        }
-      }
+                description: 'total products across all pages',
+              },
+            },
+          },
+        },
+      },
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorToken'
-    }
+      $ref: '#/components/responses/UnauthorizedErrorToken',
+    },
   },
   security: [
     {
-      bearerAuth: [] as []
-    }
-  ]
+      bearerAuth: [] as [],
+    },
+  ],
 };
 
 const DeleteInstanceProduct = {
@@ -518,22 +518,22 @@ const DeleteInstanceProduct = {
       content: {
         'application/json': {
           schema: {
-            type: 'object'
+            type: 'object',
           },
           examples: {
             response: {
               value: {
                 status: 'success',
                 message: 'Product has been deleted.',
-                sku: '47EE3550-B619'
-              }
-            }
-          }
-        }
-      }
+                sku: '47EE3550-B619',
+              },
+            },
+          },
+        },
+      },
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorToken'
+      $ref: '#/components/responses/UnauthorizedErrorToken',
     },
     '500': {
       description: 'Status 500',
@@ -548,22 +548,22 @@ const DeleteInstanceProduct = {
                   type: 'object',
                   properties: {
                     message: {
-                      type: 'string'
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                      type: 'string',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
   security: [
     {
-      bearerAuth: [] as []
-    }
-  ]
+      bearerAuth: [] as [],
+    },
+  ],
 };
 
 const ProductsImport = {
@@ -582,22 +582,22 @@ const ProductsImport = {
               success: {
                 type: 'array',
                 items: {
-                  type: 'string'
-                }
+                  type: 'string',
+                },
               },
               outOfStock: {
                 type: 'array',
                 items: {
-                  type: 'string'
-                }
-              }
-            }
-          }
-        }
-      }
+                  type: 'string',
+                },
+              },
+            },
+          },
+        },
+      },
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorToken'
+      $ref: '#/components/responses/UnauthorizedErrorToken',
     },
     '500': {
       description: 'Status 500',
@@ -612,21 +612,21 @@ const ProductsImport = {
                   type: 'object',
                   properties: {
                     message: {
-                      type: 'string'
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                      type: 'string',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
   security: [
     {
-      bearerAuth: [] as []
-    }
+      bearerAuth: [] as [],
+    },
   ],
   requestBody: {
     content: {
@@ -642,19 +642,19 @@ const ProductsImport = {
                 type: 'object',
                 properties: {
                   sku: {
-                    type: 'string'
-                  }
-                }
+                    type: 'string',
+                  },
+                },
               },
               minItems: 1,
-              maxItems: 1000
-            }
-          }
-        }
-      }
+              maxItems: 1000,
+            },
+          },
+        },
+      },
     },
-    required: true
-  }
+    required: true,
+  },
 };
 
 const InstanceUpdate = {
@@ -668,16 +668,16 @@ const InstanceUpdate = {
       in: 'query',
       required: true,
       schema: {
-        type: 'string'
-      }
-    }
+        type: 'string',
+      },
+    },
   ],
   responses: {
     '200': {
-      description: 'Status 200'
+      description: 'Status 200',
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorToken'
+      $ref: '#/components/responses/UnauthorizedErrorToken',
     },
     '404': {
       description: 'Status 404',
@@ -692,15 +692,15 @@ const InstanceUpdate = {
                   type: 'object',
                   properties: {
                     message: {
-                      type: 'string'
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+                      type: 'string',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     },
     '500': {
       description: 'Status 500',
@@ -715,21 +715,21 @@ const InstanceUpdate = {
                   type: 'object',
                   properties: {
                     message: {
-                      type: 'string'
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                      type: 'string',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
   security: [
     {
-      bearerAuth: [] as []
-    }
+      bearerAuth: [] as [],
+    },
   ],
   requestBody: {
     content: {
@@ -738,10 +738,10 @@ const InstanceUpdate = {
           type: 'object',
           properties: {
             externalUrl: {
-              type: 'string'
+              type: 'string',
             },
             externalId: {
-              type: 'number'
+              type: 'number',
             },
             variations: {
               type: 'array',
@@ -750,27 +750,27 @@ const InstanceUpdate = {
                 type: 'object',
                 properties: {
                   sku: {
-                    type: 'string'
+                    type: 'string',
                   },
                   externalId: {
-                    type: 'number'
-                  }
-                }
+                    type: 'number',
+                  },
+                },
               },
-              minItems: 1
+              minItems: 1,
             },
             error: {
               type: 'array',
               items: {
-                type: 'string'
-              }
-            }
-          }
-        }
-      }
+                type: 'string',
+              },
+            },
+          },
+        },
+      },
     },
-    required: true
-  }
+    required: true,
+  },
 };
 
 const BulkProductInstance = {
@@ -787,15 +787,15 @@ const BulkProductInstance = {
             type: 'object',
             properties: {
               status: {
-                type: 'string'
-              }
-            }
-          }
-        }
-      }
+                type: 'string',
+              },
+            },
+          },
+        },
+      },
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorToken'
+      $ref: '#/components/responses/UnauthorizedErrorToken',
     },
     '500': {
       description: 'Status 500',
@@ -810,21 +810,21 @@ const BulkProductInstance = {
                   type: 'object',
                   properties: {
                     message: {
-                      type: 'string'
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                      type: 'string',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
   security: [
     {
-      bearerAuth: [] as []
-    }
+      bearerAuth: [] as [],
+    },
   ],
   requestBody: {
     content: {
@@ -836,19 +836,19 @@ const BulkProductInstance = {
             type: 'object',
             properties: {
               sku: {
-                type: 'string'
+                type: 'string',
               },
               externalUrl: {
-                type: 'string'
+                type: 'string',
               },
               externalId: {
-                type: 'string'
+                type: 'string',
               },
               error: {
                 type: 'array',
                 items: {
-                  type: 'string'
-                }
+                  type: 'string',
+                },
               },
               variations: {
                 type: 'array',
@@ -856,21 +856,21 @@ const BulkProductInstance = {
                   type: 'object',
                   properties: {
                     sku: {
-                      type: 'string'
+                      type: 'string',
                     },
                     externalId: {
-                      type: 'string'
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+                      type: 'string',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     },
-    required: true
-  }
+    required: true,
+  },
 };
 
 export const ProductsOpenapi: ServiceSchema = {
@@ -880,31 +880,31 @@ export const ProductsOpenapi: ServiceSchema = {
       schemas: {
         Product,
         ProductVariation,
-        Attribute
-      }
-    }
+        Attribute,
+      },
+    },
   },
   actions: {
     getInstanceProduct: {
-      openapi: GetInstanceProduct
+      openapi: GetInstanceProduct,
     },
     total: {
-      openapi: ProductsTotal
+      openapi: ProductsTotal,
     },
     list: {
-      openapi: ProductsList
+      openapi: ProductsList,
     },
     deleteInstanceProduct: {
-      openapi: DeleteInstanceProduct
+      openapi: DeleteInstanceProduct,
     },
     import: {
-      openapi: ProductsImport
+      openapi: ProductsImport,
     },
     InstanceUpdate: {
-      openapi: InstanceUpdate
+      openapi: InstanceUpdate,
     },
     bulkProductInstance: {
-      openapi: BulkProductInstance
-    }
-  }
+      openapi: BulkProductInstance,
+    },
+  },
 };

@@ -5,19 +5,19 @@ const Payment = {
   required: ['amount', 'customer_id', 'date', 'payment_id', 'payment_mode', 'unused_amount'],
   properties: {
     payment_id: {
-      type: 'string'
+      type: 'string',
     },
     customer_id: {
-      type: 'string'
+      type: 'string',
     },
     payment_mode: {
-      type: 'string'
+      type: 'string',
     },
     amount: {
-      type: 'number'
+      type: 'number',
     },
     unused_amount: {
-      type: 'number'
+      type: 'number',
     },
     invoices: {
       type: 'array',
@@ -26,28 +26,28 @@ const Payment = {
         type: 'object',
         properties: {
           amount_applied: {
-            type: 'number'
+            type: 'number',
           },
           invoice_id: {
-            type: 'string'
-          }
-        }
-      }
+            type: 'string',
+          },
+        },
+      },
     },
     bank_charges: {
-      type: 'number'
+      type: 'number',
     },
     date: {
       type: 'string',
-      format: 'date'
+      format: 'date',
     },
     account_id: {
-      type: 'string'
+      type: 'string',
     },
     account_name: {
-      type: 'string'
-    }
-  }
+      type: 'string',
+    },
+  },
 };
 
 const PaymentsAddOpenapi = {
@@ -58,9 +58,9 @@ const PaymentsAddOpenapi = {
       in: 'path',
       required: true,
       schema: {
-        type: 'string'
-      }
-    }
+        type: 'string',
+      },
+    },
   ],
   summary: 'Add Payment',
   description: 'This service available for some Enterprise subscriptions Only',
@@ -71,19 +71,19 @@ const PaymentsAddOpenapi = {
       content: {
         'application/json': {
           schema: {
-            $ref: '#/components/schemas/Payment'
-          }
-        }
-      }
+            $ref: '#/components/schemas/Payment',
+          },
+        },
+      },
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorBasic'
-    }
+      $ref: '#/components/responses/UnauthorizedErrorBasic',
+    },
   },
   security: [
     {
-      basicAuth: [] as []
-    }
+      basicAuth: [] as [],
+    },
   ],
   requestBody: {
     content: {
@@ -93,10 +93,10 @@ const PaymentsAddOpenapi = {
           required: ['amount', 'payment_mode'],
           properties: {
             payment_mode: {
-              type: 'string'
+              type: 'string',
             },
             amount: {
-              type: 'number'
+              type: 'number',
             },
             invoices: {
               type: 'array',
@@ -105,27 +105,27 @@ const PaymentsAddOpenapi = {
                 type: 'object',
                 properties: {
                   amount_applied: {
-                    type: 'number'
+                    type: 'number',
                   },
                   invoice_id: {
-                    type: 'string'
-                  }
-                }
-              }
+                    type: 'string',
+                  },
+                },
+              },
             },
             account_id: {
-              type: 'string'
+              type: 'string',
             },
             bank_charges: {
               type: 'string',
-              description: 'Requires account_id when used'
-            }
-          }
-        }
-      }
+              description: 'Requires account_id when used',
+            },
+          },
+        },
+      },
     },
-    required: true
-  }
+    required: true,
+  },
 };
 
 const PaymentsGetOpenapi = {
@@ -138,33 +138,33 @@ const PaymentsGetOpenapi = {
       in: 'query',
       required: false,
       schema: {
-        type: 'number'
-      }
+        type: 'number',
+      },
     },
     {
       name: 'limit',
       in: 'query',
       required: false,
       schema: {
-        type: 'number'
-      }
+        type: 'number',
+      },
     },
     {
       name: 'reference_number',
       in: 'query',
       required: false,
       schema: {
-        type: 'string'
-      }
+        type: 'string',
+      },
     },
     {
       name: 'payment_mode',
       in: 'query',
       required: false,
       schema: {
-        type: 'string'
-      }
-    }
+        type: 'string',
+      },
+    },
   ],
   responses: {
     '200': {
@@ -177,23 +177,23 @@ const PaymentsGetOpenapi = {
               payments: {
                 type: 'array',
                 items: {
-                  $ref: '#/components/schemas/Payment'
-                }
-              }
-            }
-          }
-        }
-      }
+                  $ref: '#/components/schemas/Payment',
+                },
+              },
+            },
+          },
+        },
+      },
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorToken'
-    }
+      $ref: '#/components/responses/UnauthorizedErrorToken',
+    },
   },
   security: [
     {
-      bearerAuth: [] as []
-    }
-  ]
+      bearerAuth: [] as [],
+    },
+  ],
 };
 
 export const PaymentsOpenapi: ServiceSchema = {
@@ -201,16 +201,16 @@ export const PaymentsOpenapi: ServiceSchema = {
   settings: {
     components: {
       schemas: {
-        Payment
-      }
-    }
+        Payment,
+      },
+    },
   },
   actions: {
     add: {
-      openapi: PaymentsAddOpenapi
+      openapi: PaymentsAddOpenapi,
     },
     get: {
-      openapi: PaymentsGetOpenapi
-    }
-  }
+      openapi: PaymentsGetOpenapi,
+    },
+  },
 };

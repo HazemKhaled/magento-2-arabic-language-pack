@@ -32,6 +32,6 @@ export const I18nService: ServiceSchema = {
       });
 
       return Object.keys(output).length ? output : false;
-    }
-  }
+    },
+  },
 };

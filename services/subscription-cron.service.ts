@@ -12,8 +12,8 @@ const TheService: ServiceSchema = {
       cronTime: process.env.SUBSCRIPTION_CRON || '* * * * *', // Every minute
       async onTick() {
         await this.call('subscription-cron.run');
-      }
-    }
+      },
+    },
   ],
 
   mixins: [Cron],
@@ -22,7 +22,7 @@ const TheService: ServiceSchema = {
       cache: false,
       async handler(ctx: Context) {
         const subscription = await ctx.call('subscription.getSubscriptionByExpireDate', {
-          days: 7
+          days: 7,
         });
         if (!subscription) {
           return null;
@@ -30,25 +30,25 @@ const TheService: ServiceSchema = {
         try {
           const createSubResponse = await ctx.call('subscription.create', {
             storeId: subscription.storeId,
-            membership: subscription.membershipId
+            membership: subscription.membershipId,
           });
           if (createSubResponse.id) {
             ctx.call('subscription.updateSubscription', {
               id: String(subscription.id),
-              renewed: true
+              renewed: true,
             });
             ctx.call('crm.addTagByUrl', {
               id: subscription.storeId,
-              tag: 'subscription-renew'
+              tag: 'subscription-renew',
             });
           }
           return createSubResponse;
         } catch (err) {
           this.logger.error(err);
         }
-      }
-    }
-  }
+      },
+    },
+  },
 };
 
 export = TheService;

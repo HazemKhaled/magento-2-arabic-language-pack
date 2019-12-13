@@ -34,16 +34,16 @@ const TheService: ServiceSchema = {
             }
             throw new MoleculerError(err, 500);
           });
-      }
+      },
     },
     get: {
       auth: 'Basic',
       params: {
-        id: [{ type: 'string' }, { type: 'number' }]
+        id: [{ type: 'string' }, { type: 'number' }],
       },
       cache: {
         keys: ['id'],
-        ttl: 60 * 60 // 1 hour
+        ttl: 60 * 60, // 1 hour
       },
       handler(ctx: Context): Promise<Membership> {
         return this.adapter
@@ -62,12 +62,12 @@ const TheService: ServiceSchema = {
             }
             throw new MoleculerError(err, 500);
           });
-      }
+      },
     },
     list: {
       auth: 'Basic',
       cache: {
-        ttl: 60 * 60 // 1 hour
+        ttl: 60 * 60, // 1 hour
       },
       handler(): Promise<Membership[]> {
         return this.adapter
@@ -82,7 +82,7 @@ const TheService: ServiceSchema = {
             }
             throw new MoleculerError(err, 500);
           });
-      }
+      },
     },
     update: {
       auth: 'Basic',
@@ -107,8 +107,8 @@ const TheService: ServiceSchema = {
             }
             throw new MoleculerError(err, 500);
           });
-      }
-    }
+      },
+    },
   },
   methods: {
     /**
@@ -120,12 +120,12 @@ const TheService: ServiceSchema = {
     normalizeId(obj: { _id: string }) {
       const newObj = {
         id: obj._id,
-        ...obj
+        ...obj,
       };
       delete newObj._id;
       return newObj;
-    }
-  }
+    },
+  },
 };
 
 export = TheService;
