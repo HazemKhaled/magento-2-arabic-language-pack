@@ -18,6 +18,7 @@
     "test": "jest --coverage",
     "lint": "npx eslint . --ext .ts,.tsx",
     "lint-fix": "npx eslint . --ext .ts,.tsx --fix",
+    "cdoc": "node ./utilities/scripts/docs-checker.script.js",
     "prettier": "prettier services/*.ts utilities/**/*.ts *.ts --write"
   },
   "devDependencies": {

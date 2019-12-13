@@ -144,7 +144,7 @@ const CategoriesListOpenapi = {
 };
 
 export const CategoriesOpenapi: ServiceSchema = {
-  name: 'openapi',
+  name: 'categories',
   settings: {
     openapi: CategoriesSettingsOpenapi,
   },

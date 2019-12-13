@@ -197,7 +197,7 @@ const PaymentsGetOpenapi = {
 };
 
 export const PaymentsOpenapi: ServiceSchema = {
-  name: 'openapi',
+  name: 'payments',
   settings: {
     components: {
       schemas: {

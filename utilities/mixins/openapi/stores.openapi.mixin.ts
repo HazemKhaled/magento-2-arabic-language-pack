@@ -609,7 +609,7 @@ const StoresUpdateOpenapi = {
 };
 
 export const StoresOpenapi: ServiceSchema = {
-  name: 'openapi',
+  name: 'stores',
   settings: {
     components: {
       schemas: {

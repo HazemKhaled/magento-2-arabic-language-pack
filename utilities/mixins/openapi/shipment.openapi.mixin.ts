@@ -283,7 +283,7 @@ const ShipmentGetCurriersOpenapi = {
 };
 
 export const ShipmentOpenapi: ServiceSchema = {
-  name: 'openapi',
+  name: 'shipment',
   settings: {
     components: {
       schemas: {

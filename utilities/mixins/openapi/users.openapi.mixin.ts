@@ -56,7 +56,7 @@ const UsersLoginOpenapi = {
 };
 
 export const UsersOpenapi: ServiceSchema = {
-  name: 'openapi',
+  name: 'users',
   actions: {
     login: {
       openapi: UsersLoginOpenapi,
