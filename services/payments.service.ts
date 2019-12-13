@@ -1,88 +1,13 @@
 import { Context, Errors, ServiceSchema } from 'moleculer';
+import { PaymentsOpenapi } from '../utilities/mixins/openapi';
 import { Payment, PaymentInvoice } from '../utilities/types';
 const MoleculerError = Errors.MoleculerError;
 
 const TheService: ServiceSchema = {
   name: 'payments',
+  mixins: [PaymentsOpenapi],
   actions: {
     add: {
-      openapi: {
-        $path: 'post /payments/{storeId}',
-        parameters: [
-          {
-            name: 'storeId',
-            in: 'path',
-            required: true,
-            schema: {
-              type: 'string'
-            }
-          }
-        ],
-        summary: 'Add Payment',
-        description: 'This service available for some Enterprise subscriptions Only',
-        tags: ['Payments', 'Enterprise Only'],
-        responses: {
-          '200': {
-            description: 'Status 200',
-            content: {
-              'application/json': {
-                schema: {
-                  $ref: '#/components/schemas/Payment'
-                }
-              }
-            }
-          },
-          '401': {
-            $ref: '#/components/responses/UnauthorizedErrorBasic'
-          }
-        },
-        security: [
-          {
-            basicAuth: []
-          }
-        ],
-        requestBody: {
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                required: ['amount', 'payment_mode'],
-                properties: {
-                  payment_mode: {
-                    type: 'string'
-                  },
-                  amount: {
-                    type: 'number'
-                  },
-                  invoices: {
-                    type: 'array',
-                    items: {
-                      required: ['amount_applied', 'invoice_id'],
-                      type: 'object',
-                      properties: {
-                        amount_applied: {
-                          type: 'number'
-                        },
-                        invoice_id: {
-                          type: 'string'
-                        }
-                      }
-                    }
-                  },
-                  account_id: {
-                    type: 'string'
-                  },
-                  bank_charges: {
-                    type: 'string',
-                    description: 'Requires account_id when used'
-                  }
-                }
-              }
-            }
-          },
-          required: true
-        }
-      },
       auth: 'Basic',
       params: {
         id: [{ type: 'string' }, { type: 'number', integer: true }],
@@ -118,9 +43,9 @@ const TheService: ServiceSchema = {
               amount: ctx.params.amount,
               invoices: ctx.params.invoices
                 ? ctx.params.invoices.map((invoice: { [key: string]: string }) => ({
-                    invoiceId: invoice.invoice_id,
-                    amountApplied: invoice.amount_applied
-                  }))
+                  invoiceId: invoice.invoice_id,
+                  amountApplied: invoice.amount_applied
+                }))
                 : undefined,
               accountId: ctx.params.account_id,
               bankCharges: ctx.params.bank_charges,
@@ -144,73 +69,6 @@ const TheService: ServiceSchema = {
       }
     },
     get: {
-      openapi: {
-        $path: 'get /payments',
-        summary: 'List Payments',
-        tags: ['Payments'],
-        parameters: [
-          {
-            name: 'page',
-            in: 'query',
-            required: false,
-            schema: {
-              type: 'number'
-            }
-          },
-          {
-            name: 'limit',
-            in: 'query',
-            required: false,
-            schema: {
-              type: 'number'
-            }
-          },
-          {
-            name: 'reference_number',
-            in: 'query',
-            required: false,
-            schema: {
-              type: 'string'
-            }
-          },
-          {
-            name: 'payment_mode',
-            in: 'query',
-            required: false,
-            schema: {
-              type: 'string'
-            }
-          }
-        ],
-        responses: {
-          '200': {
-            description: 'Status 200',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    payments: {
-                      type: 'array',
-                      items: {
-                        $ref: '#/components/schemas/Payment'
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          '401': {
-            $ref: '#/components/responses/UnauthorizedErrorToken'
-          }
-        },
-        security: [
-          {
-            bearerAuth: []
-          }
-        ]
-      },
       auth: 'Bearer',
       cache: {
         keys: ['#user', 'page', 'limit', 'reference_number', 'payment_mode'],

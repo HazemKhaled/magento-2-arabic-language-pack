@@ -1,11 +1,11 @@
 const ESService = require('moleculer-elasticsearch');
 const { MoleculerClientError } = require('moleculer').Errors;
-
+const { ProductsListOpenapi } = require('../utilities/mixins/openapi');
 const Transformation = require('../utilities/mixins/product-transformation.mixin');
 
 module.exports = {
   name: 'products-list',
-  mixins: [Transformation, ESService],
+  mixins: [Transformation, ESService, ProductsListOpenapi],
   settings: {
     elasticsearch: {
       host: `http://${process.env.ELASTIC_AUTH}@${process.env.ELASTIC_HOST}:${
@@ -23,24 +23,6 @@ module.exports = {
       }
     },
     list: {
-      openapi: {
-        $path: 'get /products',
-        summary: 'Get all Knawat Products',
-        tags: ['Products', 'Enterprise Only'],
-        responses: {
-          '200': {
-            description: 'Status 200'
-          },
-          '401': {
-            $ref: '#/components/responses/UnauthorizedErrorBasic'
-          }
-        },
-        security: [
-          {
-            basicAuth: []
-          }
-        ]
-      },
       auth: 'Basic',
       params: {
         limit: {
@@ -192,34 +174,6 @@ module.exports = {
       }
     },
     get: {
-      openapi: {
-        $path: 'get /products/{sku}',
-        parameters: [
-          {
-            name: 'sku',
-            in: 'path',
-            required: true,
-            schema: {
-              type: 'string'
-            }
-          }
-        ],
-        summary: 'Get Product by SKU',
-        tags: ['Products', 'Enterprise Only'],
-        responses: {
-          '200': {
-            description: 'Status 200'
-          },
-          '401': {
-            $ref: '#/components/responses/UnauthorizedErrorBasic'
-          }
-        },
-        security: [
-          {
-            basicAuth: []
-          }
-        ]
-      },
       auth: 'Basic',
       handler() {
         throw new MoleculerClientError('Not Implemented Yet!!');

@@ -3,12 +3,13 @@ import DbService from '../utilities/mixins/mongo.mixin';
 const MoleculerError = Errors.MoleculerError;
 
 import { v1 as uuidv1, v4 as uuidv4 } from 'uuid';
-import { Log, OmsStore, ResError, Store, StoreUser } from '../utilities/types';
+import { StoresOpenapi } from '../utilities/mixins/openapi';
+import { Log, OmsStore, Store, StoreUser } from '../utilities/types';
 import { createValidation, updateValidation } from '../utilities/validations/stores.validate';
 
 const TheService: ServiceSchema = {
   name: 'stores',
-  mixins: [DbService('stores')],
+  mixins: [DbService('stores'), StoresOpenapi],
   actions: {
     /**
      * This function is used locally by mp to get an instance with consumerKey
@@ -48,54 +49,6 @@ const TheService: ServiceSchema = {
      * @returns {Store}
      */
     me: {
-      openapi: {
-        $path: 'get /stores/me',
-        summary: 'My Store info',
-        tags: ['Stores'],
-        responses: {
-          '200': {
-            description: 'Status 200',
-            content: {
-              'application/json': {
-                schema: {
-                  $ref: '#/components/schemas/Store'
-                }
-              }
-            }
-          },
-          '401': {
-            $ref: '#/components/responses/UnauthorizedErrorToken'
-          },
-          '404': {
-            description: 'Status 404',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    errors: {
-                      type: 'array',
-                      items: {
-                        type: 'object',
-                        properties: {
-                          message: {
-                            type: 'string'
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        security: [
-          {
-            bearerAuth: []
-          }
-        ]
-      },
       auth: 'Bearer',
       cache: {
         keys: ['#user'],
@@ -132,73 +85,6 @@ const TheService: ServiceSchema = {
      * @returns {Store}
      */
     get: {
-      openapi: {
-        $path: 'get /stores/{url}',
-        summary: 'Get Store by url',
-        tags: ['Stores', 'Enterprise Only'],
-        parameters: [
-          {
-            name: 'Authorization',
-            in: 'header',
-            required: true,
-            schema: {
-              type: 'string'
-            }
-          },
-
-          {
-            name: 'url',
-            in: 'path',
-            required: true,
-            schema: {
-              type: 'string'
-            }
-          }
-        ],
-        responses: {
-          '200': {
-            description: 'Status 200',
-            content: {
-              'application/json': {
-                schema: {
-                  $ref: '#/components/schemas/Store'
-                }
-              }
-            }
-          },
-          '401': {
-            $ref: '#/components/responses/UnauthorizedErrorBasic'
-          },
-          '404': {
-            description: 'Status 404',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    errors: {
-                      type: 'array',
-                      items: {
-                        type: 'object',
-                        properties: {
-                          message: {
-                            type: 'string'
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        security: [
-          {
-            basicAuth: []
-          }
-        ]
-      },
       auth: 'Basic',
       cache: {
         keys: ['id'],
@@ -246,75 +132,6 @@ const TheService: ServiceSchema = {
      * @returns {Store[]}
      */
     list: {
-      openapi: {
-        $path: 'get /stores',
-        summary: 'All User Stores',
-        tags: ['Stores', 'Enterprise Only'],
-        parameters: [
-          {
-            name: 'filter',
-            in: 'query',
-            required: false,
-            schema: {
-              type: 'string'
-            }
-          },
-          {
-            name: 'Authorization',
-            in: 'header',
-            required: true,
-            schema: {
-              type: 'string'
-            }
-          }
-        ],
-        responses: {
-          '200': {
-            description: 'Status 200',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'array',
-                  items: {
-                    $ref: '#/components/schemas/Store'
-                  }
-                }
-              }
-            }
-          },
-          '401': {
-            $ref: '#/components/responses/UnauthorizedErrorBasic'
-          },
-          '404': {
-            description: 'Status 404',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    errors: {
-                      type: 'array',
-                      items: {
-                        type: 'object',
-                        properties: {
-                          message: {
-                            type: 'string'
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        security: [
-          {
-            basicAuth: []
-          }
-        ]
-      },
       auth: 'Basic',
       cache: {
         keys: ['filter'],
@@ -356,97 +173,6 @@ const TheService: ServiceSchema = {
       }
     },
     storesList: {
-      openapi: {
-        $path: 'get /admin/stores',
-        summary: 'All Stores',
-        tags: ['Stores'],
-        parameters: [
-          {
-            name: 'id',
-            in: 'query',
-            required: false,
-            schema: {
-              type: 'string'
-            }
-          },
-          {
-            name: 'page',
-            in: 'query',
-            required: false,
-            schema: {
-              type: 'number'
-            }
-          },
-          {
-            name: 'perPage',
-            in: 'query',
-            required: false,
-            schema: {
-              type: 'number'
-            }
-          },
-          {
-            name: 'Authorization',
-            in: 'header',
-            required: true,
-            schema: {
-              type: 'string'
-            }
-          }
-        ],
-        responses: {
-          '200': {
-            description: 'Status 200',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    stores: {
-                      type: 'array',
-                      items: {
-                        $ref: '#/components/schemas/Store'
-                      }
-                    },
-                    total: { type: 'number' }
-                  }
-                }
-              }
-            }
-          },
-          '401': {
-            $ref: '#/components/responses/UnauthorizedErrorBasic'
-          },
-          '404': {
-            description: 'Status 404',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    errors: {
-                      type: 'array',
-                      items: {
-                        type: 'object',
-                        properties: {
-                          message: {
-                            type: 'string'
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        security: [
-          {
-            basicAuth: []
-          }
-        ]
-      },
       auth: 'Basic',
       cache: {
         keys: ['id', 'page', 'perPage'],
@@ -502,67 +228,6 @@ const TheService: ServiceSchema = {
      * @returns {Store}
      */
     create: {
-      openapi: {
-        $path: 'post /stores',
-        summary: 'Create new store',
-        tags: ['Stores', 'Enterprise Only'],
-        parameters: [
-          {
-            name: 'Authorization',
-            in: 'header',
-            required: true,
-            schema: {
-              type: 'string'
-            }
-          }
-        ],
-        responses: {
-          '200': {
-            description: 'Status 200',
-            content: {
-              'application/json': {
-                schema: {
-                  $ref: '#/components/schemas/Store'
-                }
-              }
-            }
-          },
-          '401': {
-            $ref: '#/components/responses/UnauthorizedErrorBasic'
-          },
-          '500': {
-            description: 'Status 500',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    errors: {
-                      type: 'array',
-                      items: {
-                        type: 'object',
-                        properties: {
-                          message: {
-                            type: 'string'
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        security: [
-          {
-            basicAuth: []
-          }
-        ],
-        requestBody: {
-          $ref: '#/components/requestBodies/Store'
-        }
-      },
       auth: 'Basic',
       params: createValidation,
       async handler(ctx: Context) {
@@ -626,75 +291,6 @@ const TheService: ServiceSchema = {
      * @returns {Store}
      */
     update: {
-      openapi: {
-        $path: 'put /stores/{url}',
-        summary: 'Update Store by URL',
-        tags: ['Stores', 'Enterprise Only'],
-        parameters: [
-          {
-            name: 'url',
-            in: 'path',
-            required: true,
-            schema: {
-              type: 'string'
-            }
-          },
-          {
-            name: 'Authorization',
-            in: 'header',
-            required: true,
-            schema: {
-              type: 'string'
-            }
-          }
-        ],
-        responses: {
-          '200': {
-            description: 'Status 200',
-            content: {
-              'application/json': {
-                schema: {
-                  $ref: '#/components/schemas/Store'
-                }
-              }
-            }
-          },
-          '401': {
-            $ref: '#/components/responses/UnauthorizedErrorBasic'
-          },
-          '500': {
-            description: 'Status 500',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    errors: {
-                      type: 'array',
-                      items: {
-                        type: 'object',
-                        properties: {
-                          message: {
-                            type: 'string'
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        security: [
-          {
-            basicAuth: []
-          }
-        ],
-        requestBody: {
-          $ref: '#/components/requestBodies/Store'
-        }
-      },
       auth: 'Basic',
       params: updateValidation,
       async handler(ctx: Context) {
