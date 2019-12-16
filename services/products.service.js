@@ -10,7 +10,7 @@ const {
 } = require('../utilities/mixins/openapi');
 const {
   ProductsValidation
-} = require('../utilities/mixins/validation/products-list.validate');
+} = require('../utilities/mixins/validation');
 
 module.exports = {
   name: 'products',
@@ -433,8 +433,7 @@ module.exports = {
             doc: pi
           });
         });
-        return bulk.length === 0 ?
-          [] :
+        return bulk.length === 0 ? [] :
           this.broker
           .call('products.bulk', {
             body: bulk
@@ -696,8 +695,7 @@ module.exports = {
       page = parseInt(page) || 1;
       let search = [];
       const mustNot =
-        parseInt(hideOutOfStock) === 1 ?
-        [{
+        parseInt(hideOutOfStock) === 1 ? [{
           term: {
             deleted: true
           }
@@ -705,8 +703,7 @@ module.exports = {
           term: {
             archive: true
           }
-        }] :
-        [{
+        }] : [{
           term: {
             deleted: true
           }
