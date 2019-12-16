@@ -900,7 +900,7 @@ export const ProductsOpenapi: ServiceSchema = {
     import: {
       openapi: ProductsImport,
     },
-    InstanceUpdate: {
+    instanceUpdate: {
       openapi: InstanceUpdate,
     },
     bulkProductInstance: {
