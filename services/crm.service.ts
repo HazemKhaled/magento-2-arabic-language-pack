@@ -2,11 +2,12 @@ import FormData from 'form-data';
 import { Context, Errors, ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
 import { CrmStore, OrderAddress, Store } from '../utilities/types';
-import { UpdateCrmStoreValidation } from '../utilities/validations';
+import { CrmValidation } from '../utilities/mixins/validation';
 const MoleculerError = Errors.MoleculerError;
 
 const TheService: ServiceSchema = {
   name: 'crm',
+  mixins: [CrmValidation],
   settings: {
     accessToken: '',
   },
@@ -35,9 +36,6 @@ const TheService: ServiceSchema = {
     },
     findStoreByUrl: {
       cache: false,
-      params: {
-        id: { type: 'string' },
-      },
       handler(ctx: Context) {
         return this.request({
           path: 'crm/v2/accounts/search',
@@ -53,7 +51,6 @@ const TheService: ServiceSchema = {
       },
     },
     updateStoreById: {
-      params: UpdateCrmStoreValidation,
       async handler(ctx: Context) {
         const crmStore = await ctx.call('crm.findStoreByUrl', { id: ctx.params.id });
         ctx.params.id = crmStore.id;
@@ -66,10 +63,6 @@ const TheService: ServiceSchema = {
       },
     },
     addTagsByUrl: {
-      params: {
-        id: { type: 'string' },
-        tag: { type: 'string' },
-      },
       async handler(ctx: Context) {
         const crmStore = await ctx.call('crm.findStoreByUrl', { id: ctx.params.id });
         return this.request({

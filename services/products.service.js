@@ -1,12 +1,20 @@
-const { MoleculerClientError } = require('moleculer').Errors;
+const {
+  MoleculerClientError
+} = require('moleculer').Errors;
 const ESService = require('moleculer-elasticsearch');
-const { ProductTransformation } = require('../utilities/mixins/product-transformation.mixin');
-const { ProductsOpenapi } = require('../utilities/mixins/openapi');
+const {
+  ProductTransformation
+} = require('../utilities/mixins/product-transformation.mixin');
+const {
+  ProductsOpenapi
+} = require('../utilities/mixins/openapi');
+const {
+  ProductsValidation
+} = require('../utilities/mixins/validation/products-list.validate');
 
 module.exports = {
   name: 'products',
 
-  mixins: [ProductsOpenapi],
   /**
    * Service settings
    */
@@ -21,7 +29,7 @@ module.exports = {
   /**
    * Service Mixins
    */
-  mixins: [ProductTransformation, ESService],
+  mixins: [ProductTransformation, ESService, ProductsValidation, ProductsOpenapi],
 
   /**
    * Actions
@@ -34,10 +42,17 @@ module.exports = {
      */
     getInstanceProduct: {
       auth: 'Bearer',
-      cache: { keys: ['#user', 'sku'], ttl: 60 },
+      cache: {
+        keys: ['#user', 'sku'],
+        ttl: 60
+      },
       async handler(ctx) {
-        const { sku } = ctx.params;
-        let { _source } = ctx.params;
+        const {
+          sku
+        } = ctx.params;
+        let {
+          _source
+        } = ctx.params;
 
         const fields = [
           'sku',
@@ -61,14 +76,24 @@ module.exports = {
         if (product === 404) {
           ctx.meta.$statusCode = 404;
           ctx.meta.$statusMessage = 'Not Found';
-          return { errors: [{ message: 'Product not found!' }] };
+          return {
+            errors: [{
+              message: 'Product not found!'
+            }]
+          };
         }
         if (product === 500) {
           ctx.meta.$statusCode = 500;
           ctx.meta.$statusMessage = 'Internal Error';
-          return { errors: [{ message: 'Internal server error!' }] };
+          return {
+            errors: [{
+              message: 'Internal server error!'
+            }]
+          };
         }
-        return { product };
+        return {
+          product
+        };
       }
     },
 
@@ -85,19 +110,20 @@ module.exports = {
             body: {
               query: {
                 bool: {
-                  filter: [
-                    {
-                      term: {
-                        'instanceId.keyword': ctx.meta.user
-                      }
+                  filter: [{
+                    term: {
+                      'instanceId.keyword': ctx.meta.user
                     }
-                  ],
-                  must_not: [
-                    {
-                      term: { deleted: true }
+                  }],
+                  must_not: [{
+                      term: {
+                        deleted: true
+                      }
                     },
                     {
-                      term: { archive: true }
+                      term: {
+                        archive: true
+                      }
                     }
                   ]
                 }
@@ -109,14 +135,14 @@ module.exports = {
               ctx.meta.$statusCode = 500;
               ctx.meta.$statusMessage = 'Internal Server Error';
               return {
-                errors: [
-                  {
-                    message: 'Something went wrong!'
-                  }
-                ]
+                errors: [{
+                  message: 'Something went wrong!'
+                }]
               };
             }
-            return { total: res.count };
+            return {
+              total: res.count
+            };
           });
       }
     },
@@ -128,21 +154,6 @@ module.exports = {
      */
     list: {
       auth: 'Bearer',
-      params: {
-        limit: {
-          type: 'number',
-          convert: true,
-          integer: true,
-          min: 1,
-          max: 100,
-          optional: true
-        },
-        page: { type: 'number', convert: true, integer: true, min: 1, optional: true },
-        lastupdate: { type: 'string', empty: false, optional: true },
-        hideOutOfStock: { type: 'number', empty: false, convert: true, optional: true },
-        keyword: { type: 'string', optional: true },
-        currency: { type: 'string', optional: true, min: 3, max: 3 }
-      },
       cache: {
         keys: [
           '#user',
@@ -158,8 +169,14 @@ module.exports = {
         monitor: true
       },
       async handler(ctx) {
-        const { page, limit, lastupdate = '' } = ctx.params;
-        let { _source } = ctx.params;
+        const {
+          page,
+          limit,
+          lastupdate = ''
+        } = ctx.params;
+        let {
+          _source
+        } = ctx.params;
 
         const fields = [
           'sku',
@@ -203,11 +220,10 @@ module.exports = {
      */
     deleteInstanceProduct: {
       auth: 'Bearer',
-      params: {
-        sku: { type: 'string' }
-      },
       handler(ctx) {
-        const { sku } = ctx.params;
+        const {
+          sku
+        } = ctx.params;
 
         return this.deleteProduct(sku, ctx.meta.user)
           .then(product => {
@@ -215,43 +231,38 @@ module.exports = {
             if (product === 404) {
               ctx.meta.$statusCode = 404;
               ctx.meta.$statusMessage = 'Not Found';
-              return { errors: [{ message: 'Product not found!' }] };
+              return {
+                errors: [{
+                  message: 'Product not found!'
+                }]
+              };
             }
             if (product === 500) {
               ctx.meta.$statusCode = 500;
               ctx.meta.$statusMessage = 'Internal Error';
-              return { errors: [{ message: 'Internal Server Error!' }] };
+              return {
+                errors: [{
+                  message: 'Internal Server Error!'
+                }]
+              };
             }
-            return { product };
+            return {
+              product
+            };
           })
           .catch(() => {
             ctx.meta.$statusCode = 500;
             ctx.meta.$statusMessage = 'Internal Server Error';
             return {
-              errors: [
-                {
-                  message: 'Something went wrong!'
-                }
-              ]
+              errors: [{
+                message: 'Something went wrong!'
+              }]
             };
           });
       }
     },
     import: {
       auth: 'Bearer',
-      params: {
-        products: {
-          type: 'array',
-          items: {
-            type: 'object',
-            props: {
-              sku: { type: 'string', convert: true }
-            }
-          },
-          max: 1000,
-          min: 1
-        }
-      },
       handler(ctx) {
         const skus = ctx.params.products.map(i => i.sku);
 
@@ -263,7 +274,15 @@ module.exports = {
             body: {
               query: {
                 bool: {
-                  filter: [{ terms: { _id: skus } }, { term: { archive: false } }]
+                  filter: [{
+                    terms: {
+                      _id: skus
+                    }
+                  }, {
+                    term: {
+                      archive: false
+                    }
+                  }]
                 }
               }
             }
@@ -292,7 +311,9 @@ module.exports = {
                   sku: product._id,
                   variations: product._source.variations
                     .filter(variation => variation.quantity > 0)
-                    .map(variation => ({ sku: variation.sku }))
+                    .map(variation => ({
+                      sku: variation.sku
+                    }))
                 });
               });
             }
@@ -329,9 +350,10 @@ module.exports = {
                   ctx.meta.$statusCode = 500;
                   ctx.meta.$statusMessage = 'Internal Server Error';
                   return {
-                    errors: [
-                      { message: 'There was an error with importing your products', skus: skus }
-                    ]
+                    errors: [{
+                      message: 'There was an error with importing your products',
+                      skus: skus
+                    }]
                   };
                 }
                 return {
@@ -344,32 +366,6 @@ module.exports = {
     },
     instanceUpdate: {
       auth: 'Bearer',
-      params: {
-        sku: { type: 'string', convert: true },
-        externalUrl: { type: 'string', optional: true },
-        externalId: { type: 'number', convert: true, optional: true },
-        errors: {
-          type: 'array',
-          optional: true,
-          items: { type: 'string' }
-        },
-        variations: {
-          type: 'array',
-          optional: true,
-          items: {
-            type: 'object',
-            props: {
-              sku: { type: 'string', convert: true, optional: true },
-              externalId: { type: 'number', optional: true, convert: true },
-              errors: {
-                type: 'array',
-                optional: true,
-                items: { type: 'string' }
-              }
-            }
-          }
-        }
-      },
       handler(ctx) {
         const body = {};
         if (ctx.params.externalUrl) body.externalUrl = ctx.params.externalUrl;
@@ -381,19 +377,23 @@ module.exports = {
             index: 'products-instances',
             type: 'product',
             id: `${ctx.meta.user}-${ctx.params.sku}`,
-            body: { doc: body }
+            body: {
+              doc: body
+            }
           })
           .then(res => {
             if (res.result === 'updated')
-              return { status: 'success', message: 'Updated successfully!', sku: ctx.params.sku };
+              return {
+                status: 'success',
+                message: 'Updated successfully!',
+                sku: ctx.params.sku
+              };
             ctx.meta.$statusCode = 500;
             ctx.meta.$statusMessage = 'Internal Server Error';
             return {
-              errors: [
-                {
-                  message: 'Something went wrong!'
-                }
-              ]
+              errors: [{
+                message: 'Something went wrong!'
+              }]
             };
           })
           .catch(err => {
@@ -401,56 +401,23 @@ module.exports = {
               ctx.meta.$statusCode = 404;
               ctx.meta.$statusMessage = 'Not Found';
               return {
-                errors: [
-                  {
-                    message: 'Not Found!'
-                  }
-                ]
+                errors: [{
+                  message: 'Not Found!'
+                }]
               };
             }
             ctx.meta.$statusCode = 500;
             ctx.meta.$statusMessage = 'Internal Server Error';
             return {
-              errors: [
-                {
-                  message: 'Something went wrong!'
-                }
-              ]
+              errors: [{
+                message: 'Something went wrong!'
+              }]
             };
           });
       }
     },
     bulkProductInstance: {
       auth: 'Bearer',
-      params: {
-        productInstances: {
-          type: 'array',
-          items: {
-            type: 'object',
-            props: {
-              sku: { type: 'string', convert: true },
-              externalUrl: { type: 'string', optional: true },
-              externalId: { type: 'string', convert: true, optional: true },
-              error: {
-                type: 'array',
-                optional: true,
-                items: { type: 'string' }
-              },
-              variations: {
-                type: 'array',
-                optional: true,
-                items: {
-                  type: 'object',
-                  props: {
-                    sku: { type: 'string', convert: true, optional: true },
-                    externalId: { type: 'string', optional: true, convert: true }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
       handler(ctx) {
         const bulk = [];
         ctx.params.productInstances.forEach(pi => {
@@ -462,37 +429,37 @@ module.exports = {
             }
           });
           delete pi.sku;
-          bulk.push({ doc: pi });
+          bulk.push({
+            doc: pi
+          });
         });
-        return bulk.length === 0
-          ? []
-          : this.broker
-              .call('products.bulk', {
-                body: bulk
-              })
-              .then(res => {
-                if (res.errors === false) return { status: 'success' };
-                ctx.meta.$statusCode = 500;
-                ctx.meta.$statusMessage = 'Internal Server Error';
-                return {
-                  errors: [
-                    {
-                      message: 'Update Error!'
-                    }
-                  ]
-                };
-              })
-              .catch(() => {
-                ctx.meta.$statusCode = 500;
-                ctx.meta.$statusMessage = 'Internal Server Error';
-                return {
-                  errors: [
-                    {
-                      message: 'Something went wrong!'
-                    }
-                  ]
-                };
-              });
+        return bulk.length === 0 ?
+          [] :
+          this.broker
+          .call('products.bulk', {
+            body: bulk
+          })
+          .then(res => {
+            if (res.errors === false) return {
+              status: 'success'
+            };
+            ctx.meta.$statusCode = 500;
+            ctx.meta.$statusMessage = 'Internal Server Error';
+            return {
+              errors: [{
+                message: 'Update Error!'
+              }]
+            };
+          })
+          .catch(() => {
+            ctx.meta.$statusCode = 500;
+            ctx.meta.$statusMessage = 'Internal Server Error';
+            return {
+              errors: [{
+                message: 'Something went wrong!'
+              }]
+            };
+          });
       }
     }
   },
@@ -505,7 +472,9 @@ module.exports = {
      * @memberof ElasticLib
      */
     async fetchProduct(sku, id, _source) {
-      const instance = await this.broker.call('stores.findInstance', { consumerKey: id });
+      const instance = await this.broker.call('stores.findInstance', {
+        consumerKey: id
+      });
       try {
         const result = await this.broker
           .call('products.search', {
@@ -525,24 +494,24 @@ module.exports = {
             }
           })
           .then(res =>
-            res.hits.total > 0
-              ? this.broker.call('products.search', {
-                  index: 'products',
-                  type: 'Product',
-                  _source: _source,
-                  body: {
-                    query: {
-                      bool: {
-                        filter: {
-                          term: {
-                            _id: sku
-                          }
-                        }
+            res.hits.total > 0 ?
+            this.broker.call('products.search', {
+              index: 'products',
+              type: 'Product',
+              _source: _source,
+              body: {
+                query: {
+                  bool: {
+                    filter: {
+                      term: {
+                        _id: sku
                       }
                     }
                   }
-                })
-              : res
+                }
+              }
+            }) :
+            res
           );
         if (result.hits.total === 0) {
           return 404;
@@ -727,9 +696,21 @@ module.exports = {
       page = parseInt(page) || 1;
       let search = [];
       const mustNot =
-        parseInt(hideOutOfStock) === 1
-          ? [{ term: { deleted: true } }, { term: { archive: true } }]
-          : [{ term: { deleted: true } }];
+        parseInt(hideOutOfStock) === 1 ?
+        [{
+          term: {
+            deleted: true
+          }
+        }, {
+          term: {
+            archive: true
+          }
+        }] :
+        [{
+          term: {
+            deleted: true
+          }
+        }];
       try {
         if (!scrollId) {
           const searchQuery = {
@@ -738,11 +719,19 @@ module.exports = {
             scroll: '1m',
             size: process.env.SCROLL_LIMIT,
             body: {
-              sort: [{ createdAt: { order: 'asc' } }],
+              sort: [{
+                createdAt: {
+                  order: 'asc'
+                }
+              }],
               query: {
                 bool: {
                   must_not: mustNot,
-                  must: [{ term: { 'instanceId.keyword': instanceId } }]
+                  must: [{
+                    term: {
+                      'instanceId.keyword': instanceId
+                    }
+                  }]
                 }
               }
             }
@@ -761,8 +750,7 @@ module.exports = {
           // Get new an updated products only
           if (lastUpdated && lastUpdated !== '') {
             const lastUpdatedDate = new Date(Number(lastUpdated) * 1000).toISOString();
-            searchQuery.body.query.bool.should = [
-              {
+            searchQuery.body.query.bool.should = [{
                 range: {
                   updated: {
                     gte: lastUpdatedDate
@@ -796,7 +784,10 @@ module.exports = {
         } else {
           search = await this.broker.call('products.call', {
             api: 'scroll',
-            params: { scroll: '30s', scrollId: scrollId }
+            params: {
+              scroll: '30s',
+              scrollId: scrollId
+            }
           });
         }
 

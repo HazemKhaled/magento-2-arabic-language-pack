@@ -4,12 +4,13 @@ import fetch from 'node-fetch';
 
 import { UsersOpenapi } from '../utilities/mixins/openapi';
 import { Store, StoreUser } from '../utilities/types';
+import { UsersValidation } from '../utilities/mixins/validation';
 
 const { MoleculerClientError } = Errors;
 
 const TheService: ServiceSchema = {
   name: 'users',
-  mixins: [UsersOpenapi],
+  mixins: [UsersValidation, UsersOpenapi],
 
   /**
    * Default settings
@@ -41,10 +42,6 @@ const TheService: ServiceSchema = {
      * @returns {Object} Logged in user with token
      */
     login: {
-      params: {
-        consumerKey: { type: 'string' },
-        consumerSecret: { type: 'string' },
-      },
       handler(ctx: Context) {
         const { consumerKey, consumerSecret } = ctx.params;
 
@@ -103,9 +100,6 @@ const TheService: ServiceSchema = {
         keys: ['token'],
         ttl: 60 * 60, // 1 hour
       },
-      params: {
-        token: 'string',
-      },
       handler(ctx: Context) {
         return new this.Promise((resolve: any, reject: any) => {
           jwt.verify(
@@ -149,9 +143,6 @@ const TheService: ServiceSchema = {
       cache: {
         keys: ['token'],
         ttl: 60 * 60, // 1 hour
-      },
-      params: {
-        token: 'string',
       },
       handler(ctx: Context) {
         return fetch(`${process.env.AUTH_BASEURL}/login`, {

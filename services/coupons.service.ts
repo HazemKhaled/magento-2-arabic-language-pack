@@ -2,16 +2,15 @@ import { Context, Errors, ServiceSchema } from 'moleculer';
 import DbService from '../utilities/mixins/mongo.mixin';
 import { CouponsOpenapi } from '../utilities/mixins/openapi';
 import { Coupon } from '../utilities/types';
-import { CreateCouponValidation, UpdateCouponValidation } from '../utilities/validations';
+import { CouponsValidation } from '../utilities/mixins/validation';
 const MoleculerError = Errors.MoleculerError;
 
 const TheService: ServiceSchema = {
   name: 'coupons',
-  mixins: [DbService('coupons'), CouponsOpenapi],
+  mixins: [DbService('coupons'), CouponsValidation, CouponsOpenapi],
   actions: {
     create: {
       auth: 'Basic',
-      params: CreateCouponValidation,
       handler(ctx: Context): Promise<Coupon> {
         return this.adapter
           .insert(this.createCouponSanitize(ctx.params))
@@ -32,10 +31,6 @@ const TheService: ServiceSchema = {
       cache: {
         keys: ['id', 'membership'],
         ttl: 60 * 60, // 1 hour
-      },
-      params: {
-        id: [{ type: 'string' }, { type: 'number' }],
-        membership: { type: 'string', optional: true },
       },
       handler(ctx: Context): Promise<Coupon> {
         const query: { [key: string]: {} } = {
@@ -87,7 +82,6 @@ const TheService: ServiceSchema = {
     },
     update: {
       auth: 'Basic',
-      params: UpdateCouponValidation,
       async handler(ctx: Context): Promise<Coupon> {
         const id = ctx.params.id.toUpperCase();
         const updateBody = { ...ctx.params };
@@ -110,9 +104,6 @@ const TheService: ServiceSchema = {
     },
     updateCount: {
       auth: 'Basic',
-      params: {
-        id: { type: 'string' },
-      },
       async handler(ctx: Context) {
         return this.adapter
           .updateById(ctx.params.id.toUpperCase(), { $inc: { useCount: 1 } })

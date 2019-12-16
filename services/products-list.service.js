@@ -1,11 +1,18 @@
 const ESService = require('moleculer-elasticsearch');
-const { MoleculerClientError } = require('moleculer').Errors;
-const { ProductsListOpenapi } = require('../utilities/mixins/openapi');
+const {
+  MoleculerClientError
+} = require('moleculer').Errors;
+const {
+  ProductsListOpenapi
+} = require('../utilities/mixins/openapi');
 const Transformation = require('../utilities/mixins/product-transformation.mixin');
+const {
+  ProductsListValidation
+} = require('../utilities/mixins/validation/products-list.validate');
 
 module.exports = {
   name: 'products-list',
-  mixins: [Transformation, ESService, ProductsListOpenapi],
+  mixins: [Transformation, ESService, ProductsListValidation, ProductsListOpenapi],
   settings: {
     elasticsearch: {
       host: `http://${process.env.ELASTIC_AUTH}@${process.env.ELASTIC_HOST}:${
@@ -17,57 +24,12 @@ module.exports = {
   actions: {
     getAttributes: {
       auth: 'Basic',
-      params: {},
       handler(ctx) {
         ctx.call('products-list.search', {});
       }
     },
     list: {
       auth: 'Basic',
-      params: {
-        limit: {
-          type: 'number',
-          convert: true,
-          integer: true,
-          min: 1,
-          max: 100,
-          optional: true
-        },
-        page: { type: 'number', convert: true, integer: true, min: 1, optional: true },
-        price_to: {
-          type: 'number',
-          convert: true,
-          integer: true,
-          empty: false,
-          optional: true
-        },
-        price_from: {
-          type: 'number',
-          convert: true,
-          integer: true,
-          empty: false,
-          optional: true
-        },
-        keywordLang: { type: 'array', optional: true, items: { type: 'string', min: 2, max: 2 } },
-        keyword: { type: 'string', optional: true },
-        category_id: {
-          type: 'number',
-          convert: true,
-          integer: true,
-          min: -1,
-          optional: true
-        },
-        sortBy: { type: 'string', optional: true },
-        images: {
-          type: 'number',
-          optional: true,
-          integer: true,
-          max: 15,
-          min: 0,
-          empty: false,
-          convert: true
-        }
-      },
       cache: {
         keys: [
           'page',
@@ -85,7 +47,9 @@ module.exports = {
       handler(ctx) {
         const filter = [];
         filter.push({
-          term: { archive: false }
+          term: {
+            archive: false
+          }
         });
         if (ctx.params.price_from || ctx.params.price_to) {
           filter.push({
@@ -123,20 +87,32 @@ module.exports = {
           });
         }
         if (ctx.params.category_id)
-          filter.push({ term: { 'categories.id': parseInt(ctx.params.category_id) } });
+          filter.push({
+            term: {
+              'categories.id': parseInt(ctx.params.category_id)
+            }
+          });
         const sort = {};
         switch (ctx.params.sortBy) {
           case 'salesDesc':
-            sort.sales_qty = { order: 'desc' };
+            sort.sales_qty = {
+              order: 'desc'
+            };
             break;
           case 'updated':
-            sort.updated = { order: 'desc' };
+            sort.updated = {
+              order: 'desc'
+            };
             break;
           case 'createdAsc':
-            sort.created = { order: 'asc' };
+            sort.created = {
+              order: 'asc'
+            };
             break;
           case 'createdDesc':
-            sort.created = { order: 'desc' };
+            sort.created = {
+              order: 'desc'
+            };
             break;
           case 'priceAsc':
             sort['variations.sale'] = {
@@ -180,9 +156,6 @@ module.exports = {
       }
     },
     getProductsByVariationSku: {
-      params: {
-        skus: { type: 'array', items: { type: 'string' } }
-      },
       handler(ctx) {
         return ctx
           .call('products-list.search', {
@@ -191,22 +164,20 @@ module.exports = {
             body: {
               query: {
                 bool: {
-                  filter: [
-                    {
-                      nested: {
-                        path: 'variations',
-                        query: {
-                          bool: {
-                            filter: {
-                              terms: {
-                                'variations.sku': ctx.params.skus
-                              }
+                  filter: [{
+                    nested: {
+                      path: 'variations',
+                      query: {
+                        bool: {
+                          filter: {
+                            terms: {
+                              'variations.sku': ctx.params.skus
                             }
                           }
                         }
                       }
                     }
-                  ]
+                  }]
                 }
               }
             }
@@ -215,19 +186,6 @@ module.exports = {
       }
     },
     updateQuantityAttributes: {
-      params: {
-        products: {
-          type: 'array',
-          items: {
-            type: 'object',
-            props: {
-              _id: { type: 'string', convert: true },
-              qty: { type: 'number', convert: true },
-              attribute: { type: 'string', convert: true }
-            }
-          }
-        }
-      },
       handler(ctx) {
         const bulk = [];
         ctx.params.products.forEach(product => {
@@ -274,7 +232,10 @@ module.exports = {
       if (scrollId)
         result = await this.broker.call('products-list.call', {
           api: 'scroll',
-          params: { scroll: '30s', scrollId: scrollId }
+          params: {
+            scroll: '30s',
+            scrollId: scrollId
+          }
         });
       else {
         result = await this.broker.call('products-list.search', {
@@ -303,7 +264,9 @@ module.exports = {
           maxScroll
         );
       }
-      const instance = await this.broker.call('stores.findInstance', { consumerKey: user });
+      const instance = await this.broker.call('stores.findInstance', {
+        consumerKey: user
+      });
       const rate = await this.broker.call('currencies.getCurrency', {
         currencyCode: instance.currency
       });

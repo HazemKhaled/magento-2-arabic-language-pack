@@ -3,22 +3,16 @@ import { isError } from 'util';
 import DbService from '../utilities/mixins/mongo.mixin';
 import { TaxOpenapi } from '../utilities/mixins/openapi';
 import { DbTax, RTax } from '../utilities/types/tax.type';
+import { TaxesValidation } from '../utilities/mixins/validation';
 
 const MoleculerError = Errors.MoleculerError;
 
 const TaxesService: ServiceSchema = {
   name: 'taxes',
-  mixins: [DbService('taxes'), TaxOpenapi],
+  mixins: [DbService('taxes'), TaxesValidation, TaxOpenapi],
   actions: {
     tCreate: {
       auth: 'Basic',
-      params: {
-        name: { type: 'string' },
-        class: { type: 'array', items: { type: 'string' } },
-        country: { type: 'string', min: 2, max: 2, pattern: /[a-zA-Z]/ },
-        percentage: { type: 'number', convert: true },
-        $$strict: true,
-      },
       handler(ctx: Context): RTax {
         return this.adapter
           .insert(ctx.params)
@@ -29,14 +23,6 @@ const TaxesService: ServiceSchema = {
       },
     },
     tUpdate: {
-      params: {
-        id: { type: 'string' },
-        name: { type: 'string', optional: true },
-        class: { type: 'array', items: { type: 'string' }, optional: true },
-        country: { type: 'string', min: 2, max: 2, pattern: /[a-zA-Z]/, optional: true },
-        percentage: { type: 'number', convert: true, optional: true },
-        $$strict: true,
-      },
       auth: 'Basic',
       handler(ctx: Context): RTax {
         const { id } = ctx.params;
@@ -63,14 +49,6 @@ const TaxesService: ServiceSchema = {
     },
     tFindByCountry: {
       auth: 'Basic',
-      params: {
-        country: { type: 'string', min: 2, max: 2, pattern: /[a-zA-Z]/ },
-        class: [
-          { type: 'string', optional: true },
-          { type: 'array', items: { type: 'string' }, optional: true },
-        ],
-        $$strict: true,
-      },
       handler(ctx: Context): RTax[] {
         const query = ctx.params;
         query.country = query.country.toLowerCase();
@@ -90,9 +68,6 @@ const TaxesService: ServiceSchema = {
     },
     tDelete: {
       auth: 'Basic',
-      params: {
-        id: { type: 'string' },
-      },
       handler(ctx: Context) {
         return this.adapter
           .removeById(ctx.params.id)

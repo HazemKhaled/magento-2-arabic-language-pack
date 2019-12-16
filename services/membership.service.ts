@@ -2,16 +2,15 @@ import { Context, Errors, ServiceSchema } from 'moleculer';
 import DbService from '../utilities/mixins/mongo.mixin';
 import { MembershipOpenapi } from '../utilities/mixins/openapi';
 import { Membership } from '../utilities/types';
-import { CreateMembershipValidation, UpdateMembershipValidation } from '../utilities/validations';
+import { MembershipValidation } from '../utilities/mixins/validation';
 const MoleculerError = Errors.MoleculerError;
 
 const TheService: ServiceSchema = {
   name: 'membership',
-  mixins: [DbService('membership'), MembershipOpenapi],
+  mixins: [DbService('membership'), MembershipValidation, MembershipOpenapi],
   actions: {
     create: {
       auth: 'Basic',
-      params: CreateMembershipValidation,
       async handler(ctx: Context): Promise<Membership> {
         const { params } = ctx;
         params._id = `m-${params.id || Date.now()}`;
@@ -38,9 +37,6 @@ const TheService: ServiceSchema = {
     },
     get: {
       auth: 'Basic',
-      params: {
-        id: [{ type: 'string' }, { type: 'number' }],
-      },
       cache: {
         keys: ['id'],
         ttl: 60 * 60, // 1 hour
@@ -86,7 +82,6 @@ const TheService: ServiceSchema = {
     },
     update: {
       auth: 'Basic',
-      params: UpdateMembershipValidation,
       async handler(ctx: Context): Promise<Membership> {
         const { params } = ctx;
         const id = params.id;
