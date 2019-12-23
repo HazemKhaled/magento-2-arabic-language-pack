@@ -16,7 +16,7 @@ module.exports = {
         process.env.ELASTIC_PORT
       }`,
       apiVersion: process.env.ELASTIC_VERSION || '6.x',
-    }
+    },
   },
   /**
    * Service Mixins
@@ -86,7 +86,7 @@ module.exports = {
         return {
           product,
         };
-      }
+      },
     },
 
     /**
@@ -120,10 +120,10 @@ module.exports = {
                         archive: true,
                       },
                     },
-                  ]
-                }
-              }
-            }
+                  ],
+                },
+              },
+            },
           })
           .then(res => {
             if (typeof res.count !== 'number') {
@@ -141,7 +141,7 @@ module.exports = {
               total: res.count,
             };
           });
-      }
+      },
     },
 
     /**
@@ -195,13 +195,13 @@ module.exports = {
           lastupdate,
           ctx.params.hideOutOfStock,
           ctx.params.keyword,
-          ctx.params.currency
+          ctx.params.currency,
         );
 
         // Emit async Event
         ctx.emit('list.afterRemote', ctx);
         return products;
-      }
+      },
     },
 
     /**
@@ -254,7 +254,7 @@ module.exports = {
               ],
             };
           });
-      }
+      },
     },
     import: {
       auth: 'Bearer',
@@ -283,13 +283,13 @@ module.exports = {
                   ],
                 },
               },
-            }
+            },
           })
           .then(async res => {
             const newSKUs = res.hits.hits.map(product => product._id);
             const outOfStock = skus.filter(sku => !newSKUs.includes(sku));
             const instance = await this.broker.call('stores.findInstance', {
-              consumerKey: ctx.meta.user
+              consumerKey: ctx.meta.user,
             });
             const bulk = [];
             if (newSKUs.length !== 0) {
@@ -299,7 +299,7 @@ module.exports = {
                     _index: 'products-instances',
                     _type: 'product',
                     _id: `${instance.consumer_key}-${product._id}`,
-                  }
+                  },
                 });
                 bulk.push({
                   instanceId: instance.consumer_key,
@@ -311,7 +311,7 @@ module.exports = {
                     .filter(variation => variation.quantity > 0)
                     .map(variation => ({
                       sku: variation.sku,
-                    }))
+                    })),
                 });
               });
             }
@@ -330,7 +330,7 @@ module.exports = {
                     .filter(item => item.index._version === 1)
                     .map(item => item.index._id);
                   const update = res.hits.hits.filter(product =>
-                    firstImport.includes(`${instance.consumer_key}-${product._id}`)
+                    firstImport.includes(`${instance.consumer_key}-${product._id}`),
                   );
                   if (update.length > 0) {
                     ctx.call('products-list.updateQuantityAttributes', {
@@ -338,7 +338,7 @@ module.exports = {
                         _id: product._id,
                         qty: product._source.import_qty || 0,
                         attribute: 'import_qty',
-                      }))
+                      })),
                     });
                   }
                 }
@@ -362,7 +362,7 @@ module.exports = {
                 };
               });
           });
-      }
+      },
     },
     instanceUpdate: {
       auth: 'Bearer',
@@ -379,7 +379,7 @@ module.exports = {
             id: `${ctx.meta.user}-${ctx.params.sku}`,
             body: {
               doc: body,
-            }
+            },
           })
           .then(res => {
             if (res.result === 'updated')
@@ -420,7 +420,7 @@ module.exports = {
               ],
             };
           });
-      }
+      },
     },
     bulkProductInstance: {
       auth: 'Bearer',
@@ -432,7 +432,7 @@ module.exports = {
               _index: 'products-instances',
               _type: 'product',
               _id: `${ctx.meta.user}-${pi.sku}`,
-            }
+            },
           });
           delete pi.sku;
           bulk.push({
@@ -442,38 +442,38 @@ module.exports = {
         return bulk.length === 0
           ? []
           : this.broker
-              .call('products.bulk', {
-                body: bulk
-              })
-              .then(res => {
-                if (res.errors === false) {
-                  return {
-                    status: 'success',
-                  };
-                }
-                ctx.meta.$statusCode = 500;
-                ctx.meta.$statusMessage = 'Internal Server Error';
+            .call('products.bulk', {
+              body: bulk,
+            })
+            .then(res => {
+              if (res.errors === false) {
                 return {
-                  errors: [
-                    {
-                      message: 'Update Error!',
-                    },
-                  ],
+                  status: 'success',
                 };
-              })
-              .catch(() => {
-                ctx.meta.$statusCode = 500;
-                ctx.meta.$statusMessage = 'Internal Server Error';
-                return {
-                  errors: [
-                    {
-                      message: 'Something went wrong!',
-                    },
-                  ],
-                };
-              });
-      }
-    }
+              }
+              ctx.meta.$statusCode = 500;
+              ctx.meta.$statusMessage = 'Internal Server Error';
+              return {
+                errors: [
+                  {
+                    message: 'Update Error!',
+                  },
+                ],
+              };
+            })
+            .catch(() => {
+              ctx.meta.$statusCode = 500;
+              ctx.meta.$statusMessage = 'Internal Server Error';
+              return {
+                errors: [
+                  {
+                    message: 'Something went wrong!',
+                  },
+                ],
+              };
+            });
+      },
+    },
   },
   methods: {
     /**
@@ -508,18 +508,18 @@ module.exports = {
           .then(res =>
             res.hits.total > 0
               ? this.broker.call('products.search', {
-                  index: 'products',
-                  type: 'Product',
-                  _source: _source,
-                  body: { query: { bool: { filter: { term: { _id: sku } } } } },
-                })
-              : res
+                index: 'products',
+                type: 'Product',
+                _source: _source,
+                body: { query: { bool: { filter: { term: { _id: sku } } } } },
+              })
+              : res,
           );
         if (result.hits.total === 0) {
           return 404;
         }
         const currencyRate = await this.broker.call('currencies.getCurrency', {
-          currencyCode: instance.currency
+          currencyCode: instance.currency,
         });
         const source = result.hits.hits[0]._source;
         return {
@@ -536,7 +536,7 @@ module.exports = {
             instance,
             currencyRate.rate,
             source.archive,
-          )
+          ),
         };
       } catch (err) {
         return 500;
@@ -563,11 +563,11 @@ module.exports = {
       lastupdate = '',
       hideOutOfStock,
       keyword,
-      currency
+      currency,
     ) {
       const instance = await this.broker.call('stores.findInstance', {
         consumerKey: instanceId,
-        lastUpdated: lastupdate
+        lastUpdated: lastupdate,
       });
       const instanceProductsFull = await this.findIP(
         page,
@@ -575,7 +575,7 @@ module.exports = {
         instanceId,
         lastupdate,
         hideOutOfStock,
-        keyword
+        keyword,
       );
 
       const instanceProducts = instanceProductsFull.page.map(product => product._source.sku);
@@ -595,8 +595,8 @@ module.exports = {
             _source: _source,
             body: {
               ids: instanceProducts,
-            }
-          }
+            },
+          },
         });
         const results = search.docs;
 
@@ -621,8 +621,8 @@ module.exports = {
                   instance,
                   currencyRate.rate,
                   source.archive,
-                  instanceProductsFull.page[n]._source.variations
-                )
+                  instanceProductsFull.page[n]._source.variations,
+                ),
               };
               try {
                 if (typeof instanceProductsFull.page[n]._source.externalId !== 'undefined')
@@ -640,7 +640,7 @@ module.exports = {
               const blankProduct = {
                 sku: product._id,
                 images: [],
-                categories: []
+                categories: [],
               };
               instanceProductsFull.page.forEach(instanceProduct => {
                 const productSource = instanceProduct._source;
@@ -693,7 +693,7 @@ module.exports = {
       fullResult = [],
       endTrace = 0,
       scrollId = false,
-      maxScroll = 0
+      maxScroll = 0,
     ) {
       page = parseInt(page) || 1;
       let search = [];
@@ -728,7 +728,7 @@ module.exports = {
                   ],
                 },
               },
-            }
+            },
           };
 
           if (keyword && keyword !== '') {
@@ -802,7 +802,7 @@ module.exports = {
             results,
             endTrace,
             search._scroll_id,
-            maxScroll
+            maxScroll,
           );
         }
 
@@ -848,6 +848,6 @@ module.exports = {
         .catch(() => {
           return 500;
         });
-    }
-  }
+    },
+  },
 };

@@ -13,14 +13,14 @@ module.exports = {
         process.env.ELASTIC_PORT
       }`,
       apiVersion: process.env.ELASTIC_VERSION || '6.x',
-    }
+    },
   },
   actions: {
     getAttributes: {
       auth: 'Basic',
       handler(ctx) {
         ctx.call('products-list.search', {});
-      }
+      },
     },
     list: {
       auth: 'Basic',
@@ -43,7 +43,7 @@ module.exports = {
         filter.push({
           term: {
             archive: false,
-          }
+          },
         });
         if (ctx.params.price_from || ctx.params.price_to) {
           filter.push({
@@ -54,11 +54,11 @@ module.exports = {
                   'variations.sale': {
                     gte: ctx.params.price_from ? ctx.params.price_from : 0,
                     lte: ctx.params.price_to ? ctx.params.price_to : 1000000,
-                    boost: 2.0
-                  }
-                }
-              }
-            }
+                    boost: 2.0,
+                  },
+                },
+              },
+            },
           });
         }
         if (ctx.params.keyword) {
@@ -67,24 +67,24 @@ module.exports = {
               query: ctx.params.keyword,
               fields: [
                 ...(ctx.params.keywordLang ? ctx.params.keywordLang : ['tr', 'en', 'ar', 'fr']).map(
-                  l => `name.${l}.text`
+                  l => `name.${l}.text`,
                 ),
                 ...(ctx.params.keywordLang ? ctx.params.keywordLang : ['tr', 'en', 'ar', 'fr']).map(
-                  l => `description.${l}.text`
+                  l => `description.${l}.text`,
                 ),
                 'sku',
-                'variations.sku'
+                'variations.sku',
               ],
               // To get the result even if misspelled
-              fuzziness: 'AUTO'
-            }
+              fuzziness: 'AUTO',
+            },
           });
         }
         if (ctx.params.category_id)
           filter.push({
             term: {
               'categories.id': parseInt(ctx.params.category_id),
-            }
+            },
           });
         const sort = {};
         switch (ctx.params.sortBy) {
@@ -119,27 +119,27 @@ module.exports = {
           filter.push({
             script: {
               script: {
-                source: `doc['images'].values.size() > ${parseInt(ctx.params.images)};`
-              }
-            }
+                source: `doc['images'].values.size() > ${parseInt(ctx.params.images)};`,
+              },
+            },
           });
         }
         const body = {
           sort: sort,
           query: {
             bool: {
-              filter: filter
-            }
-          }
+              filter: filter,
+            },
+          },
         };
         return this.searchCall(ctx.meta.user, body, ctx.params.limit, ctx.params.page);
-      }
+      },
     },
     get: {
       auth: 'Basic',
       handler() {
         throw new MoleculerClientError('Not Implemented Yet!!');
-      }
+      },
     },
     getProductsByVariationSku: {
       handler(ctx) {
@@ -158,20 +158,20 @@ module.exports = {
                           bool: {
                             filter: {
                               terms: {
-                                'variations.sku': ctx.params.skus
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            }
+                                'variations.sku': ctx.params.skus,
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+            },
           })
           .then(response => response.hits.hits);
-      }
+      },
     },
     updateQuantityAttributes: {
       handler(ctx) {
@@ -181,22 +181,22 @@ module.exports = {
             update: {
               _index: 'products',
               _type: 'Product',
-              _id: product._id
-            }
+              _id: product._id,
+            },
           });
           bulk.push({
             doc: {
-              [product.attribute]: parseInt(product.qty) + 1
-            }
+              [product.attribute]: parseInt(product.qty) + 1,
+            },
           });
         });
         ctx.call('products-list.bulk', {
           index: 'products',
           type: 'Product',
-          body: bulk
+          body: bulk,
         });
-      }
-    }
+      },
+    },
   },
   methods: {
     /* SearchByFilters methods */
@@ -263,7 +263,7 @@ module.exports = {
         products: fullResult
           .slice(
             scrollId ? -limit + trace + parseInt(process.env.SCROLL_LIMIT) : -limit + trace,
-            scrollId ? trace + parseInt(process.env.SCROLL_LIMIT) : trace
+            scrollId ? trace + parseInt(process.env.SCROLL_LIMIT) : trace,
           )
           .map(product => ({
             sku: product._source.sku,
@@ -278,12 +278,12 @@ module.exports = {
               product._source.variations,
               instance,
               rate.exchange_rate,
-              product._source.archive
-            )
+              product._source.archive,
+            ),
           })),
         total: result.hits.total,
       };
-    }
+    },
     /* SearchByFilters methods */
-  }
+  },
 };
