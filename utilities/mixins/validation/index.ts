@@ -10,7 +10,6 @@ export * from './currencies.validate';
 export * from './logs.validate';
 export * from './shipment.validate';
 export * from './taxes.validate';
-export * from './payments.validate';
 export * from './products.validate';
 export * from './products-list.validate';
-export * from './users.validate';
+export * from './payments.validate';
