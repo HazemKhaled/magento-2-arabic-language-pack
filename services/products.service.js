@@ -719,13 +719,7 @@ module.exports = {
               },
             },
           ]
-        : [
-            {
-              term: {
-                deleted: true,
-              },
-            },
-          ];
+        : [{term: { deleted: true }}];
       try {
         if (!scrollId) {
           const searchQuery = {
