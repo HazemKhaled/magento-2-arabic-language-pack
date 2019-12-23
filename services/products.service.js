@@ -15,7 +15,7 @@ module.exports = {
       host: `http://${process.env.ELASTIC_AUTH}@${process.env.ELASTIC_HOST}:${
         process.env.ELASTIC_PORT
       }`,
-      apiVersion: process.env.ELASTIC_VERSION || '6.x'
+      apiVersion: process.env.ELASTIC_VERSION || '6.x',
     }
   },
   /**
@@ -68,8 +68,8 @@ module.exports = {
             errors: [
               {
                 message: 'Product not found!',
-              }
-            ]
+              },
+            ],
           };
         }
         if (product === 500) {
@@ -79,8 +79,8 @@ module.exports = {
             errors: [
               {
                 message: 'Internal server error!',
-              }
-            ]
+              },
+            ],
           };
         }
         return {
@@ -106,19 +106,19 @@ module.exports = {
                     {
                       term: {
                         'instanceId.keyword': ctx.meta.user,
-                      }
-                    }
+                      },
+                    },
                   ],
                   must_not: [
                     {
                       term: {
-                        deleted: true
-                      }
+                        deleted: true,
+                      },
                     },
                     {
                       term: {
-                        archive: true
-                      }
+                        archive: true,
+                      },
                     },
                   ]
                 }
@@ -133,8 +133,8 @@ module.exports = {
                 errors: [
                   {
                     message: 'Something went wrong!',
-                  }
-                ]
+                  },
+                ],
               };
             }
             return {
@@ -224,8 +224,8 @@ module.exports = {
                 errors: [
                   {
                     message: 'Product not found!',
-                  }
-                ]
+                  },
+                ],
               };
             }
             if (product === 500) {
@@ -235,8 +235,8 @@ module.exports = {
                 errors: [
                   {
                     message: 'Internal Server Error!',
-                  }
-                ]
+                  },
+                ],
               };
             }
             return {
@@ -250,8 +250,8 @@ module.exports = {
               errors: [
                 {
                   message: 'Something went wrong!',
-                }
-              ]
+                },
+              ],
             };
           });
       }
@@ -273,16 +273,16 @@ module.exports = {
                     {
                       terms: {
                         _id: skus,
-                      }
+                      },
                     },
                     {
                       term: {
                         archive: false,
-                      }
-                    }
-                  ]
-                }
-              }
+                      },
+                    },
+                  ],
+                },
+              },
             }
           })
           .then(async res => {
@@ -298,7 +298,7 @@ module.exports = {
                   index: {
                     _index: 'products-instances',
                     _type: 'product',
-                    _id: `${instance.consumer_key}-${product._id}`
+                    _id: `${instance.consumer_key}-${product._id}`,
                   }
                 });
                 bulk.push({
@@ -310,7 +310,7 @@ module.exports = {
                   variations: product._source.variations
                     .filter(variation => variation.quantity > 0)
                     .map(variation => ({
-                      sku: variation.sku
+                      sku: variation.sku,
                     }))
                 });
               });
@@ -320,7 +320,7 @@ module.exports = {
               .call('products.bulk', {
                 index: 'products-instances',
                 type: 'product',
-                body: bulk
+                body: bulk,
               })
               .then(response => {
                 this.broker.cacher.clean(`products.list:${ctx.meta.user}**`);
@@ -337,7 +337,7 @@ module.exports = {
                       products: update.map(product => ({
                         _id: product._id,
                         qty: product._source.import_qty || 0,
-                        attribute: 'import_qty'
+                        attribute: 'import_qty',
                       }))
                     });
                   }
@@ -352,8 +352,8 @@ module.exports = {
                       {
                         message: 'There was an error with importing your products',
                         skus: skus,
-                      }
-                    ]
+                      },
+                    ],
                   };
                 }
                 return {
@@ -394,8 +394,8 @@ module.exports = {
               errors: [
                 {
                   message: 'Something went wrong!',
-                }
-              ]
+                },
+              ],
             };
           })
           .catch(err => {
@@ -406,8 +406,8 @@ module.exports = {
                 errors: [
                   {
                     message: 'Not Found!',
-                  }
-                ]
+                  },
+                ],
               };
             }
             ctx.meta.$statusCode = 500;
@@ -416,8 +416,8 @@ module.exports = {
               errors: [
                 {
                   message: 'Something went wrong!',
-                }
-              ]
+                },
+              ],
             };
           });
       }
@@ -431,12 +431,12 @@ module.exports = {
             update: {
               _index: 'products-instances',
               _type: 'product',
-              _id: `${ctx.meta.user}-${pi.sku}`
+              _id: `${ctx.meta.user}-${pi.sku}`,
             }
           });
           delete pi.sku;
           bulk.push({
-            doc: pi
+            doc: pi,
           });
         });
         return bulk.length === 0
@@ -446,18 +446,19 @@ module.exports = {
                 body: bulk
               })
               .then(res => {
-                if (res.errors === false)
+                if (res.errors === false) {
                   return {
                     status: 'success',
                   };
+                }
                 ctx.meta.$statusCode = 500;
                 ctx.meta.$statusMessage = 'Internal Server Error';
                 return {
                   errors: [
                     {
                       message: 'Update Error!',
-                    }
-                  ]
+                    },
+                  ],
                 };
               })
               .catch(() => {
@@ -466,9 +467,9 @@ module.exports = {
                 return {
                   errors: [
                     {
-                      message: 'Something went wrong!'
-                    }
-                  ]
+                      message: 'Something went wrong!',
+                    },
+                  ],
                 };
               });
       }
@@ -484,7 +485,7 @@ module.exports = {
      */
     async fetchProduct(sku, id, _source) {
       const instance = await this.broker.call('stores.findInstance', {
-        consumerKey: id
+        consumerKey: id,
       });
       try {
         const result = await this.broker
@@ -497,12 +498,12 @@ module.exports = {
                 bool: {
                   filter: {
                     term: {
-                      'sku.keyword': sku
-                    }
-                  }
-                }
-              }
-            }
+                      'sku.keyword': sku,
+                    },
+                  },
+                },
+              },
+            },
           })
           .then(res =>
             res.hits.total > 0
@@ -515,12 +516,12 @@ module.exports = {
                       bool: {
                         filter: {
                           term: {
-                            _id: sku
-                          }
-                        }
-                      }
-                    }
-                  }
+                            _id: sku,
+                          },
+                        },
+                      },
+                    },
+                  },
                 })
               : res
           );
@@ -544,7 +545,7 @@ module.exports = {
             source.variations,
             instance,
             currencyRate.rate,
-            source.archive
+            source.archive,
           )
         };
       } catch (err) {
@@ -591,7 +592,7 @@ module.exports = {
       if (instanceProducts.length === 0) {
         return {
           products: [],
-          total: instanceProductsFull.totalProducts
+          total: instanceProductsFull.totalProducts,
         };
       }
 
@@ -603,14 +604,14 @@ module.exports = {
             type: 'Product',
             _source: _source,
             body: {
-              ids: instanceProducts
+              ids: instanceProducts,
             }
           }
         });
         const results = search.docs;
 
         const currencyRate = await this.broker.call('currencies.getCurrency', {
-          currencyCode: currency || instance.currency
+          currencyCode: currency || instance.currency,
         });
         try {
           const products = results.map((product, n) => {
@@ -668,7 +669,7 @@ module.exports = {
 
           return {
             products: products.filter(product => !!product && product.variations.length !== 0),
-            total: instanceProductsFull.totalProducts
+            total: instanceProductsFull.totalProducts,
           };
         } catch (err) {
           return new MoleculerClientError(err);
@@ -711,21 +712,21 @@ module.exports = {
           ? [
               {
                 term: {
-                  deleted: true
-                }
+                  deleted: true,
+                },
               },
               {
                 term: {
-                  archive: true
-                }
-              }
+                  archive: true,
+                },
+              },
             ]
           : [
               {
                 term: {
-                  deleted: true
-                }
-              }
+                  deleted: true,
+                },
+              },
             ];
       try {
         if (!scrollId) {
@@ -738,9 +739,9 @@ module.exports = {
               sort: [
                 {
                   createdAt: {
-                    order: 'asc'
-                  }
-                }
+                    order: 'asc',
+                  },
+                },
               ],
               query: {
                 bool: {
@@ -748,12 +749,12 @@ module.exports = {
                   must: [
                     {
                       term: {
-                        'instanceId.keyword': instanceId
-                      }
-                    }
-                  ]
-                }
-              }
+                        'instanceId.keyword': instanceId,
+                      },
+                    },
+                  ],
+                },
+              },
             }
           };
 
@@ -762,8 +763,8 @@ module.exports = {
               multi_match: {
                 query: keyword,
                 fields: ['sku.keyword', 'variations.sku.keyword'],
-                fuzziness: 'AUTO'
-              }
+                fuzziness: 'AUTO',
+              },
             });
           }
 
@@ -774,17 +775,17 @@ module.exports = {
               {
                 range: {
                   updated: {
-                    gte: lastUpdatedDate
-                  }
-                }
+                    gte: lastUpdatedDate,
+                  },
+                },
               },
               {
                 range: {
                   createdAt: {
-                    gte: lastUpdatedDate
-                  }
-                }
-              }
+                    gte: lastUpdatedDate,
+                  },
+                },
+              },
             ];
             searchQuery.body.query.bool.minimum_should_match = 1;
           }
@@ -807,8 +808,8 @@ module.exports = {
             api: 'scroll',
             params: {
               scroll: '30s',
-              scrollId: scrollId
-            }
+              scrollId: scrollId,
+            },
           });
         }
 
@@ -834,7 +835,7 @@ module.exports = {
 
         return {
           page: scrollId ? results.slice(page * size - size, page * size) : results,
-          totalProducts: search.hits.total
+          totalProducts: search.hits.total,
         };
       } catch (err) {
         return new MoleculerClientError(err);
@@ -858,16 +859,16 @@ module.exports = {
           body: {
             doc: {
               deleted: true,
-              delete_date: new Date()
-            }
-          }
+              delete_date: new Date(),
+            },
+          },
         })
         .then(response => {
           if (response._shards.successful > 0)
             return {
               status: 'success',
               message: 'Product has been deleted.',
-              sku: sku
+              sku: sku,
             };
           return 404;
         })
