@@ -1,16 +1,8 @@
-const {
-  MoleculerClientError
-} = require('moleculer').Errors;
+const { MoleculerClientError } = require('moleculer').Errors;
 const ESService = require('moleculer-elasticsearch');
-const {
-  ProductTransformation
-} = require('../utilities/mixins/product-transformation.mixin');
-const {
-  ProductsOpenapi
-} = require('../utilities/mixins/openapi');
-const {
-  ProductsValidation
-} = require('../utilities/mixins/validation');
+const { ProductTransformation } = require('../utilities/mixins/product-transformation.mixin');
+const { ProductsOpenapi } = require('../utilities/mixins/openapi');
+const { ProductsValidation } = require('../utilities/mixins/validation');
 
 module.exports = {
   name: 'products',
@@ -44,15 +36,11 @@ module.exports = {
       auth: 'Bearer',
       cache: {
         keys: ['#user', 'sku'],
-        ttl: 60
+        ttl: 60,
       },
       async handler(ctx) {
-        const {
-          sku
-        } = ctx.params;
-        let {
-          _source
-        } = ctx.params;
+        const { sku } = ctx.params;
+        let { _source } = ctx.params;
 
         const fields = [
           'sku',
@@ -64,7 +52,7 @@ module.exports = {
           'last_check_date',
           'categories',
           'attributes',
-          'variations'
+          'variations',
         ];
         // _source contains specific to be returned
         if (Array.isArray(_source)) {
@@ -77,22 +65,26 @@ module.exports = {
           ctx.meta.$statusCode = 404;
           ctx.meta.$statusMessage = 'Not Found';
           return {
-            errors: [{
-              message: 'Product not found!'
-            }]
+            errors: [
+              {
+                message: 'Product not found!',
+              }
+            ]
           };
         }
         if (product === 500) {
           ctx.meta.$statusCode = 500;
           ctx.meta.$statusMessage = 'Internal Error';
           return {
-            errors: [{
-              message: 'Internal server error!'
-            }]
+            errors: [
+              {
+                message: 'Internal server error!',
+              }
+            ]
           };
         }
         return {
-          product
+          product,
         };
       }
     },
@@ -110,12 +102,15 @@ module.exports = {
             body: {
               query: {
                 bool: {
-                  filter: [{
-                    term: {
-                      'instanceId.keyword': ctx.meta.user
+                  filter: [
+                    {
+                      term: {
+                        'instanceId.keyword': ctx.meta.user,
+                      }
                     }
-                  }],
-                  must_not: [{
+                  ],
+                  must_not: [
+                    {
                       term: {
                         deleted: true
                       }
@@ -124,7 +119,7 @@ module.exports = {
                       term: {
                         archive: true
                       }
-                    }
+                    },
                   ]
                 }
               }
@@ -135,13 +130,15 @@ module.exports = {
               ctx.meta.$statusCode = 500;
               ctx.meta.$statusMessage = 'Internal Server Error';
               return {
-                errors: [{
-                  message: 'Something went wrong!'
-                }]
+                errors: [
+                  {
+                    message: 'Something went wrong!',
+                  }
+                ]
               };
             }
             return {
-              total: res.count
+              total: res.count,
             };
           });
       }
@@ -163,20 +160,14 @@ module.exports = {
           'hideOutOfStock',
           'keyword',
           'currency',
-          '_source'
+          '_source',
         ],
         ttl: 30 * 60, // 10 mins
-        monitor: true
+        monitor: true,
       },
       async handler(ctx) {
-        const {
-          page,
-          limit,
-          lastupdate = ''
-        } = ctx.params;
-        let {
-          _source
-        } = ctx.params;
+        const { page, limit, lastupdate = '' } = ctx.params;
+        let { _source } = ctx.params;
 
         const fields = [
           'sku',
@@ -188,7 +179,7 @@ module.exports = {
           'last_check_date',
           'categories',
           'attributes',
-          'variations'
+          'variations',
         ];
         // _source contains specific to be returned
         if (Array.isArray(_source)) {
@@ -221,9 +212,7 @@ module.exports = {
     deleteInstanceProduct: {
       auth: 'Bearer',
       handler(ctx) {
-        const {
-          sku
-        } = ctx.params;
+        const { sku } = ctx.params;
 
         return this.deleteProduct(sku, ctx.meta.user)
           .then(product => {
@@ -232,18 +221,22 @@ module.exports = {
               ctx.meta.$statusCode = 404;
               ctx.meta.$statusMessage = 'Not Found';
               return {
-                errors: [{
-                  message: 'Product not found!'
-                }]
+                errors: [
+                  {
+                    message: 'Product not found!'
+                  }
+                ]
               };
             }
             if (product === 500) {
               ctx.meta.$statusCode = 500;
               ctx.meta.$statusMessage = 'Internal Error';
               return {
-                errors: [{
-                  message: 'Internal Server Error!'
-                }]
+                errors: [
+                  {
+                    message: 'Internal Server Error!',
+                  }
+                ]
               };
             }
             return {
@@ -254,9 +247,11 @@ module.exports = {
             ctx.meta.$statusCode = 500;
             ctx.meta.$statusMessage = 'Internal Server Error';
             return {
-              errors: [{
-                message: 'Something went wrong!'
-              }]
+              errors: [
+                {
+                  message: 'Something went wrong!',
+                }
+              ]
             };
           });
       }
@@ -274,15 +269,18 @@ module.exports = {
             body: {
               query: {
                 bool: {
-                  filter: [{
-                    terms: {
-                      _id: skus
+                  filter: [
+                    {
+                      terms: {
+                        _id: skus
+                      }
+                    },
+                    {
+                      term: {
+                        archive: false
+                      }
                     }
-                  }, {
-                    term: {
-                      archive: false
-                    }
-                  }]
+                  ]
                 }
               }
             }
@@ -350,10 +348,12 @@ module.exports = {
                   ctx.meta.$statusCode = 500;
                   ctx.meta.$statusMessage = 'Internal Server Error';
                   return {
-                    errors: [{
-                      message: 'There was an error with importing your products',
-                      skus: skus
-                    }]
+                    errors: [
+                      {
+                        message: 'There was an error with importing your products',
+                        skus: skus
+                      }
+                    ]
                   };
                 }
                 return {
@@ -378,7 +378,7 @@ module.exports = {
             type: 'product',
             id: `${ctx.meta.user}-${ctx.params.sku}`,
             body: {
-              doc: body
+              doc: body,
             }
           })
           .then(res => {
@@ -386,14 +386,16 @@ module.exports = {
               return {
                 status: 'success',
                 message: 'Updated successfully!',
-                sku: ctx.params.sku
+                sku: ctx.params.sku,
               };
             ctx.meta.$statusCode = 500;
             ctx.meta.$statusMessage = 'Internal Server Error';
             return {
-              errors: [{
-                message: 'Something went wrong!'
-              }]
+              errors: [
+                {
+                  message: 'Something went wrong!',
+                }
+              ]
             };
           })
           .catch(err => {
@@ -401,17 +403,21 @@ module.exports = {
               ctx.meta.$statusCode = 404;
               ctx.meta.$statusMessage = 'Not Found';
               return {
-                errors: [{
-                  message: 'Not Found!'
-                }]
+                errors: [
+                  {
+                    message: 'Not Found!',
+                  }
+                ]
               };
             }
             ctx.meta.$statusCode = 500;
             ctx.meta.$statusMessage = 'Internal Server Error';
             return {
-              errors: [{
-                message: 'Something went wrong!'
-              }]
+              errors: [
+                {
+                  message: 'Something went wrong!',
+                }
+              ]
             };
           });
       }
@@ -433,32 +439,38 @@ module.exports = {
             doc: pi
           });
         });
-        return bulk.length === 0 ? [] :
-          this.broker
-          .call('products.bulk', {
-            body: bulk
-          })
-          .then(res => {
-            if (res.errors === false) return {
-              status: 'success'
-            };
-            ctx.meta.$statusCode = 500;
-            ctx.meta.$statusMessage = 'Internal Server Error';
-            return {
-              errors: [{
-                message: 'Update Error!'
-              }]
-            };
-          })
-          .catch(() => {
-            ctx.meta.$statusCode = 500;
-            ctx.meta.$statusMessage = 'Internal Server Error';
-            return {
-              errors: [{
-                message: 'Something went wrong!'
-              }]
-            };
-          });
+        return bulk.length === 0
+          ? []
+          : this.broker
+              .call('products.bulk', {
+                body: bulk
+              })
+              .then(res => {
+                if (res.errors === false)
+                  return {
+                    status: 'success'
+                  };
+                ctx.meta.$statusCode = 500;
+                ctx.meta.$statusMessage = 'Internal Server Error';
+                return {
+                  errors: [
+                    {
+                      message: 'Update Error!'
+                    }
+                  ]
+                };
+              })
+              .catch(() => {
+                ctx.meta.$statusCode = 500;
+                ctx.meta.$statusMessage = 'Internal Server Error';
+                return {
+                  errors: [
+                    {
+                      message: 'Something went wrong!'
+                    }
+                  ]
+                };
+              });
       }
     }
   },
@@ -493,24 +505,24 @@ module.exports = {
             }
           })
           .then(res =>
-            res.hits.total > 0 ?
-            this.broker.call('products.search', {
-              index: 'products',
-              type: 'Product',
-              _source: _source,
-              body: {
-                query: {
-                  bool: {
-                    filter: {
-                      term: {
-                        _id: sku
+            res.hits.total > 0
+              ? this.broker.call('products.search', {
+                  index: 'products',
+                  type: 'Product',
+                  _source: _source,
+                  body: {
+                    query: {
+                      bool: {
+                        filter: {
+                          term: {
+                            _id: sku
+                          }
+                        }
                       }
                     }
                   }
-                }
-              }
-            }) :
-            res
+                })
+              : res
           );
         if (result.hits.total === 0) {
           return 404;
@@ -695,19 +707,26 @@ module.exports = {
       page = parseInt(page) || 1;
       let search = [];
       const mustNot =
-        parseInt(hideOutOfStock) === 1 ? [{
-          term: {
-            deleted: true
-          }
-        }, {
-          term: {
-            archive: true
-          }
-        }] : [{
-          term: {
-            deleted: true
-          }
-        }];
+        parseInt(hideOutOfStock) === 1
+          ? [
+              {
+                term: {
+                  deleted: true
+                }
+              },
+              {
+                term: {
+                  archive: true
+                }
+              }
+            ]
+          : [
+              {
+                term: {
+                  deleted: true
+                }
+              }
+            ];
       try {
         if (!scrollId) {
           const searchQuery = {
@@ -716,19 +735,23 @@ module.exports = {
             scroll: '1m',
             size: process.env.SCROLL_LIMIT,
             body: {
-              sort: [{
-                createdAt: {
-                  order: 'asc'
+              sort: [
+                {
+                  createdAt: {
+                    order: 'asc'
+                  }
                 }
-              }],
+              ],
               query: {
                 bool: {
                   must_not: mustNot,
-                  must: [{
-                    term: {
-                      'instanceId.keyword': instanceId
+                  must: [
+                    {
+                      term: {
+                        'instanceId.keyword': instanceId
+                      }
                     }
-                  }]
+                  ]
                 }
               }
             }
@@ -747,7 +770,8 @@ module.exports = {
           // Get new an updated products only
           if (lastUpdated && lastUpdated !== '') {
             const lastUpdatedDate = new Date(Number(lastUpdated) * 1000).toISOString();
-            searchQuery.body.query.bool.should = [{
+            searchQuery.body.query.bool.should = [
+              {
                 range: {
                   updated: {
                     gte: lastUpdatedDate
