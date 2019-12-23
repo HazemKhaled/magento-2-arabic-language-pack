@@ -88,40 +88,32 @@ module.exports = {
           });
         const sort = {};
         switch (ctx.params.sortBy) {
-          case 'salesDesc':
-            sort.sales_qty = {
-              order: 'desc'
-            };
-            break;
-          case 'updated':
-            sort.updated = {
-              order: 'desc'
-            };
-            break;
-          case 'createdAsc':
-            sort.created = {
-              order: 'asc'
-            };
-            break;
-          case 'createdDesc':
-            sort.created = {
-              order: 'desc'
-            };
-            break;
-          case 'priceAsc':
-            sort['variations.sale'] = {
-              order: 'asc',
-              nested_path: 'variations'
-            };
-            break;
-          case 'priceDesc':
-            sort['variations.sale'] = {
-              order: 'desc',
-              nested_path: 'variations'
-            };
-            break;
-          default:
-            break;
+        case 'salesDesc':
+          sort.sales_qty = { order: 'desc' };
+          break;
+        case 'updated':
+          sort.updated = { order: 'desc' };
+          break;
+        case 'createdAsc':
+          sort.created = { order: 'asc' };
+          break;
+        case 'createdDesc':
+          sort.created = { order: 'desc' };
+          break;
+        case 'priceAsc':
+          sort['variations.sale'] = {
+            order: 'asc',
+            nested_path: 'variations',
+          };
+          break;
+        case 'priceDesc':
+          sort['variations.sale'] = {
+            order: 'desc',
+            nested_path: 'variations',
+          };
+          break;
+        default:
+          break;
         }
         if (ctx.params.images) {
           filter.push({
