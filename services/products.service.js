@@ -223,7 +223,7 @@ module.exports = {
               return {
                 errors: [
                   {
-                    message: 'Product not found!'
+                    message: 'Product not found!',
                   }
                 ]
               };
@@ -240,7 +240,7 @@ module.exports = {
               };
             }
             return {
-              product
+              product,
             };
           })
           .catch(() => {
@@ -272,12 +272,12 @@ module.exports = {
                   filter: [
                     {
                       terms: {
-                        _id: skus
+                        _id: skus,
                       }
                     },
                     {
                       term: {
-                        archive: false
+                        archive: false,
                       }
                     }
                   ]
@@ -351,14 +351,14 @@ module.exports = {
                     errors: [
                       {
                         message: 'There was an error with importing your products',
-                        skus: skus
+                        skus: skus,
                       }
                     ]
                   };
                 }
                 return {
                   success: newSKUs,
-                  outOfStock: outOfStock
+                  outOfStock: outOfStock,
                 };
               });
           });
@@ -448,14 +448,14 @@ module.exports = {
               .then(res => {
                 if (res.errors === false)
                   return {
-                    status: 'success'
+                    status: 'success',
                   };
                 ctx.meta.$statusCode = 500;
                 ctx.meta.$statusMessage = 'Internal Server Error';
                 return {
                   errors: [
                     {
-                      message: 'Update Error!'
+                      message: 'Update Error!',
                     }
                   ]
                 };

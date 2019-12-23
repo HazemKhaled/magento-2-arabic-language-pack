@@ -83,7 +83,7 @@ module.exports = {
         if (ctx.params.category_id)
           filter.push({
             term: {
-              'categories.id': parseInt(ctx.params.category_id)
+              'categories.id': parseInt(ctx.params.category_id),
             }
           });
         const sort = {};
