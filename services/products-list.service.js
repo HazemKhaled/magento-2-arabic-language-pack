@@ -1,14 +1,8 @@
 const ESService = require('moleculer-elasticsearch');
-const {
-  MoleculerClientError
-} = require('moleculer').Errors;
-const {
-  ProductsListOpenapi
-} = require('../utilities/mixins/openapi');
+const { MoleculerClientError } = require('moleculer').Errors;
+const { ProductsListOpenapi } = require('../utilities/mixins/openapi');
 const Transformation = require('../utilities/mixins/product-transformation.mixin');
-const {
-  ProductsListValidation
-} = require('../utilities/mixins/validation/products-list.validate');
+const { ProductsListValidation } = require('../utilities/mixins/validation/products-list.validate');
 
 module.exports = {
   name: 'products-list',
@@ -18,7 +12,7 @@ module.exports = {
       host: `http://${process.env.ELASTIC_AUTH}@${process.env.ELASTIC_HOST}:${
         process.env.ELASTIC_PORT
       }`,
-      apiVersion: process.env.ELASTIC_VERSION || '6.x'
+      apiVersion: process.env.ELASTIC_VERSION || '6.x',
     }
   },
   actions: {
@@ -40,15 +34,15 @@ module.exports = {
           'keywordLang',
           'category_id',
           'sortBy',
-          'images'
+          'images',
         ],
-        ttl: 30 * 60 // 10 mins
+        ttl: 30 * 60, // 10 mins
       },
       handler(ctx) {
         const filter = [];
         filter.push({
           term: {
-            archive: false
+            archive: false,
           }
         });
         if (ctx.params.price_from || ctx.params.price_to) {
@@ -164,20 +158,22 @@ module.exports = {
             body: {
               query: {
                 bool: {
-                  filter: [{
-                    nested: {
-                      path: 'variations',
-                      query: {
-                        bool: {
-                          filter: {
-                            terms: {
-                              'variations.sku': ctx.params.skus
+                  filter: [
+                    {
+                      nested: {
+                        path: 'variations',
+                        query: {
+                          bool: {
+                            filter: {
+                              terms: {
+                                'variations.sku': ctx.params.skus
+                              }
                             }
                           }
                         }
                       }
                     }
-                  }]
+                  ]
                 }
               }
             }
@@ -224,7 +220,7 @@ module.exports = {
       fullResult = [],
       scrollId = false,
       trace = 0,
-      maxScroll = 0
+      maxScroll = 0,
     ) {
       limit = limit ? parseInt(limit) : 10;
       page = page ? parseInt(page) : 1;
@@ -234,8 +230,8 @@ module.exports = {
           api: 'scroll',
           params: {
             scroll: '30s',
-            scrollId: scrollId
-          }
+            scrollId: scrollId,
+          },
         });
       else {
         result = await this.broker.call('products-list.search', {
@@ -243,7 +239,7 @@ module.exports = {
           type: 'Product',
           size: process.env.SCROLL_LIMIT,
           scroll: '1m',
-          body: body
+          body: body,
         });
         maxScroll = result.hits.total;
         trace = page * limit;
@@ -261,14 +257,14 @@ module.exports = {
           fullResult,
           result._scroll_id,
           trace,
-          maxScroll
+          maxScroll,
         );
       }
       const instance = await this.broker.call('stores.findInstance', {
-        consumerKey: user
+        consumerKey: user,
       });
       const rate = await this.broker.call('currencies.getCurrency', {
-        currencyCode: instance.currency
+        currencyCode: instance.currency,
       });
 
       return {
@@ -293,7 +289,7 @@ module.exports = {
               product._source.archive
             )
           })),
-        total: result.hits.total
+        total: result.hits.total,
       };
     }
     /* SearchByFilters methods */
