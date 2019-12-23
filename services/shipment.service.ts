@@ -2,10 +2,11 @@ import { Context, ServiceSchema } from 'moleculer';
 import DbService from '../utilities/mixins/mongo.mixin';
 import { ShipmentOpenapi } from '../utilities/mixins/openapi';
 import { Rule, ShipmentPolicy } from '../utilities/types';
+import { ShipmentValidation } from '../utilities/mixins/validation';
 
 const Shipment: ServiceSchema = {
   name: 'shipment',
-  mixins: [DbService('shipment'), ShipmentOpenapi],
+  mixins: [DbService('shipment'), ShipmentValidation, ShipmentOpenapi],
   actions: {
     /**
      * Get shipment policies
@@ -16,7 +17,6 @@ const Shipment: ServiceSchema = {
     getShipments: {
       auth: 'Basic',
       cache: { keys: ['id'], ttl: 60 * 60 * 24 * 30 },
-      params: { id: { type: 'string', optional: true } },
       handler(ctx: Context): ShipmentPolicy | ShipmentPolicy[] {
         return (ctx.params.id ? this.adapter.findById(ctx.params.id) : this.adapter.find()).then(
           (data: ShipmentPolicy[]) => this.shipmentTransform(data),
@@ -31,28 +31,6 @@ const Shipment: ServiceSchema = {
      */
     insertShipment: {
       auth: 'Basic',
-      params: {
-        name: { type: 'string' },
-        countries: {
-          type: 'array',
-          items: { type: 'string', max: 2, min: 2, pattern: '[A-Z]' },
-        },
-        rules: {
-          type: 'array',
-          items: {
-            type: 'object',
-            props: {
-              courier: { type: 'string' },
-              delivery_days_min: { type: 'number', convert: true },
-              delivery_days_max: { type: 'number', convert: true },
-              units_min: { type: 'number', convert: true },
-              units_max: { type: 'number', convert: true },
-              type: { type: 'enum', values: ['weight', 'price'] },
-              cost: { type: 'number', convert: true },
-            },
-          },
-        },
-      },
       handler(ctx: Context): ShipmentPolicy {
         // insert to DB
         return this.adapter
@@ -76,25 +54,6 @@ const Shipment: ServiceSchema = {
      */
     updateShipment: {
       auth: 'Basic',
-      params: {
-        id: { type: 'string' },
-        countries: { type: 'array', items: { type: 'string', max: 2, min: 2, pattern: '[A-Z]' } },
-        rules: {
-          type: 'array',
-          items: {
-            type: 'object',
-            props: {
-              courier: { type: 'string' },
-              delivery_days_min: { type: 'number', convert: true },
-              delivery_days_max: { type: 'number', convert: true },
-              units_min: { type: 'number', convert: true },
-              units_max: { type: 'number', convert: true },
-              type: { type: 'enum', values: ['weight', 'price'] },
-              cost: { type: 'number', convert: true },
-            },
-          },
-        },
-      },
       handler(ctx: Context): ShipmentPolicy {
         // update DB
         return this.adapter
@@ -123,11 +82,6 @@ const Shipment: ServiceSchema = {
     ruleByCountry: {
       auth: 'Basic',
       cache: { keys: ['country', 'weight', 'price'], ttl: 60 * 60 * 24 * 30 },
-      params: {
-        country: { type: 'string' },
-        weight: { type: 'number', convert: true },
-        price: { type: 'number', convert: true },
-      },
       handler(ctx: Context): Rule[] {
         return this.adapter // find policies with matched rules
           .find({
@@ -171,9 +125,6 @@ const Shipment: ServiceSchema = {
     getCouriers: {
       auth: 'Basic',
       cache: { keys: ['country'], ttl: 60 * 60 * 24 * 30 },
-      params: {
-        country: { type: 'string', optional: true, min: 2, max: 2 },
-      },
       handler(ctx: Context): string[] {
         const query = ctx.params.country ? { countries: ctx.params.country } : {};
         return this.adapter.find({ query }).then(

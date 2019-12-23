@@ -4,6 +4,7 @@ import ESService, { SearchResponse } from 'moleculer-elasticsearch';
 import { I18nService } from '../utilities/mixins/i18n.mixin';
 import { CategoriesOpenapi } from '../utilities/mixins/openapi';
 import { Category } from '../utilities/types';
+import { CategoriesValidation } from '../utilities/mixins/validation';
 
 const { MoleculerClientError } = Errors;
 
@@ -14,7 +15,7 @@ const TheService: ServiceSchema = {
    * Service metadata
    */
   metadata: {},
-  mixins: [ESService, I18nService, CategoriesOpenapi],
+  mixins: [ESService, I18nService, CategoriesValidation, CategoriesOpenapi],
 
   /**
    * Service settings
@@ -42,10 +43,6 @@ const TheService: ServiceSchema = {
       cache: {
         ttl: 60 * 60, // 1 hour
         keys: ['parentId', 'treeNodeLevel'],
-      },
-      params: {
-        parentId: [{ type: 'number', optional: true }, { type: 'string', optional: true }],
-        treeNodeLevel: [{ type: 'number', optional: true }, { type: 'string', optional: true }],
       },
       async handler(ctx): Promise<Category[]> {
         const categories = await this.fetchCategories(ctx.params);

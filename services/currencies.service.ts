@@ -2,10 +2,11 @@ import { Context, ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
 import { CurrenciesOpenapi } from '../utilities/mixins/openapi';
 import { Currency } from './../types/currency.d';
+import { CurrenciesValidation } from '../utilities/mixins/validation';
 
 const TheService: ServiceSchema = {
   name: 'currencies',
-  mixins: [CurrenciesOpenapi],
+  mixins: [CurrenciesValidation, CurrenciesOpenapi],
   actions: {
     /**
      * Gets the rates of asked currency according to the dollar as a base
@@ -18,9 +19,6 @@ const TheService: ServiceSchema = {
       cache: {
         keys: ['currencyCode'],
         ttl: 60 * 60, // 1 hour
-      },
-      params: {
-        currencyCode: { type: 'string', min: 3, max: 3 },
       },
       handler(ctx: Context) {
         return ctx.call('currencies.getCurrencies').then(currencies => {

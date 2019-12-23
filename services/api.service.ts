@@ -20,7 +20,7 @@ const TheService: ServiceSchema = {
 
         aliases: {
           // Login
-          'POST token': 'users.login',
+          'POST token': 'stores.login',
 
           // Product
           'GET catalog/products': 'products.list',
@@ -208,7 +208,7 @@ const TheService: ServiceSchema = {
                 new UnAuthorizedError(ERR_NO_TOKEN, req.headers.authorization),
               );
             }
-            return ctx.call('users.resolveBearerToken', { token }).then((user: { id: string }) => {
+            return ctx.call('stores.resolveBearerToken', { token }).then((user: { id: string }) => {
               if (!user) {
                 return this.Promise.reject(
                   new UnAuthorizedError(ERR_INVALID_TOKEN, req.headers.authorization),
@@ -231,7 +231,7 @@ const TheService: ServiceSchema = {
                 new UnAuthorizedError(ERR_NO_TOKEN, req.headers.authorization),
               );
             }
-            return ctx.call('users.resolveBasicToken', { token }).then((user: any) => {
+            return ctx.call('stores.resolveBasicToken', { token }).then((user: any) => {
               if (user) {
                 ctx.meta.token = token;
               }

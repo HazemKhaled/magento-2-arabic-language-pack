@@ -5,14 +5,11 @@ import { v1 as uuidv1 } from 'uuid';
 import { OrdersOpenapi } from '../utilities/mixins/openapi';
 import { OrdersOperations } from '../utilities/mixins/orders.mixin';
 import { Log, OMSResponse, Order, OrderAddress, OrderItem, Product } from '../utilities/types';
-import {
-  createOrderValidation,
-  updateOrderValidation,
-} from '../utilities/validations/orders.validate';
+import { OrdersValidation } from '../utilities/mixins/validation';
 
 const TheService: ServiceSchema = {
   name: 'orders',
-  mixins: [OrdersOperations, OrdersOpenapi],
+  mixins: [OrdersOperations, OrdersValidation, OrdersOpenapi],
   settings: {
     AUTH: Buffer.from(`${process.env.BASIC_USER}:${process.env.BASIC_PASS}`).toString('base64'),
     BASEURL:
@@ -23,7 +20,6 @@ const TheService: ServiceSchema = {
   actions: {
     createOrder: {
       auth: 'Bearer',
-      params: createOrderValidation,
       async handler(ctx: Context) {
         // Get the Store instance
         const instance = await ctx.call('stores.findInstance', {
@@ -304,7 +300,6 @@ const TheService: ServiceSchema = {
     },
     updateOrder: {
       auth: 'Bearer',
-      params: updateOrderValidation,
       async handler(ctx) {
         const instance = await ctx.call('stores.findInstance', {
           consumerKey: ctx.meta.user,
@@ -538,9 +533,6 @@ const TheService: ServiceSchema = {
         keys: ['order_id'],
         ttl: 60 * 60, // 1 hour
       },
-      params: {
-        order_id: { type: 'string' },
-      },
       async handler(ctx) {
         const instance = await ctx.call('stores.findInstance', {
           consumerKey: ctx.meta.user,
@@ -623,51 +615,6 @@ const TheService: ServiceSchema = {
         keys: ['#user', 'limit', 'page', 'sort', 'sortOrder', 'status', 'externalId'],
         ttl: 60 * 60,
       },
-      params: {
-        limit: {
-          type: 'number',
-          convert: true,
-          integer: true,
-          min: 1,
-          max: 50,
-          optional: true,
-        },
-        page: {
-          type: 'number',
-          convert: true,
-          integer: true,
-          min: 1,
-          optional: true,
-        },
-        sort: {
-          type: 'enum',
-          values: [
-            'created_time',
-            'customer_name',
-            'salesorder_number',
-            'shipment_date',
-            'total',
-            'date',
-          ],
-          optional: true,
-        },
-        sortOrder: { type: 'enum', values: ['A', 'D'], optional: true },
-        status: {
-          type: 'enum',
-          values: ['draft', 'open', 'invoiced', 'partially_invoiced', 'void', 'overdue'],
-          optional: true,
-        },
-        externalId: { type: 'string', optional: true },
-        date: { type: 'date', convert: true, optional: true },
-        dateStart: { type: 'date', convert: true, optional: true },
-        dateEnd: { type: 'date', convert: true, optional: true },
-        dateAfter: { type: 'date', convert: true, optional: true },
-        shipmentDate: { type: 'date', convert: true, optional: true },
-        shipmentDateStart: { type: 'date', convert: true, optional: true },
-        shipmentDateEnd: { type: 'date', convert: true, optional: true },
-        shipmentDateBefore: { type: 'date', convert: true, optional: true },
-        shipmentDateAfter: { type: 'date', convert: true, optional: true },
-      },
       async handler(ctx) {
         const instance = await ctx.call('stores.findInstance', {
           consumerKey: ctx.meta.user,
@@ -721,9 +668,6 @@ const TheService: ServiceSchema = {
     },
     deleteOrder: {
       auth: 'Bearer',
-      params: {
-        id: { type: 'string', convert: true },
-      },
       async handler(ctx) {
         const orderBeforeUpdate = await ctx.call('orders.getOrder', { order_id: ctx.params.id });
         if (orderBeforeUpdate.id === -1) {

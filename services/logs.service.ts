@@ -3,6 +3,7 @@ import ESService from 'moleculer-elasticsearch';
 import { v1 as uuidv1 } from 'uuid';
 import { LogsOpenapi } from '../utilities/mixins/openapi';
 import { Log } from '../utilities/types';
+import { LogsValidation } from '../utilities/mixins/validation';
 
 const TheService: ServiceSchema = {
   name: 'logs',
@@ -17,24 +18,10 @@ const TheService: ServiceSchema = {
       apiVersion: process.env.ELASTIC_VERSION || '6.x',
     },
   },
-  mixins: [ESService, LogsOpenapi],
+  mixins: [ESService, LogsValidation, LogsOpenapi],
   actions: {
     add: {
       auth: 'Basic',
-      params: {
-        topic: { type: 'string' },
-        message: { type: 'string' },
-        logLevel: { type: 'enum', values: ['info', 'debug', 'error', 'warn'] },
-        storeId: { type: 'string' },
-        topicId: [
-          { type: 'string', optional: true },
-          { type: 'number', optional: true, convert: true, integer: true },
-        ],
-        payload: { type: 'object', optional: true },
-        code: { type: 'number', convert: true, integer: true },
-        // Remove until it's added to index.d
-        // $$strict: true
-      },
       handler(ctx: Context) {
         const date = new Date();
         return ctx
@@ -73,20 +60,6 @@ const TheService: ServiceSchema = {
     },
     getLogs: {
       auth: 'Basic',
-      params: {
-        topic: { type: 'string', optional: true },
-        sort: { type: 'enum', values: ['asc', 'desc'], optional: true },
-        logLevel: { type: 'enum', values: ['info', 'debug', 'error', 'warn'], optional: true },
-        storeId: [
-          { type: 'string', optional: true },
-          { type: 'number', optional: true, convert: true, integer: true },
-        ],
-        topicId: { type: 'string', optional: true },
-        limit: { type: 'number', optional: true, min: 1, max: 500, convert: true },
-        page: { type: 'number', optional: true, min: 1, convert: true },
-        // Remove until it's added to index.d
-        // $$strict: true
-      },
       handler(ctx: Context) {
         const body: {
           size?: number;

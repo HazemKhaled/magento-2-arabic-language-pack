@@ -2,12 +2,12 @@ import { Context, Errors, ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
 import { InvoicesOpenapi } from '../utilities/mixins/openapi';
 import { Invoice } from '../utilities/types';
-import { CreateInvoiceValidation } from '../utilities/validations';
+import { InvoicesValidation } from '../utilities/mixins/validation';
 const MoleculerError = Errors.MoleculerError;
 
 const TheService: ServiceSchema = {
   name: 'invoices',
-  mixins: [InvoicesOpenapi],
+  mixins: [InvoicesValidation, InvoicesOpenapi],
   settings: {
     AUTH: Buffer.from(`${process.env.BASIC_USER}:${process.env.BASIC_PASS}`).toString('base64'),
   },
@@ -17,12 +17,6 @@ const TheService: ServiceSchema = {
       cache: {
         keys: ['#user', 'page', 'limit', 'reference_number', 'invoice_number'],
         ttl: 60 * 60,
-      },
-      params: {
-        page: { type: 'number', integer: true, optional: true, convert: true },
-        limit: { type: 'number', integer: true, optional: true, convert: true },
-        reference_number: { type: 'string', optional: true },
-        invoice_number: { type: 'string', optional: true },
       },
       async handler(ctx: Context) {
         const instance = await ctx.call('stores.findInstance', {
@@ -98,7 +92,6 @@ const TheService: ServiceSchema = {
     },
     create: {
       auth: 'Basic',
-      params: CreateInvoiceValidation,
       async handler(ctx: Context) {
         const instance = await ctx.call('stores.findInstance', {
           id: ctx.params.storeId,
@@ -133,9 +126,6 @@ const TheService: ServiceSchema = {
     },
     applyCredits: {
       auth: 'Bearer',
-      params: {
-        id: { type: 'string' },
-      },
       async handler(ctx: Context) {
         const instance = await ctx.call('stores.findInstance', {
           consumerKey: ctx.meta.user,
@@ -167,10 +157,6 @@ const TheService: ServiceSchema = {
       },
     },
     createOrderInvoice: {
-      params: {
-        storeId: { type: 'string' },
-        orderId: { type: 'string' },
-      },
       async handler(ctx: Context) {
         const instance = await ctx.call('stores.findInstance', {
           id: ctx.params.storeId,
@@ -193,10 +179,6 @@ const TheService: ServiceSchema = {
       },
     },
     markInvoiceSent: {
-      params: {
-        omsId: { type: 'string' },
-        invoiceId: { type: 'string' },
-      },
       handler(ctx: Context) {
         const url = `${process.env.OMS_BASEURL}/invoices/${ctx.params.omsId}/${
           ctx.params.invoiceId

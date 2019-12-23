@@ -3,15 +3,12 @@ import { isError } from 'util';
 import DbService from '../utilities/mixins/mongo.mixin';
 import { SubscriptionOpenapi } from '../utilities/mixins/openapi';
 import { Coupon, Membership, Store, Subscription } from '../utilities/types';
-import {
-  CreateSubscriptionValidation,
-  UpdateSubscriptionValidation,
-} from '../utilities/validations';
+import { SubscriptionValidation } from '../utilities/mixins/validation';
 const MoleculerError = Errors.MoleculerError;
 
 const TheService: ServiceSchema = {
   name: 'subscription',
-  mixins: [DbService('subscription'), SubscriptionOpenapi],
+  mixins: [DbService('subscription'), SubscriptionValidation, SubscriptionOpenapi],
 
   actions: {
     /**
@@ -21,9 +18,6 @@ const TheService: ServiceSchema = {
      * @returns {Promise<Subscription | false>}
      */
     get: {
-      params: {
-        id: { type: 'string' },
-      },
       cache: {
         keys: ['id'],
         ttl: 60 * 60, // 1 hour
@@ -57,71 +51,6 @@ const TheService: ServiceSchema = {
     },
     list: {
       auth: 'Basic',
-      params: {
-        storeId: { type: 'string', optional: true },
-        membershipId: { type: 'string', optional: true },
-        expireDate: [
-          {
-            type: 'object',
-            optional: true,
-            props: {
-              operation: { type: 'enum', values: ['lte', 'gte', 'gt', 'lt'] },
-              date: { type: 'date', convert: true, optional: true },
-              $$strict: true,
-            },
-          },
-          {
-            type: 'array',
-            optional: true,
-            max: 2,
-            min: 1,
-            items: {
-              type: 'object',
-              props: {
-                operation: { type: 'enum', values: ['lte', 'gte', 'gt', 'lt'] },
-                date: { type: 'date', convert: true },
-                $$strict: true,
-              },
-            },
-          },
-        ],
-        startDate: [
-          {
-            type: 'object',
-            optional: true,
-            props: {
-              operation: { type: 'enum', values: ['lte', 'gte', 'gt', 'lt'] },
-              date: { type: 'date', convert: true, optional: true },
-              $$strict: true,
-            },
-          },
-          {
-            type: 'array',
-            optional: true,
-            max: 2,
-            min: 1,
-            items: {
-              type: 'object',
-              props: {
-                operation: { type: 'enum', values: ['lte', 'gte', 'gt', 'lt'] },
-                date: { type: 'date', convert: true },
-                $$strict: true,
-              },
-            },
-          },
-        ],
-        page: { type: 'number', positive: true, optional: true },
-        perPage: { type: 'number', positive: true, optional: true },
-        sort: {
-          type: 'object',
-          optional: true,
-          props: {
-            field: { type: 'string' },
-            order: { type: 'enum', values: [1, -1] },
-          },
-        },
-        $$strict: true,
-      },
       cache: {
         keys: ['storeId', 'membershipId', 'expireDate', 'startDate', 'page', 'perPage', 'sort'],
         ttl: 60 * 60, // 1 hour
@@ -187,7 +116,6 @@ const TheService: ServiceSchema = {
     },
     create: {
       auth: 'Basic',
-      params: CreateSubscriptionValidation,
       async handler(ctx: Context) {
         let coupon: Coupon = null;
         if (ctx.params.coupon) {
@@ -321,7 +249,6 @@ const TheService: ServiceSchema = {
     },
     getSubscriptionByExpireDate: {
       cache: false,
-      params: { days: 'number' },
       async handler(ctx: Context) {
         const minDate = new Date();
         minDate.setDate(minDate.getDate() - ctx.params.days);
@@ -374,7 +301,7 @@ const TheService: ServiceSchema = {
       },
     },
     updateSubscription: {
-      params: UpdateSubscriptionValidation,
+      auth: 'Basic',
       handler(ctx: Context) {
         let $set: { [key: string]: string } = {};
         const { params } = ctx;
@@ -403,9 +330,6 @@ const TheService: ServiceSchema = {
       },
     },
     checkCurrentSubGradingStatus: {
-      params: {
-        id: { type: 'string' },
-      },
       async handler(ctx: Context) {
         const allSubBefore = await ctx.call('subscription.list', {
           storeId: ctx.params.id,
