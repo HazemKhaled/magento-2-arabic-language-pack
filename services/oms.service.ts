@@ -19,9 +19,11 @@ const TheService: ServiceSchema = {
         invoice_number: { type: 'string', optional: true }
       },
       handler(ctx: Context) {
+        const params = { ...ctx.params };
+        delete params.omsId;
         return this.request({
           path: `invoices/${ctx.params.omsId}`,
-          params: { ...ctx.params, omsId: undefined }
+          params,
         });
       }
     },

@@ -675,7 +675,7 @@ const TheService: ServiceSchema = {
         });
         const orders = await ctx.call('oms.listOrders', {
           customerId: instance.internal_data.omsId,
-          queryParams
+          ...queryParams
         });
         return orders.salesorders.map((order: Order) => ({
           id: order.id,

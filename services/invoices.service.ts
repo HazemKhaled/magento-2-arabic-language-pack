@@ -38,7 +38,7 @@ const TheService: ServiceSchema = {
           return ctx
             .call('oms.listInvoice', {
               omsId: instance.internal_data.omsId,
-              queryParams
+              ...queryParams
             })
             .then(
               async response => {

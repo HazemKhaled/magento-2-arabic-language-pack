@@ -98,7 +98,7 @@ const TheService: ServiceSchema = {
           return ctx
             .call('oms.listPayments', {
               customerId: instance.internal_data.omsId,
-              queryParams
+              ...queryParams
             })
             .then(
               res => ({ payments: res.payments.map(this.sanitizePayment) }),
