@@ -440,38 +440,38 @@ module.exports = {
           });
         });
         return bulk.length === 0
-        ? []
-        : this.broker
-            .call('products.bulk', {
-              body: bulk
-            })
-            .then(res => {
-              if (res.errors === false) {
+          ? []
+          : this.broker
+              .call('products.bulk', {
+                body: bulk
+              })
+              .then(res => {
+                if (res.errors === false) {
+                  return {
+                    status: 'success',
+                  };
+                }
+                ctx.meta.$statusCode = 500;
+                ctx.meta.$statusMessage = 'Internal Server Error';
                 return {
-                  status: 'success',
+                  errors: [
+                    {
+                      message: 'Update Error!',
+                    },
+                  ],
                 };
-              }
-              ctx.meta.$statusCode = 500;
-              ctx.meta.$statusMessage = 'Internal Server Error';
-              return {
-                errors: [
-                  {
-                    message: 'Update Error!',
-                  },
-                ],
-              };
-            })
-            .catch(() => {
-              ctx.meta.$statusCode = 500;
-              ctx.meta.$statusMessage = 'Internal Server Error';
-              return {
-                errors: [
-                  {
-                    message: 'Something went wrong!',
-                  },
-                ],
-              };
-            });
+              })
+              .catch(() => {
+                ctx.meta.$statusCode = 500;
+                ctx.meta.$statusMessage = 'Internal Server Error';
+                return {
+                  errors: [
+                    {
+                      message: 'Something went wrong!',
+                    },
+                  ],
+                };
+              });
       }
     }
   },
@@ -511,15 +511,7 @@ module.exports = {
                   index: 'products',
                   type: 'Product',
                   _source: _source,
-                  body: {
-                    query: {
-                      bool: {
-                        filter: {
-                          term: { _id: sku },
-                        },
-                      },
-                    },
-                  },
+                  body: { query: { bool: { filter: { term: { _id: sku } } } } },
                 })
               : res
           );
@@ -707,19 +699,8 @@ module.exports = {
       let search = [];
       const mustNot =
         parseInt(hideOutOfStock) === 1
-        ? [
-            {
-              term: {
-                deleted: true,
-              },
-            },
-            {
-              term: {
-                archive: true,
-              },
-            },
-          ]
-        : [{term: { deleted: true }}];
+          ? [{ term: { deleted: true} }, { term: { archive: true } }]
+          : [{term: { deleted: true }}];
       try {
         if (!scrollId) {
           const searchQuery = {
