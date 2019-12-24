@@ -10,8 +10,8 @@ const Coupon = {
     endDate: { type: 'string', format: 'date-time' },
     maxUses: { type: 'number' },
     appliedMemberships: { type: 'array', items: { type: 'string' } },
-    useCount: { type: 'number' }
-  }
+    useCount: { type: 'number' },
+  },
 };
 
 const CouponsGetOpenapi = {
@@ -24,25 +24,25 @@ const CouponsGetOpenapi = {
       in: 'path',
       required: true,
       schema: {
-        type: 'string'
-      }
+        type: 'string',
+      },
     },
     {
       name: 'membership',
       in: 'query',
       required: false,
       schema: {
-        type: 'string'
-      }
+        type: 'string',
+      },
     },
     {
       name: 'Authorization',
       in: 'header',
       required: true,
       schema: {
-        type: 'string'
-      }
-    }
+        type: 'string',
+      },
+    },
   ],
   responses: {
     '200': {
@@ -50,13 +50,13 @@ const CouponsGetOpenapi = {
       content: {
         'application/json': {
           schema: {
-            $ref: '#/components/schemas/Coupon'
-          }
-        }
-      }
+            $ref: '#/components/schemas/Coupon',
+          },
+        },
+      },
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorBasic'
+      $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
     '404': {
       description: 'Status 404',
@@ -71,36 +71,36 @@ const CouponsGetOpenapi = {
                   type: 'object',
                   properties: {
                     message: {
-                      type: 'string'
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                      type: 'string',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
   security: [
     {
-      basicAuth: [] as any[]
-    }
-  ]
+      basicAuth: [] as any[],
+    },
+  ],
 };
 
 export const CouponsOpenapi: ServiceSchema = {
-  name: 'openapi',
+  name: 'coupons',
   settings: {
     components: {
       schemas: {
-        Coupon
-      }
-    }
+        Coupon,
+      },
+    },
   },
   actions: {
     get: {
-      openapi: CouponsGetOpenapi
-    }
-  }
+      openapi: CouponsGetOpenapi,
+    },
+  },
 };

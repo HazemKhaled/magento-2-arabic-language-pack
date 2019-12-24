@@ -2,16 +2,15 @@ import { Context, Errors, ServiceSchema } from 'moleculer';
 import DbService from '../utilities/mixins/mongo.mixin';
 import { MembershipOpenapi } from '../utilities/mixins/openapi';
 import { Membership } from '../utilities/types';
-import { CreateMembershipValidation, UpdateMembershipValidation } from '../utilities/validations';
+import { MembershipValidation } from '../utilities/mixins/validation';
 const MoleculerError = Errors.MoleculerError;
 
 const TheService: ServiceSchema = {
   name: 'membership',
-  mixins: [DbService('membership'), MembershipOpenapi],
+  mixins: [DbService('membership'), MembershipValidation, MembershipOpenapi],
   actions: {
     create: {
       auth: 'Basic',
-      params: CreateMembershipValidation,
       async handler(ctx: Context): Promise<Membership> {
         const { params } = ctx;
         params._id = `m-${params.id || Date.now()}`;
@@ -25,7 +24,7 @@ const TheService: ServiceSchema = {
         return this.adapter
           .insert(params)
           .then((res: Membership) => {
-            this.broker.cacher.clean(`membership.list:**`);
+            this.broker.cacher.clean('membership.list:**');
             return this.normalizeId(res);
           })
           .catch((err: any) => {
@@ -34,16 +33,13 @@ const TheService: ServiceSchema = {
             }
             throw new MoleculerError(err, 500);
           });
-      }
+      },
     },
     get: {
       auth: 'Basic',
-      params: {
-        id: [{ type: 'string' }, { type: 'number' }]
-      },
       cache: {
         keys: ['id'],
-        ttl: 60 * 60 // 1 hour
+        ttl: 60 * 60, // 1 hour
       },
       handler(ctx: Context): Promise<Membership> {
         return this.adapter
@@ -62,12 +58,12 @@ const TheService: ServiceSchema = {
             }
             throw new MoleculerError(err, 500);
           });
-      }
+      },
     },
     list: {
       auth: 'Basic',
       cache: {
-        ttl: 60 * 60 // 1 hour
+        ttl: 60 * 60, // 1 hour
       },
       handler(): Promise<Membership[]> {
         return this.adapter
@@ -82,11 +78,10 @@ const TheService: ServiceSchema = {
             }
             throw new MoleculerError(err, 500);
           });
-      }
+      },
     },
     update: {
       auth: 'Basic',
-      params: UpdateMembershipValidation,
       async handler(ctx: Context): Promise<Membership> {
         const { params } = ctx;
         const id = params.id;
@@ -94,7 +89,7 @@ const TheService: ServiceSchema = {
         return this.adapter
           .updateById(id, { $set: { ...params } })
           .then((res: Membership) => {
-            this.broker.cacher.clean(`membership.list:**`);
+            this.broker.cacher.clean('membership.list:**');
             this.broker.cacher.clean(`membership.get:${ctx.params.id}**`);
             if (!res) {
               throw new MoleculerError('Membership not found', 404);
@@ -107,8 +102,8 @@ const TheService: ServiceSchema = {
             }
             throw new MoleculerError(err, 500);
           });
-      }
-    }
+      },
+    },
   },
   methods: {
     /**
@@ -120,12 +115,12 @@ const TheService: ServiceSchema = {
     normalizeId(obj: { _id: string }) {
       const newObj = {
         id: obj._id,
-        ...obj
+        ...obj,
       };
       delete newObj._id;
       return newObj;
-    }
-  }
+    },
+  },
 };
 
 export = TheService;

@@ -6,17 +6,17 @@ const ProductsListListOpenapi = {
   tags: ['Products', 'Enterprise Only'],
   responses: {
     '200': {
-      description: 'Status 200'
+      description: 'Status 200',
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorBasic'
-    }
+      $ref: '#/components/responses/UnauthorizedErrorBasic',
+    },
   },
   security: [
     {
-      basicAuth: [] as []
-    }
-  ]
+      basicAuth: [] as [],
+    },
+  ],
 };
 
 const ProductsListGetOpenapi = {
@@ -27,35 +27,35 @@ const ProductsListGetOpenapi = {
       in: 'path',
       required: true,
       schema: {
-        type: 'string'
-      }
-    }
+        type: 'string',
+      },
+    },
   ],
   summary: 'Get Product by SKU',
   tags: ['Products', 'Enterprise Only'],
   responses: {
     '200': {
-      description: 'Status 200'
+      description: 'Status 200',
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorBasic'
-    }
+      $ref: '#/components/responses/UnauthorizedErrorBasic',
+    },
   },
   security: [
     {
-      basicAuth: [] as []
-    }
-  ]
+      basicAuth: [] as [],
+    },
+  ],
 };
 
 export const ProductsListOpenapi: ServiceSchema = {
-  name: 'openapi',
+  name: 'products-list',
   actions: {
     list: {
-      openapi: ProductsListListOpenapi
+      openapi: ProductsListListOpenapi,
     },
     get: {
-      openapi: ProductsListGetOpenapi
-    }
-  }
+      openapi: ProductsListGetOpenapi,
+    },
+  },
 };

@@ -11,8 +11,8 @@ const SubscriptionSchema = {
     expireDate: { type: 'string', format: 'date-time' },
     autoRenew: { type: 'boolean' },
     renewed: { type: 'boolean' },
-    retries: { type: 'array', items: { type: 'string', format: 'date-time' } }
-  }
+    retries: { type: 'array', items: { type: 'string', format: 'date-time' } },
+  },
 };
 
 const SubscriptionResponse = {
@@ -28,11 +28,11 @@ const SubscriptionResponse = {
           expireDate: { type: 'string', format: 'date-time' },
           autoRenew: { type: 'boolean' },
           renewed: { type: 'boolean' },
-          retries: { type: 'array', items: { type: 'string', format: 'date-time' } }
-        }
-      }
-    }
-  }
+          retries: { type: 'array', items: { type: 'string', format: 'date-time' } },
+        },
+      },
+    },
+  },
 };
 
 const SubscriptionListOpenapi = {
@@ -45,16 +45,16 @@ const SubscriptionListOpenapi = {
       in: 'query',
       required: false,
       schema: {
-        type: 'string'
-      }
+        type: 'string',
+      },
     },
     {
       name: 'membershipId',
       in: 'query',
       required: false,
       schema: {
-        type: 'string'
-      }
+        type: 'string',
+      },
     },
     {
       name: 'expireDate',
@@ -67,10 +67,10 @@ const SubscriptionListOpenapi = {
           type: 'object',
           properties: {
             operation: { type: 'string', values: ['lte', 'gte', 'gt', 'lt'] },
-            date: { type: 'date' }
-          }
-        }
-      }
+            date: { type: 'date' },
+          },
+        },
+      },
     },
     {
       name: 'startDate',
@@ -83,26 +83,26 @@ const SubscriptionListOpenapi = {
           type: 'object',
           properties: {
             operation: { type: 'string', enum: ['lte', 'gte', 'gt', 'lt'] },
-            date: { type: 'date' }
-          }
-        }
-      }
+            date: { type: 'date' },
+          },
+        },
+      },
     },
     {
       name: 'page',
       in: 'query',
       required: false,
       schema: {
-        type: 'number'
-      }
+        type: 'number',
+      },
     },
     {
       name: 'perPage',
       in: 'query',
       required: false,
       schema: {
-        type: 'number'
-      }
+        type: 'number',
+      },
     },
     {
       name: 'sort',
@@ -111,18 +111,18 @@ const SubscriptionListOpenapi = {
         type: 'object',
         properties: {
           field: { type: 'string' },
-          order: { type: 'number', enum: [1, -1] }
-        }
-      }
+          order: { type: 'number', enum: [1, -1] },
+        },
+      },
     },
     {
       name: 'Authorization',
       in: 'header',
       required: true,
       schema: {
-        type: 'string'
-      }
-    }
+        type: 'string',
+      },
+    },
   ],
   responses: {
     '200': {
@@ -132,14 +132,14 @@ const SubscriptionListOpenapi = {
           schema: {
             type: 'array',
             items: {
-              $ref: '#/components/schemas/Subscription'
-            }
-          }
-        }
-      }
+              $ref: '#/components/schemas/Subscription',
+            },
+          },
+        },
+      },
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorBasic'
+      $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
     '404': {
       description: 'Status 404',
@@ -154,22 +154,22 @@ const SubscriptionListOpenapi = {
                   type: 'object',
                   properties: {
                     message: {
-                      type: 'string'
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                      type: 'string',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
   security: [
     {
-      basicAuth: [] as []
-    }
-  ]
+      basicAuth: [] as [],
+    },
+  ],
 };
 
 const SubscriptionCreateOpenapi = {
@@ -182,9 +182,9 @@ const SubscriptionCreateOpenapi = {
       in: 'header',
       required: true,
       schema: {
-        type: 'string'
-      }
-    }
+        type: 'string',
+      },
+    },
   ],
   responses: {
     '200': {
@@ -192,13 +192,13 @@ const SubscriptionCreateOpenapi = {
       content: {
         'application/json': {
           schema: {
-            $ref: '#/components/schemas/Subscription'
-          }
-        }
-      }
+            $ref: '#/components/schemas/Subscription',
+          },
+        },
+      },
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorBasic'
+      $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
     '500': {
       description: 'Status 500',
@@ -213,21 +213,21 @@ const SubscriptionCreateOpenapi = {
                   type: 'object',
                   properties: {
                     message: {
-                      type: 'string'
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                      type: 'string',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
   security: [
     {
-      basicAuth: [] as []
-    }
+      basicAuth: [] as [],
+    },
   ],
   requestBody: {
     content: {
@@ -237,13 +237,13 @@ const SubscriptionCreateOpenapi = {
           properties: {
             storeId: { type: 'string', format: 'url', required: true },
             membership: { type: 'string', required: true },
-            coupon: { type: 'string' }
-          }
-        }
-      }
+            coupon: { type: 'string' },
+          },
+        },
+      },
     },
-    required: true
-  }
+    required: true,
+  },
 };
 
 const SubscriptionUpdateOpenapi = {
@@ -256,17 +256,17 @@ const SubscriptionUpdateOpenapi = {
       in: 'path',
       required: true,
       schema: {
-        type: 'string'
-      }
+        type: 'string',
+      },
     },
     {
       name: 'Authorization',
       in: 'header',
       required: true,
       schema: {
-        type: 'string'
-      }
-    }
+        type: 'string',
+      },
+    },
   ],
   responses: {
     '200': {
@@ -274,13 +274,13 @@ const SubscriptionUpdateOpenapi = {
       content: {
         'application/json': {
           schema: {
-            $ref: '#/components/schemas/Subscription'
-          }
-        }
-      }
+            $ref: '#/components/schemas/Subscription',
+          },
+        },
+      },
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorBasic'
+      $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
     '500': {
       description: 'Status 500',
@@ -295,48 +295,48 @@ const SubscriptionUpdateOpenapi = {
                   type: 'object',
                   properties: {
                     message: {
-                      type: 'string'
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                      type: 'string',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
   security: [
     {
-      basicAuth: [] as []
-    }
+      basicAuth: [] as [],
+    },
   ],
   requestBody: {
-    $ref: '#/components/requestBodies/Subscription'
-  }
+    $ref: '#/components/requestBodies/Subscription',
+  },
 };
 
 export const SubscriptionOpenapi: ServiceSchema = {
-  name: 'openapi',
+  name: 'subscription',
   settings: {
     components: {
       schemas: {
-        Subscription: SubscriptionSchema
+        Subscription: SubscriptionSchema,
       },
       requestBodies: {
-        subscription: SubscriptionResponse
-      }
-    }
+        subscription: SubscriptionResponse,
+      },
+    },
   },
   actions: {
     list: {
-      openapi: SubscriptionListOpenapi
+      openapi: SubscriptionListOpenapi,
     },
     create: {
-      openapi: SubscriptionCreateOpenapi
+      openapi: SubscriptionCreateOpenapi,
     },
     updateSubscription: {
-      openapi: SubscriptionUpdateOpenapi
-    }
-  }
+      openapi: SubscriptionUpdateOpenapi,
+    },
+  },
 };

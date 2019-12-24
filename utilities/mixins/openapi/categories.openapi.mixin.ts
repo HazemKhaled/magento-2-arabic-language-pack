@@ -10,33 +10,33 @@ const CategoriesSettingsOpenapi = {
           type: 'object',
           properties: {
             id: {
-              type: 'number'
+              type: 'number',
             },
             name: {
               required: ['productsCount', 'treeNodeLevel'],
               type: 'object',
               properties: {
                 tr: {
-                  type: 'string'
+                  type: 'string',
                 },
                 en: {
-                  type: 'string'
+                  type: 'string',
                 },
                 ar: {
-                  type: 'string'
+                  type: 'string',
                 },
                 treeNodeLevel: {
-                  type: 'number'
+                  type: 'number',
                 },
                 productsCount: {
-                  type: 'number'
+                  type: 'number',
                 },
                 parentId: {
-                  type: 'number'
-                }
-              }
-            }
-          }
+                  type: 'number',
+                },
+              },
+            },
+          },
         },
         example: [
           {
@@ -44,27 +44,27 @@ const CategoriesSettingsOpenapi = {
             name: {
               tr: 'Ayakkabı',
               en: 'Shoes',
-              ar: 'حذاء'
+              ar: 'حذاء',
             },
             parentId: 32423,
             productsCount: 352,
-            treeNodeLevel: 1
+            treeNodeLevel: 1,
           },
           {
             id: 4859,
             name: {
               tr: 'Ayakkabı / Kadın',
               en: 'Shoes / Women',
-              ar: 'حذاء / نسائي'
+              ar: 'حذاء / نسائي',
             },
             parentId: 2435,
             productsCount: 456,
-            treeNodeLevel: 2
-          }
-        ]
-      }
-    }
-  }
+            treeNodeLevel: 2,
+          },
+        ],
+      },
+    },
+  },
 };
 
 const CategoriesListOpenapi = {
@@ -78,17 +78,17 @@ const CategoriesListOpenapi = {
       in: 'query',
       required: false,
       schema: {
-        type: 'number'
-      }
+        type: 'number',
+      },
     },
     {
       name: 'treeNodeLevel',
       in: 'query',
       required: false,
       schema: {
-        type: 'number'
-      }
-    }
+        type: 'number',
+      },
+    },
   ],
   responses: {
     '200': {
@@ -99,15 +99,15 @@ const CategoriesListOpenapi = {
             type: 'object',
             properties: {
               count: {
-                type: 'number'
+                type: 'number',
               },
               categories: {
                 type: 'array',
                 items: {
-                  $ref: '#/components/schemas/Category'
-                }
-              }
-            }
+                  $ref: '#/components/schemas/Category',
+                },
+              },
+            },
           },
           examples: {
             response: {
@@ -119,36 +119,36 @@ const CategoriesListOpenapi = {
                     name: {
                       tr: 'Ayakkabı',
                       en: 'Shoes',
-                      ar: 'حذاء'
+                      ar: 'حذاء',
                     },
                     parentId: 455,
                     productsCount: 100,
-                    treeNodeLevel: 1
-                  }
-                ]
-              }
-            }
-          }
-        }
-      }
+                    treeNodeLevel: 1,
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorToken'
-    }
+      $ref: '#/components/responses/UnauthorizedErrorToken',
+    },
   },
   security: [
     {
-      bearerAuth: [] as any[]
-    }
-  ]
+      bearerAuth: [] as any[],
+    },
+  ],
 };
 
 export const CategoriesOpenapi: ServiceSchema = {
-  name: 'openapi',
+  name: 'categories',
   settings: {
-    openapi: CategoriesSettingsOpenapi
+    openapi: CategoriesSettingsOpenapi,
   },
   actions: {
-    list: { openapi: CategoriesListOpenapi }
-  }
+    list: { openapi: CategoriesListOpenapi },
+  },
 };

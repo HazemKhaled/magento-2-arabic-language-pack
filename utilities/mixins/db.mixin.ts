@@ -18,7 +18,7 @@ export default (collection: string): ServiceSchema => {
           const eventName = `${this.name}.entity.${type}`;
           this.broker.emit(eventName, { meta: ctx.meta, entity: json });
         });
-      }
-    }
+      },
+    },
   };
 };

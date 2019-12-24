@@ -5,15 +5,15 @@ const ShipmentPolicySchema = {
   required: ['countries', 'name', 'rules'],
   properties: {
     name: {
-      type: 'string'
+      type: 'string',
     },
     countries: {
       type: 'array',
       items: {
         type: 'string',
         minLength: 2,
-        maxLength: 2
-      }
+        maxLength: 2,
+      },
     },
     rules: {
       type: 'array',
@@ -25,47 +25,47 @@ const ShipmentPolicySchema = {
           'delivery_days_min',
           'type',
           'units_max',
-          'units_min'
+          'units_min',
         ],
         type: 'object',
         properties: {
           courier: {
-            type: 'string'
+            type: 'string',
           },
           delivery_days_min: {
-            type: 'number'
+            type: 'number',
           },
           delivery_days_max: {
-            type: 'number'
+            type: 'number',
           },
           units_min: {
-            type: 'number'
+            type: 'number',
           },
           units_max: {
-            type: 'number'
+            type: 'number',
           },
           type: {
             type: 'string',
-            enum: ['weight', 'price']
+            enum: ['weight', 'price'],
           },
           cost: {
-            type: 'number'
-          }
-        }
-      }
-    }
-  }
+            type: 'number',
+          },
+        },
+      },
+    },
+  },
 };
 
 const ShipmentPolicyResponse = {
   content: {
     'application/json': {
       schema: {
-        $ref: '#/components/schemas/ShipmentPolicy'
-      }
-    }
+        $ref: '#/components/schemas/ShipmentPolicy',
+      },
+    },
   },
-  required: true
+  required: true,
 };
 
 const ShipmentGetOpenapi = {
@@ -76,9 +76,9 @@ const ShipmentGetOpenapi = {
       in: 'path',
       required: false,
       schema: {
-        type: 'string'
-      }
-    }
+        type: 'string',
+      },
+    },
   ],
   summary: 'Get All Shipment Policies or Get By Id',
   tags: ['Shipment', 'Enterprise Only'],
@@ -90,21 +90,21 @@ const ShipmentGetOpenapi = {
           schema: {
             type: 'array',
             items: {
-              $ref: '#/components/schemas/ShipmentPolicy'
-            }
-          }
-        }
-      }
+              $ref: '#/components/schemas/ShipmentPolicy',
+            },
+          },
+        },
+      },
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorBasic'
-    }
+      $ref: '#/components/responses/UnauthorizedErrorBasic',
+    },
   },
   security: [
     {
-      basicAuth: [] as []
-    }
-  ]
+      basicAuth: [] as [],
+    },
+  ],
 };
 
 const ShipmentInsertOpenapi = {
@@ -117,23 +117,23 @@ const ShipmentInsertOpenapi = {
       content: {
         'application/json': {
           schema: {
-            $ref: '#/components/schemas/ShipmentPolicy'
-          }
-        }
-      }
+            $ref: '#/components/schemas/ShipmentPolicy',
+          },
+        },
+      },
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorBasic'
-    }
+      $ref: '#/components/responses/UnauthorizedErrorBasic',
+    },
   },
   security: [
     {
-      basicAuth: [] as []
-    }
+      basicAuth: [] as [],
+    },
   ],
   requestBody: {
-    $ref: '#/components/requestBodies/ShipmentPolicy'
-  }
+    $ref: '#/components/requestBodies/ShipmentPolicy',
+  },
 };
 
 const ShipmentUpdateOpenapi = {
@@ -144,9 +144,9 @@ const ShipmentUpdateOpenapi = {
       in: 'path',
       required: true,
       schema: {
-        type: 'string'
-      }
-    }
+        type: 'string',
+      },
+    },
   ],
   summary: 'Update Shipment Policy',
   tags: ['Shipment', 'Enterprise Only'],
@@ -156,23 +156,23 @@ const ShipmentUpdateOpenapi = {
       content: {
         'application/json': {
           schema: {
-            $ref: '#/components/schemas/ShipmentPolicy'
-          }
-        }
-      }
+            $ref: '#/components/schemas/ShipmentPolicy',
+          },
+        },
+      },
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorBasic'
-    }
+      $ref: '#/components/responses/UnauthorizedErrorBasic',
+    },
   },
   security: [
     {
-      basicAuth: [] as []
-    }
+      basicAuth: [] as [],
+    },
   ],
   requestBody: {
-    $ref: '#/components/requestBodies/ShipmentPolicy'
-  }
+    $ref: '#/components/requestBodies/ShipmentPolicy',
+  },
 };
 
 const ShipmentRuleByCountryOpenapi = {
@@ -187,25 +187,25 @@ const ShipmentRuleByCountryOpenapi = {
       schema: {
         type: 'string',
         minLength: 2,
-        maxLength: 2
-      }
+        maxLength: 2,
+      },
     },
     {
       name: 'weight',
       in: 'query',
       required: true,
       schema: {
-        type: 'number'
-      }
+        type: 'number',
+      },
     },
     {
       name: 'price',
       in: 'query',
       required: true,
       schema: {
-        type: 'number'
-      }
-    }
+        type: 'number',
+      },
+    },
   ],
   responses: {
     '200': {
@@ -217,28 +217,28 @@ const ShipmentRuleByCountryOpenapi = {
             type: 'object',
             properties: {
               courier: {
-                type: 'string'
+                type: 'string',
               },
               cost: {
-                type: 'number'
+                type: 'number',
               },
               duration: {
-                type: 'string'
-              }
-            }
-          }
-        }
-      }
+                type: 'string',
+              },
+            },
+          },
+        },
+      },
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorBasic'
-    }
+      $ref: '#/components/responses/UnauthorizedErrorBasic',
+    },
   },
   security: [
     {
-      basicAuth: [] as []
-    }
-  ]
+      basicAuth: [] as [],
+    },
+  ],
 };
 
 const ShipmentGetCurriersOpenapi = {
@@ -253,9 +253,9 @@ const ShipmentGetCurriersOpenapi = {
       schema: {
         type: 'string',
         minLength: 2,
-        maxLength: 2
-      }
-    }
+        maxLength: 2,
+      },
+    },
   ],
   responses: {
     '200': {
@@ -265,50 +265,50 @@ const ShipmentGetCurriersOpenapi = {
           schema: {
             type: 'array',
             items: {
-              type: 'string'
-            }
-          }
-        }
-      }
+              type: 'string',
+            },
+          },
+        },
+      },
     },
     '401': {
-      $ref: '#/components/responses/UnauthorizedErrorBasic'
-    }
+      $ref: '#/components/responses/UnauthorizedErrorBasic',
+    },
   },
   security: [
     {
-      basicAuth: [] as []
-    }
-  ]
+      basicAuth: [] as [],
+    },
+  ],
 };
 
 export const ShipmentOpenapi: ServiceSchema = {
-  name: 'openapi',
+  name: 'shipment',
   settings: {
     components: {
       schemas: {
-        ShipmentPolicy: ShipmentPolicySchema
+        ShipmentPolicy: ShipmentPolicySchema,
       },
       requestBodies: {
-        ShipmentPolicy: ShipmentPolicyResponse
-      }
-    }
+        ShipmentPolicy: ShipmentPolicyResponse,
+      },
+    },
   },
   actions: {
     getShipments: {
-      openapi: ShipmentGetOpenapi
+      openapi: ShipmentGetOpenapi,
     },
     insertShipment: {
-      openapi: ShipmentInsertOpenapi
+      openapi: ShipmentInsertOpenapi,
     },
     updateShipment: {
-      openapi: ShipmentUpdateOpenapi
+      openapi: ShipmentUpdateOpenapi,
     },
     ruleByCountry: {
-      openapi: ShipmentRuleByCountryOpenapi
+      openapi: ShipmentRuleByCountryOpenapi,
     },
     getCouriers: {
-      openapi: ShipmentGetCurriersOpenapi
-    }
-  }
+      openapi: ShipmentGetCurriersOpenapi,
+    },
+  },
 };

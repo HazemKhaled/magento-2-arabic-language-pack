@@ -50,7 +50,7 @@
     "**/acme.json": true,
     "**/.env": false,
     "**/deployDev.sh": true,
-    "services/*.js": true,
+    "services/*.js": false,
     "services/*.js.map": true,
     "utilities/*/*.js": true,
     "utilities/*/*.js.map": true,
@@ -58,5 +58,14 @@
     "utilities/*/*/*.js.map": true,
     "**/currency.db": true,
     "test": true
+  },
+  "eslint.autoFixOnSave": true,
+  "eslint.validate": [{
+    "autoFix": true,
+    "language": "typescript"
   }
+],
+"editor.codeActionsOnSave": {
+  "source.fixAll.eslint": true
+}
 }

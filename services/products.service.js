@@ -2,11 +2,11 @@ const { MoleculerClientError } = require('moleculer').Errors;
 const ESService = require('moleculer-elasticsearch');
 const { ProductTransformation } = require('../utilities/mixins/product-transformation.mixin');
 const { ProductsOpenapi } = require('../utilities/mixins/openapi');
+const { ProductsValidation } = require('../utilities/mixins/validation');
 
 module.exports = {
   name: 'products',
 
-  mixins: [ProductsOpenapi],
   /**
    * Service settings
    */
@@ -15,13 +15,13 @@ module.exports = {
       host: `http://${process.env.ELASTIC_AUTH}@${process.env.ELASTIC_HOST}:${
         process.env.ELASTIC_PORT
       }`,
-      apiVersion: process.env.ELASTIC_VERSION || '6.x'
-    }
+      apiVersion: process.env.ELASTIC_VERSION || '6.x',
+    },
   },
   /**
    * Service Mixins
    */
-  mixins: [ProductTransformation, ESService],
+  mixins: [ProductTransformation, ESService, ProductsValidation, ProductsOpenapi],
 
   /**
    * Actions
@@ -34,7 +34,10 @@ module.exports = {
      */
     getInstanceProduct: {
       auth: 'Bearer',
-      cache: { keys: ['#user', 'sku'], ttl: 60 },
+      cache: {
+        keys: ['#user', 'sku'],
+        ttl: 60,
+      },
       async handler(ctx) {
         const { sku } = ctx.params;
         let { _source } = ctx.params;
@@ -49,7 +52,7 @@ module.exports = {
           'last_check_date',
           'categories',
           'attributes',
-          'variations'
+          'variations',
         ];
         // _source contains specific to be returned
         if (Array.isArray(_source)) {
@@ -61,15 +64,29 @@ module.exports = {
         if (product === 404) {
           ctx.meta.$statusCode = 404;
           ctx.meta.$statusMessage = 'Not Found';
-          return { errors: [{ message: 'Product not found!' }] };
+          return {
+            errors: [
+              {
+                message: 'Product not found!',
+              },
+            ],
+          };
         }
         if (product === 500) {
           ctx.meta.$statusCode = 500;
           ctx.meta.$statusMessage = 'Internal Error';
-          return { errors: [{ message: 'Internal server error!' }] };
+          return {
+            errors: [
+              {
+                message: 'Internal server error!',
+              },
+            ],
+          };
         }
-        return { product };
-      }
+        return {
+          product,
+        };
+      },
     },
 
     /**
@@ -88,21 +105,25 @@ module.exports = {
                   filter: [
                     {
                       term: {
-                        'instanceId.keyword': ctx.meta.user
-                      }
-                    }
+                        'instanceId.keyword': ctx.meta.user,
+                      },
+                    },
                   ],
                   must_not: [
                     {
-                      term: { deleted: true }
+                      term: {
+                        deleted: true,
+                      },
                     },
                     {
-                      term: { archive: true }
-                    }
-                  ]
-                }
-              }
-            }
+                      term: {
+                        archive: true,
+                      },
+                    },
+                  ],
+                },
+              },
+            },
           })
           .then(res => {
             if (typeof res.count !== 'number') {
@@ -111,14 +132,16 @@ module.exports = {
               return {
                 errors: [
                   {
-                    message: 'Something went wrong!'
-                  }
-                ]
+                    message: 'Something went wrong!',
+                  },
+                ],
               };
             }
-            return { total: res.count };
+            return {
+              total: res.count,
+            };
           });
-      }
+      },
     },
 
     /**
@@ -128,21 +151,6 @@ module.exports = {
      */
     list: {
       auth: 'Bearer',
-      params: {
-        limit: {
-          type: 'number',
-          convert: true,
-          integer: true,
-          min: 1,
-          max: 100,
-          optional: true
-        },
-        page: { type: 'number', convert: true, integer: true, min: 1, optional: true },
-        lastupdate: { type: 'string', empty: false, optional: true },
-        hideOutOfStock: { type: 'number', empty: false, convert: true, optional: true },
-        keyword: { type: 'string', optional: true },
-        currency: { type: 'string', optional: true, min: 3, max: 3 }
-      },
       cache: {
         keys: [
           '#user',
@@ -152,10 +160,10 @@ module.exports = {
           'hideOutOfStock',
           'keyword',
           'currency',
-          '_source'
+          '_source',
         ],
         ttl: 30 * 60, // 10 mins
-        monitor: true
+        monitor: true,
       },
       async handler(ctx) {
         const { page, limit, lastupdate = '' } = ctx.params;
@@ -171,7 +179,7 @@ module.exports = {
           'last_check_date',
           'categories',
           'attributes',
-          'variations'
+          'variations',
         ];
         // _source contains specific to be returned
         if (Array.isArray(_source)) {
@@ -187,13 +195,13 @@ module.exports = {
           lastupdate,
           ctx.params.hideOutOfStock,
           ctx.params.keyword,
-          ctx.params.currency
+          ctx.params.currency,
         );
 
         // Emit async Event
         ctx.emit('list.afterRemote', ctx);
         return products;
-      }
+      },
     },
 
     /**
@@ -203,9 +211,6 @@ module.exports = {
      */
     deleteInstanceProduct: {
       auth: 'Bearer',
-      params: {
-        sku: { type: 'string' }
-      },
       handler(ctx) {
         const { sku } = ctx.params;
 
@@ -215,14 +220,28 @@ module.exports = {
             if (product === 404) {
               ctx.meta.$statusCode = 404;
               ctx.meta.$statusMessage = 'Not Found';
-              return { errors: [{ message: 'Product not found!' }] };
+              return {
+                errors: [
+                  {
+                    message: 'Product not found!',
+                  },
+                ],
+              };
             }
             if (product === 500) {
               ctx.meta.$statusCode = 500;
               ctx.meta.$statusMessage = 'Internal Error';
-              return { errors: [{ message: 'Internal Server Error!' }] };
+              return {
+                errors: [
+                  {
+                    message: 'Internal Server Error!',
+                  },
+                ],
+              };
             }
-            return { product };
+            return {
+              product,
+            };
           })
           .catch(() => {
             ctx.meta.$statusCode = 500;
@@ -230,28 +249,15 @@ module.exports = {
             return {
               errors: [
                 {
-                  message: 'Something went wrong!'
-                }
-              ]
+                  message: 'Something went wrong!',
+                },
+              ],
             };
           });
-      }
+      },
     },
     import: {
       auth: 'Bearer',
-      params: {
-        products: {
-          type: 'array',
-          items: {
-            type: 'object',
-            props: {
-              sku: { type: 'string', convert: true }
-            }
-          },
-          max: 1000,
-          min: 1
-        }
-      },
       handler(ctx) {
         const skus = ctx.params.products.map(i => i.sku);
 
@@ -263,16 +269,27 @@ module.exports = {
             body: {
               query: {
                 bool: {
-                  filter: [{ terms: { _id: skus } }, { term: { archive: false } }]
-                }
-              }
-            }
+                  filter: [
+                    {
+                      terms: {
+                        _id: skus,
+                      },
+                    },
+                    {
+                      term: {
+                        archive: false,
+                      },
+                    },
+                  ],
+                },
+              },
+            },
           })
           .then(async res => {
             const newSKUs = res.hits.hits.map(product => product._id);
             const outOfStock = skus.filter(sku => !newSKUs.includes(sku));
             const instance = await this.broker.call('stores.findInstance', {
-              consumerKey: ctx.meta.user
+              consumerKey: ctx.meta.user,
             });
             const bulk = [];
             if (newSKUs.length !== 0) {
@@ -281,8 +298,8 @@ module.exports = {
                   index: {
                     _index: 'products-instances',
                     _type: 'product',
-                    _id: `${instance.consumer_key}-${product._id}`
-                  }
+                    _id: `${instance.consumer_key}-${product._id}`,
+                  },
                 });
                 bulk.push({
                   instanceId: instance.consumer_key,
@@ -292,7 +309,9 @@ module.exports = {
                   sku: product._id,
                   variations: product._source.variations
                     .filter(variation => variation.quantity > 0)
-                    .map(variation => ({ sku: variation.sku }))
+                    .map(variation => ({
+                      sku: variation.sku,
+                    })),
                 });
               });
             }
@@ -301,7 +320,7 @@ module.exports = {
               .call('products.bulk', {
                 index: 'products-instances',
                 type: 'product',
-                body: bulk
+                body: bulk,
               })
               .then(response => {
                 this.broker.cacher.clean(`products.list:${ctx.meta.user}**`);
@@ -311,15 +330,15 @@ module.exports = {
                     .filter(item => item.index._version === 1)
                     .map(item => item.index._id);
                   const update = res.hits.hits.filter(product =>
-                    firstImport.includes(`${instance.consumer_key}-${product._id}`)
+                    firstImport.includes(`${instance.consumer_key}-${product._id}`),
                   );
                   if (update.length > 0) {
                     ctx.call('products-list.updateQuantityAttributes', {
                       products: update.map(product => ({
                         _id: product._id,
                         qty: product._source.import_qty || 0,
-                        attribute: 'import_qty'
-                      }))
+                        attribute: 'import_qty',
+                      })),
                     });
                   }
                 }
@@ -330,46 +349,23 @@ module.exports = {
                   ctx.meta.$statusMessage = 'Internal Server Error';
                   return {
                     errors: [
-                      { message: 'There was an error with importing your products', skus: skus }
-                    ]
+                      {
+                        message: 'There was an error with importing your products',
+                        skus: skus,
+                      },
+                    ],
                   };
                 }
                 return {
                   success: newSKUs,
-                  outOfStock: outOfStock
+                  outOfStock: outOfStock,
                 };
               });
           });
-      }
+      },
     },
     instanceUpdate: {
       auth: 'Bearer',
-      params: {
-        sku: { type: 'string', convert: true },
-        externalUrl: { type: 'string', optional: true },
-        externalId: { type: 'number', convert: true, optional: true },
-        errors: {
-          type: 'array',
-          optional: true,
-          items: { type: 'string' }
-        },
-        variations: {
-          type: 'array',
-          optional: true,
-          items: {
-            type: 'object',
-            props: {
-              sku: { type: 'string', convert: true, optional: true },
-              externalId: { type: 'number', optional: true, convert: true },
-              errors: {
-                type: 'array',
-                optional: true,
-                items: { type: 'string' }
-              }
-            }
-          }
-        }
-      },
       handler(ctx) {
         const body = {};
         if (ctx.params.externalUrl) body.externalUrl = ctx.params.externalUrl;
@@ -381,19 +377,25 @@ module.exports = {
             index: 'products-instances',
             type: 'product',
             id: `${ctx.meta.user}-${ctx.params.sku}`,
-            body: { doc: body }
+            body: {
+              doc: body,
+            },
           })
           .then(res => {
             if (res.result === 'updated')
-              return { status: 'success', message: 'Updated successfully!', sku: ctx.params.sku };
+              return {
+                status: 'success',
+                message: 'Updated successfully!',
+                sku: ctx.params.sku,
+              };
             ctx.meta.$statusCode = 500;
             ctx.meta.$statusMessage = 'Internal Server Error';
             return {
               errors: [
                 {
-                  message: 'Something went wrong!'
-                }
-              ]
+                  message: 'Something went wrong!',
+                },
+              ],
             };
           })
           .catch(err => {
@@ -403,9 +405,9 @@ module.exports = {
               return {
                 errors: [
                   {
-                    message: 'Not Found!'
-                  }
-                ]
+                    message: 'Not Found!',
+                  },
+                ],
               };
             }
             ctx.meta.$statusCode = 500;
@@ -413,44 +415,15 @@ module.exports = {
             return {
               errors: [
                 {
-                  message: 'Something went wrong!'
-                }
-              ]
+                  message: 'Something went wrong!',
+                },
+              ],
             };
           });
-      }
+      },
     },
     bulkProductInstance: {
       auth: 'Bearer',
-      params: {
-        productInstances: {
-          type: 'array',
-          items: {
-            type: 'object',
-            props: {
-              sku: { type: 'string', convert: true },
-              externalUrl: { type: 'string', optional: true },
-              externalId: { type: 'string', convert: true, optional: true },
-              error: {
-                type: 'array',
-                optional: true,
-                items: { type: 'string' }
-              },
-              variations: {
-                type: 'array',
-                optional: true,
-                items: {
-                  type: 'object',
-                  props: {
-                    sku: { type: 'string', convert: true, optional: true },
-                    externalId: { type: 'string', optional: true, convert: true }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
       handler(ctx) {
         const bulk = [];
         ctx.params.productInstances.forEach(pi => {
@@ -458,43 +431,49 @@ module.exports = {
             update: {
               _index: 'products-instances',
               _type: 'product',
-              _id: `${ctx.meta.user}-${pi.sku}`
-            }
+              _id: `${ctx.meta.user}-${pi.sku}`,
+            },
           });
           delete pi.sku;
-          bulk.push({ doc: pi });
+          bulk.push({
+            doc: pi,
+          });
         });
         return bulk.length === 0
           ? []
           : this.broker
-              .call('products.bulk', {
-                body: bulk
-              })
-              .then(res => {
-                if (res.errors === false) return { status: 'success' };
-                ctx.meta.$statusCode = 500;
-                ctx.meta.$statusMessage = 'Internal Server Error';
+            .call('products.bulk', {
+              body: bulk,
+            })
+            .then(res => {
+              if (res.errors === false) {
                 return {
-                  errors: [
-                    {
-                      message: 'Update Error!'
-                    }
-                  ]
+                  status: 'success',
                 };
-              })
-              .catch(() => {
-                ctx.meta.$statusCode = 500;
-                ctx.meta.$statusMessage = 'Internal Server Error';
-                return {
-                  errors: [
-                    {
-                      message: 'Something went wrong!'
-                    }
-                  ]
-                };
-              });
-      }
-    }
+              }
+              ctx.meta.$statusCode = 500;
+              ctx.meta.$statusMessage = 'Internal Server Error';
+              return {
+                errors: [
+                  {
+                    message: 'Update Error!',
+                  },
+                ],
+              };
+            })
+            .catch(() => {
+              ctx.meta.$statusCode = 500;
+              ctx.meta.$statusMessage = 'Internal Server Error';
+              return {
+                errors: [
+                  {
+                    message: 'Something went wrong!',
+                  },
+                ],
+              };
+            });
+      },
+    },
   },
   methods: {
     /**
@@ -505,7 +484,9 @@ module.exports = {
      * @memberof ElasticLib
      */
     async fetchProduct(sku, id, _source) {
-      const instance = await this.broker.call('stores.findInstance', { consumerKey: id });
+      const instance = await this.broker.call('stores.findInstance', {
+        consumerKey: id,
+      });
       try {
         const result = await this.broker
           .call('products.search', {
@@ -517,38 +498,28 @@ module.exports = {
                 bool: {
                   filter: {
                     term: {
-                      'sku.keyword': sku
-                    }
-                  }
-                }
-              }
-            }
+                      'sku.keyword': sku,
+                    },
+                  },
+                },
+              },
+            },
           })
           .then(res =>
             res.hits.total > 0
               ? this.broker.call('products.search', {
-                  index: 'products',
-                  type: 'Product',
-                  _source: _source,
-                  body: {
-                    query: {
-                      bool: {
-                        filter: {
-                          term: {
-                            _id: sku
-                          }
-                        }
-                      }
-                    }
-                  }
-                })
-              : res
+                index: 'products',
+                type: 'Product',
+                _source: _source,
+                body: { query: { bool: { filter: { term: { _id: sku } } } } },
+              })
+              : res,
           );
         if (result.hits.total === 0) {
           return 404;
         }
         const currencyRate = await this.broker.call('currencies.getCurrency', {
-          currencyCode: instance.currency
+          currencyCode: instance.currency,
         });
         const source = result.hits.hits[0]._source;
         return {
@@ -564,8 +535,8 @@ module.exports = {
             source.variations,
             instance,
             currencyRate.rate,
-            source.archive
-          )
+            source.archive,
+          ),
         };
       } catch (err) {
         return 500;
@@ -592,11 +563,11 @@ module.exports = {
       lastupdate = '',
       hideOutOfStock,
       keyword,
-      currency
+      currency,
     ) {
       const instance = await this.broker.call('stores.findInstance', {
         consumerKey: instanceId,
-        lastUpdated: lastupdate
+        lastUpdated: lastupdate,
       });
       const instanceProductsFull = await this.findIP(
         page,
@@ -604,14 +575,14 @@ module.exports = {
         instanceId,
         lastupdate,
         hideOutOfStock,
-        keyword
+        keyword,
       );
 
       const instanceProducts = instanceProductsFull.page.map(product => product._source.sku);
       if (instanceProducts.length === 0) {
         return {
           products: [],
-          total: instanceProductsFull.totalProducts
+          total: instanceProductsFull.totalProducts,
         };
       }
 
@@ -623,14 +594,14 @@ module.exports = {
             type: 'Product',
             _source: _source,
             body: {
-              ids: instanceProducts
-            }
-          }
+              ids: instanceProducts,
+            },
+          },
         });
         const results = search.docs;
 
         const currencyRate = await this.broker.call('currencies.getCurrency', {
-          currencyCode: currency || instance.currency
+          currencyCode: currency || instance.currency,
         });
         try {
           const products = results.map((product, n) => {
@@ -650,8 +621,8 @@ module.exports = {
                   instance,
                   currencyRate.rate,
                   source.archive,
-                  instanceProductsFull.page[n]._source.variations
-                )
+                  instanceProductsFull.page[n]._source.variations,
+                ),
               };
               try {
                 if (typeof instanceProductsFull.page[n]._source.externalId !== 'undefined')
@@ -669,7 +640,7 @@ module.exports = {
               const blankProduct = {
                 sku: product._id,
                 images: [],
-                categories: []
+                categories: [],
               };
               instanceProductsFull.page.forEach(instanceProduct => {
                 const productSource = instanceProduct._source;
@@ -688,7 +659,7 @@ module.exports = {
 
           return {
             products: products.filter(product => !!product && product.variations.length !== 0),
-            total: instanceProductsFull.totalProducts
+            total: instanceProductsFull.totalProducts,
           };
         } catch (err) {
           return new MoleculerClientError(err);
@@ -722,14 +693,14 @@ module.exports = {
       fullResult = [],
       endTrace = 0,
       scrollId = false,
-      maxScroll = 0
+      maxScroll = 0,
     ) {
       page = parseInt(page) || 1;
       let search = [];
       const mustNot =
         parseInt(hideOutOfStock) === 1
-          ? [{ term: { deleted: true } }, { term: { archive: true } }]
-          : [{ term: { deleted: true } }];
+          ? [{ term: { deleted: true} }, { term: { archive: true } }]
+          : [{term: { deleted: true }}];
       try {
         if (!scrollId) {
           const searchQuery = {
@@ -738,14 +709,26 @@ module.exports = {
             scroll: '1m',
             size: process.env.SCROLL_LIMIT,
             body: {
-              sort: [{ createdAt: { order: 'asc' } }],
+              sort: [
+                {
+                  createdAt: {
+                    order: 'asc',
+                  },
+                },
+              ],
               query: {
                 bool: {
                   must_not: mustNot,
-                  must: [{ term: { 'instanceId.keyword': instanceId } }]
-                }
-              }
-            }
+                  must: [
+                    {
+                      term: {
+                        'instanceId.keyword': instanceId,
+                      },
+                    },
+                  ],
+                },
+              },
+            },
           };
 
           if (keyword && keyword !== '') {
@@ -753,8 +736,8 @@ module.exports = {
               multi_match: {
                 query: keyword,
                 fields: ['sku.keyword', 'variations.sku.keyword'],
-                fuzziness: 'AUTO'
-              }
+                fuzziness: 'AUTO',
+              },
             });
           }
 
@@ -765,17 +748,17 @@ module.exports = {
               {
                 range: {
                   updated: {
-                    gte: lastUpdatedDate
-                  }
-                }
+                    gte: lastUpdatedDate,
+                  },
+                },
               },
               {
                 range: {
                   createdAt: {
-                    gte: lastUpdatedDate
-                  }
-                }
-              }
+                    gte: lastUpdatedDate,
+                  },
+                },
+              },
             ];
             searchQuery.body.query.bool.minimum_should_match = 1;
           }
@@ -796,7 +779,10 @@ module.exports = {
         } else {
           search = await this.broker.call('products.call', {
             api: 'scroll',
-            params: { scroll: '30s', scrollId: scrollId }
+            params: {
+              scroll: '30s',
+              scrollId: scrollId,
+            },
           });
         }
 
@@ -816,13 +802,13 @@ module.exports = {
             results,
             endTrace,
             search._scroll_id,
-            maxScroll
+            maxScroll,
           );
         }
 
         return {
           page: scrollId ? results.slice(page * size - size, page * size) : results,
-          totalProducts: search.hits.total
+          totalProducts: search.hits.total,
         };
       } catch (err) {
         return new MoleculerClientError(err);
@@ -846,22 +832,22 @@ module.exports = {
           body: {
             doc: {
               deleted: true,
-              delete_date: new Date()
-            }
-          }
+              delete_date: new Date(),
+            },
+          },
         })
         .then(response => {
           if (response._shards.successful > 0)
             return {
               status: 'success',
               message: 'Product has been deleted.',
-              sku: sku
+              sku: sku,
             };
           return 404;
         })
         .catch(() => {
           return 500;
         });
-    }
-  }
+    },
+  },
 };
