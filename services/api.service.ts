@@ -20,7 +20,7 @@ const TheService: ServiceSchema = {
 
         aliases: {
           // Login
-          'POST token': 'users.login',
+          'POST token': 'stores.login',
 
           // Product
           'GET catalog/products': 'products.list',
@@ -99,7 +99,13 @@ const TheService: ServiceSchema = {
           // Subscription
           'POST subscription': 'subscription.create',
           'GET subscription': 'subscription.list',
-          'PUT subscription/:id': 'subscription.updateSubscription'
+          'PUT subscription/:id': 'subscription.updateSubscription',
+
+          // Taxes
+          'POST tax': 'taxes.tCreate',
+          'PUT tax/:id': 'taxes.tUpdate',
+          'GET tax/:country': 'taxes.tFindByCountry',
+          'DELETE tax/:id': 'taxes.tDelete',
         },
 
         // Disable to call not-mapped actions
@@ -111,16 +117,16 @@ const TheService: ServiceSchema = {
         // Parse body content
         bodyParsers: {
           json: {
-            strict: false
+            strict: false,
           },
           urlencoded: {
-            extended: false
-          }
+            extended: false,
+          },
         },
         async onError(
           req: any,
           res: any,
-          err: { message: string; code: number; name: string; type: string; data: any[] }
+          err: { message: string; code: number; name: string; type: string; data: any[] },
         ) {
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
           res.writeHead(err.code || 500);
@@ -131,19 +137,19 @@ const TheService: ServiceSchema = {
                 message: err.message,
                 code: err.code,
                 type: err.type,
-                data: err.data
-              })
+                data: err.data,
+              }),
             );
           }
           if (err.code === 500 || !err.code) {
             const log = await this.sendLogs({
               topic: `${req.$action.service.name}`,
               topicId: `${req.$action.name}`,
-              message: `Something went wrong fetching the data`,
+              message: 'Something went wrong fetching the data',
               storeId: 'Unknown',
               logLevel: 'error',
               code: 500,
-              payload: { error: err.toString(), params: req.$params }
+              payload: { error: err.toString(), params: req.$params },
             });
             res.end(
               JSON.stringify({
@@ -151,20 +157,20 @@ const TheService: ServiceSchema = {
                   {
                     message: `Something went wrong for more details Please check the log under ID: ${
                       log.id
-                      }`
-                  }
-                ]
-              })
+                    }`,
+                  },
+                ],
+              }),
             );
           }
           res.end(JSON.stringify({ errors: [{ message: err.message }] }));
-        }
-      }
+        },
+      },
     ],
 
     assets: {
-      folder: './public'
-    }
+      folder: './public',
+    },
   },
 
   methods: {
@@ -199,13 +205,13 @@ const TheService: ServiceSchema = {
           if (type === 'Bearer') {
             if (req.$action.auth !== 'Bearer') {
               return this.Promise.reject(
-                new UnAuthorizedError(ERR_NO_TOKEN, req.headers.authorization)
+                new UnAuthorizedError(ERR_NO_TOKEN, req.headers.authorization),
               );
             }
-            return ctx.call('users.resolveBearerToken', { token }).then((user: { id: string }) => {
+            return ctx.call('stores.resolveBearerToken', { token }).then((user: { id: string }) => {
               if (!user) {
                 return this.Promise.reject(
-                  new UnAuthorizedError(ERR_INVALID_TOKEN, req.headers.authorization)
+                  new UnAuthorizedError(ERR_INVALID_TOKEN, req.headers.authorization),
                 );
               }
               if (user) {
@@ -222,10 +228,10 @@ const TheService: ServiceSchema = {
           if (type === 'Basic') {
             if (req.$action.auth !== 'Basic') {
               return this.Promise.reject(
-                new UnAuthorizedError(ERR_NO_TOKEN, req.headers.authorization)
+                new UnAuthorizedError(ERR_NO_TOKEN, req.headers.authorization),
               );
             }
-            return ctx.call('users.resolveBasicToken', { token }).then((user: any) => {
+            return ctx.call('stores.resolveBasicToken', { token }).then((user: any) => {
               if (user) {
                 ctx.meta.token = token;
               }
@@ -236,7 +242,7 @@ const TheService: ServiceSchema = {
         .then((user: any) => {
           if (!user) {
             return this.Promise.reject(
-              new UnAuthorizedError(ERR_INVALID_TOKEN, req.headers.authorization)
+              new UnAuthorizedError(ERR_INVALID_TOKEN, req.headers.authorization),
             );
           }
         });
@@ -249,8 +255,8 @@ const TheService: ServiceSchema = {
      */
     sendLogs(log: Log): ServiceSchema {
       return this.broker.call('logs.add', log);
-    }
-  }
+    },
+  },
 };
 
 export = TheService;

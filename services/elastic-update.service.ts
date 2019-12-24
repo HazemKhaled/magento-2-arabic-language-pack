@@ -24,8 +24,8 @@ const TheService: ServiceSchema = {
         } else {
           this.logger.warn('elastic-update not working on development environment');
         }
-      }
-    }
+      },
+    },
   ],
 
   /**
@@ -41,9 +41,9 @@ const TheService: ServiceSchema = {
       host: `http://${process.env.ELASTIC_AUTH}@${process.env.ELASTIC_HOST}:${
         process.env.ELASTIC_PORT
       }`,
-      apiVersion: process.env.ELASTIC_VERSION || '6.x'
+      apiVersion: process.env.ELASTIC_VERSION || '6.x',
     },
-    isRunning: false
+    isRunning: false,
   },
 
   /**
@@ -87,8 +87,8 @@ const TheService: ServiceSchema = {
           this.logger.error('something went wrong during get last update date');
         }
         this.settings.isRunning = false;
-      }
-    }
+      },
+    },
   },
 
   /**
@@ -113,12 +113,12 @@ const TheService: ServiceSchema = {
           body: {
             query: {
               range: {
-                updated: { gt: new Date(lastUpdateDate) }
-              }
+                updated: { gt: new Date(lastUpdateDate) },
+              },
             },
-            sort: { updated: { order: 'asc' } }
+            sort: { updated: { order: 'asc' } },
           },
-          size: limit
+          size: limit,
         })
         .catch(() => {
           throw new MoleculerClientError('', 500, '');
@@ -132,7 +132,7 @@ const TheService: ServiceSchema = {
         return {
           success: true,
           LastDate: '',
-          noProducts: true
+          noProducts: true,
         };
       }
 
@@ -143,7 +143,7 @@ const TheService: ServiceSchema = {
         if (isUpdated) {
           return {
             success: true,
-            LastDate
+            LastDate,
           };
         }
       } else {
@@ -168,25 +168,25 @@ const TheService: ServiceSchema = {
           body: {
             query: {
               term: {
-                'sku.keyword': product.sku
-              }
+                'sku.keyword': product.sku,
+              },
             },
             script: {
               params: {
                 productArchive: product.archive || false,
-                productUpdated: product.updated || new Date()
+                productUpdated: product.updated || new Date(),
               },
               source:
                 'ctx._source.archive=params.productArchive; ctx._source.updated=params.productUpdated;',
-              lang: 'painless'
-            }
+              lang: 'painless',
+            },
           },
-          conflicts: 'proceed'
+          conflicts: 'proceed',
         };
         try {
           const updated = await this.broker.call('elastic-update.call', {
             api: 'updateByQuery',
-            params: updateData
+            params: updateData,
           });
           if (updated && updated.failures.length === 0) {
             this.logger.info(`[SUCCESS] ${product.sku} has been Updated`);
@@ -210,12 +210,12 @@ const TheService: ServiceSchema = {
      */
     getLastUpdateDate() {
       const query = {
-        query: { _id: 'last_update_date' }
+        query: { _id: 'last_update_date' },
       };
       return this.Promise.resolve()
         .then(() => this.adapter.find(query))
         .then(([date]: [{ date: any }]) =>
-          date && date.date ? date.date : new Date('1970-01-01T12:00:00.000Z')
+          date && date.date ? date.date : new Date('1970-01-01T12:00:00.000Z'),
         )
         .catch((err: Error) => {
           this.logger.error('ERROR_DURING_GET_LAST_DATE', err);
@@ -231,7 +231,7 @@ const TheService: ServiceSchema = {
      */
     updateLastUpdateDate(date = '1970-01-01T12:00:00.000Z', ctx: any) {
       const query = {
-        query: { _id: 'last_update_date' }
+        query: { _id: 'last_update_date' },
       };
 
       return this.Promise.resolve()
@@ -256,8 +256,8 @@ const TheService: ServiceSchema = {
         .catch((err: object) => {
           this.logger.error('ERROR_DURING_UPDATE_LAST_DATE', err);
         });
-    }
-  }
+    },
+  },
 };
 
 export = TheService;

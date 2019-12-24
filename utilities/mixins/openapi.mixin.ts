@@ -16,9 +16,9 @@ import pkg from '../../package.json';
 export function OpenApiMixin(): ServiceSchema {
   const mixinOptions: { schema: any; routeOptions: { path: string } } = {
     routeOptions: {
-      path: '/openapi'
+      path: '/openapi',
     },
-    schema: null
+    schema: null,
   };
 
   let shouldUpdateSchema = true;
@@ -29,7 +29,7 @@ export function OpenApiMixin(): ServiceSchema {
     events: {
       '$services.changed'() {
         this.invalidateOpenApiSchema();
-      }
+      },
     },
 
     methods: {
@@ -55,14 +55,14 @@ export function OpenApiMixin(): ServiceSchema {
               termsOfService: 'https://knawat.com/terms-and-conditions/',
               contact: {
                 email: 'support@knawat.com',
-                url: 'https://developer.knawat.com'
+                url: 'https://developer.knawat.com',
               },
               license: {
                 name: 'Knawat Copyright © - 2017 - 2019',
-                url: 'https://knawat.com/terms-and-conditions/'
+                url: 'https://knawat.com/terms-and-conditions/',
               },
               description:
-                'Welcome to the Knawat MP documentation. Navigate through the documentation to learn more. If you encounter any problems when using our APIs, send us an email it@knawat.com;\n## What is Knawat? Knawat is a Drop-Shipping platform. We are bringing hundreds of thousands of products to let you list in your e-commerce store. We also do all operations behind the e-commerce, so once you receive an order, we will ship it to your customer with your invoice. ## What is Knawat MP API? Knawat MP APIs mainly for e-commerce stores, allows you to aggregate products to your store, update stock and prices, and send us your orders. ## Features\n  * Fetch products with pagination\n  * fetch one product to validate price or qty\n  * All prices in USD\n\n## To-Dos\n  * Fetch product(s) with your currency\n  * Advanced products search with keyword\n## Support and Chat\n  We are happy to receive your questions. click here to [chat with\n    us](https://gitter.im/Knawat/Lobby).\n'
+                'Welcome to the Knawat MP documentation. Navigate through the documentation to learn more. If you encounter any problems when using our APIs, send us an email it@knawat.com;\n## What is Knawat? Knawat is a Drop-Shipping platform. We are bringing hundreds of thousands of products to let you list in your e-commerce store. We also do all operations behind the e-commerce, so once you receive an order, we will ship it to your customer with your invoice. ## What is Knawat MP API? Knawat MP APIs mainly for e-commerce stores, allows you to aggregate products to your store, update stock and prices, and send us your orders. ## Features\n  * Fetch products with pagination\n  * fetch one product to validate price or qty\n  * All prices in USD\n\n## To-Dos\n  * Fetch product(s) with your currency\n  * Advanced products search with keyword\n## Support and Chat\n  We are happy to receive your questions. click here to [chat with\n    us](https://gitter.im/Knawat/Lobby).\n',
             },
 
             // https://swagger.io/specification/#serverObject
@@ -71,47 +71,47 @@ export function OpenApiMixin(): ServiceSchema {
                 url:
                   process.env.APPURL ||
                   `${this.isHTTPS ? 'https' : 'http'}://localhost:${this.server.address().port}`,
-                description: 'Development server'
+                description: 'Development server',
               },
               {
                 description: 'Production Server',
-                url: 'https://mp.knawat.io/api'
+                url: 'https://mp.knawat.io/api',
               },
               {
                 description: 'Sandbox Server',
-                url: 'https://dev.mp.knawat.io/api'
-              }
+                url: 'https://dev.mp.knawat.io/api',
+              },
             ],
 
             // https://swagger.io/specification/#componentsObject
             components: {
               responses: {
                 UnauthorizedErrorToken: {
-                  description: 'Access token is missing or invalid, request new one'
+                  description: 'Access token is missing or invalid, request new one',
                 },
                 UnauthorizedErrorBasic: {
                   description: 'Authentication information is missing or invalid',
                   headers: {
                     WWW_Authenticate: {
                       schema: {
-                        type: 'string'
-                      }
-                    }
-                  }
-                }
+                        type: 'string',
+                      },
+                    },
+                  },
+                },
               },
               securitySchemes: {
                 bearerAuth: {
                   type: 'http',
                   scheme: 'bearer',
-                  bearerFormat: 'JWT'
+                  bearerFormat: 'JWT',
                 },
                 basicAuth: {
                   description:
                     'Knawat provide <a href="#tag/Enterprise-Only">extra endpoints</a> for enterprise subscriptions, check <a href="https://knawat.com/plans">pricing here</a>.\n',
                   type: 'http',
-                  scheme: 'basic'
-                }
+                  scheme: 'basic',
+                },
               },
               schemas: {
                 Error: {
@@ -119,18 +119,18 @@ export function OpenApiMixin(): ServiceSchema {
                   required: ['message'],
                   properties: {
                     status: {
-                      type: 'string'
+                      type: 'string',
                     },
                     message: {
-                      type: 'string'
-                    }
+                      type: 'string',
+                    },
                   },
                   description: 'This general error structure is used throughout this API.',
                   example: {
-                    message: 'SKU(s) out of stock.'
-                  }
-                }
-              }
+                    message: 'SKU(s) out of stock.',
+                  },
+                },
+              },
             },
 
             // https://swagger.io/specification/#pathsObject
@@ -139,15 +139,15 @@ export function OpenApiMixin(): ServiceSchema {
             // https://swagger.io/specification/#securityRequirementObject
             security: [
               {
-                basicAuth: []
-              }
+                basicAuth: [],
+              },
             ],
 
             // https://swagger.io/specification/#tagObject
             tags: [
               {
                 name: 'Authentication',
-                description: 'text here'
+                description: 'text here',
               },
               {
                 name: 'My Products',
@@ -155,56 +155,59 @@ export function OpenApiMixin(): ServiceSchema {
                   'How products can come to your API?\n![](https://www.dropbox.com/s/tb8708y269pccx0/ZApp%20-%20products.png?dl=1)\n',
                 externalDocs: {
                   description: 'Register and import some products',
-                  url: 'https://app.knawat.com'
-                }
+                  url: 'https://app.knawat.com',
+                },
               },
               {
-                name: 'Orders'
+                name: 'Orders',
               },
               {
-                name: 'Invoices'
+                name: 'Invoices',
               },
               {
-                name: 'Payments'
+                name: 'Payments',
               },
               {
                 name: 'Enterprise Only',
                 description: 'Ask sales for enterprise subscriptions',
                 externalDocs: {
-                  url: 'https://knawat.com/pricing'
-                }
+                  url: 'https://knawat.com/pricing',
+                },
               },
               {
-                name: 'Stores'
+                name: 'Stores',
               },
               {
                 name: 'Products',
                 description:
-                  'This is how you can get all Knawat products to list it directly on your store, this endpoint for enterprise only customers only'
+                  'This is how you can get all Knawat products to list it directly on your store, this endpoint for enterprise only customers only',
               },
               {
-                name: 'Currencies'
+                name: 'Currencies',
               },
               {
-                name: 'Shipment'
+                name: 'Shipment',
               },
               {
-                name: 'Subscription'
+                name: 'Subscription',
               },
               {
-                name: 'Coupon'
+                name: 'Coupon',
               },
               {
-                name: 'Membership'
-              }
+                name: 'Membership',
+              },
+              {
+                name: 'Taxes',
+              },
             ],
 
             // https://swagger.io/specification/#externalDocumentationObject
-            externalDocs: []
+            externalDocs: [],
           });
 
           const services = this.broker.registry.getServiceList({
-            withActions: true
+            withActions: true,
           });
           services.forEach((service: any) => {
             // --- COMPILE SERVICE-LEVEL DEFINITIONS ---
@@ -238,10 +241,10 @@ export function OpenApiMixin(): ServiceSchema {
             'Unable to compile OpenAPI schema',
             500,
             'UNABLE_COMPILE_OPENAPI_SCHEMA',
-            { err }
+            { err },
           );
         }
-      }
+      },
     },
 
     created() {
@@ -261,14 +264,14 @@ export function OpenApiMixin(): ServiceSchema {
             'Content-Type',
             'Accept',
             'Authorization',
-            'Access-Control-Allow-*'
+            'Access-Control-Allow-*',
           ],
           // Configures the Access-Control-Expose-Headers CORS header.
           exposedHeaders: [],
           // Configures the Access-Control-Allow-Credentials CORS header.
           credentials: true,
           // Configures the Access-Control-Max-Age CORS header.
-          maxAge: 3600
+          maxAge: 3600,
         },
 
         aliases: {
@@ -300,10 +303,10 @@ export function OpenApiMixin(): ServiceSchema {
             ctx.meta.responseType = 'application/json';
 
             return this.sendResponse(ctx, '', req, res, schema);
-          }
+          },
         },
 
-        mappingPolicy: 'restrict'
+        mappingPolicy: 'restrict',
       });
 
       // Add route
@@ -312,8 +315,8 @@ export function OpenApiMixin(): ServiceSchema {
 
     started() {
       return this.logger.info(
-        `📜 OpenAPI Docs server is available at ${mixinOptions.routeOptions.path}`
+        `📜 OpenAPI Docs server is available at ${mixinOptions.routeOptions.path}`,
       );
-    }
+    },
   };
 }

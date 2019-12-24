@@ -2,21 +2,20 @@ import { Context, Errors, ServiceSchema } from 'moleculer';
 import DbService from '../utilities/mixins/mongo.mixin';
 import { CouponsOpenapi } from '../utilities/mixins/openapi';
 import { Coupon } from '../utilities/types';
-import { CreateCouponValidation, UpdateCouponValidation } from '../utilities/validations';
+import { CouponsValidation } from '../utilities/mixins/validation';
 const MoleculerError = Errors.MoleculerError;
 
 const TheService: ServiceSchema = {
   name: 'coupons',
-  mixins: [DbService('coupons'), CouponsOpenapi],
+  mixins: [DbService('coupons'), CouponsValidation, CouponsOpenapi],
   actions: {
     create: {
       auth: 'Basic',
-      params: CreateCouponValidation,
       handler(ctx: Context): Promise<Coupon> {
         return this.adapter
           .insert(this.createCouponSanitize(ctx.params))
           .then((res: Coupon) => {
-            this.broker.cacher.clean(`coupons.list:**`);
+            this.broker.cacher.clean('coupons.list:**');
             return this.normalizeId(res);
           })
           .catch((err: any) => {
@@ -25,23 +24,19 @@ const TheService: ServiceSchema = {
             }
             throw new MoleculerError(err, 500);
           });
-      }
+      },
     },
     get: {
       auth: 'Basic',
       cache: {
         keys: ['id', 'membership'],
-        ttl: 60 * 60 // 1 hour
-      },
-      params: {
-        id: [{ type: 'string' }, { type: 'number' }],
-        membership: { type: 'string', optional: true }
+        ttl: 60 * 60, // 1 hour
       },
       handler(ctx: Context): Promise<Coupon> {
         const query: { [key: string]: {} } = {
           _id: ctx.params.id.toUpperCase(),
           startDate: { $lte: new Date() },
-          endDate: { $gte: new Date() }
+          endDate: { $gte: new Date() },
         };
         if (ctx.params.membership) {
           query.appliedMemberships = ctx.params.membership;
@@ -63,12 +58,12 @@ const TheService: ServiceSchema = {
             }
             throw new MoleculerError(err, 500);
           });
-      }
+      },
     },
     list: {
       auth: 'Basic',
       cache: {
-        ttl: 60 * 60 // 1 hour
+        ttl: 60 * 60, // 1 hour
       },
       handler(): Promise<Coupon[]> {
         return this.adapter
@@ -83,11 +78,10 @@ const TheService: ServiceSchema = {
             }
             throw new MoleculerError(err, 500);
           });
-      }
+      },
     },
     update: {
       auth: 'Basic',
-      params: UpdateCouponValidation,
       async handler(ctx: Context): Promise<Coupon> {
         const id = ctx.params.id.toUpperCase();
         const updateBody = { ...ctx.params };
@@ -99,20 +93,17 @@ const TheService: ServiceSchema = {
               throw new MoleculerError('No Coupons found!', 404);
             }
 
-            this.broker.cacher.clean(`coupons.list:**`);
+            this.broker.cacher.clean('coupons.list:**');
             this.broker.cacher.clean(`coupons.get:${id}*`);
             return coupon;
           })
           .catch((err: any) => {
             throw new MoleculerError(err, 500);
           });
-      }
+      },
     },
     updateCount: {
       auth: 'Basic',
-      params: {
-        id: { type: 'string' }
-      },
       async handler(ctx: Context) {
         return this.adapter
           .updateById(ctx.params.id.toUpperCase(), { $inc: { useCount: 1 } })
@@ -121,15 +112,15 @@ const TheService: ServiceSchema = {
               throw new MoleculerError('No Coupons found!', 404);
             }
 
-            this.broker.cacher.clean(`coupons.list:**`);
+            this.broker.cacher.clean('coupons.list:**');
             this.broker.cacher.clean(`coupons.get:${ctx.params.id}*`);
             return coupon;
           })
           .catch((err: any) => {
             throw new MoleculerError(err, 500);
           });
-      }
-    }
+      },
+    },
   },
   methods: {
     /**
@@ -141,7 +132,7 @@ const TheService: ServiceSchema = {
     normalizeId(obj: { _id: string }) {
       const newObj = {
         code: obj._id,
-        ...obj
+        ...obj,
       };
       delete newObj._id;
       return newObj;
@@ -161,10 +152,10 @@ const TheService: ServiceSchema = {
         discount: params.discount,
         discountType: params.discountType,
         maxUses: params.maxUses,
-        appliedMemberships: params.appliedMemberships
+        appliedMemberships: params.appliedMemberships,
       };
-    }
-  }
+    },
+  },
 };
 
 export = TheService;

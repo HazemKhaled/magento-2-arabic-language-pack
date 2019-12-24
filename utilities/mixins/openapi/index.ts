@@ -9,6 +9,6 @@ export * from './payments.openapi.mixin';
 export * from './shipment.openapi.mixin';
 export * from './stores.openapi.mixin';
 export * from './subscription.openapi.mixin';
-export * from './users.openapi.mixin';
 export * from './products-list.openapi.mixin';
 export * from './products.openapi.mixin';
+export * from './taxes.openapi.mixin';

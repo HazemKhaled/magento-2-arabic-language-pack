@@ -5,29 +5,25 @@ import { v1 as uuidv1 } from 'uuid';
 import { OrdersOpenapi } from '../utilities/mixins/openapi';
 import { OrdersOperations } from '../utilities/mixins/orders.mixin';
 import { Log, OMSResponse, Order, OrderAddress, OrderItem, Product } from '../utilities/types';
-import {
-  createOrderValidation,
-  updateOrderValidation
-} from '../utilities/validations/orders.validate';
+import { OrdersValidation } from '../utilities/mixins/validation';
 
 const TheService: ServiceSchema = {
   name: 'orders',
-  mixins: [OrdersOperations, OrdersOpenapi],
+  mixins: [OrdersOperations, OrdersValidation, OrdersOpenapi],
   settings: {
     AUTH: Buffer.from(`${process.env.BASIC_USER}:${process.env.BASIC_PASS}`).toString('base64'),
     BASEURL:
       process.env.NODE_ENV === 'production'
         ? 'https://mp.knawat.io/api'
-        : 'https://dev.mp.knawat.io/api'
+        : 'https://dev.mp.knawat.io/api',
   },
   actions: {
     createOrder: {
       auth: 'Bearer',
-      params: createOrderValidation,
       async handler(ctx: Context) {
         // Get the Store instance
         const instance = await ctx.call('stores.findInstance', {
-          consumerKey: ctx.meta.user
+          consumerKey: ctx.meta.user,
         });
 
         const data = this.orderData(ctx.params, instance, true);
@@ -35,13 +31,13 @@ const TheService: ServiceSchema = {
         this.sendLogs({
           topic: 'order',
           topicId: data.externalId,
-          message: `Order Received!`,
+          message: 'Order Received!',
           storeId: instance.url,
           logLevel: 'info',
           code: 100,
           payload: {
-            params: ctx.params
-          }
+            params: ctx.params,
+          },
         });
         // Check the available products and quantities return object with inStock products info
         const stock: {
@@ -59,16 +55,17 @@ const TheService: ServiceSchema = {
         if (stock.items.length === 0) {
           this.sendLogs({
             topicId: data.externalId,
-            message: `The products you ordered are not Knawat products, The order has not been created!`,
+            message:
+              'The products you ordered are not Knawat products, The order has not been created!',
             storeId: instance.url,
             logLevel: 'warn',
             code: 1101,
             payload: {
               errors: {
-                products: stock.notKnawat
+                products: stock.notKnawat,
               },
-              params: ctx.params
-            }
+              params: ctx.params,
+            },
           });
 
           ctx.meta.$statusCode = 404;
@@ -79,9 +76,9 @@ const TheService: ServiceSchema = {
                 status: 'fail',
                 message:
                   'The products you ordered are not Knawat products, The order has not been created!',
-                code: 1101
-              }
-            ]
+                code: 1101,
+              },
+            ],
           };
         }
 
@@ -92,7 +89,7 @@ const TheService: ServiceSchema = {
           stock.items,
           ctx.params.shipping.country,
           instance,
-          ctx.params.shipping_method
+          ctx.params.shipping_method,
         );
 
         if (!shipment) {
@@ -104,10 +101,10 @@ const TheService: ServiceSchema = {
             code: 400,
             payload: {
               errors: {
-                data: shipment
+                data: shipment,
               },
-              params: ctx.params
-            }
+              params: ctx.params,
+            },
           });
           ctx.meta.$statusCode = 400;
           ctx.meta.$statusMessage = 'Not Found';
@@ -117,9 +114,9 @@ const TheService: ServiceSchema = {
                 status: 'fail',
                 message:
                   'Sorry the order is not created as there is no shipment method to your country!',
-                code: 1107
-              }
-            ]
+                code: 1107,
+              },
+            ],
           };
         }
 
@@ -130,22 +127,22 @@ const TheService: ServiceSchema = {
         const total: number =
           data.items.reduce(
             (accumulator: number, current: OrderItem) => accumulator + current.purchaseRate,
-            0
+            0,
           ) + data.shippingCharge;
 
         // Getting the current user subscription
         const subscription = await ctx.call('subscription.get', { id: instance.url });
         switch (subscription.attributes.orderProcessingType) {
-          case '$':
-            data.adjustment = subscription.attributes.orderProcessingFees;
-            data.adjustmentDescription = `Processing Fees`;
-            break;
-          case '%':
-            subscription.adjustment = (subscription.attributes.orderProcessingFees / 100) * total;
-            subscription.adjustmentDescription = `Processing Fees ${
-              subscription.attributes.orderProcessingFees
-            }%`;
-            break;
+        case '$':
+          data.adjustment = subscription.attributes.orderProcessingFees;
+          data.adjustmentDescription = 'Processing Fees';
+          break;
+        case '%':
+          subscription.adjustment = (subscription.attributes.orderProcessingFees / 100) * total;
+          subscription.adjustmentDescription = `Processing Fees ${
+            subscription.attributes.orderProcessingFees
+          }%`;
+          break;
         }
 
         // Checking for processing fees
@@ -156,7 +153,7 @@ const TheService: ServiceSchema = {
           storeId: instance.url,
           logLevel: 'info',
           code: 2103,
-          payload: { subscription, params: ctx.params }
+          payload: { subscription, params: ctx.params },
         });
 
         data.status = ['pending', 'processing', 'cancelled'].includes(data.status)
@@ -167,13 +164,13 @@ const TheService: ServiceSchema = {
             `${accumulator} SKU: ${item.sku} Required Qty: ${
               item.quantityRequired
             } Available Qty: ${item.quantity}\n`,
-          ''
+          '',
         )}${stock.notEnoughStock.reduce(
           (accumulator, item) =>
             `${accumulator} SKU: ${item.sku} Required Qty: ${
               item.quantityRequired
             } Available Qty: ${item.quantity}\n`,
-          ''
+          '',
         )}${data.notes}`;
         data.subscription = subscription.membership.name.en;
         this.logger.info(JSON.stringify(data));
@@ -183,8 +180,8 @@ const TheService: ServiceSchema = {
           headers: {
             Authorization: `Basic ${this.settings.AUTH}`,
             'Content-Type': 'application/json',
-            Accept: 'application/json'
-          }
+            Accept: 'application/json',
+          },
         }).then(createResponse => createResponse.json());
         if (!result.salesorder) {
           this.sendLogs({
@@ -195,8 +192,8 @@ const TheService: ServiceSchema = {
             code: result.error.statusCode,
             payload: {
               errors: (result.error && result.error.details) || result,
-              params: ctx.params
-            }
+              params: ctx.params,
+            },
           });
           ctx.meta.$statusCode = result.error.statusCode;
           ctx.meta.$statusMessage = result.error.name;
@@ -204,9 +201,9 @@ const TheService: ServiceSchema = {
             errors: [
               {
                 status: 'fail',
-                message: result.error.details || result.error.message
-              }
-            ]
+                message: result.error.details || result.error.message,
+              },
+            ],
           };
         }
         if (result.salesorder && !(instance.internal_data && instance.internal_data.omsId)) {
@@ -214,8 +211,8 @@ const TheService: ServiceSchema = {
             .call('stores.update', {
               id: instance.url,
               internal_data: {
-                omsId: result.salesorder.store.id
-              }
+                omsId: result.salesorder.store.id,
+              },
             })
             .then(r => this.logger.info(r));
         }
@@ -227,8 +224,8 @@ const TheService: ServiceSchema = {
           products: stock.products.map((product: { _source: Product; _id: string }) => ({
             _id: product._id,
             qty: product._source.sales_qty || 0,
-            attribute: 'sales_qty'
-          }))
+            attribute: 'sales_qty',
+          })),
         });
 
         /* Prepare the response message in case of success or warnings */
@@ -252,8 +249,8 @@ const TheService: ServiceSchema = {
             shipping_charge: order.shippingCharge,
             adjustment: order.adjustment,
             adjustmentDescription: order.adjustmentDescription,
-            orderNumber: order.orderNumber
-          }
+            orderNumber: order.orderNumber,
+          },
         };
         if (order.id && order.status === 'open') {
           setTimeout(
@@ -261,22 +258,22 @@ const TheService: ServiceSchema = {
               ctx
                 .call('invoices.createOrderInvoice', {
                   storeId: instanceCopy.url,
-                  orderId: orderCopy.id
+                  orderId: orderCopy.id,
                 })
                 .then(res =>
                   ctx.call('invoices.markInvoiceSent', {
                     omsId: instanceCopy.internal_data.omsId,
-                    invoiceId: res.invoice.invoiceId
-                  })
+                    invoiceId: res.invoice.invoiceId,
+                  }),
                 )
                 .then(
                   () => this.broker.cacher.clean(`invoices.get:${instanceCopy.consumer_key}*`),
-                  this.logger.error
+                  this.logger.error,
                 );
             },
             5000,
             instance,
-            order
+            order,
           );
         }
         // Initializing warnings array if we have a Warning
@@ -288,36 +285,35 @@ const TheService: ServiceSchema = {
           ctx.params.shipping_method,
           ctx.params.shipping,
           shipment,
-          ctx.params
+          ctx.params,
         );
         if (warnings.length > 0) message.warnings = warnings;
         this.sendLogs({
           topicId: data.externalId,
-          message: `Order created successfully`,
+          message: 'Order created successfully',
           storeId: instance.url,
           logLevel: 'info',
-          code: 200
+          code: 200,
         });
         return message;
-      }
+      },
     },
     updateOrder: {
       auth: 'Bearer',
-      params: updateOrderValidation,
       async handler(ctx) {
         const instance = await ctx.call('stores.findInstance', {
-          consumerKey: ctx.meta.user
+          consumerKey: ctx.meta.user,
         });
         this.sendLogs({
           topic: 'order',
           topicId: ctx.params.id,
-          message: `Cancel Order Received!`,
+          message: 'Cancel Order Received!',
           storeId: instance.url,
           logLevel: 'info',
           code: 100,
           payload: {
-            params: ctx.params
-          }
+            params: ctx.params,
+          },
         });
         const orderBeforeUpdate = await ctx.call('orders.getOrder', { order_id: ctx.params.id });
         if (orderBeforeUpdate.id === -1) {
@@ -364,16 +360,17 @@ const TheService: ServiceSchema = {
             if (stock.enoughStock.length === 0) {
               this.sendLogs({
                 topicId: orderBeforeUpdate.externalId,
-                message: `The products you ordered are not Knawat products, The order has not been created!`,
+                message:
+                  'The products you ordered are not Knawat products, The order has not been created!',
                 storeId: instance.url,
                 logLevel: 'warn',
                 code: 1101,
                 payload: {
                   errors: {
-                    products: stock.notKnawat
+                    products: stock.notKnawat,
                   },
-                  params: ctx.params
-                }
+                  params: ctx.params,
+                },
               });
               ctx.meta.$statusCode = 404;
               ctx.meta.$statusMessage = 'Not Found';
@@ -383,9 +380,9 @@ const TheService: ServiceSchema = {
                     status: 'fail',
                     message:
                       'The products you ordered are not Knawat products, The order has not been created!',
-                    code: 1101
-                  }
-                ]
+                    code: 1101,
+                  },
+                ],
               };
             }
             // Update Order Items
@@ -401,7 +398,7 @@ const TheService: ServiceSchema = {
               stock.items,
               country,
               instance,
-              ctx.params.shipping_method
+              ctx.params.shipping_method,
             );
 
             if (shipment) {
@@ -412,7 +409,7 @@ const TheService: ServiceSchema = {
             const total: number =
               data.items.reduce(
                 (accumulator: number, current: OrderItem) => accumulator + current.purchaseRate,
-                0
+                0,
               ) + (data.shippingCharge || orderBeforeUpdate.shippingCharge);
 
             // Getting the current user subscription
@@ -432,7 +429,7 @@ const TheService: ServiceSchema = {
               ctx.params.shipping_method,
               ctx.params.shipping,
               shipment,
-              ctx.params
+              ctx.params,
             );
             if (warnings.length > 0) message.warnings = warnings;
           }
@@ -449,9 +446,9 @@ const TheService: ServiceSchema = {
               headers: {
                 Authorization: `Basic ${this.settings.AUTH}`,
                 'Content-Type': 'application/json',
-                Accept: 'application/json'
-              }
-            }
+                Accept: 'application/json',
+              },
+            },
           ).then(updateResponse => {
             return updateResponse.json();
           });
@@ -466,8 +463,8 @@ const TheService: ServiceSchema = {
               code: result.error.statusCode,
               payload: {
                 errors: (result.error && result.error.details) || result,
-                params: ctx.params
-              }
+                params: ctx.params,
+              },
             });
             ctx.meta.$statusCode = result.error.statusCode;
             ctx.meta.$statusMessage = result.error.name;
@@ -475,9 +472,9 @@ const TheService: ServiceSchema = {
               errors: [
                 {
                   status: 'fail',
-                  message: result.error.details || result.error.message
-                }
-              ]
+                  message: result.error.details || result.error.message,
+                },
+              ],
             };
           }
           const order = result.salesorder;
@@ -497,25 +494,25 @@ const TheService: ServiceSchema = {
             shipping_charge: order.shippingCharge,
             adjustment: order.adjustment,
             adjustmentDescription: order.adjustmentDescription,
-            orderNumber: order.orderNumber
+            orderNumber: order.orderNumber,
           };
           this.sendLogs({
             topicId: data.externalId,
-            message: `Order updated successfully`,
+            message: 'Order updated successfully',
             storeId: instance.url,
             logLevel: 'info',
-            code: 200
+            code: 200,
           });
           return message;
         } catch (err) {
           this.logger.error(err);
           this.sendLogs({
             topicId: orderBeforeUpdate.externalId,
-            message: err && err.error && err.error.message ? err.error.message : `Order Error`,
+            message: err && err.error && err.error.message ? err.error.message : 'Order Error',
             storeId: instance.url,
             logLevel: 'error',
             code: 500,
-            payload: { errors: err.error || err, params: ctx.params }
+            payload: { errors: err.error || err, params: ctx.params },
           });
           ctx.meta.$statusCode = 500;
           ctx.meta.$statusMessage = 'Internal Server Error';
@@ -523,31 +520,28 @@ const TheService: ServiceSchema = {
             errors: [
               {
                 status: 'fail',
-                message: 'Internal Server Error'
-              }
-            ]
+                message: 'Internal Server Error',
+              },
+            ],
           };
         }
-      }
+      },
     },
     getOrder: {
       auth: 'Bearer',
       cache: {
         keys: ['order_id'],
-        ttl: 60 * 60 // 1 hour
-      },
-      params: {
-        order_id: { type: 'string' }
+        ttl: 60 * 60, // 1 hour
       },
       async handler(ctx) {
         const instance = await ctx.call('stores.findInstance', {
-          consumerKey: ctx.meta.user
+          consumerKey: ctx.meta.user,
         });
         if (!(instance.internal_data && instance.internal_data.omsId)) {
           ctx.meta.$statusCode = 404;
           ctx.meta.$statusMessage = 'Not Found';
           return {
-            message: 'There is no orders for this store!'
+            message: 'There is no orders for this store!',
           };
         }
 
@@ -558,22 +552,22 @@ const TheService: ServiceSchema = {
           {
             method: 'get',
             headers: {
-              Authorization: `Basic ${this.settings.AUTH}`
-            }
-          }
+              Authorization: `Basic ${this.settings.AUTH}`,
+            },
+          },
         ).then(response => response.json());
         if (order.error) {
           if (order.error.statusCode === 404) {
             ctx.meta.$statusCode = 404;
             ctx.meta.$statusMessage = 'Not Found';
             return {
-              message: 'Order Not Found!'
+              message: 'Order Not Found!',
             };
           }
           ctx.meta.$statusCode = 400;
           ctx.meta.$statusMessage = 'Bad Request';
           return {
-            message: 'There is an error'
+            message: 'There is an error',
           };
         }
         order = order.salesorder;
@@ -594,7 +588,7 @@ const TheService: ServiceSchema = {
           adjustment: order.adjustment,
           adjustmentDescription: order.adjustmentDescription,
           shipment_tracking_number: order.shipmentTrackingNumber,
-          orderNumber: order.orderNumber
+          orderNumber: order.orderNumber,
         };
         if (order.meta_data && order.meta_data.length > 0) {
           order.meta_data.forEach((meta: any) => {
@@ -613,68 +607,23 @@ const TheService: ServiceSchema = {
         }
         if (order.notes) orderResponse.notes = order.notes;
         return orderResponse;
-      }
+      },
     },
     list: {
       auth: 'Bearer',
       cache: {
         keys: ['#user', 'limit', 'page', 'sort', 'sortOrder', 'status', 'externalId'],
-        ttl: 60 * 60
-      },
-      params: {
-        limit: {
-          type: 'number',
-          convert: true,
-          integer: true,
-          min: 1,
-          max: 50,
-          optional: true
-        },
-        page: {
-          type: 'number',
-          convert: true,
-          integer: true,
-          min: 1,
-          optional: true
-        },
-        sort: {
-          type: 'enum',
-          values: [
-            'created_time',
-            'customer_name',
-            'salesorder_number',
-            'shipment_date',
-            'total',
-            'date'
-          ],
-          optional: true
-        },
-        sortOrder: { type: 'enum', values: ['A', 'D'], optional: true },
-        status: {
-          type: 'enum',
-          values: ['draft', 'open', 'invoiced', 'partially_invoiced', 'void', 'overdue'],
-          optional: true
-        },
-        externalId: { type: 'string', optional: true },
-        date: { type: 'date', convert: true, optional: true },
-        dateStart: { type: 'date', convert: true, optional: true },
-        dateEnd: { type: 'date', convert: true, optional: true },
-        dateAfter: { type: 'date', convert: true, optional: true },
-        shipmentDate: { type: 'date', convert: true, optional: true },
-        shipmentDateStart: { type: 'date', convert: true, optional: true },
-        shipmentDateEnd: { type: 'date', convert: true, optional: true },
-        shipmentDateBefore: { type: 'date', convert: true, optional: true },
-        shipmentDateAfter: { type: 'date', convert: true, optional: true }
+        ttl: 60 * 60,
       },
       async handler(ctx) {
         const instance = await ctx.call('stores.findInstance', {
-          consumerKey: ctx.meta.user
+          consumerKey: ctx.meta.user,
         });
         if (!(instance.internal_data && instance.internal_data.omsId)) {
           ctx.meta.$statusCode = 404;
           ctx.meta.$statusMessage = 'Not Found';
           return {
-            message: 'There is no orders for this store!'
+            message: 'There is no orders for this store!',
           };
         }
         const url = new URL(`${process.env.OMS_BASEURL}/orders/${instance.internal_data.omsId}`);
@@ -693,7 +642,7 @@ const TheService: ServiceSchema = {
           'shipmentDateStart',
           'shipmentDateEnd',
           'shipmentDateBefore',
-          'shipmentDateAfter'
+          'shipmentDateAfter',
         ];
         Object.keys(ctx.params).forEach(key => {
           if (!keys.includes(key)) return;
@@ -702,8 +651,8 @@ const TheService: ServiceSchema = {
         const orders = await fetch(url.href, {
           method: 'get',
           headers: {
-            Authorization: `Basic ${this.settings.AUTH}`
-          }
+            Authorization: `Basic ${this.settings.AUTH}`,
+          },
         }).then(response => response.json());
         return orders.salesorders.map((order: Order) => ({
           id: order.id,
@@ -713,15 +662,12 @@ const TheService: ServiceSchema = {
           updateDate: order.updateDate,
           total: order.total,
           knawat_order_status: order.status ? this.normalizeResponseStatus(order.status) : '',
-          orderNumber: order.orderNumber
+          orderNumber: order.orderNumber,
         }));
-      }
+      },
     },
     deleteOrder: {
       auth: 'Bearer',
-      params: {
-        id: { type: 'string', convert: true }
-      },
       async handler(ctx) {
         const orderBeforeUpdate = await ctx.call('orders.getOrder', { order_id: ctx.params.id });
         if (orderBeforeUpdate.id === -1) {
@@ -739,27 +685,27 @@ const TheService: ServiceSchema = {
           return { message: 'The Order Is Already Cancelled' };
         }
         const instance = await ctx.call('stores.findInstance', {
-          consumerKey: ctx.meta.user
+          consumerKey: ctx.meta.user,
         });
         this.sendLogs({
           topic: 'order',
           topicId: ctx.params.id,
-          message: `Cancel Order Received!`,
+          message: 'Cancel Order Received!',
           storeId: instance.url,
           logLevel: 'info',
           code: 100,
           payload: {
-            params: ctx.params
-          }
+            params: ctx.params,
+          },
         });
         return fetch(
           `${process.env.OMS_BASEURL}/orders/${instance.internal_data.omsId}/${ctx.params.id}`,
           {
             method: 'delete',
             headers: {
-              Authorization: `Basic ${this.settings.AUTH}`
-            }
-          }
+              Authorization: `Basic ${this.settings.AUTH}`,
+            },
+          },
         )
           .then(async response => {
             const result = await response.json();
@@ -769,8 +715,8 @@ const TheService: ServiceSchema = {
               return {
                 status: 'success',
                 data: {
-                  order_id: ctx.params.id
-                }
+                  order_id: ctx.params.id,
+                },
               };
             }
 
@@ -781,11 +727,11 @@ const TheService: ServiceSchema = {
               message:
                 result && result.error && result.error.message
                   ? result.error.message
-                  : `Order Error`,
+                  : 'Order Error',
               storeId: instance.url,
               logLevel: 'error',
               code: 500,
-              payload: { errors: result.error || result, params: ctx.params }
+              payload: { errors: result.error || result, params: ctx.params },
             });
             ctx.meta.$statusCode = 500;
             ctx.meta.$statusMessage = 'Internal Server Error';
@@ -793,19 +739,19 @@ const TheService: ServiceSchema = {
               errors: [
                 {
                   status: 'fail',
-                  message: 'Internal Server Error'
-                }
-              ]
+                  message: 'Internal Server Error',
+                },
+              ],
             };
           })
           .catch(err => {
             this.sendLogs({
               topicId: ctx.params.id,
-              message: err && err.error && err.error.message ? err.error.message : `Order Error`,
+              message: err && err.error && err.error.message ? err.error.message : 'Order Error',
               storeId: instance.url,
               logLevel: 'error',
               code: 500,
-              payload: { errors: err.error || err, params: ctx.params }
+              payload: { errors: err.error || err, params: ctx.params },
             });
             ctx.meta.$statusCode = 500;
             ctx.meta.$statusMessage = 'Internal Server Error';
@@ -813,13 +759,13 @@ const TheService: ServiceSchema = {
               errors: [
                 {
                   status: 'fail',
-                  message: 'Internal Server Error'
-                }
-              ]
+                  message: 'Internal Server Error',
+                },
+              ],
             };
           });
-      }
-    }
+      },
+    },
   },
   methods: {
     /**
@@ -830,17 +776,17 @@ const TheService: ServiceSchema = {
      */
     normalizeStatus(status: string) {
       switch (status) {
-        case 'pending':
-          status = 'draft';
-          break;
-        case 'processing':
-          status = 'open';
-          break;
-        case 'cancelled':
-          status = 'void';
-          break;
-        default:
-          status = 'draft';
+      case 'pending':
+        status = 'draft';
+        break;
+      case 'processing':
+        status = 'open';
+        break;
+      case 'cancelled':
+        status = 'void';
+        break;
+      default:
+        status = 'draft';
       }
       return status;
     },
@@ -852,17 +798,15 @@ const TheService: ServiceSchema = {
      */
     normalizeResponseStatus(status: string) {
       switch (status) {
-        case 'draft':
-          status = 'Order Placed';
-          break;
-        case 'open':
-          status = 'Processing';
-          break;
-        case 'void':
-          status = 'Cancelled';
-          break;
-        default:
-          status = status;
+      case 'draft':
+        status = 'Order Placed';
+        break;
+      case 'open':
+        status = 'Processing';
+        break;
+      case 'void':
+        status = 'Cancelled';
+        break;
       }
       return status;
     },
@@ -874,17 +818,15 @@ const TheService: ServiceSchema = {
      */
     normalizeUpdateRequestStatus(status: string) {
       switch (status) {
-        case 'Order Placed':
-          status = 'draft';
-          break;
-        case 'Processing':
-          status = 'open';
-          break;
-        case 'Cancelled':
-          status = 'void';
-          break;
-        default:
-          status = status;
+      case 'Order Placed':
+        status = 'draft';
+        break;
+      case 'Processing':
+        status = 'open';
+        break;
+      case 'Cancelled':
+        status = 'void';
+        break;
       }
       return status;
     },
@@ -930,7 +872,7 @@ const TheService: ServiceSchema = {
       shippingMethod,
       shipping,
       shipment,
-      params
+      params,
     ) {
       const warnings = [];
       try {
@@ -938,16 +880,16 @@ const TheService: ServiceSchema = {
           warnings.push({
             message: `This items are out of stock ${outOfStock.map(e => e.sku).join()}`,
             skus: outOfStock.map(e => e.sku),
-            code: 1102
+            code: 1102,
           });
           this.sendLogs({
             topic: 'order',
             topicId: data.externalId,
-            message: `Some products are out of stock`,
+            message: 'Some products are out of stock',
             storeId: instance.url,
             logLevel: 'warn',
             code: 1102,
-            payload: { outOfStock, params }
+            payload: { outOfStock, params },
           });
         }
         if (notEnoughStock.length > 0) {
@@ -956,23 +898,23 @@ const TheService: ServiceSchema = {
               .map(e => e.sku)
               .join()}`,
             skus: notEnoughStock.map(e => e.sku),
-            code: 1103
+            code: 1103,
           });
           this.sendLogs({
             topic: 'order',
             topicId: data.externalId,
-            message: `This items quantities are not enough stock`,
+            message: 'This items quantities are not enough stock',
             storeId: instance.url,
             logLevel: 'warn',
             code: 1103,
-            payload: { outOfStock, params }
+            payload: { outOfStock, params },
           });
         }
         if ((!instance.shipping_methods || !instance.shipping_methods[0].name) && !shippingMethod) {
           warnings.push({
             message: `There is no default shipping method for your store, It’ll be shipped with ${shipment.courier ||
               'Standard'}, Contact our customer support for more info`,
-            code: 2102
+            code: 2102,
           });
           this.sendLogs({
             topic: 'order',
@@ -982,7 +924,7 @@ const TheService: ServiceSchema = {
             storeId: instance.url,
             logLevel: 'warn',
             code: 2102,
-            payload: { shipment, params }
+            payload: { shipment, params },
           });
         }
         if (
@@ -996,7 +938,7 @@ const TheService: ServiceSchema = {
               shipping.country
             } with provided courier, It’ll be shipped with ${shipment.courier ||
               'Standard'}, Contact our customer support for more info`,
-            code: 2101
+            code: 2101,
           });
           this.sendLogs({
             topic: 'order',
@@ -1008,13 +950,13 @@ const TheService: ServiceSchema = {
             storeId: instance.url,
             logLevel: 'warn',
             code: 2101,
-            payload: { shipment, params }
+            payload: { shipment, params },
           });
         }
         if (!this.checkAddress(instance, data.externalId)) {
           warnings.push({
-            message: `Billing address not found`,
-            code: 1104
+            message: 'Billing address not found',
+            code: 1104,
           });
         }
       } catch (err) {
@@ -1034,7 +976,7 @@ const TheService: ServiceSchema = {
         items: params.items || params.line_items,
         shipping: params.shipping,
         notes: params.notes,
-        shipping_method: params.shipping_method || params.shipmentCourier
+        shipping_method: params.shipping_method || params.shipmentCourier,
       };
       if (create) {
         data.externalId = params.id ? String(params.id) : uuidv1();
@@ -1048,10 +990,10 @@ const TheService: ServiceSchema = {
           instance.internal_data && instance.internal_data.omsId
             ? { id: instance.internal_data.omsId }
             : {
-                url: instance.url,
-                name: instance.name,
-                users: instance.users
-              };
+              url: instance.url,
+              name: instance.name,
+              users: instance.users,
+            };
       }
       return data;
     },
@@ -1067,16 +1009,16 @@ const TheService: ServiceSchema = {
         this.sendLogs({
           topic: 'order',
           topicId: externalId,
-          message: `No Billing Address Or Address Missing Data.`,
+          message: 'No Billing Address Or Address Missing Data.',
           storeId: instance.url,
           logLevel: 'warn',
-          code: 1104
+          code: 1104,
         });
         return false;
       }
       return true;
-    }
-  }
+    },
+  },
 };
 
 export = TheService;

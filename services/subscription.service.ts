@@ -3,15 +3,12 @@ import { isError } from 'util';
 import DbService from '../utilities/mixins/mongo.mixin';
 import { SubscriptionOpenapi } from '../utilities/mixins/openapi';
 import { Coupon, Membership, Store, Subscription } from '../utilities/types';
-import {
-  CreateSubscriptionValidation,
-  UpdateSubscriptionValidation
-} from '../utilities/validations';
+import { SubscriptionValidation } from '../utilities/mixins/validation';
 const MoleculerError = Errors.MoleculerError;
 
 const TheService: ServiceSchema = {
   name: 'subscription',
-  mixins: [DbService('subscription'), SubscriptionOpenapi],
+  mixins: [DbService('subscription'), SubscriptionValidation, SubscriptionOpenapi],
 
   actions: {
     /**
@@ -21,22 +18,19 @@ const TheService: ServiceSchema = {
      * @returns {Promise<Subscription | false>}
      */
     get: {
-      params: {
-        id: { type: 'string' }
-      },
       cache: {
         keys: ['id'],
-        ttl: 60 * 60 // 1 hour
+        ttl: 60 * 60, // 1 hour
       },
       async handler(ctx: Context): Promise<any | false> {
         const subscription =
           (await this.adapter.findOne({
             storeId: ctx.params.id,
             expireDate: { $gte: new Date() },
-            startDate: { $lte: new Date() }
+            startDate: { $lte: new Date() },
           })) || {};
         const membership = await ctx.call('membership.get', {
-          id: subscription.membershipId || 'free'
+          id: subscription.membershipId || 'free',
         });
         return {
           id: subscription._id || -1,
@@ -47,84 +41,19 @@ const TheService: ServiceSchema = {
             name: membership.name,
             sort: membership.sort,
             isDefault: membership.isDefault,
-            paymentFrequencyType: membership.paymentFrequencyType
+            paymentFrequencyType: membership.paymentFrequencyType,
           },
           _id: undefined,
           storeId: undefined,
-          attributes: membership.attributes
+          attributes: membership.attributes,
         };
-      }
+      },
     },
     list: {
       auth: 'Basic',
-      params: {
-        storeId: { type: 'string', optional: true },
-        membershipId: { type: 'string', optional: true },
-        expireDate: [
-          {
-            type: 'object',
-            optional: true,
-            props: {
-              operation: { type: 'enum', values: ['lte', 'gte', 'gt', 'lt'] },
-              date: { type: 'date', convert: true, optional: true },
-              $$strict: true
-            }
-          },
-          {
-            type: 'array',
-            optional: true,
-            max: 2,
-            min: 1,
-            items: {
-              type: 'object',
-              props: {
-                operation: { type: 'enum', values: ['lte', 'gte', 'gt', 'lt'] },
-                date: { type: 'date', convert: true },
-                $$strict: true
-              }
-            }
-          }
-        ],
-        startDate: [
-          {
-            type: 'object',
-            optional: true,
-            props: {
-              operation: { type: 'enum', values: ['lte', 'gte', 'gt', 'lt'] },
-              date: { type: 'date', convert: true, optional: true },
-              $$strict: true
-            }
-          },
-          {
-            type: 'array',
-            optional: true,
-            max: 2,
-            min: 1,
-            items: {
-              type: 'object',
-              props: {
-                operation: { type: 'enum', values: ['lte', 'gte', 'gt', 'lt'] },
-                date: { type: 'date', convert: true },
-                $$strict: true
-              }
-            }
-          }
-        ],
-        page: { type: 'number', positive: true, optional: true },
-        perPage: { type: 'number', positive: true, optional: true },
-        sort: {
-          type: 'object',
-          optional: true,
-          props: {
-            field: { type: 'string' },
-            order: { type: 'enum', values: [1, -1] }
-          }
-        },
-        $$strict: true
-      },
       cache: {
         keys: ['storeId', 'membershipId', 'expireDate', 'startDate', 'page', 'perPage', 'sort'],
-        ttl: 60 * 60 // 1 hour
+        ttl: 60 * 60, // 1 hour
       },
       async handler(ctx: Context): Promise<Subscription | false> {
         const query: { [key: string]: any } = {};
@@ -141,7 +70,7 @@ const TheService: ServiceSchema = {
           query.expireDate = {
             [`$${expireDate[0].operation}`]: expireDate[0].date
               ? new Date(expireDate[0].date)
-              : new Date()
+              : new Date(),
           };
           if (expireDate[1]) {
             query.expireDate[`$${expireDate[1].operation}`] = expireDate[1].date
@@ -156,7 +85,7 @@ const TheService: ServiceSchema = {
           query.startDate = {
             [`$${startDate[0].operation}`]: startDate[0].date
               ? new Date(startDate[0].date)
-              : new Date()
+              : new Date(),
           };
           if (startDate[1]) {
             query.startDate[`$${startDate[1].operation}`] = startDate[1].date
@@ -183,18 +112,17 @@ const TheService: ServiceSchema = {
             }
             throw new MoleculerError(err, 500);
           });
-      }
+      },
     },
     create: {
       auth: 'Basic',
-      params: CreateSubscriptionValidation,
       async handler(ctx: Context) {
         let coupon: Coupon = null;
         if (ctx.params.coupon) {
           coupon = await ctx
             .call('coupons.get', {
               id: ctx.params.coupon,
-              membership: ctx.params.membership
+              membership: ctx.params.membership,
             })
             .then(null, err => err);
           if (isError(coupon)) {
@@ -214,12 +142,12 @@ const TheService: ServiceSchema = {
         let discount = 0;
         if (coupon) {
           switch (coupon.discountType) {
-            case '$':
-              discount = Math.min(coupon.discount, cost);
-              break;
-            case '%':
-              discount = (cost / 100) * coupon.discount;
-              break;
+          case '$':
+            discount = Math.min(coupon.discount, cost);
+            break;
+          case '%':
+            discount = (cost / 100) * coupon.discount;
+            break;
           }
         }
         discount = Math.max(discount, membership.discount);
@@ -233,7 +161,7 @@ const TheService: ServiceSchema = {
           throw new MoleculerError(instance.errors[0].message, 404);
         }
         if (instance.credit < cost - discount) {
-          throw new MoleculerError("User don't have enough balance!", 402);
+          throw new MoleculerError('User don\'t have enough balance!', 402);
         }
         const invoiceBody: { [key: string]: any } = {
           storeId: ctx.params.storeId,
@@ -245,14 +173,14 @@ const TheService: ServiceSchema = {
               }`,
               accountId: String(process.env.SUBSCRIPTION_LEDGER_ACCOUNT_ID),
               rate: cost,
-              quantity: 1
-            }
-          ]
+              quantity: 1,
+            },
+          ],
         };
         if (discount) {
           invoiceBody.discount = {
             value: discount,
-            type: 'entity_level'
+            type: 'entity_level',
           };
         }
         const invoice = await ctx.call('invoices.create', invoiceBody).then(null, err => err);
@@ -262,7 +190,7 @@ const TheService: ServiceSchema = {
         ctx.meta.user = instance.consumer_key;
         const applyCreditsResponse = await ctx
           .call('invoices.applyCredits', {
-            id: invoice.invoice.invoiceId
+            id: invoice.invoice.invoiceId,
           })
           .then(null, err => err);
         if (isError(applyCreditsResponse as { message: string; code: number })) {
@@ -270,7 +198,7 @@ const TheService: ServiceSchema = {
         }
         const storeOldSubscription = await ctx.call('subscription.list', {
           storeId: ctx.params.storeId,
-          expireDate: { operation: 'gte' }
+          expireDate: { operation: 'gte' },
         });
         let startDate = new Date();
         startDate.setUTCHours(0, 0, 0, 0);
@@ -285,16 +213,16 @@ const TheService: ServiceSchema = {
         const expireDate = new Date(startDate);
         expireDate.setMilliseconds(-1);
         switch (membership.paymentFrequencyType) {
-          case 'month':
-            expireDate.setMonth(expireDate.getMonth() + membership.paymentFrequency);
-            break;
-          case 'year':
-            expireDate.setFullYear(expireDate.getFullYear() + membership.paymentFrequency);
-            break;
+        case 'month':
+          expireDate.setMonth(expireDate.getMonth() + membership.paymentFrequency);
+          break;
+        case 'year':
+          expireDate.setFullYear(expireDate.getFullYear() + membership.paymentFrequency);
+          break;
         }
         if (ctx.params.coupon) {
           ctx.call('coupons.updateCount', {
-            id: ctx.params.coupon
+            id: ctx.params.coupon,
           });
         }
         return this.adapter
@@ -303,7 +231,7 @@ const TheService: ServiceSchema = {
             storeId: ctx.params.storeId,
             invoiceId: invoice.invoice.invoiceId,
             startDate,
-            expireDate
+            expireDate,
           })
           .then(
             (res: Subscription): {} => {
@@ -312,16 +240,15 @@ const TheService: ServiceSchema = {
               this.broker.cacher.clean(`stores.get:${instance.url}*`);
               this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
               ctx.call('subscription.checkCurrentSubGradingStatus', {
-                id: ctx.params.storeId
+                id: ctx.params.storeId,
               });
               return { ...res, id: res._id, _id: undefined };
-            }
+            },
           );
-      }
+      },
     },
     getSubscriptionByExpireDate: {
       cache: false,
-      params: { days: 'number' },
       async handler(ctx: Context) {
         const minDate = new Date();
         minDate.setDate(minDate.getDate() - ctx.params.days);
@@ -330,14 +257,14 @@ const TheService: ServiceSchema = {
         const query = {
           expireDate: {
             $gte: minDate,
-            $lte: new Date()
+            $lte: new Date(),
           },
           retries: {
-            $ne: lastRetryDay
+            $ne: lastRetryDay,
           },
           renewed: {
-            $ne: true
-          }
+            $ne: true,
+          },
         };
 
         const expiredSubscription = await this.adapter.findOne(query).catch();
@@ -345,16 +272,16 @@ const TheService: ServiceSchema = {
           return null;
         }
         const currentSubscription = await ctx.call('subscription.get', {
-          id: expiredSubscription.storeId
+          id: expiredSubscription.storeId,
         });
         if (currentSubscription.id !== -1) {
           await ctx.call('subscription.updateSubscription', {
             id: expiredSubscription._id,
-            renewed: true
+            renewed: true,
           });
           ctx.call('crm.addTagsByUrl', {
             id: expiredSubscription.storeId,
-            tag: 'subscription-renew'
+            tag: 'subscription-renew',
           });
           return ctx.call('subscription.getSubscriptionByExpireDate', { days: ctx.params.days });
         }
@@ -364,17 +291,17 @@ const TheService: ServiceSchema = {
           id: String(expiredSubscription._id),
           retries: expiredSubscription.retries
             ? [...expiredSubscription.retries, new Date(date)]
-            : [new Date(date)]
+            : [new Date(date)],
         });
         ctx.call('crm.addTagsByUrl', {
           id: expiredSubscription.storeId,
-          tag: 'subscription-retry-fail'
+          tag: 'subscription-retry-fail',
         });
         return { ...expiredSubscription, id: expiredSubscription._id };
-      }
+      },
     },
     updateSubscription: {
-      params: UpdateSubscriptionValidation,
+      auth: 'Basic',
       handler(ctx: Context) {
         let $set: { [key: string]: string } = {};
         const { params } = ctx;
@@ -400,25 +327,22 @@ const TheService: ServiceSchema = {
           .catch((err: any) => {
             throw new MoleculerError(err, 500);
           });
-      }
+      },
     },
     checkCurrentSubGradingStatus: {
-      params: {
-        id: { type: 'string' }
-      },
       async handler(ctx: Context) {
         const allSubBefore = await ctx.call('subscription.list', {
           storeId: ctx.params.id,
           expireDate: { operation: 'gte', date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7) },
           sort: { field: 'expireDate', order: -1 },
-          perPage: 2
+          perPage: 2,
         });
         const memberships = await ctx.call('membership.list');
         if (allSubBefore.length === 0) return;
         if (allSubBefore.length === 1) {
           return ctx.call('crm.addTagsByUrl', {
             id: ctx.params.id,
-            tag: 'subscription-upgrade'
+            tag: 'subscription-upgrade',
           });
         }
         const oldM = memberships.find((m: Membership) => allSubBefore[0].membershipId === m.id);
@@ -426,18 +350,18 @@ const TheService: ServiceSchema = {
         if (oldM.sort > lastM.sort) {
           return ctx.call('crm.addTagsByUrl', {
             id: ctx.params.id,
-            tag: 'subscription-upgrade'
+            tag: 'subscription-upgrade',
           });
         }
         if (oldM.sort < lastM.sort) {
           return ctx.call('crm.addTagsByUrl', {
             id: ctx.params.id,
-            tag: 'subscription-downgrade'
+            tag: 'subscription-downgrade',
           });
         }
-      }
-    }
-  }
+      },
+    },
+  },
 };
 
 export = TheService;

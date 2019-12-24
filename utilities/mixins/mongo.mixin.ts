@@ -13,6 +13,6 @@ export = (collection: string): ServiceSchema => {
     name: 'mongo_service',
     mixins: [DbService],
     adapter: new MongoAdapter(process.env.MONGO_URI, { useNewUrlParser: true }),
-    collection
+    collection,
   };
 };
