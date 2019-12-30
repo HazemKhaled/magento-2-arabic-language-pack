@@ -1,5 +1,4 @@
 import { Context, ServiceSchema } from 'moleculer';
-import fetch from 'node-fetch';
 import { v1 as uuidv1 } from 'uuid';
 
 import { OrdersOpenapi } from '../utilities/mixins/openapi';
@@ -11,7 +10,6 @@ const TheService: ServiceSchema = {
   name: 'orders',
   mixins: [OrdersOperations, OrdersValidation, OrdersOpenapi],
   settings: {
-    AUTH: Buffer.from(`${process.env.BASIC_USER}:${process.env.BASIC_PASS}`).toString('base64'),
     BASEURL:
       process.env.NODE_ENV === 'production'
         ? 'https://mp.knawat.io/api'
@@ -174,15 +172,7 @@ const TheService: ServiceSchema = {
         )}${data.notes}`;
         data.subscription = subscription.membership.name.en;
         this.logger.info(JSON.stringify(data));
-        const result: OMSResponse = await fetch(`${process.env.OMS_BASEURL}/orders`, {
-          method: 'POST',
-          body: JSON.stringify(data),
-          headers: {
-            Authorization: `Basic ${this.settings.AUTH}`,
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-          },
-        }).then(createResponse => createResponse.json());
+        const result: OMSResponse = await ctx.call('oms.createNewOrder', data);
         if (!result.salesorder) {
           this.sendLogs({
             topicId: data.externalId,
@@ -438,19 +428,10 @@ const TheService: ServiceSchema = {
             ? this.normalizeStatus(data.status)
             : data.status;
           // Update order
-          const result: OMSResponse = await fetch(
-            `${process.env.OMS_BASEURL}/orders/${instance.internal_data.omsId}/${ctx.params.id}`,
-            {
-              method: 'PUT',
-              body: JSON.stringify(data),
-              headers: {
-                Authorization: `Basic ${this.settings.AUTH}`,
-                'Content-Type': 'application/json',
-                Accept: 'application/json',
-              },
-            },
-          ).then(updateResponse => {
-            return updateResponse.json();
+          const result: OMSResponse = await ctx.call('oms.updateOrderById', {
+            customerId: instance.internal_data.omsId,
+            orderId: ctx.params.id,
+            ...data,
           });
 
           this.logger.debug(JSON.stringify(result), '>>>>>>>>');
@@ -545,17 +526,10 @@ const TheService: ServiceSchema = {
           };
         }
 
-        let order = await fetch(
-          `${process.env.OMS_BASEURL}/orders/${instance.internal_data.omsId}/${
-            ctx.params.order_id
-          }`,
-          {
-            method: 'get',
-            headers: {
-              Authorization: `Basic ${this.settings.AUTH}`,
-            },
-          },
-        ).then(response => response.json());
+        let order = await ctx.call('oms.getOrderById', {
+          customerId: instance.internal_data.omsId,
+          orderId: ctx.params.order_id,
+        });
         if (order.error) {
           if (order.error.statusCode === 404) {
             ctx.meta.$statusCode = 404;
@@ -626,8 +600,8 @@ const TheService: ServiceSchema = {
             message: 'There is no orders for this store!',
           };
         }
-        const url = new URL(`${process.env.OMS_BASEURL}/orders/${instance.internal_data.omsId}`);
-        if (ctx.params.limit) url.searchParams.append('perPage', ctx.params.limit);
+        const queryParams: { [key: string]: string } = {};
+        if (ctx.params.limit) queryParams.perPage = ctx.params.limit;
         const keys = [
           'page',
           'sort',
@@ -646,14 +620,12 @@ const TheService: ServiceSchema = {
         ];
         Object.keys(ctx.params).forEach(key => {
           if (!keys.includes(key)) return;
-          url.searchParams.append(key, ctx.params[key]);
+          queryParams[key] = ctx.params[key];
         });
-        const orders = await fetch(url.href, {
-          method: 'get',
-          headers: {
-            Authorization: `Basic ${this.settings.AUTH}`,
-          },
-        }).then(response => response.json());
+        const orders = await ctx.call('oms.listOrders', {
+          customerId: instance.internal_data.omsId,
+          ...queryParams,
+        });
         return orders.salesorders.map((order: Order) => ({
           id: order.id,
           externalId: order.externalId,
@@ -698,72 +670,69 @@ const TheService: ServiceSchema = {
             params: ctx.params,
           },
         });
-        return fetch(
-          `${process.env.OMS_BASEURL}/orders/${instance.internal_data.omsId}/${ctx.params.id}`,
-          {
-            method: 'delete',
-            headers: {
-              Authorization: `Basic ${this.settings.AUTH}`,
-            },
-          },
-        )
-          .then(async response => {
-            const result = await response.json();
-            this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
-            this.broker.cacher.clean(`orders.getOrder:${ctx.params.id}**`);
-            if (result.salesorder) {
-              return {
-                status: 'success',
-                data: {
-                  order_id: ctx.params.id,
-                },
-              };
-            }
-
-            this.logger.error(result);
-
-            this.sendLogs({
-              topicId: ctx.params.id,
-              message:
-                result && result.error && result.error.message
-                  ? result.error.message
-                  : 'Order Error',
-              storeId: instance.url,
-              logLevel: 'error',
-              code: 500,
-              payload: { errors: result.error || result, params: ctx.params },
-            });
-            ctx.meta.$statusCode = 500;
-            ctx.meta.$statusMessage = 'Internal Server Error';
-            return {
-              errors: [
-                {
-                  status: 'fail',
-                  message: 'Internal Server Error',
-                },
-              ],
-            };
+        return ctx
+          .call('oms.deleteOrderById', {
+            customerId: instance.internal_data.omsId,
+            orderId: ctx.params.id,
           })
-          .catch(err => {
-            this.sendLogs({
-              topicId: ctx.params.id,
-              message: err && err.error && err.error.message ? err.error.message : 'Order Error',
-              storeId: instance.url,
-              logLevel: 'error',
-              code: 500,
-              payload: { errors: err.error || err, params: ctx.params },
-            });
-            ctx.meta.$statusCode = 500;
-            ctx.meta.$statusMessage = 'Internal Server Error';
-            return {
-              errors: [
-                {
-                  status: 'fail',
-                  message: 'Internal Server Error',
-                },
-              ],
-            };
-          });
+          .then(
+            async result => {
+              this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
+              this.broker.cacher.clean(`orders.getOrder:${ctx.params.id}**`);
+              if (result.salesorder) {
+                return {
+                  status: 'success',
+                  data: {
+                    order_id: ctx.params.id,
+                  },
+                };
+              }
+
+              this.logger.error(result);
+
+              this.sendLogs({
+                topicId: ctx.params.id,
+                message:
+                  result && result.error && result.error.message
+                    ? result.error.message
+                    : 'Order Error',
+                storeId: instance.url,
+                logLevel: 'error',
+                code: 500,
+                payload: { errors: result.error || result, params: ctx.params },
+              });
+              ctx.meta.$statusCode = 500;
+              ctx.meta.$statusMessage = 'Internal Server Error';
+              return {
+                errors: [
+                  {
+                    status: 'fail',
+                    message: 'Internal Server Error',
+                  },
+                ],
+              };
+            },
+            err => {
+              this.sendLogs({
+                topicId: ctx.params.id,
+                message: err && err.error && err.error.message ? err.error.message : 'Order Error',
+                storeId: instance.url,
+                logLevel: 'error',
+                code: 500,
+                payload: { errors: err.error || err, params: ctx.params },
+              });
+              ctx.meta.$statusCode = 500;
+              ctx.meta.$statusMessage = 'Internal Server Error';
+              return {
+                errors: [
+                  {
+                    status: 'fail',
+                    message: 'Internal Server Error',
+                  },
+                ],
+              };
+            },
+          );
       },
     },
   },

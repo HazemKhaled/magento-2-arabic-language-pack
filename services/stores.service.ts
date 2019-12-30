@@ -14,7 +14,6 @@ const TheService: ServiceSchema = {
   name: 'stores',
   mixins: [DbService('stores'), StoresValidation, StoresOpenapi],
   settings: {
-    AUTH: Buffer.from(`${process.env.BASIC_USER}:${process.env.BASIC_PASS}`).toString('base64'),
     /** Secret for JWT */
     JWT_SECRET: process.env.JWT_SECRET || 'jwt-conduit-secret',
 
@@ -77,15 +76,9 @@ const TheService: ServiceSchema = {
                 res.subscription = await ctx.call('subscription.get', { id: res._id });
               }
               if (res.internal_data && res.internal_data.omsId) {
-                omsData = (await fetch(
-                  `${process.env.OMS_BASEURL}/stores/${res.internal_data.omsId}`,
-                  {
-                    method: 'get',
-                    headers: {
-                      Authorization: `Basic ${this.settings.AUTH}`,
-                    },
-                  },
-                ).then(response => response.json())) as { store: Store };
+                omsData = (await ctx.call('oms.getCustomer', {
+                  customerId: res.internal_data.omsId,
+                })) as { store: Store };
                 // If the DB response not null will return the data
                 return this.sanitizeResponse(res, omsData.store);
               }
@@ -116,15 +109,9 @@ const TheService: ServiceSchema = {
               res.subscription = await ctx.call('subscription.get', { id: ctx.params.id });
             }
             if (res.internal_data && res.internal_data.omsId) {
-              const omsData = (await fetch(
-                `${process.env.OMS_BASEURL}/stores/${res.internal_data.omsId}`,
-                {
-                  method: 'get',
-                  headers: {
-                    Authorization: `Basic ${this.settings.AUTH}`,
-                  },
-                },
-              ).then(response => response.json())) as { store: Store };
+              const omsData = (await ctx.call('oms.getCustomer', {
+                customerId: res.internal_data.omsId,
+              })) as { store: Store };
 
               // If the DB response not null will return the data
               if (!omsData) {
@@ -408,28 +395,19 @@ const TheService: ServiceSchema = {
           };
         }
         try {
-          const omsStore = await fetch(
-            `${process.env.OMS_BASEURL}/stores?url=${encodeURIComponent(storeId)}`,
-            {
-              method: 'get',
-              headers: {
-                Authorization: `Basic ${this.settings.AUTH}`,
-              },
+          const omsStore = await ctx.call('oms.getCustomerByUrl', { storeId }).then(
+            response => response.store,
+            err => {
+              if (err.code !== 404) {
+                throw new MoleculerError(err.message, err.code || 500);
+              }
+              if (err.code === 404) {
+                return this.createOmsStore(instance).then((value: any) => {
+                  return value;
+                });
+              }
             },
-          ).then(async res => {
-            const response = await res.json();
-            if (!res.ok && res.status !== 404) {
-              response.status = res.status;
-              response.statusText = res.statusText;
-              throw response;
-            }
-            if (!res.ok && res.status === 404) {
-              return this.createOmsStore(instance).then((value: any) => {
-                return value;
-              });
-            }
-            return response.store;
-          });
+          );
           instance.internal_data = {
             ...instance.internal_data,
             omsId: omsStore.id || (omsStore.store && omsStore.store.id),
@@ -731,15 +709,7 @@ const TheService: ServiceSchema = {
       }
       body.stockDate = params.stock_date;
       body.priceDate = params.price_date;
-      return fetch(`${process.env.OMS_BASEURL}/stores`, {
-        method: 'post',
-        headers: {
-          Authorization: `Basic ${this.settings.AUTH}`,
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        body: JSON.stringify(body),
-      }).then(response => response.json());
+      return this.broker.call('oms.createCustomer', body);
     },
     /**
      * Log order errors

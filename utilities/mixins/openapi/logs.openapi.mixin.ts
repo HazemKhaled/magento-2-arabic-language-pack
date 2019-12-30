@@ -27,7 +27,7 @@ const Log = {
     },
     logLevel: {
       type: 'string',
-      enum: ['info', 'debug', 'warn', 'error'],
+      'enum': ['info', 'debug', 'warn', 'error'],
     },
     payload: {
       type: 'object',
@@ -40,7 +40,7 @@ const LogsAddOpenapi = {
   summary: 'Add Log',
   tags: ['Shipment', 'Enterprise Only'],
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
       content: {
         'application/json': {
@@ -49,7 +49,7 @@ const LogsAddOpenapi = {
             properties: {
               status: {
                 type: 'string',
-                enum: ['success'],
+                'enum': ['success'],
               },
               message: {
                 type: 'string',
@@ -62,10 +62,10 @@ const LogsAddOpenapi = {
         },
       },
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
-    '500': {
+    500: {
       description: 'Status 500',
       content: {
         'application/json': {
@@ -74,7 +74,7 @@ const LogsAddOpenapi = {
             properties: {
               status: {
                 type: 'string',
-                enum: ['failed'],
+                'enum': ['failed'],
               },
               message: {
                 type: 'string',
@@ -112,7 +112,7 @@ const LogsGetLogsOpenapi = {
   parameters: [
     {
       name: 'topic',
-      in: 'query',
+      'in': 'query',
       required: true,
       schema: {
         type: 'string',
@@ -120,7 +120,7 @@ const LogsGetLogsOpenapi = {
     },
     {
       name: 'topicId',
-      in: 'query',
+      'in': 'query',
       required: false,
       description: 'Required if no storeId',
       schema: {
@@ -129,7 +129,7 @@ const LogsGetLogsOpenapi = {
     },
     {
       name: 'storeId',
-      in: 'query',
+      'in': 'query',
       required: false,
       description: 'Required if no topicId',
       schema: {
@@ -138,45 +138,45 @@ const LogsGetLogsOpenapi = {
     },
     {
       name: 'logLevel',
-      in: 'query',
+      'in': 'query',
       required: false,
       schema: {
         type: 'string',
-        enum: ['info', 'debug', 'warn', 'error'],
+        'enum': ['info', 'debug', 'warn', 'error'],
       },
     },
     {
       name: 'sort',
-      in: 'query',
+      'in': 'query',
       required: false,
       schema: {
         type: 'string',
-        enum: ['asc', 'desc'],
+        'enum': ['asc', 'desc'],
       },
     },
     {
       name: 'limit',
-      in: 'query',
+      'in': 'query',
       required: false,
       schema: {
         type: 'number',
         minimum: 1,
         maximum: 500,
-        default: 10,
+        'default': 10,
       },
     },
     {
       name: 'page',
-      in: 'query',
+      'in': 'query',
       required: false,
       schema: {
         type: 'number',
-        default: 1,
+        'default': 1,
       },
     },
   ],
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
       content: {
         'application/json': {
@@ -189,10 +189,10 @@ const LogsGetLogsOpenapi = {
         },
       },
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
-    '404': {
+    404: {
       description: 'Status 404',
       content: {
         'application/json': {
@@ -207,7 +207,7 @@ const LogsGetLogsOpenapi = {
         },
       },
     },
-    '500': {
+    500: {
       description: 'Status 500',
       content: {
         'application/json': {

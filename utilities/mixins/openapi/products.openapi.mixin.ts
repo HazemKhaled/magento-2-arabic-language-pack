@@ -297,7 +297,7 @@ const GetInstanceProduct = {
   description:
     'Retrieve single product information by Product SKU. product should be under this store',
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
       content: {
         'application/json': {
@@ -312,10 +312,10 @@ const GetInstanceProduct = {
         },
       },
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorToken',
     },
-    '404': {
+    404: {
       description: 'SKU not found',
       content: {
         'application/json': {
@@ -334,7 +334,7 @@ const GetInstanceProduct = {
   parameters: [
     {
       name: 'sku',
-      in: 'path',
+      'in': 'path',
       required: true,
       description: 'Identifier of the Task',
       example: '47ee3550-b619',
@@ -351,7 +351,7 @@ const ProductsTotal = {
   tags: ['My Products'],
   description: 'Get in stock products count',
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
       content: {
         'application/json': {
@@ -366,10 +366,10 @@ const ProductsTotal = {
         },
       },
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorToken',
     },
-    '500': {
+    500: {
       description: 'Internal  Server Error',
       content: {
         'application/json': {
@@ -408,29 +408,29 @@ const ProductsList = {
   parameters: [
     {
       name: 'limit',
-      in: 'query',
+      'in': 'query',
       required: false,
       description: 'Size of the page to retrieve.',
       schema: {
         type: 'integer',
         maximum: 100,
-        default: 10,
+        'default': 10,
       },
     },
     {
       name: 'page',
-      in: 'query',
+      'in': 'query',
       required: false,
       description: 'Number of the page to retrieve.',
       schema: {
         type: 'integer',
         minimum: 1,
-        default: 1,
+        'default': 1,
       },
     },
     {
       name: 'lastupdate',
-      in: 'query',
+      'in': 'query',
       required: false,
       description:
         'Timestamp(seconds since Jan 01 1970. (UTC)) of last import run DateTime (must be in UTC), API will respond only products which are updated/created after this timestamp.',
@@ -442,7 +442,7 @@ const ProductsList = {
     },
     {
       name: 'keyword',
-      in: 'query',
+      'in': 'query',
       required: false,
       description: 'Full text search in sku field',
       schema: {
@@ -451,7 +451,7 @@ const ProductsList = {
     },
     {
       name: 'hideOutOfStock',
-      in: 'query',
+      'in': 'query',
       required: false,
       description: 'Hide out of stock products',
       example: '1 => Hide archived products else will not hide',
@@ -461,7 +461,7 @@ const ProductsList = {
     },
     {
       name: 'currency',
-      in: 'query',
+      'in': 'query',
       required: false,
       description: '3 digit numeric ISO 4217 codes',
       schema: {
@@ -473,7 +473,7 @@ const ProductsList = {
     },
   ],
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
       content: {
         'application/json': {
@@ -496,7 +496,7 @@ const ProductsList = {
         },
       },
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorToken',
     },
   },
@@ -513,7 +513,7 @@ const DeleteInstanceProduct = {
   tags: ['My Products'],
   description: 'Delete Product by Product SKU from store. product should be under this store',
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
       content: {
         'application/json': {
@@ -532,10 +532,10 @@ const DeleteInstanceProduct = {
         },
       },
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorToken',
     },
-    '500': {
+    500: {
       description: 'Status 500',
       content: {
         'application/json': {
@@ -572,7 +572,7 @@ const ProductsImport = {
   tags: ['My Products'],
   description: 'Add products to my list',
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
       content: {
         'application/json': {
@@ -596,10 +596,10 @@ const ProductsImport = {
         },
       },
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorToken',
     },
-    '500': {
+    500: {
       description: 'Status 500',
       content: {
         'application/json': {
@@ -665,7 +665,7 @@ const InstanceUpdate = {
   parameters: [
     {
       name: 'sku',
-      in: 'query',
+      'in': 'query',
       required: true,
       schema: {
         type: 'string',
@@ -673,13 +673,13 @@ const InstanceUpdate = {
     },
   ],
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorToken',
     },
-    '404': {
+    404: {
       description: 'Status 404',
       content: {
         'application/json': {
@@ -702,7 +702,7 @@ const InstanceUpdate = {
         },
       },
     },
-    '500': {
+    500: {
       description: 'Status 500',
       content: {
         'application/json': {
@@ -779,7 +779,7 @@ const BulkProductInstance = {
   tags: ['My Products'],
   description: 'Update externalUrl, externalId and variations.error',
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
       content: {
         'application/json': {
@@ -794,10 +794,10 @@ const BulkProductInstance = {
         },
       },
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorToken',
     },
-    '500': {
+    500: {
       description: 'Status 500',
       content: {
         'application/json': {
@@ -897,7 +897,7 @@ export const ProductsOpenapi: ServiceSchema = {
     deleteInstanceProduct: {
       openapi: DeleteInstanceProduct,
     },
-    import: {
+    'import': {
       openapi: ProductsImport,
     },
     instanceUpdate: {

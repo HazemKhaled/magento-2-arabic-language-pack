@@ -75,7 +75,7 @@ const CategoriesListOpenapi = {
   parameters: [
     {
       name: 'parentId',
-      in: 'query',
+      'in': 'query',
       required: false,
       schema: {
         type: 'number',
@@ -83,7 +83,7 @@ const CategoriesListOpenapi = {
     },
     {
       name: 'treeNodeLevel',
-      in: 'query',
+      'in': 'query',
       required: false,
       schema: {
         type: 'number',
@@ -91,7 +91,7 @@ const CategoriesListOpenapi = {
     },
   ],
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
       content: {
         'application/json': {
@@ -132,7 +132,7 @@ const CategoriesListOpenapi = {
         },
       },
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorToken',
     },
   },

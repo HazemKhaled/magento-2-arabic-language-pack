@@ -13,3 +13,4 @@ export * from './taxes.validate';
 export * from './products.validate';
 export * from './products-list.validate';
 export * from './payments.validate';
+export * from './oms.validate';
