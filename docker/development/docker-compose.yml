@@ -72,7 +72,7 @@ services:
     restart: always
     env_file: .env
     environment:
-      SERVICES: currencies
+      SERVICES: currencies, taxes
 
   subscription:
     build:
