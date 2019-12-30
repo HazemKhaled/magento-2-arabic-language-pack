@@ -164,7 +164,7 @@ const TheService: ServiceSchema = {
       let queryString = '';
       if (params) {
         queryString = Object.keys(params).reduce(
-          (accumulator, key) => `${accumulator ? '&' : '?'}${key}=${params[key]}`,
+          (accumulator, key) => `${accumulator}${accumulator ? '&' : '?'}${key}=${params[key]}`,
           '',
         );
       }
