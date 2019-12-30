@@ -1,26 +1,26 @@
 import { ServiceSchema } from 'moleculer';
 
 export const CategoriesValidation: ServiceSchema = {
-  'name': 'categories',
-  'actions': {
-    'list': {
-      'params': {
-        'parentId': [{
-          'type': 'number',
-          'optional': true,
+  name: 'categories',
+  actions: {
+    list: {
+      params: {
+        parentId: [{
+          type: 'number',
+          optional: true,
         },
         {
-          'type': 'string',
-          'optional': true,
+          type: 'string',
+          optional: true,
         },
         ],
-        'treeNodeLevel': [{
-          'type': 'number',
-          'optional': true,
+        treeNodeLevel: [{
+          type: 'number',
+          optional: true,
         },
         {
-          'type': 'string',
-          'optional': true,
+          type: 'string',
+          optional: true,
         },
         ],
       },

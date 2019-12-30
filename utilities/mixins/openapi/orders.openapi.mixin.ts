@@ -10,7 +10,7 @@ const Order = {
     },
     status: {
       type: 'string',
-      enum: ['pending', 'processing', 'cancelled'],
+      'enum': ['pending', 'processing', 'cancelled'],
     },
     items: {
       type: 'array',
@@ -121,7 +121,7 @@ const OrderResponse = {
   properties: {
     status: {
       type: 'string',
-      enum: ['success', 'fail'],
+      'enum': ['success', 'fail'],
     },
     order: {
       $ref: '#/components/schemas/Order',
@@ -156,7 +156,7 @@ const OrderResponse = {
         properties: {
           status: {
             type: 'string',
-            enum: ['fail'],
+            'enum': ['fail'],
           },
           message: {
             type: 'string',
@@ -187,7 +187,7 @@ const OrdersCreateOpenapi = {
   summary: 'Create order',
   tags: ['Orders'],
   responses: {
-    '200': {
+    200: {
       description: 'Success',
       content: {
         'application/json': {
@@ -197,10 +197,10 @@ const OrdersCreateOpenapi = {
         },
       },
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorToken',
     },
-    '404': {
+    404: {
       description: 'Status 404',
       content: {
         'application/json': {
@@ -221,7 +221,7 @@ const OrdersCreateOpenapi = {
         },
       },
     },
-    '428': {
+    428: {
       description: 'Status 428',
       content: {
         'application/json': {
@@ -238,7 +238,7 @@ const OrdersCreateOpenapi = {
                   properties: {
                     status: {
                       type: 'string',
-                      enum: ['fail'],
+                      'enum': ['fail'],
                     },
                     message: {
                       type: 'string',
@@ -254,7 +254,7 @@ const OrdersCreateOpenapi = {
         },
       },
     },
-    '500': {
+    500: {
       description: 'Status 500',
       content: {
         'application/json': {
@@ -309,7 +309,7 @@ const OrdersUpdateOpenapi = {
   parameters: [
     {
       name: 'order_id',
-      in: 'path',
+      'in': 'path',
       required: true,
       schema: {
         type: 'string',
@@ -320,7 +320,7 @@ const OrdersUpdateOpenapi = {
   tags: ['Orders'],
   description: 'Update order by id',
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
       content: {
         'application/json': {
@@ -330,10 +330,10 @@ const OrdersUpdateOpenapi = {
         },
       },
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorToken',
     },
-    '404': {
+    404: {
       description: 'Status 404',
       content: {
         'application/json': {
@@ -352,7 +352,7 @@ const OrdersUpdateOpenapi = {
         },
       },
     },
-    '500': {
+    500: {
       description: 'Status 500',
       content: {
         'application/json': {
@@ -410,7 +410,7 @@ const OrdersGetOpenapi = {
   parameters: [
     {
       name: 'order_id',
-      in: 'path',
+      'in': 'path',
       required: true,
       schema: {
         type: 'string',
@@ -418,7 +418,7 @@ const OrdersGetOpenapi = {
     },
   ],
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
       content: {
         'application/json': {
@@ -433,7 +433,7 @@ const OrdersGetOpenapi = {
         },
       },
     },
-    '400': {
+    400: {
       description: 'Status 400',
       content: {
         'application/json': {
@@ -449,10 +449,10 @@ const OrdersGetOpenapi = {
         },
       },
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorToken',
     },
-    '404': {
+    404: {
       description: 'Status 404',
       content: {
         'application/json': {
@@ -485,29 +485,29 @@ const OrdersListOpenapi = {
   parameters: [
     {
       name: 'limit',
-      in: 'query',
+      'in': 'query',
       required: false,
       description: 'Size of the page to retrieve.',
       schema: {
         type: 'number',
         minimum: 1,
         maximum: 50,
-        default: 10,
+        'default': 10,
       },
     },
     {
       name: 'page',
-      in: 'query',
+      'in': 'query',
       required: false,
       schema: {
         type: 'number',
         minimum: 1,
-        default: 1,
+        'default': 1,
       },
     },
   ],
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
       content: {
         'application/json': {
@@ -542,7 +542,7 @@ const OrdersListOpenapi = {
         },
       },
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorToken',
     },
   },
@@ -558,7 +558,7 @@ const OrdersDeleteOpenapi = {
   parameters: [
     {
       name: 'order_id',
-      in: 'path',
+      'in': 'path',
       required: true,
       schema: {
         type: 'string',
@@ -568,7 +568,7 @@ const OrdersDeleteOpenapi = {
   summary: 'Cancel order',
   tags: ['Orders'],
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
       content: {
         'application/json': {
@@ -578,13 +578,13 @@ const OrdersDeleteOpenapi = {
         },
       },
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorToken',
     },
-    '404': {
+    404: {
       description: 'Status 404',
     },
-    '500': {
+    500: {
       description: 'Status 500',
       content: {
         'application/json': {

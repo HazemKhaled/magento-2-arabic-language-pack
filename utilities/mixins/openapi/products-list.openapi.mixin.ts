@@ -5,10 +5,10 @@ const ProductsListListOpenapi = {
   summary: 'Get all Knawat Products',
   tags: ['Products', 'Enterprise Only'],
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
   },
@@ -24,7 +24,7 @@ const ProductsListGetOpenapi = {
   parameters: [
     {
       name: 'sku',
-      in: 'path',
+      'in': 'path',
       required: true,
       schema: {
         type: 'string',
@@ -34,10 +34,10 @@ const ProductsListGetOpenapi = {
   summary: 'Get Product by SKU',
   tags: ['Products', 'Enterprise Only'],
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
   },

@@ -30,11 +30,11 @@ const MembershipSchema = {
     },
     sort: { type: 'number' },
     active: { type: 'boolean' },
-    public: { type: 'boolean' },
+    'public': { type: 'boolean' },
     cost: { type: 'number' },
     discount: { type: 'number' },
     paymentFrequency: { type: 'number' },
-    paymentFrequencyType: { type: 'string', enum: ['month', 'year'] },
+    paymentFrequencyType: { type: 'string', 'enum': ['month', 'year'] },
     attributes: { type: 'object', properties: {} },
   },
 };
@@ -71,11 +71,11 @@ const MembershipResponse = {
           },
           sort: { type: 'number' },
           active: { type: 'boolean' },
-          public: { type: 'boolean' },
+          'public': { type: 'boolean' },
           cost: { type: 'number' },
           discount: { type: 'number' },
           paymentFrequency: { type: 'number' },
-          paymentFrequencyType: { type: 'string', enum: ['month', 'year'] },
+          paymentFrequencyType: { type: 'string', 'enum': ['month', 'year'] },
           attributes: { type: 'object', properties: {} },
         },
       },
@@ -90,7 +90,7 @@ const MembershipCreateOpenapi = {
   parameters: [
     {
       name: 'Authorization',
-      in: 'header',
+      'in': 'header',
       required: true,
       schema: {
         type: 'string',
@@ -98,7 +98,7 @@ const MembershipCreateOpenapi = {
     },
   ],
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
       content: {
         'application/json': {
@@ -108,10 +108,10 @@ const MembershipCreateOpenapi = {
         },
       },
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
-    '500': {
+    500: {
       description: 'Status 500',
       content: {
         'application/json': {
@@ -159,7 +159,7 @@ const MembershipUpdateOpenapi = {
   parameters: [
     {
       name: 'id',
-      in: 'path',
+      'in': 'path',
       required: true,
       schema: {
         type: 'string',
@@ -167,7 +167,7 @@ const MembershipUpdateOpenapi = {
     },
     {
       name: 'Authorization',
-      in: 'header',
+      'in': 'header',
       required: true,
       schema: {
         type: 'string',
@@ -175,7 +175,7 @@ const MembershipUpdateOpenapi = {
     },
   ],
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
       content: {
         'application/json': {
@@ -185,10 +185,10 @@ const MembershipUpdateOpenapi = {
         },
       },
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
-    '500': {
+    500: {
       description: 'Status 500',
       content: {
         'application/json': {

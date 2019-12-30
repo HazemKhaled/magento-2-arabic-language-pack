@@ -27,6 +27,7 @@
     "linebreak-style": ["error", "unix"],
     "quotes": ["error", "single"],
     "semi": ["error", "always"],
-    "comma-dangle": ["warn", "always-multiline"]
+    "comma-dangle": ["warn", "always-multiline"],
+    "quote-props": ["error", "as-needed", { "keywords": true }]
   }
 }

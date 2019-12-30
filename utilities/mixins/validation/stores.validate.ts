@@ -2,83 +2,83 @@ import { ServiceSchema } from 'moleculer';
 
 
 export const StoresValidation: ServiceSchema = {
-  'name': 'stores',
-  'actions': {
-    'findInstance': {
-      'params': {
-        'consumerKey': {
-          'type': 'string',
-          'convert': true,
-          'optional': true,
+  name: 'stores',
+  actions: {
+    findInstance: {
+      params: {
+        consumerKey: {
+          type: 'string',
+          convert: true,
+          optional: true,
         },
-        'id': {
-          'type': 'string',
-          'convert': true,
-          'optional': true,
-        },
-      },
-    },
-    'get': {
-      'params': {
-        'id': {
-          'type': 'string',
+        id: {
+          type: 'string',
+          convert: true,
+          optional: true,
         },
       },
     },
-    'list': {
-      'params': {
-        'filter': {
-          'type': 'string',
+    get: {
+      params: {
+        id: {
+          type: 'string',
         },
       },
     },
-    'storesList': {
-      'params': {
-        'id': {
-          'type': 'string',
-          'optional': true,
-        },
-        'page': {
-          'type': 'number',
-          'optional': true,
-          'positive': true,
-          'convert': true,
-          'integer': true,
-        },
-        'perPage': {
-          'type': 'number',
-          'optional': true,
-          'positive': true,
-          'convert': true,
-          'integer': true,
+    list: {
+      params: {
+        filter: {
+          type: 'string',
         },
       },
     },
-    'countStores': {
-      'params': {
-        'query': 'object',
+    storesList: {
+      params: {
+        id: {
+          type: 'string',
+          optional: true,
+        },
+        page: {
+          type: 'number',
+          optional: true,
+          positive: true,
+          convert: true,
+          integer: true,
+        },
+        perPage: {
+          type: 'number',
+          optional: true,
+          positive: true,
+          convert: true,
+          integer: true,
+        },
       },
     },
-    'create': {
-      'params': {
-        'url': {
-          'type': 'url',
+    countStores: {
+      params: {
+        query: 'object',
+      },
+    },
+    create: {
+      params: {
+        url: {
+          type: 'url',
         },
-        'name': {
-          'type': 'string',
+        name: {
+          type: 'string',
         },
-        'status': {
-          'type': 'enum',
-          'values': [
+        status: {
+          type: 'enum',
+          values: [
             'confirmed',
             'unconfirmed',
             'archived',
             'error',
           ],
         },
-        'type': {
-          'type': 'enum',
-          'values': [
+        type: {
+          type: 'enum',
+          values: [
             'woocommerce',
             'magento1',
             'magento2',
@@ -92,86 +92,86 @@ export const StoresValidation: ServiceSchema = {
             'other',
           ],
         },
-        'stock_date': {
-          'type': 'date',
-          'optional': true,
-          'convert': true,
+        stock_date: {
+          type: 'date',
+          optional: true,
+          convert: true,
         },
-        'stock_status': {
-          'type': 'enum',
-          'values': [
+        stock_status: {
+          type: 'enum',
+          values: [
             'idle',
             'in-progress',
           ],
-          'optional': true,
+          optional: true,
         },
-        'price_date': {
-          'type': 'date',
-          'optional': true,
-          'convert': true,
+        price_date: {
+          type: 'date',
+          optional: true,
+          convert: true,
         },
-        'price_status': {
-          'type': 'enum',
-          'values': [
+        price_status: {
+          type: 'enum',
+          values: [
             'idle',
             'in-progress',
           ],
-          'optional': true,
+          optional: true,
         },
-        'sale_price': {
-          'type': 'number',
-          'optional': true,
+        sale_price: {
+          type: 'number',
+          optional: true,
         },
-        'sale_price_operator': {
-          'type': 'number',
-          'optional': true,
+        sale_price_operator: {
+          type: 'number',
+          optional: true,
         },
-        'compared_at_price': {
-          'type': 'number',
-          'optional': true,
+        compared_at_price: {
+          type: 'number',
+          optional: true,
         },
-        'compared_at_price_operator': {
-          'type': 'enum',
-          'values': [
+        compared_at_price_operator: {
+          type: 'enum',
+          values: [
             1,
             2,
           ],
-          'optional': true,
+          optional: true,
         },
-        'currency': {
-          'type': 'string',
-          'max': 3,
-          'optional': true,
+        currency: {
+          type: 'string',
+          max: 3,
+          optional: true,
         },
-        'external_data': {
-          'type': 'object',
-          'optional': true,
+        external_data: {
+          type: 'object',
+          optional: true,
         },
-        'internal_data': {
-          'type': 'object',
-          'optional': true,
+        internal_data: {
+          type: 'object',
+          optional: true,
         },
-        'users': {
-          'type': 'array',
-          'items': {
-            'type': 'object',
-            'props': {
-              'first_name': {
-                'type': 'string',
-                'optional': true,
+        users: {
+          type: 'array',
+          items: {
+            type: 'object',
+            props: {
+              first_name: {
+                type: 'string',
+                optional: true,
               },
-              'last_name': {
-                'type': 'string',
-                'optional': true,
+              last_name: {
+                type: 'string',
+                optional: true,
               },
-              'email': {
-                'type': 'email',
+              email: {
+                type: 'email',
               },
-              'roles': {
-                'type': 'array',
-                'items': {
-                  'type': 'enum',
-                  'values': [
+              roles: {
+                type: 'array',
+                items: {
+                  type: 'enum',
+                  values: [
                     'owner',
                     'accounting',
                     'products',
@@ -182,87 +182,87 @@ export const StoresValidation: ServiceSchema = {
             },
           },
         },
-        'languages': {
-          'type': 'array',
-          'min': 1,
-          'max': 10,
-          'items': 'string',
+        languages: {
+          type: 'array',
+          min: 1,
+          max: 10,
+          items: 'string',
         },
-        'address': {
-          'type': 'object',
-          'props': {
-            'first_name': {
-              'type': 'string',
-              'min': 3,
+        address: {
+          type: 'object',
+          props: {
+            first_name: {
+              type: 'string',
+              min: 3,
             },
-            'last_name': {
-              'type': 'string',
-              'min': 3,
+            last_name: {
+              type: 'string',
+              min: 3,
             },
-            'company': {
-              'type': 'string',
-              'optional': true,
+            company: {
+              type: 'string',
+              optional: true,
             },
-            'address_1': {
-              'type': 'string',
-              'min': 3,
+            address_1: {
+              type: 'string',
+              min: 3,
             },
-            'address_2': {
-              'type': 'string',
-              'optional': true,
+            address_2: {
+              type: 'string',
+              optional: true,
             },
-            'city': {
-              'type': 'string',
-              'optional': true,
+            city: {
+              type: 'string',
+              optional: true,
             },
-            'state': {
-              'type': 'string',
-              'optional': true,
+            state: {
+              type: 'string',
+              optional: true,
             },
-            'postcode': {
-              'type': 'number',
-              'optional': true,
+            postcode: {
+              type: 'number',
+              optional: true,
             },
-            'country': {
-              'type': 'string',
-              'max': 2,
+            country: {
+              type: 'string',
+              max: 2,
             },
-            'email': {
-              'type': 'email',
-              'optional': true,
+            email: {
+              type: 'email',
+              optional: true,
             },
-            'phone': {
-              'type': 'string',
-              'optional': true,
-              'convert': true,
+            phone: {
+              type: 'string',
+              optional: true,
+              convert: true,
             },
           },
-          'optional': true,
+          optional: true,
         },
       },
     },
-    'update': {
-      'params': {
-        'id': {
-          'type': 'url',
+    update: {
+      params: {
+        id: {
+          type: 'url',
         },
-        'name': {
-          'type': 'string',
-          'optional': true,
+        name: {
+          type: 'string',
+          optional: true,
         },
-        'status': {
-          'type': 'enum',
-          'values': [
+        status: {
+          type: 'enum',
+          values: [
             'confirmed',
             'unconfirmed',
             'archived',
             'error',
           ],
-          'optional': true,
+          optional: true,
         },
-        'type': {
-          'type': 'enum',
-          'values': [
+        type: {
+          type: 'enum',
+          values: [
             'woocommerce',
             'magento1',
             'magento2',
@@ -275,88 +275,88 @@ export const StoresValidation: ServiceSchema = {
             'api',
             'other',
           ],
-          'optional': true,
+          optional: true,
         },
-        'stock_date': {
-          'type': 'date',
-          'optional': true,
-          'convert': true,
+        stock_date: {
+          type: 'date',
+          optional: true,
+          convert: true,
         },
-        'stock_status': {
-          'type': 'enum',
-          'values': [
+        stock_status: {
+          type: 'enum',
+          values: [
             'idle',
             'in-progress',
           ],
-          'optional': true,
+          optional: true,
         },
-        'price_date': {
-          'type': 'date',
-          'optional': true,
-          'convert': true,
+        price_date: {
+          type: 'date',
+          optional: true,
+          convert: true,
         },
-        'price_status': {
-          'type': 'enum',
-          'values': [
+        price_status: {
+          type: 'enum',
+          values: [
             'idle',
             'in-progress',
           ],
-          'optional': true,
+          optional: true,
         },
-        'sale_price': {
-          'type': 'number',
-          'optional': true,
+        sale_price: {
+          type: 'number',
+          optional: true,
         },
-        'sale_price_operator': {
-          'type': 'number',
-          'optional': true,
+        sale_price_operator: {
+          type: 'number',
+          optional: true,
         },
-        'compared_at_price': {
-          'type': 'number',
-          'optional': true,
+        compared_at_price: {
+          type: 'number',
+          optional: true,
         },
-        'compared_at_price_operator': {
-          'type': 'enum',
-          'values': [
+        compared_at_price_operator: {
+          type: 'enum',
+          values: [
             1,
             2,
           ],
-          'optional': true,
+          optional: true,
         },
-        'currency': {
-          'type': 'string',
-          'max': 3,
-          'optional': true,
+        currency: {
+          type: 'string',
+          max: 3,
+          optional: true,
         },
-        'external_data': {
-          'type': 'object',
-          'optional': true,
+        external_data: {
+          type: 'object',
+          optional: true,
         },
-        'internal_data': {
-          'type': 'object',
-          'optional': true,
+        internal_data: {
+          type: 'object',
+          optional: true,
         },
-        'users': {
-          'type': 'array',
-          'items': {
-            'type': 'object',
-            'props': {
-              'first_name': {
-                'type': 'string',
-                'optional': true,
+        users: {
+          type: 'array',
+          items: {
+            type: 'object',
+            props: {
+              first_name: {
+                type: 'string',
+                optional: true,
               },
-              'last_name': {
-                'type': 'string',
-                'optional': true,
+              last_name: {
+                type: 'string',
+                optional: true,
               },
-              'email': {
-                'type': 'email',
+              email: {
+                type: 'email',
               },
-              'roles': {
-                'type': 'array',
-                'items': {
-                  'type': 'enum',
-                  'values': [
+              roles: {
+                type: 'array',
+                items: {
+                  type: 'enum',
+                  values: [
                     'owner',
                     'accounting',
                     'products',
@@ -366,90 +366,90 @@ export const StoresValidation: ServiceSchema = {
               },
             },
           },
-          'optional': true,
+          optional: true,
         },
-        'languages': {
-          'type': 'array',
-          'min': 1,
-          'max': 10,
-          'items': 'string',
-          'optional': true,
+        languages: {
+          type: 'array',
+          min: 1,
+          max: 10,
+          items: 'string',
+          optional: true,
         },
-        'address': {
-          'type': 'object',
-          'props': {
-            'first_name': {
-              'type': 'string',
+        address: {
+          type: 'object',
+          props: {
+            first_name: {
+              type: 'string',
             },
-            'last_name': {
-              'type': 'string',
+            last_name: {
+              type: 'string',
             },
-            'company': {
-              'type': 'string',
-              'optional': true,
+            company: {
+              type: 'string',
+              optional: true,
             },
-            'address_1': {
-              'type': 'string',
+            address_1: {
+              type: 'string',
             },
-            'address_2': {
-              'type': 'string',
-              'optional': true,
+            address_2: {
+              type: 'string',
+              optional: true,
             },
-            'city': {
-              'type': 'string',
-              'optional': true,
+            city: {
+              type: 'string',
+              optional: true,
             },
-            'state': {
-              'type': 'string',
-              'optional': true,
+            state: {
+              type: 'string',
+              optional: true,
             },
-            'postcode': {
-              'type': 'number',
-              'optional': true,
+            postcode: {
+              type: 'number',
+              optional: true,
             },
-            'country': {
-              'type': 'string',
-              'max': 2,
+            country: {
+              type: 'string',
+              max: 2,
             },
-            'email': {
-              'type': 'email',
-              'optional': true,
+            email: {
+              type: 'email',
+              optional: true,
             },
-            'phone': {
-              'type': 'string',
-              'optional': true,
-              'convert': true,
+            phone: {
+              type: 'string',
+              optional: true,
+              convert: true,
             },
           },
-          'optional': true,
+          optional: true,
         },
       },
     },
-    'sync': {
-      'params': {
-        'id': {
-          'type': 'string',
+    sync: {
+      params: {
+        id: {
+          type: 'string',
         },
       },
     },
-    'login': {
-      'params': {
-        'consumerKey': {
-          'type': 'string',
+    login: {
+      params: {
+        consumerKey: {
+          type: 'string',
         },
-        'consumerSecret': {
-          'type': 'string',
+        consumerSecret: {
+          type: 'string',
         },
       },
     },
-    'resolveBearerToken': {
-      'params': {
-        'token': 'string',
+    resolveBearerToken: {
+      params: {
+        token: 'string',
       },
     },
-    'resolveBasicToken': {
-      'params': {
-        'token': 'string',
+    resolveBasicToken: {
+      params: {
+        token: 'string',
       },
     },
   },
