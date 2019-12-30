@@ -110,6 +110,15 @@ services:
     environment:
       SERVICES: invoices, payments
 
+  oms:
+    build:
+      context: ../../
+    image: microes
+    restart: always
+    env_file: .env
+    environment:
+      SERVICES: oms
+
   shipment:
     build:
       context: ../../

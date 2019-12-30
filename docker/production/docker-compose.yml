@@ -119,6 +119,15 @@ services:
     depends_on:
       - mongodb
 
+  oms:
+    build:
+      context: ../../
+    image: microes
+    restart: always
+    env_file: .env
+    environment:
+      SERVICES: oms
+
   elastic-update:
     build:
       context: ../../
