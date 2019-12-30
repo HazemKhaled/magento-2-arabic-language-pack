@@ -23,6 +23,12 @@ const TheService: ServiceSchema = {
       async handler(ctx: Context) {
         const subscription = await ctx.call('subscription.getSubscriptionByExpireDate', {
           days: 7,
+        }).then(null, (err)=> {
+          if(err.code === 422) {
+            console.log('No Store To Renew It\'s Subscription');
+            return false;
+          }
+          throw err;
         });
         if (!subscription) {
           return null;
