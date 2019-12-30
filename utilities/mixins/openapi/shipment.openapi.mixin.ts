@@ -46,7 +46,7 @@ const ShipmentPolicySchema = {
           },
           type: {
             type: 'string',
-            enum: ['weight', 'price'],
+            'enum': ['weight', 'price'],
           },
           cost: {
             type: 'number',
@@ -73,7 +73,7 @@ const ShipmentGetOpenapi = {
   parameters: [
     {
       name: 'id',
-      in: 'path',
+      'in': 'path',
       required: false,
       schema: {
         type: 'string',
@@ -83,7 +83,7 @@ const ShipmentGetOpenapi = {
   summary: 'Get All Shipment Policies or Get By Id',
   tags: ['Shipment', 'Enterprise Only'],
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
       content: {
         'application/json': {
@@ -96,7 +96,7 @@ const ShipmentGetOpenapi = {
         },
       },
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
   },
@@ -112,7 +112,7 @@ const ShipmentInsertOpenapi = {
   summary: 'Insert Shipment Policy',
   tags: ['Shipment', 'Enterprise Only'],
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
       content: {
         'application/json': {
@@ -122,7 +122,7 @@ const ShipmentInsertOpenapi = {
         },
       },
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
   },
@@ -141,7 +141,7 @@ const ShipmentUpdateOpenapi = {
   parameters: [
     {
       name: 'id',
-      in: 'path',
+      'in': 'path',
       required: true,
       schema: {
         type: 'string',
@@ -151,7 +151,7 @@ const ShipmentUpdateOpenapi = {
   summary: 'Update Shipment Policy',
   tags: ['Shipment', 'Enterprise Only'],
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
       content: {
         'application/json': {
@@ -161,7 +161,7 @@ const ShipmentUpdateOpenapi = {
         },
       },
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
   },
@@ -182,7 +182,7 @@ const ShipmentRuleByCountryOpenapi = {
   parameters: [
     {
       name: 'country',
-      in: 'query',
+      'in': 'query',
       required: true,
       schema: {
         type: 'string',
@@ -192,7 +192,7 @@ const ShipmentRuleByCountryOpenapi = {
     },
     {
       name: 'weight',
-      in: 'query',
+      'in': 'query',
       required: true,
       schema: {
         type: 'number',
@@ -200,7 +200,7 @@ const ShipmentRuleByCountryOpenapi = {
     },
     {
       name: 'price',
-      in: 'query',
+      'in': 'query',
       required: true,
       schema: {
         type: 'number',
@@ -208,7 +208,7 @@ const ShipmentRuleByCountryOpenapi = {
     },
   ],
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
       content: {
         'application/json': {
@@ -230,7 +230,7 @@ const ShipmentRuleByCountryOpenapi = {
         },
       },
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
   },
@@ -248,7 +248,7 @@ const ShipmentGetCurriersOpenapi = {
   parameters: [
     {
       name: 'country',
-      in: 'query',
+      'in': 'query',
       required: false,
       schema: {
         type: 'string',
@@ -258,7 +258,7 @@ const ShipmentGetCurriersOpenapi = {
     },
   ],
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
       content: {
         'application/json': {
@@ -271,7 +271,7 @@ const ShipmentGetCurriersOpenapi = {
         },
       },
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
   },

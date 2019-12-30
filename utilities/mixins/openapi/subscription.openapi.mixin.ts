@@ -42,7 +42,7 @@ const SubscriptionListOpenapi = {
   parameters: [
     {
       name: 'storeId',
-      in: 'query',
+      'in': 'query',
       required: false,
       schema: {
         type: 'string',
@@ -50,7 +50,7 @@ const SubscriptionListOpenapi = {
     },
     {
       name: 'membershipId',
-      in: 'query',
+      'in': 'query',
       required: false,
       schema: {
         type: 'string',
@@ -58,7 +58,7 @@ const SubscriptionListOpenapi = {
     },
     {
       name: 'expireDate',
-      in: 'query',
+      'in': 'query',
       schema: {
         type: 'array',
         max: 2,
@@ -74,7 +74,7 @@ const SubscriptionListOpenapi = {
     },
     {
       name: 'startDate',
-      in: 'query',
+      'in': 'query',
       schema: {
         type: 'array',
         max: 2,
@@ -82,7 +82,7 @@ const SubscriptionListOpenapi = {
         items: {
           type: 'object',
           properties: {
-            operation: { type: 'string', enum: ['lte', 'gte', 'gt', 'lt'] },
+            operation: { type: 'string', 'enum': ['lte', 'gte', 'gt', 'lt'] },
             date: { type: 'date' },
           },
         },
@@ -90,7 +90,7 @@ const SubscriptionListOpenapi = {
     },
     {
       name: 'page',
-      in: 'query',
+      'in': 'query',
       required: false,
       schema: {
         type: 'number',
@@ -98,7 +98,7 @@ const SubscriptionListOpenapi = {
     },
     {
       name: 'perPage',
-      in: 'query',
+      'in': 'query',
       required: false,
       schema: {
         type: 'number',
@@ -106,18 +106,18 @@ const SubscriptionListOpenapi = {
     },
     {
       name: 'sort',
-      in: 'query',
+      'in': 'query',
       schema: {
         type: 'object',
         properties: {
           field: { type: 'string' },
-          order: { type: 'number', enum: [1, -1] },
+          order: { type: 'number', 'enum': [1, -1] },
         },
       },
     },
     {
       name: 'Authorization',
-      in: 'header',
+      'in': 'header',
       required: true,
       schema: {
         type: 'string',
@@ -125,7 +125,7 @@ const SubscriptionListOpenapi = {
     },
   ],
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
       content: {
         'application/json': {
@@ -138,10 +138,10 @@ const SubscriptionListOpenapi = {
         },
       },
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
-    '404': {
+    404: {
       description: 'Status 404',
       content: {
         'application/json': {
@@ -179,7 +179,7 @@ const SubscriptionCreateOpenapi = {
   parameters: [
     {
       name: 'Authorization',
-      in: 'header',
+      'in': 'header',
       required: true,
       schema: {
         type: 'string',
@@ -187,7 +187,7 @@ const SubscriptionCreateOpenapi = {
     },
   ],
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
       content: {
         'application/json': {
@@ -197,10 +197,10 @@ const SubscriptionCreateOpenapi = {
         },
       },
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
-    '500': {
+    500: {
       description: 'Status 500',
       content: {
         'application/json': {
@@ -253,7 +253,7 @@ const SubscriptionUpdateOpenapi = {
   parameters: [
     {
       name: 'id',
-      in: 'path',
+      'in': 'path',
       required: true,
       schema: {
         type: 'string',
@@ -261,7 +261,7 @@ const SubscriptionUpdateOpenapi = {
     },
     {
       name: 'Authorization',
-      in: 'header',
+      'in': 'header',
       required: true,
       schema: {
         type: 'string',
@@ -269,7 +269,7 @@ const SubscriptionUpdateOpenapi = {
     },
   ],
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
       content: {
         'application/json': {
@@ -279,10 +279,10 @@ const SubscriptionUpdateOpenapi = {
         },
       },
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
-    '500': {
+    500: {
       description: 'Status 500',
       content: {
         'application/json': {

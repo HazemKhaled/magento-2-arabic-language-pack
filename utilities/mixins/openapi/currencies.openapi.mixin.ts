@@ -26,7 +26,7 @@ const CurrenciesGetCurrencyOpenapi = {
   parameters: [
     {
       name: 'currencyCode',
-      in: 'query',
+      'in': 'query',
       required: false,
       schema: {
         type: 'string',
@@ -36,7 +36,7 @@ const CurrenciesGetCurrencyOpenapi = {
     },
     {
       name: 'currencyCode',
-      in: 'path',
+      'in': 'path',
       required: true,
       schema: {
         type: 'string',
@@ -44,7 +44,7 @@ const CurrenciesGetCurrencyOpenapi = {
     },
   ],
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
       content: {
         'application/json': {
@@ -54,10 +54,10 @@ const CurrenciesGetCurrencyOpenapi = {
         },
       },
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
-    '404': {
+    404: {
       description: 'Status 404',
     },
   },
@@ -74,7 +74,7 @@ const CurrenciesGetCurrenciesOpenapi = {
   tags: ['Currencies', 'Enterprise Only'],
   description: 'Get all currencies with names, code and rates info',
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
       content: {
         'application/json': {
@@ -87,7 +87,7 @@ const CurrenciesGetCurrenciesOpenapi = {
         },
       },
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
   },

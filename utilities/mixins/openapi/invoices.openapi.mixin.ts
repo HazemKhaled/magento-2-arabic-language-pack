@@ -66,7 +66,7 @@ const InvoiceResponse = {
             type: 'object',
             properties: {
               value: { type: 'number', positive: true },
-              type: { type: 'string', enum: ['entity_level'] },
+              type: { type: 'string', 'enum': ['entity_level'] },
             },
           },
           items: {
@@ -102,7 +102,7 @@ const InvoicesGetOpenapi = {
   parameters: [
     {
       name: 'page',
-      in: 'query',
+      'in': 'query',
       required: false,
       schema: {
         type: 'number',
@@ -110,7 +110,7 @@ const InvoicesGetOpenapi = {
     },
     {
       name: 'limit',
-      in: 'query',
+      'in': 'query',
       required: false,
       schema: {
         type: 'number',
@@ -118,7 +118,7 @@ const InvoicesGetOpenapi = {
     },
     {
       name: 'reference_number',
-      in: 'query',
+      'in': 'query',
       required: false,
       schema: {
         type: 'string',
@@ -126,7 +126,7 @@ const InvoicesGetOpenapi = {
     },
     {
       name: 'invoice_number',
-      in: 'query',
+      'in': 'query',
       required: false,
       schema: {
         type: 'string',
@@ -134,7 +134,7 @@ const InvoicesGetOpenapi = {
     },
   ],
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
       content: {
         'application/json': {
@@ -152,7 +152,7 @@ const InvoicesGetOpenapi = {
         },
       },
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorToken',
     },
   },
@@ -170,7 +170,7 @@ const InvoicesCreateOpenapi = {
   parameters: [
     {
       name: 'Authorization',
-      in: 'header',
+      'in': 'header',
       required: true,
       schema: {
         type: 'string',
@@ -178,7 +178,7 @@ const InvoicesCreateOpenapi = {
     },
   ],
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
       content: {
         'application/json': {
@@ -188,10 +188,10 @@ const InvoicesCreateOpenapi = {
         },
       },
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
-    '500': {
+    500: {
       description: 'Status 500',
       content: {
         'application/json': {
@@ -233,7 +233,7 @@ const InvoicesApplyCreditsOpenapi = {
   parameters: [
     {
       name: 'id',
-      in: 'path',
+      'in': 'path',
       required: true,
       schema: {
         type: 'string',
@@ -241,7 +241,7 @@ const InvoicesApplyCreditsOpenapi = {
     },
     {
       name: 'Authorization',
-      in: 'header',
+      'in': 'header',
       required: true,
       schema: {
         type: 'string',
@@ -249,7 +249,7 @@ const InvoicesApplyCreditsOpenapi = {
     },
   ],
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
       content: {
         'application/json': {
@@ -275,10 +275,10 @@ const InvoicesApplyCreditsOpenapi = {
         },
       },
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
-    '500': {
+    500: {
       description: 'Status 500',
       content: {
         'application/json': {

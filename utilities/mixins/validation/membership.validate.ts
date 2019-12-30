@@ -1,226 +1,226 @@
 import { ServiceSchema } from 'moleculer';
 
 export const MembershipValidation: ServiceSchema = {
-  'name': 'membership',
-  'actions': {
-    'create': {
-      'params': {
-        'id': {
-          'type': 'string',
-          'optional': true,
+  name: 'membership',
+  actions: {
+    create: {
+      params: {
+        id: {
+          type: 'string',
+          optional: true,
         },
-        'name': {
-          'type': 'object',
-          'props': {
-            'tr': {
-              'type': 'string',
-              'optional': true,
+        name: {
+          type: 'object',
+          props: {
+            tr: {
+              type: 'string',
+              optional: true,
             },
-            'en': {
-              'type': 'string',
+            en: {
+              type: 'string',
             },
-            'ar': {
-              'type': 'string',
-              'optional': true,
+            ar: {
+              type: 'string',
+              optional: true,
             },
-            '$$strict': true,
+            $$strict: true,
           },
         },
-        'tagline': {
-          'type': 'object',
-          'props': {
-            'tr': {
-              'type': 'string',
-              'optional': true,
+        tagline: {
+          type: 'object',
+          props: {
+            tr: {
+              type: 'string',
+              optional: true,
             },
-            'en': {
-              'type': 'string',
+            en: {
+              type: 'string',
             },
-            'ar': {
-              'type': 'string',
-              'optional': true,
+            ar: {
+              type: 'string',
+              optional: true,
             },
-            '$$strict': true,
+            $$strict: true,
           },
         },
-        'description': {
-          'type': 'object',
-          'props': {
-            'tr': {
-              'type': 'string',
-              'optional': true,
+        description: {
+          type: 'object',
+          props: {
+            tr: {
+              type: 'string',
+              optional: true,
             },
-            'en': {
-              'type': 'string',
+            en: {
+              type: 'string',
             },
-            'ar': {
-              'type': 'string',
-              'optional': true,
+            ar: {
+              type: 'string',
+              optional: true,
             },
-            '$$strict': true,
+            $$strict: true,
           },
         },
-        'sort': {
-          'type': 'number',
-          'integer': true,
-          'positive': true,
+        sort: {
+          type: 'number',
+          integer: true,
+          positive: true,
         },
-        'active': {
-          'type': 'boolean',
+        active: {
+          type: 'boolean',
         },
         'public': {
-          'type': 'boolean',
+          type: 'boolean',
         },
-        'cost': {
-          'type': 'number',
-          'positive': true,
+        cost: {
+          type: 'number',
+          positive: true,
         },
-        'discount': {
-          'type': 'number',
-          'positive': true,
+        discount: {
+          type: 'number',
+          positive: true,
         },
-        'paymentFrequency': {
-          'type': 'number',
-          'integer': true,
-          'positive': true,
+        paymentFrequency: {
+          type: 'number',
+          integer: true,
+          positive: true,
         },
-        'paymentFrequencyType': {
-          'type': 'enum',
-          'values': [
+        paymentFrequencyType: {
+          type: 'enum',
+          values: [
             'month',
             'year',
           ],
         },
-        'attributes': {
-          'type': 'object',
+        attributes: {
+          type: 'object',
         },
-        'isDefault': {
-          'type': 'boolean',
-          'optional': true,
+        isDefault: {
+          type: 'boolean',
+          optional: true,
         },
-        '$$strict': true,
+        $$strict: true,
       },
     },
-    'get': {
-      'params': {
-        'id': [{
-          'type': 'string',
+    get: {
+      params: {
+        id: [{
+          type: 'string',
         },
         {
-          'type': 'number',
+          type: 'number',
         },
         ],
       },
     },
-    'update': {
-      'params': {
-        'id': {
-          'type': 'string',
+    update: {
+      params: {
+        id: {
+          type: 'string',
         },
-        'name': {
-          'type': 'object',
-          'props': {
-            'tr': {
-              'type': 'string',
-              'optional': true,
+        name: {
+          type: 'object',
+          props: {
+            tr: {
+              type: 'string',
+              optional: true,
             },
-            'en': {
-              'type': 'string',
-              'optional': true,
+            en: {
+              type: 'string',
+              optional: true,
             },
-            'ar': {
-              'type': 'string',
-              'optional': true,
+            ar: {
+              type: 'string',
+              optional: true,
             },
-            '$$strict': true,
+            $$strict: true,
           },
-          'optional': true,
+          optional: true,
         },
-        'tagline': {
-          'type': 'object',
-          'props': {
-            'tr': {
-              'type': 'string',
-              'optional': true,
+        tagline: {
+          type: 'object',
+          props: {
+            tr: {
+              type: 'string',
+              optional: true,
             },
-            'en': {
-              'type': 'string',
-              'optional': true,
+            en: {
+              type: 'string',
+              optional: true,
             },
-            'ar': {
-              'type': 'string',
-              'optional': true,
+            ar: {
+              type: 'string',
+              optional: true,
             },
-            '$$strict': true,
+            $$strict: true,
           },
-          'optional': true,
+          optional: true,
         },
-        'description': {
-          'type': 'object',
-          'props': {
-            'tr': {
-              'type': 'string',
-              'optional': true,
+        description: {
+          type: 'object',
+          props: {
+            tr: {
+              type: 'string',
+              optional: true,
             },
-            'en': {
-              'type': 'string',
-              'optional': true,
+            en: {
+              type: 'string',
+              optional: true,
             },
-            'ar': {
-              'type': 'string',
-              'optional': true,
+            ar: {
+              type: 'string',
+              optional: true,
             },
-            '$$strict': true,
+            $$strict: true,
           },
-          'optional': true,
+          optional: true,
         },
-        'sort': {
-          'type': 'number',
-          'integer': true,
-          'positive': true,
-          'optional': true,
+        sort: {
+          type: 'number',
+          integer: true,
+          positive: true,
+          optional: true,
         },
-        'active': {
-          'type': 'boolean',
-          'optional': true,
+        active: {
+          type: 'boolean',
+          optional: true,
         },
         'public': {
-          'type': 'boolean',
-          'optional': true,
+          type: 'boolean',
+          optional: true,
         },
-        'cost': {
-          'type': 'number',
-          'positive': true,
-          'optional': true,
+        cost: {
+          type: 'number',
+          positive: true,
+          optional: true,
         },
-        'discount': {
-          'type': 'number',
-          'positive': true,
-          'optional': true,
+        discount: {
+          type: 'number',
+          positive: true,
+          optional: true,
         },
-        'paymentFrequency': {
-          'type': 'number',
-          'integer': true,
-          'positive': true,
-          'optional': true,
+        paymentFrequency: {
+          type: 'number',
+          integer: true,
+          positive: true,
+          optional: true,
         },
-        'paymentFrequencyType': {
-          'type': 'enum',
-          'values': [
+        paymentFrequencyType: {
+          type: 'enum',
+          values: [
             'month',
             'year',
           ],
-          'optional': true,
+          optional: true,
         },
-        'attributes': {
-          'type': 'object',
-          'optional': true,
+        attributes: {
+          type: 'object',
+          optional: true,
         },
-        'isDefault': {
-          'type': 'boolean',
-          'optional': true,
+        isDefault: {
+          type: 'boolean',
+          optional: true,
         },
-        '$$strict': true,
+        $$strict: true,
       },
     },
   },

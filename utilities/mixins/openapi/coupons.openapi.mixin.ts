@@ -5,7 +5,7 @@ const Coupon = {
   properties: {
     code: { type: 'string' },
     discount: { type: 'number' },
-    discountType: { type: 'string', enum: ['$', '%'] },
+    discountType: { type: 'string', 'enum': ['$', '%'] },
     startDate: { type: 'string', format: 'date-time' },
     endDate: { type: 'string', format: 'date-time' },
     maxUses: { type: 'number' },
@@ -21,7 +21,7 @@ const CouponsGetOpenapi = {
   parameters: [
     {
       name: 'CODE',
-      in: 'path',
+      'in': 'path',
       required: true,
       schema: {
         type: 'string',
@@ -29,7 +29,7 @@ const CouponsGetOpenapi = {
     },
     {
       name: 'membership',
-      in: 'query',
+      'in': 'query',
       required: false,
       schema: {
         type: 'string',
@@ -37,7 +37,7 @@ const CouponsGetOpenapi = {
     },
     {
       name: 'Authorization',
-      in: 'header',
+      'in': 'header',
       required: true,
       schema: {
         type: 'string',
@@ -45,7 +45,7 @@ const CouponsGetOpenapi = {
     },
   ],
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
       content: {
         'application/json': {
@@ -55,10 +55,10 @@ const CouponsGetOpenapi = {
         },
       },
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
-    '404': {
+    404: {
       description: 'Status 404',
       content: {
         'application/json': {

@@ -15,12 +15,12 @@ const StoreSchema = {
     },
     status: {
       type: 'string',
-      enum: ['confirmed', 'unconfirmed', 'archived', 'error'],
+      'enum': ['confirmed', 'unconfirmed', 'archived', 'error'],
     },
     type: {
       type: 'string',
       description: 'Lowercase only allowed',
-      enum: [
+      'enum': [
         'woocommerce',
         'magento2',
         'expandcart',
@@ -46,8 +46,8 @@ const StoreSchema = {
     },
     stock_status: {
       type: 'string',
-      default: 'idle',
-      enum: ['idle', 'in-progress'],
+      'default': 'idle',
+      'enum': ['idle', 'in-progress'],
     },
     price_date: {
       type: 'string',
@@ -55,17 +55,17 @@ const StoreSchema = {
     },
     price_status: {
       type: 'string',
-      default: 'idle',
-      enum: ['idle', 'in-progress'],
+      'default': 'idle',
+      'enum': ['idle', 'in-progress'],
     },
     sale_price: {
       type: 'number',
-      default: 1.7,
+      'default': 1.7,
       example: '1 = Same as Knawat price',
     },
     compared_at_price: {
       type: 'number',
-      default: 2,
+      'default': 2,
       example: '2 = Same as sale price',
     },
     currency: {
@@ -77,11 +77,11 @@ const StoreSchema = {
     },
     consumer_key: {
       type: 'string',
-      default: 'Auto generated',
+      'default': 'Auto generated',
     },
     consumer_secret: {
       type: 'string',
-      default: 'Auto generated',
+      'default': 'Auto generated',
     },
     external_data: {
       type: 'object',
@@ -105,7 +105,7 @@ const StoreSchema = {
             type: 'array',
             items: {
               type: 'string',
-              enum: ['owner', 'accounting', 'products', 'orders'],
+              'enum': ['owner', 'accounting', 'products', 'orders'],
             },
             minItems: 1,
             maxItems: 4,
@@ -202,7 +202,7 @@ const StoresMeOpenapi = {
   summary: 'My Store info',
   tags: ['Stores'],
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
       content: {
         'application/json': {
@@ -212,10 +212,10 @@ const StoresMeOpenapi = {
         },
       },
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorToken',
     },
-    '404': {
+    404: {
       description: 'Status 404',
       content: {
         'application/json': {
@@ -253,7 +253,7 @@ const StoresGetOpenapi = {
   parameters: [
     {
       name: 'Authorization',
-      in: 'header',
+      'in': 'header',
       required: true,
       schema: {
         type: 'string',
@@ -262,7 +262,7 @@ const StoresGetOpenapi = {
 
     {
       name: 'url',
-      in: 'path',
+      'in': 'path',
       required: true,
       schema: {
         type: 'string',
@@ -270,7 +270,7 @@ const StoresGetOpenapi = {
     },
   ],
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
       content: {
         'application/json': {
@@ -280,10 +280,10 @@ const StoresGetOpenapi = {
         },
       },
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
-    '404': {
+    404: {
       description: 'Status 404',
       content: {
         'application/json': {
@@ -321,7 +321,7 @@ const StoresListOpenapi = {
   parameters: [
     {
       name: 'filter',
-      in: 'query',
+      'in': 'query',
       required: false,
       schema: {
         type: 'string',
@@ -329,7 +329,7 @@ const StoresListOpenapi = {
     },
     {
       name: 'Authorization',
-      in: 'header',
+      'in': 'header',
       required: true,
       schema: {
         type: 'string',
@@ -337,7 +337,7 @@ const StoresListOpenapi = {
     },
   ],
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
       content: {
         'application/json': {
@@ -350,10 +350,10 @@ const StoresListOpenapi = {
         },
       },
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
-    '404': {
+    404: {
       description: 'Status 404',
       content: {
         'application/json': {
@@ -391,7 +391,7 @@ const StoresSListOpenapi = {
   parameters: [
     {
       name: 'id',
-      in: 'query',
+      'in': 'query',
       required: false,
       schema: {
         type: 'string',
@@ -399,7 +399,7 @@ const StoresSListOpenapi = {
     },
     {
       name: 'page',
-      in: 'query',
+      'in': 'query',
       required: false,
       schema: {
         type: 'number',
@@ -407,7 +407,7 @@ const StoresSListOpenapi = {
     },
     {
       name: 'perPage',
-      in: 'query',
+      'in': 'query',
       required: false,
       schema: {
         type: 'number',
@@ -415,7 +415,7 @@ const StoresSListOpenapi = {
     },
     {
       name: 'Authorization',
-      in: 'header',
+      'in': 'header',
       required: true,
       schema: {
         type: 'string',
@@ -423,7 +423,7 @@ const StoresSListOpenapi = {
     },
   ],
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
       content: {
         'application/json': {
@@ -442,10 +442,10 @@ const StoresSListOpenapi = {
         },
       },
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
-    '404': {
+    404: {
       description: 'Status 404',
       content: {
         'application/json': {
@@ -483,7 +483,7 @@ const StoresCreateOpenapi = {
   parameters: [
     {
       name: 'Authorization',
-      in: 'header',
+      'in': 'header',
       required: true,
       schema: {
         type: 'string',
@@ -491,7 +491,7 @@ const StoresCreateOpenapi = {
     },
   ],
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
       content: {
         'application/json': {
@@ -501,10 +501,10 @@ const StoresCreateOpenapi = {
         },
       },
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
-    '500': {
+    500: {
       description: 'Status 500',
       content: {
         'application/json': {
@@ -545,7 +545,7 @@ const StoresUpdateOpenapi = {
   parameters: [
     {
       name: 'url',
-      in: 'path',
+      'in': 'path',
       required: true,
       schema: {
         type: 'string',
@@ -553,7 +553,7 @@ const StoresUpdateOpenapi = {
     },
     {
       name: 'Authorization',
-      in: 'header',
+      'in': 'header',
       required: true,
       schema: {
         type: 'string',
@@ -561,7 +561,7 @@ const StoresUpdateOpenapi = {
     },
   ],
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
       content: {
         'application/json': {
@@ -571,10 +571,10 @@ const StoresUpdateOpenapi = {
         },
       },
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
-    '500': {
+    500: {
       description: 'Status 500',
       content: {
         'application/json': {
@@ -613,7 +613,7 @@ const UsersLoginOpenapi = {
   summary: 'Get token',
   tags: ['Authentication'],
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
       content: {
         'application/json': {
@@ -629,7 +629,7 @@ const UsersLoginOpenapi = {
         },
       },
     },
-    '422': {
+    422: {
       description: 'Status 422',
       content: {
         'application/json': {

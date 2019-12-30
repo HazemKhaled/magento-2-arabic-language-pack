@@ -256,11 +256,10 @@ module.exports = {
           });
       },
     },
-    import: {
+    'import': {
       auth: 'Bearer',
       handler(ctx) {
         const skus = ctx.params.products.map(i => i.sku);
-
         return ctx
           .call('products.search', {
             index: 'products',
@@ -292,29 +291,32 @@ module.exports = {
               consumerKey: ctx.meta.user,
             });
             const bulk = [];
-            if (newSKUs.length !== 0) {
-              res.hits.hits.forEach(product => {
-                bulk.push({
-                  index: {
-                    _index: 'products-instances',
-                    _type: 'product',
-                    _id: `${instance.consumer_key}-${product._id}`,
-                  },
-                });
-                bulk.push({
-                  instanceId: instance.consumer_key,
-                  createdAt: new Date(),
-                  updated: product._source.updated,
-                  siteUrl: instance.url,
-                  sku: product._id,
-                  variations: product._source.variations
-                    .filter(variation => variation.quantity > 0)
-                    .map(variation => ({
-                      sku: variation.sku,
-                    })),
-                });
-              });
+            if(newSKUs.length === 0) {
+              ctx.meta.$statusCode = 404;
+              ctx.meta.$statusMessage = 'Not Found!';
+              return {message: 'Product not found'};
             }
+            res.hits.hits.forEach(product => {
+              bulk.push({
+                index: {
+                  _index: 'products-instances',
+                  _type: 'product',
+                  _id: `${instance.consumer_key}-${product._id}`,
+                },
+              });
+              bulk.push({
+                instanceId: instance.consumer_key,
+                createdAt: new Date(),
+                updated: product._source.updated,
+                siteUrl: instance.url,
+                sku: product._id,
+                variations: product._source.variations
+                  .filter(variation => variation.quantity > 0)
+                  .map(variation => ({
+                    sku: variation.sku,
+                  })),
+              });
+            });
 
             return ctx
               .call('products.bulk', {

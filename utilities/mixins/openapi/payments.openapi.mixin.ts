@@ -55,7 +55,7 @@ const PaymentsAddOpenapi = {
   parameters: [
     {
       name: 'storeId',
-      in: 'path',
+      'in': 'path',
       required: true,
       schema: {
         type: 'string',
@@ -66,7 +66,7 @@ const PaymentsAddOpenapi = {
   description: 'This service available for some Enterprise subscriptions Only',
   tags: ['Payments', 'Enterprise Only'],
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
       content: {
         'application/json': {
@@ -76,7 +76,7 @@ const PaymentsAddOpenapi = {
         },
       },
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorBasic',
     },
   },
@@ -135,7 +135,7 @@ const PaymentsGetOpenapi = {
   parameters: [
     {
       name: 'page',
-      in: 'query',
+      'in': 'query',
       required: false,
       schema: {
         type: 'number',
@@ -143,7 +143,7 @@ const PaymentsGetOpenapi = {
     },
     {
       name: 'limit',
-      in: 'query',
+      'in': 'query',
       required: false,
       schema: {
         type: 'number',
@@ -151,7 +151,7 @@ const PaymentsGetOpenapi = {
     },
     {
       name: 'reference_number',
-      in: 'query',
+      'in': 'query',
       required: false,
       schema: {
         type: 'string',
@@ -159,7 +159,7 @@ const PaymentsGetOpenapi = {
     },
     {
       name: 'payment_mode',
-      in: 'query',
+      'in': 'query',
       required: false,
       schema: {
         type: 'string',
@@ -167,7 +167,7 @@ const PaymentsGetOpenapi = {
     },
   ],
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
       content: {
         'application/json': {
@@ -185,7 +185,7 @@ const PaymentsGetOpenapi = {
         },
       },
     },
-    '401': {
+    401: {
       $ref: '#/components/responses/UnauthorizedErrorToken',
     },
   },
