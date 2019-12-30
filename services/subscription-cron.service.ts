@@ -25,7 +25,7 @@ const TheService: ServiceSchema = {
           days: 7,
         }).then(null, (err)=> {
           if(err.code === 422) {
-            console.log('No Store To Renew It\'s Subscription');
+            this.logger.info('No Store To Renew It\'s Subscription');
             return false;
           }
           throw err;
