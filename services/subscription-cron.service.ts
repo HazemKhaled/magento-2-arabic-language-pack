@@ -1,4 +1,4 @@
-import { Context, Errors, ServiceSchema } from 'moleculer';
+import { Context, ServiceSchema } from 'moleculer';
 import * as Cron from 'moleculer-cron';
 
 const TheService: ServiceSchema = {
@@ -23,7 +23,7 @@ const TheService: ServiceSchema = {
       async handler(ctx: Context) {
         const subscription = await ctx.call('subscription.getSubscriptionByExpireDate', {
           days: 7,
-        }).catch((err)=> {
+        }).then(null, err => {
           if(err.code === 422) {
             this.logger.info('No Store To Renew It\'s Subscription');
             return false;
