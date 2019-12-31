@@ -1,5 +1,4 @@
 import { Context, Errors, ServiceSchema } from 'moleculer';
-import { isError } from 'util';
 import DbService from '../utilities/mixins/mongo.mixin';
 import { TaxOpenapi } from '../utilities/mixins/openapi';
 import { DbTax, RTax } from '../utilities/types/tax.type';
