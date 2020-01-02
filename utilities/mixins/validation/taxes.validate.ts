@@ -44,9 +44,7 @@ export const TaxesValidation: ServiceSchema = {
         },
         country: {
           type: 'string',
-          min: 2,
-          max: 2,
-          pattern: {},
+          pattern: '^[A-Z]{2}$',
           optional: true,
         },
         percentage: {
@@ -61,9 +59,7 @@ export const TaxesValidation: ServiceSchema = {
       params: {
         country: {
           type: 'string',
-          min: 2,
-          max: 2,
-          pattern: {},
+          pattern: '^[A-Z]{2}$',
         },
         'class': [{
           type: 'string',
