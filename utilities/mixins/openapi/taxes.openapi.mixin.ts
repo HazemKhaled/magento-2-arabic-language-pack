@@ -33,7 +33,6 @@ const TaxUpdateReq = {
       schema: {
         type: 'object',
         properties: {
-          id: { type: 'string', required: true },
           name: { type: 'string' },
           country: { type: 'string' },
           'class': { type: 'array', items: { type: 'string' } },
@@ -109,13 +108,21 @@ const TaxCreate = {
 };
 
 const TaxUpdate = {
-  $path: 'put /tax',
+  $path: 'put /tax/{id}',
   summary: 'Update new tax',
   tags: ['Taxes'],
   parameters: [
     {
       name: 'Authorization',
       'in': 'header',
+      required: true,
+      schema: {
+        type: 'string',
+      },
+    },
+    {
+      name: 'id',
+      'in': 'path',
       required: true,
       schema: {
         type: 'string',
