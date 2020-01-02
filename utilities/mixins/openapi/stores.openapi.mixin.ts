@@ -666,12 +666,14 @@ const UsersLoginOpenapi = {
 export const StoresOpenapi: ServiceSchema = {
   name: 'stores',
   settings: {
-    components: {
-      schemas: {
-        Store: StoreSchema,
-      },
-      requestBodies: {
-        Store: StoreResponse,
+    openapi: {
+      components: {
+        schemas: {
+          Store: StoreSchema,
+        },
+        requestBodies: {
+          Store: StoreResponse,
+        },
       },
     },
   },

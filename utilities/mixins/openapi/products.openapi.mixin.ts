@@ -876,11 +876,13 @@ const BulkProductInstance = {
 export const ProductsOpenapi: ServiceSchema = {
   name: 'products',
   settings: {
-    components: {
-      schemas: {
-        Product,
-        ProductVariation,
-        Attribute,
+    openapi: {
+      components: {
+        schemas: {
+          Product,
+          ProductVariation,
+          Attribute,
+        },
       },
     },
   },

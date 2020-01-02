@@ -621,10 +621,12 @@ const OrdersDeleteOpenapi = {
 export const OrdersOpenapi: ServiceSchema = {
   name: 'orders',
   settings: {
-    components: {
-      schemas: {
-        Order,
-        OrderResponse,
+    openapi: {
+      components: {
+        schemas: {
+          Order,
+          OrderResponse,
+        },
       },
     },
   },
