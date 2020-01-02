@@ -312,12 +312,14 @@ const InvoicesApplyCreditsOpenapi = {
 export const InvoicesOpenapi: ServiceSchema = {
   name: 'invoices',
   settings: {
-    components: {
-      schemas: {
-        Invoice: InvoiceSchema,
-      },
-      requestBodies: {
-        Invoice: InvoiceResponse,
+    openapi: {
+      components: {
+        schemas: {
+          Invoice: InvoiceSchema,
+        },
+        requestBodies: {
+          Invoice: InvoiceResponse,
+        },
       },
     },
   },

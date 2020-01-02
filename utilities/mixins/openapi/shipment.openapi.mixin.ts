@@ -285,12 +285,14 @@ const ShipmentGetCurriersOpenapi = {
 export const ShipmentOpenapi: ServiceSchema = {
   name: 'shipment',
   settings: {
-    components: {
-      schemas: {
-        ShipmentPolicy: ShipmentPolicySchema,
-      },
-      requestBodies: {
-        ShipmentPolicy: ShipmentPolicyResponse,
+    openapi: {
+      components: {
+        schemas: {
+          ShipmentPolicy: ShipmentPolicySchema,
+        },
+        requestBodies: {
+          ShipmentPolicy: ShipmentPolicyResponse,
+        },
       },
     },
   },

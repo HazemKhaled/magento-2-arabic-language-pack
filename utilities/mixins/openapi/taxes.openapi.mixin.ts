@@ -47,7 +47,7 @@ const TaxUpdateReq = {
 const TaxCreate = {
   $path: 'post /tax',
   summary: 'Create new tax',
-  tags: ['taxes'],
+  tags: ['Taxes'],
   parameters: [
     {
       name: 'Authorization',
@@ -111,7 +111,7 @@ const TaxCreate = {
 const TaxUpdate = {
   $path: 'put /tax',
   summary: 'Update new tax',
-  tags: ['taxes'],
+  tags: ['Taxes'],
   parameters: [
     {
       name: 'Authorization',
@@ -175,7 +175,7 @@ const TaxUpdate = {
 const TaxFind = {
   $path: 'get /tax/{country}',
   summary: 'get list of taxes by country',
-  tags: ['taxes'],
+  tags: ['Taxes'],
   parameters: [
     {
       name: 'country',
@@ -250,7 +250,7 @@ const TaxFind = {
 const TaxDelete = {
   $path: 'delete /tax/{id}',
   summary: 'Delete tax by id',
-  tags: ['taxes'],
+  tags: ['Taxes'],
   parameters: [
     {
       name: 'id',
@@ -310,13 +310,15 @@ const TaxDelete = {
 export const TaxOpenapi: ServiceSchema = {
   name: 'taxes',
   settings: {
-    components: {
-      schemas: {
-        Tax: TaxSchema,
-      },
-      requestBodies: {
-        TaxCreate: TaxCreateReq,
-        TaxUpdate: TaxUpdateReq,
+    openapi: {
+      components: {
+        schemas: {
+          Tax: TaxSchema,
+        },
+        requestBodies: {
+          TaxCreate: TaxCreateReq,
+          TaxUpdate: TaxUpdateReq,
+        },
       },
     },
   },

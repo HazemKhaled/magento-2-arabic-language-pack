@@ -92,9 +92,11 @@ const CouponsGetOpenapi = {
 export const CouponsOpenapi: ServiceSchema = {
   name: 'coupons',
   settings: {
-    components: {
-      schemas: {
-        Coupon,
+    openapi: {
+      components: {
+        schemas: {
+          Coupon,
+        },
       },
     },
   },

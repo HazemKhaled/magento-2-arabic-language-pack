@@ -199,9 +199,11 @@ const PaymentsGetOpenapi = {
 export const PaymentsOpenapi: ServiceSchema = {
   name: 'payments',
   settings: {
-    components: {
-      schemas: {
-        Payment,
+    openapi: {
+      components: {
+        schemas: {
+          Payment,
+        },
       },
     },
   },

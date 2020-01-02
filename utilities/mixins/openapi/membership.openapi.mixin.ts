@@ -225,12 +225,14 @@ const MembershipUpdateOpenapi = {
 export const MembershipOpenapi: ServiceSchema = {
   name: 'membership',
   settings: {
-    components: {
-      schemas: {
-        Membership: MembershipSchema,
-      },
-      requestBodies: {
-        Membership: MembershipResponse,
+    openapi: {
+      components: {
+        schemas: {
+          Membership: MembershipSchema,
+        },
+        requestBodies: {
+          Membership: MembershipResponse,
+        },
       },
     },
   },

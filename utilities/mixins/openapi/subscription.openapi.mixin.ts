@@ -319,12 +319,14 @@ const SubscriptionUpdateOpenapi = {
 export const SubscriptionOpenapi: ServiceSchema = {
   name: 'subscription',
   settings: {
-    components: {
-      schemas: {
-        Subscription: SubscriptionSchema,
-      },
-      requestBodies: {
-        subscription: SubscriptionResponse,
+    openapi: {
+      components: {
+        schemas: {
+          Subscription: SubscriptionSchema,
+        },
+        requestBodies: {
+          subscription: SubscriptionResponse,
+        },
       },
     },
   },
