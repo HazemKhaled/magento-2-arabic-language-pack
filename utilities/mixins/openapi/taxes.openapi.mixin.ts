@@ -120,6 +120,14 @@ const TaxUpdate = {
         type: 'string',
       },
     },
+    {
+      name: 'id',
+      'in': 'path',
+      required: true,
+      schema: {
+        type: 'string',
+      },
+    },
   ],
   responses: {
     200: {
