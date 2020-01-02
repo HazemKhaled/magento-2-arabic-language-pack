@@ -17,9 +17,7 @@ export const TaxesValidation: ServiceSchema = {
         },
         country: {
           type: 'string',
-          min: 2,
-          max: 2,
-          pattern: {},
+          pattern: '^[A-Z]{2}$',
         },
         percentage: {
           type: 'number',
