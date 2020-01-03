@@ -50,7 +50,7 @@ const TaxesService: ServiceSchema = {
       auth: 'Basic',
       handler(ctx: Context): RTax[] {
         const query = ctx.params;
-        query.country = query.country.toLowerCase();
+        query.country = query.country.toUpperCase();
         if (Array.isArray(query.class)) {
           query.class = { $in: query.class };
         }

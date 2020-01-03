@@ -59,7 +59,7 @@ export const TaxesValidation: ServiceSchema = {
       params: {
         country: {
           type: 'string',
-          pattern: '^[A-Z]{2}$',
+          pattern: '^[a-zA-Z]{2}$',
         },
         'class': [{
           type: 'string',
