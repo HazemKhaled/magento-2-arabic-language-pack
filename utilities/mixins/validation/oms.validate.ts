@@ -54,14 +54,15 @@ export const OmsValidation: ServiceSchema = {
         store: {
           type: 'object',
           props: {
-            id: 'string',
-            name: 'string',
-            url: 'string',
+            id: { type: 'string', optional: true },
+            name: { type: 'string', optional: true },
+            url: { type: 'string', optional: true },
             users: {
               type: 'array',
               items: {
                 type: 'object',
-                props: { email: 'string', first_name: 'string', last_name: 'string' },
+                props: { email: 'string', first_name: { type: 'string', optional: true }, last_name: { type: 'string', optional: true } },
+                optional: true,
               },
             },
           },
@@ -87,7 +88,7 @@ export const OmsValidation: ServiceSchema = {
               quantity: 'number',
               productType: { type: 'string', optional: true },
               purchaseRate: { type: 'number', optional: true },
-              vendorId: { type: 'string', optional: true },
+              vendorId: [{ type: 'string', optional: true }, { type: 'number', optional: true }],
               accountId: { type: 'string', optional: true },
             },
           },
@@ -164,6 +165,7 @@ export const OmsValidation: ServiceSchema = {
             email: { type: 'string', optional: true },
             phone: { type: 'string', optional: true },
           },
+          optional: true,
         },
         externalInvoice: { type: 'string', optional: true },
         shipmentCourier: { type: 'string', optional: true },
