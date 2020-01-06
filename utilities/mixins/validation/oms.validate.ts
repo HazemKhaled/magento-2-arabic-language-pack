@@ -267,5 +267,36 @@ export const OmsValidation: ServiceSchema = {
         },
       },
     },
+    createTax: {
+      params: {
+        name: { type: 'string' },
+        percentage: { type: 'number' },
+        type: { type: 'string' },
+        authorityName: { type: 'string', optional: true },
+        authorityId: { type: 'string', optional: true },
+        country: { type: 'string' },
+        isEditable: { type: 'boolean', optional: true },
+        $$strict: true,
+      },
+    },
+    updateTax: {
+      params: {
+        id: 'string',
+        name: { type: 'string', optional: true },
+        percentage: { type: 'number', optional: true },
+        type: { type: 'string', optional: true },
+        authorityName: { type: 'string', optional: true },
+        authorityId: { type: 'string', optional: true },
+        country: { type: 'string', optional: true },
+        isEditable: { type: 'boolean', optional: true },
+        $$strict: true,
+      },
+    },
+    deleteTax: {
+      params: {
+        id: 'string',
+        $$strict: true,
+      },
+    },
   },
 };

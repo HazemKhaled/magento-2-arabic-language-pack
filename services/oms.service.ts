@@ -148,6 +148,36 @@ const TheService: ServiceSchema = {
         });
       },
     },
+    // Taxes
+    createTax: {
+      handler(ctx: Context) {
+        return this.request({
+          path: 'tax',
+          method: 'post',
+          body: ctx.params,
+        });
+      },
+    },
+    updateTax: {
+      handler(ctx: Context) {
+        const {id} = ctx.params;
+        const body = ctx.params;
+        delete body.id;
+        return this.request({
+          path: `tax/${id}`,
+          method: 'put',
+          body,
+        });
+      },
+    },
+    deleteTax: {
+      handler(ctx: Context) {
+        return this.request({
+          path: `tax/${ctx.params.id}`,
+          method: 'delete',
+        });
+      },
+    },
   },
   methods: {
     request({
