@@ -62,8 +62,8 @@ export const OmsValidation: ServiceSchema = {
               items: {
                 type: 'object',
                 props: { email: 'string', first_name: { type: 'string', optional: true }, last_name: { type: 'string', optional: true } },
-                optional: true,
               },
+              optional: true,
             },
           },
         },
