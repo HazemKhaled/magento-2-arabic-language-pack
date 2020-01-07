@@ -325,7 +325,7 @@ export const SubscriptionOpenapi: ServiceSchema = {
           Subscription: SubscriptionSchema,
         },
         requestBodies: {
-          subscription: SubscriptionResponse,
+          Subscription: SubscriptionResponse,
         },
       },
     },
