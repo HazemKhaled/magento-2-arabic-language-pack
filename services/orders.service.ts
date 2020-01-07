@@ -81,30 +81,12 @@ const TheService: ServiceSchema = {
           };
         }
 
-        const taxesMsg: {code: number; message: string;}[] = [];
-
         // Taxes
-        stock.items = await Promise.all(
-          stock.items.map(
-            async (item) => {
-              const taxData = await this.getItemTax(instance, item);
-
-              // delete taxClass attr
-              delete item.taxClass;
-
-              if (taxData.name) {
-                item.taxId = taxData.omsId;
-              }
-
-              if (taxData.code) {
-                taxesMsg.push(taxData);
-              }
-
-              return item;
-            }));
+        const taxData = await this.setTaxIds(instance, stock.items);
+        const taxesMsg: {code: number; message: string;}[] = taxData.msgs;
 
         // Update Order Items
-        data.items = stock.items;
+        data.items = taxData.items;
 
         // Shipping
         const shipment = await this.shipment(
@@ -407,30 +389,12 @@ const TheService: ServiceSchema = {
               country = ctx.params.shipping.country;
             }
 
-            const taxesMsg: {code: number; message: string;}[] = [];
-
             // Taxes
-            stock.items = await Promise.all(
-              stock.items.map(
-                async (item: OrderItem) => {
-                  const taxData = await this.getItemTax(instance, item);
-
-                  // delete taxClass attr
-                  delete item.taxClass;
-
-                  if (taxData.name) {
-                    item.taxId = taxData.omsId;
-                  }
-
-                  if (taxData.code) {
-                    taxesMsg.push(taxData);
-                  }
-
-                  return item;
-                }));
+            const taxData = await this.setTaxIds(instance, stock.items);
+            const taxesMsg: {code: number; message: string;}[] = taxData.msgs;
 
             // Update Order Items
-            data.items = stock.items;
+            data.items = taxData.items;
 
             // Shipping
             shipment = await this.shipment(
@@ -1036,6 +1000,31 @@ const TheService: ServiceSchema = {
         return false;
       }
       return true;
+    },
+    async setTaxIds(instance, items) {
+      const taxesMsg: {}[] = [];
+      const itemsAfterTaxes = await Promise.all(
+        items.map(
+          async (item: OrderItem) => {
+            const taxData = await this.getItemTax(instance, item);
+
+            // delete taxClass attr.
+            delete item.taxClass;
+
+            if (taxData.name) {
+              item.taxId = taxData.omsId;
+            }
+
+            if (taxData.code) {
+              taxesMsg.push(taxData);
+            }
+
+            return item;
+          }));
+      return {
+        items: itemsAfterTaxes,
+        msgs: taxesMsg,
+      };
     },
   },
 };
