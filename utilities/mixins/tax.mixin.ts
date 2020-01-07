@@ -83,16 +83,12 @@ const TaxCheck: ServiceSchema = {
      * @returns {boolean}
      */
     checkAddressCountry(instance: Store): boolean {
-      if
-      (
+      return (
         instance &&
         instance.address &&
         instance.address.country &&
         /^[A-Z]{2}$/.test(instance.address.country)
-      ) {
-        return true;
-      }
-      return false;
+      );
     },
 
     /**
@@ -103,10 +99,7 @@ const TaxCheck: ServiceSchema = {
      * @returns {boolean}
      */
     checkItemTaxClass(item: Product): boolean {
-      if(item && item.taxClass) {
-        return true;
-      }
-      return false;
+      return !!(item && item.taxClass);
     },
   },
 };
