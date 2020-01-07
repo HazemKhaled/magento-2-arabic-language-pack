@@ -83,7 +83,7 @@ const TaxCheck: ServiceSchema = {
      * @returns {boolean}
      */
     checkAddressCountry(instance: Store): boolean {
-      return (
+      return !!(
         instance &&
         instance.address &&
         instance.address.country &&
