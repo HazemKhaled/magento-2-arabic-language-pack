@@ -3,12 +3,13 @@ import { v1 as uuidv1 } from 'uuid';
 
 import { OrdersOpenapi } from '../utilities/mixins/openapi';
 import { OrdersOperations } from '../utilities/mixins/orders.mixin';
-import { Log, OMSResponse, Order, OrderAddress, OrderItem, Product } from '../utilities/types';
+import { Log, OMSResponse, Order, OrderAddress, OrderItem, Product, Tax } from '../utilities/types';
 import { OrdersValidation } from '../utilities/mixins/validation';
+import TaxCheck = require('../utilities/mixins/tax.mixin');
 
 const TheService: ServiceSchema = {
   name: 'orders',
-  mixins: [OrdersOperations, OrdersValidation, OrdersOpenapi],
+  mixins: [OrdersOperations, OrdersValidation, OrdersOpenapi, TaxCheck],
   settings: {
     BASEURL:
       process.env.NODE_ENV === 'production'
@@ -80,8 +81,31 @@ const TheService: ServiceSchema = {
           };
         }
 
+        const taxesMsg: {code: number; message: string;}[] = [];
+
+        // Taxes
+        stock.items = await Promise.all(
+          stock.items.map(
+            async (item) => {
+              const taxData = await this.getItemTax(instance, item);
+
+              // delete taxClass attr
+              delete item.taxClass;
+
+              if (taxData.name) {
+                item.taxId = taxData.omsId;
+              }
+
+              if (taxData.code) {
+                taxesMsg.push(taxData);
+              }
+
+              return item;
+            }));
+
         // Update Order Items
         data.items = stock.items;
+
         // Shipping
         const shipment = await this.shipment(
           stock.items,
@@ -267,7 +291,7 @@ const TheService: ServiceSchema = {
           );
         }
         // Initializing warnings array if we have a Warning
-        const warnings = this.warningsMessenger(
+        let warnings = this.warningsMessenger(
           stock.outOfStock,
           stock.notEnoughStock,
           data,
@@ -277,6 +301,7 @@ const TheService: ServiceSchema = {
           shipment,
           ctx.params,
         );
+        warnings = warnings.concat(taxesMsg);
         if (warnings.length > 0) message.warnings = warnings;
         this.sendLogs({
           topicId: data.externalId,
@@ -375,14 +400,38 @@ const TheService: ServiceSchema = {
                 ],
               };
             }
-            // Update Order Items
-            data.items = stock.items;
 
             // Get Shipping Country
             let country = orderBeforeUpdate.shipping.country;
             if (ctx.params.shipping && ctx.params.shipping.country) {
               country = ctx.params.shipping.country;
             }
+
+            const taxesMsg: {code: number; message: string;}[] = [];
+
+            // Taxes
+            stock.items = await Promise.all(
+              stock.items.map(
+                async (item: OrderItem) => {
+                  const taxData = await this.getItemTax(instance, item);
+
+                  // delete taxClass attr
+                  delete item.taxClass;
+
+                  if (taxData.name) {
+                    item.taxId = taxData.omsId;
+                  }
+
+                  if (taxData.code) {
+                    taxesMsg.push(taxData);
+                  }
+
+                  return item;
+                }));
+
+            // Update Order Items
+            data.items = stock.items;
+
             // Shipping
             shipment = await this.shipment(
               stock.items,
@@ -411,7 +460,7 @@ const TheService: ServiceSchema = {
               }%`;
             }
             // Initializing warnings array if we have a Warning
-            const warnings = this.warningsMessenger(
+            let warnings = this.warningsMessenger(
               stock.outOfStock,
               stock.notEnoughStock,
               data,
@@ -421,6 +470,7 @@ const TheService: ServiceSchema = {
               shipment,
               ctx.params,
             );
+            warnings = warnings.concat(taxesMsg);
             if (warnings.length > 0) message.warnings = warnings;
           }
           // Convert status

@@ -9,6 +9,7 @@ export interface Tax {
   country: string;
   percentage: number;
   name: string;
+  omsId: string;
 }
 
 /**
