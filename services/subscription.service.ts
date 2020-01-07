@@ -4,11 +4,12 @@ import DbService from '../utilities/mixins/mongo.mixin';
 import { SubscriptionOpenapi } from '../utilities/mixins/openapi';
 import { Coupon, Membership, Store, Subscription } from '../utilities/types';
 import { SubscriptionValidation } from '../utilities/mixins/validation';
+import TaxCheck from '../utilities/mixins/tax.mixin';
 const MoleculerError = Errors.MoleculerError;
 
 const TheService: ServiceSchema = {
   name: 'subscription',
-  mixins: [DbService('subscription'), SubscriptionValidation, SubscriptionOpenapi],
+  mixins: [DbService('subscription'), SubscriptionValidation, SubscriptionOpenapi, TaxCheck],
 
   actions: {
     /**
@@ -163,6 +164,9 @@ const TheService: ServiceSchema = {
         if (instance.credit < cost - discount) {
           throw new MoleculerError('User don\'t have enough balance!', 402);
         }
+
+        const taxData = await this.getItemTax(instance, {taxClass: 'service'});
+
         const invoiceBody: { [key: string]: any } = {
           storeId: ctx.params.storeId,
           items: [
@@ -174,8 +178,10 @@ const TheService: ServiceSchema = {
               accountId: String(process.env.SUBSCRIPTION_LEDGER_ACCOUNT_ID),
               rate: cost,
               quantity: 1,
+              taxId: taxData.omsId,
             },
           ],
+          isInclusiveTax: !!Number(process.env.IS_SUBSCRIPTION_TAX_INCLUSIVE) || true,
         };
         if (discount) {
           invoiceBody.discount = {
