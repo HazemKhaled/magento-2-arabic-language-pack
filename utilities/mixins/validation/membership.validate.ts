@@ -71,14 +71,8 @@ export const MembershipValidation: ServiceSchema = {
         'public': {
           type: 'boolean',
         },
-        cost: {
-          type: 'number',
-          positive: true,
-        },
-        discount: {
-          type: 'number',
-          positive: true,
-        },
+        cost: [{ type: 'number', positive: true }, { type: 'enum', values: [0] }],
+        discount: [{ type: 'number', positive: true }, { type: 'enum', values: [0] }],
         paymentFrequency: {
           type: 'number',
           integer: true,
@@ -86,10 +80,7 @@ export const MembershipValidation: ServiceSchema = {
         },
         paymentFrequencyType: {
           type: 'enum',
-          values: [
-            'month',
-            'year',
-          ],
+          values: ['month', 'year'],
         },
         attributes: {
           type: 'object',
@@ -103,12 +94,13 @@ export const MembershipValidation: ServiceSchema = {
     },
     get: {
       params: {
-        id: [{
-          type: 'string',
-        },
-        {
-          type: 'number',
-        },
+        id: [
+          {
+            type: 'string',
+          },
+          {
+            type: 'number',
+          },
         ],
       },
     },
@@ -188,16 +180,14 @@ export const MembershipValidation: ServiceSchema = {
           type: 'boolean',
           optional: true,
         },
-        cost: {
-          type: 'number',
-          positive: true,
-          optional: true,
-        },
-        discount: {
-          type: 'number',
-          positive: true,
-          optional: true,
-        },
+        cost: [
+          { type: 'number', positive: true, optional: true },
+          { type: 'enum', values: [0], optional: true },
+        ],
+        discount: [
+          { type: 'number', positive: true, optional: true },
+          { type: 'enum', values: [0], optional: true },
+        ],
         paymentFrequency: {
           type: 'number',
           integer: true,
@@ -206,10 +196,7 @@ export const MembershipValidation: ServiceSchema = {
         },
         paymentFrequencyType: {
           type: 'enum',
-          values: [
-            'month',
-            'year',
-          ],
+          values: ['month', 'year'],
           optional: true,
         },
         attributes: {
