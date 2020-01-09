@@ -44,224 +44,6 @@
                 }
             }
         },
-        "requestBodies": {
-            "Store": {
-                "content": {
-                    "application/json": {
-                        "schema": {
-                            "$ref": "#/components/schemas/Store"
-                        }
-                    }
-                },
-                "required": true
-            },
-            "ShipmentPolicy": {
-                "content": {
-                    "application/json": {
-                        "schema": {
-                            "$ref": "#/components/schemas/ShipmentPolicy"
-                        }
-                    }
-                },
-                "required": true
-            },
-            "Membership": {
-                "content": {
-                    "application/json": {
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "name": {
-                                    "type": "object",
-                                    "properties": {
-                                        "tr": {
-                                            "type": "string"
-                                        },
-                                        "en": {
-                                            "type": "string"
-                                        },
-                                        "ar": {
-                                            "type": "string"
-                                        }
-                                    }
-                                },
-                                "tagline": {
-                                    "type": "object",
-                                    "properties": {
-                                        "tr": {
-                                            "type": "string"
-                                        },
-                                        "en": {
-                                            "type": "string"
-                                        },
-                                        "ar": {
-                                            "type": "string"
-                                        }
-                                    }
-                                },
-                                "description": {
-                                    "type": "object",
-                                    "properties": {
-                                        "tr": {
-                                            "type": "string"
-                                        },
-                                        "en": {
-                                            "type": "string"
-                                        },
-                                        "ar": {
-                                            "type": "string"
-                                        }
-                                    }
-                                },
-                                "sort": {
-                                    "type": "number"
-                                },
-                                "active": {
-                                    "type": "boolean"
-                                },
-                                "public": {
-                                    "type": "boolean"
-                                },
-                                "cost": {
-                                    "type": "number"
-                                },
-                                "discount": {
-                                    "type": "number"
-                                },
-                                "paymentFrequency": {
-                                    "type": "number"
-                                },
-                                "paymentFrequencyType": {
-                                    "type": "string",
-                                    "enum": [
-                                        "month",
-                                        "year"
-                                    ]
-                                },
-                                "attributes": {
-                                    "type": "object",
-                                    "properties": {}
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "Subscription": {
-                "content": {
-                    "application/json": {
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "membershipId": {
-                                    "type": "string"
-                                },
-                                "storeId": {
-                                    "type": "string"
-                                },
-                                "invoiceId": {
-                                    "type": "string"
-                                },
-                                "startDate": {
-                                    "type": "string",
-                                    "format": "date-time"
-                                },
-                                "expireDate": {
-                                    "type": "string",
-                                    "format": "date-time"
-                                },
-                                "autoRenew": {
-                                    "type": "boolean"
-                                },
-                                "renewed": {
-                                    "type": "boolean"
-                                },
-                                "retries": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "string",
-                                        "format": "date-time"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "Invoice": {
-                "content": {
-                    "application/json": {
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "storeId": {
-                                    "type": "string"
-                                },
-                                "discount": {
-                                    "type": "object",
-                                    "properties": {
-                                        "value": {
-                                            "type": "number",
-                                            "positive": true
-                                        },
-                                        "type": {
-                                            "type": "string",
-                                            "enum": [
-                                                "entity_level"
-                                            ]
-                                        }
-                                    }
-                                },
-                                "items": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object",
-                                        "properties": {
-                                            "sku": {
-                                                "type": "string"
-                                            },
-                                            "barcode": {
-                                                "type": "string"
-                                            },
-                                            "name": {
-                                                "type": "string"
-                                            },
-                                            "description": {
-                                                "type": "string"
-                                            },
-                                            "url": {
-                                                "type": "string"
-                                            },
-                                            "image": {
-                                                "type": "string"
-                                            },
-                                            "weight": {
-                                                "type": "number"
-                                            },
-                                            "rate": {
-                                                "type": "number"
-                                            },
-                                            "quantity": {
-                                                "type": "number"
-                                            },
-                                            "accountId": {
-                                                "type": "string"
-                                            },
-                                            "purchaseRate": {
-                                                "type": "number"
-                                            },
-                                            "vendorId": {
-                                                "type": "number"
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "securitySchemes": {
             "bearerAuth": {
                 "type": "http",
@@ -293,374 +75,70 @@
                     "message": "SKU(s) out of stock."
                 }
             },
-            "Product": {
+            "Currency": {
                 "type": "object",
-                "required": [
-                    "attributes",
-                    "description",
-                    "images",
-                    "last_stock_check",
-                    "name",
-                    "sku",
-                    "supplier",
-                    "variations"
-                ],
                 "properties": {
-                    "sku": {
-                        "type": "string",
-                        "description": "Product ID"
+                    "currencyCode": {
+                        "type": "string"
                     },
-                    "supplier": {
-                        "type": "number",
-                        "description": "Supplier ref"
-                    },
-                    "name": {
-                        "required": [
-                            "tr"
-                        ],
-                        "type": "object",
-                        "properties": {
-                            "tr": {
-                                "type": "string"
-                            },
-                            "ar": {
-                                "type": "string"
-                            },
-                            "en": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "description": {
-                        "required": [
-                            "tr"
-                        ],
-                        "type": "object",
-                        "properties": {
-                            "tr": {
-                                "type": "string"
-                            },
-                            "en": {
-                                "type": "string"
-                            },
-                            "ar": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "last_stock_check": {
-                        "type": "string",
-                        "format": "date-time",
-                        "example": "2016-02-28T16:41:41.090Z"
-                    },
-                    "images": {
-                        "type": "array",
-                        "description": "List of images links from Knawat CDN servers",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
-                    "categories": {
-                        "type": "array",
-                        "description": "Array of categories",
-                        "items": {
-                            "$ref": "#/components/schemas/Category"
-                        }
-                    },
-                    "attributes": {
-                        "type": "array",
-                        "description": "Any other information about this product, materials, gender … etc",
-                        "items": {
-                            "$ref": "#/components/schemas/Attribute"
-                        }
-                    },
-                    "variations": {
-                        "type": "array",
-                        "description": "Product variations",
-                        "items": {
-                            "$ref": "#/components/schemas/ProductVariation"
-                        }
+                    "rate": {
+                        "type": "number"
                     }
-                },
-                "description": "An object that represents a Product.",
-                "example": {
-                    "sku": "4646030019238",
-                    "name": {
-                        "tr": "DAR KALIP PEMBE GÖMLEK",
-                        "ar": "قميص وردي قصير",
-                        "en": "Slimline Pink Shirt"
-                    },
-                    "description": {
-                        "tr": "%100 Pamuk<br>*Cep Detay <br>*Uzun Katlanabilir Kol<br>*Önden Düğmeli<br>*Yanları Düğmeli <br>*Dar Kalıp <br>*Boy Uzunluğu:63 cm<br>Numune Bedeni: 36/S/1<br>Modelin Ölçüleri: Boy:1,76, Göğüs:86, Bel:60, Kalça: 91",
-                        "en": "<ul><li>100% Cotton</li><li>*Pocket Detailed</li><li>*Long Layered Sleeves</li><li>*Front Buttons</li><li>*Buttons on Sides</li><li>*Narrow Cut</li><li>*Length:63 cm</li><li>Sample Size: 36/S/1</li><li>Model's Measurements: Height:1,76, Chest:86, Waist:60, Hip: 91</li></ul>",
-                        "ar": "<ul><li>%100 قطن</li><li>مزين بجيب</li><li>بكم طويل قابل للازالة</li><li>بأزرار من الامام</li><li>بأزرار من الجوانب</li><li>سليم فت</li><li>الطول:63 سم</li><li>مقاس الجسم: 36/S/1</li><li>قياسات العارض: الطول:1,76, الصدر:86, الوسط:60, الخصر: 91</li></ul>"
-                    },
-                    "last_stock_check": "2018-03-15T06:53:06.949Z",
-                    "supplier": 1615,
-                    "categories": [
-                        {
-                            "id": 4856,
-                            "name": {
-                                "tr": "Outdoors / Kadın",
-                                "en": "Outdoors / Women",
-                                "ar": "أوت دور / نسائي"
-                            }
-                        }
-                    ],
-                    "images": [
-                        "https://cdnp4.knawat.com/buyuk/788f8a17-d5d8-4ccb-b218-9e428b199228.jpg",
-                        "https://cdnp4.knawat.com/buyuk/d8f20963-1772-45af-849d-da84e66d9a95.jpg",
-                        "https://cdnp4.knawat.com/buyuk/fa36c9d4-51c4-434f-9ffd-94fb343ce0d8.jpg"
-                    ],
-                    "attributes": [
-                        {
-                            "id": 1,
-                            "name": {
-                                "tr": "Beden",
-                                "en": "Size",
-                                "ar": "مقاس"
-                            },
-                            "options": [
-                                {
-                                    "tr": "M",
-                                    "en": "M",
-                                    "ar": "M"
-                                },
-                                {
-                                    "tr": "XXL",
-                                    "en": "XXL",
-                                    "ar": "XXL"
-                                }
-                            ]
-                        },
-                        {
-                            "id": 2,
-                            "name": {
-                                "tr": "Renk",
-                                "en": "Color",
-                                "ar": "لون"
-                            },
-                            "options": [
-                                {
-                                    "tr": "Kırmızı",
-                                    "en": "Red",
-                                    "ar": "احمر"
-                                }
-                            ]
-                        },
-                        {
-                            "id": 3,
-                            "name": "Material",
-                            "options": [
-                                "15% Cotton",
-                                "25% Polyester"
-                            ]
-                        }
-                    ],
-                    "variations": [
-                        {
-                            "sku": "4646030019238-36",
-                            "price": 9.74,
-                            "market_price": 11.99,
-                            "weight": 0.5,
-                            "quantity": 10,
-                            "attributes": [
-                                {
-                                    "id": 1,
-                                    "name": {
-                                        "tr": "Beden",
-                                        "en": "Size",
-                                        "ar": "مقاس"
-                                    },
-                                    "option": {
-                                        "tr": "M",
-                                        "en": "M",
-                                        "ar": "M"
-                                    }
-                                }
-                            ]
-                        },
-                        {
-                            "sku": "4646030019238-38",
-                            "price": 9.74,
-                            "market_price": 11.99,
-                            "weight": 0.5,
-                            "quantity": 10,
-                            "barcode": null,
-                            "attributes": [
-                                {
-                                    "id": 1,
-                                    "name": {
-                                        "tr": "Beden",
-                                        "en": "Size",
-                                        "ar": "مقاس"
-                                    },
-                                    "option": {
-                                        "tr": "XXL",
-                                        "en": "XXL",
-                                        "ar": "XXL"
-                                    }
-                                }
-                            ]
-                        }
-                    ]
                 }
             },
-            "ProductVariation": {
+            "Invoice": {
                 "type": "object",
-                "required": [
-                    "cost_price",
-                    "quantity",
-                    "sale_price",
-                    "sku",
-                    "weight"
-                ],
                 "properties": {
-                    "sku": {
+                    "invoice_id": {
+                        "type": "string"
+                    },
+                    "customer_name": {
+                        "type": "string"
+                    },
+                    "customer_id": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "invoice_number": {
+                        "type": "string"
+                    },
+                    "reference_number": {
+                        "type": "string"
+                    },
+                    "date": {
                         "type": "string",
-                        "description": "Variation id"
+                        "format": "date"
                     },
-                    "cost_price": {
-                        "type": "number",
-                        "description": "Your cost, Knawat sale product with this price"
+                    "due_date": {
+                        "type": "string",
+                        "format": "date"
                     },
-                    "sale_price": {
-                        "type": "number",
-                        "description": "This is the listed price on your store"
+                    "due_days": {
+                        "type": "string"
                     },
-                    "market_price": {
-                        "type": "number",
-                        "description": "Price before the discount"
-                    },
-                    "weight": {
-                        "type": "number",
-                        "description": "Product weight"
-                    },
-                    "quantity": {
+                    "total": {
                         "type": "number"
                     },
-                    "attributes": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/Attribute"
-                        }
-                    }
-                },
-                "example": "{\n  \"sku\": \"4646030019238-36\",\n  \"cost_price\": 5.22,\n  \"sale_price\": 9.74,\n  \"market_price\": 11.99,\n  \"weight\": 0.5,\n  \"quantity\": 10,\n  \"attributes\": [\n    {\n      \"id\": 1,\n      \"name\": {\n        \"tr\": \"Beden\",\n        \"en\": \"Size\",\n        \"ar\": \"مقاس\"\n      },\n      \"option\": { \"tr\": \"M\", \"en\": \"M\", \"ar\": \"M\" }\n    }\n  ]\n}\n"
-            },
-            "Attribute": {
-                "type": "object",
-                "required": [
-                    "id",
-                    "name",
-                    "option"
-                ],
-                "properties": {
-                    "id": {
+                    "balance": {
                         "type": "number"
                     },
-                    "name": {
-                        "required": [
-                            "tr"
-                        ],
-                        "type": "object",
-                        "properties": {
-                            "tr": {
-                                "type": "string"
-                            },
-                            "en": {
-                                "type": "string"
-                            },
-                            "ar": {
-                                "type": "string"
-                            }
-                        }
+                    "created_time": {
+                        "type": "string",
+                        "format": "date"
                     },
-                    "option": {
-                        "required": [
-                            "tr"
-                        ],
-                        "type": "object",
-                        "properties": {
-                            "tr": {
-                                "type": "string"
-                            },
-                            "en": {
-                                "type": "string"
-                            },
-                            "ar": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                },
-                "example": "{\n  \"id\": 1,\n  \"name\": {\n    \"tr\": \"Beden\",\n    \"en\": \"Size\",\n    \"ar\": \"مقاس\"\n  },\n  \"option\": { \"tr\": \"M\", \"en\": \"M\", \"ar\": \"M\" }\n}\n"
-            },
-            "Category": {
-                "type": "array",
-                "items": {
-                    "required": [
-                        "id",
-                        "name"
-                    ],
-                    "type": "object",
-                    "properties": {
-                        "id": {
-                            "type": "number"
-                        },
-                        "name": {
-                            "required": [
-                                "productsCount",
-                                "treeNodeLevel"
-                            ],
-                            "type": "object",
-                            "properties": {
-                                "tr": {
-                                    "type": "string"
-                                },
-                                "en": {
-                                    "type": "string"
-                                },
-                                "ar": {
-                                    "type": "string"
-                                },
-                                "treeNodeLevel": {
-                                    "type": "number"
-                                },
-                                "productsCount": {
-                                    "type": "number"
-                                },
-                                "parentId": {
-                                    "type": "number"
-                                }
-                            }
-                        }
-                    }
-                },
-                "example": [
-                    {
-                        "id": 4857,
-                        "name": {
-                            "tr": "Ayakkabı",
-                            "en": "Shoes",
-                            "ar": "حذاء"
-                        },
-                        "parentId": 32423,
-                        "productsCount": 352,
-                        "treeNodeLevel": 1
+                    "last_modified_time": {
+                        "type": "string",
+                        "format": "date"
                     },
-                    {
-                        "id": 4859,
-                        "name": {
-                            "tr": "Ayakkabı / Kadın",
-                            "en": "Shoes / Women",
-                            "ar": "حذاء / نسائي"
-                        },
-                        "parentId": 2435,
-                        "productsCount": 456,
-                        "treeNodeLevel": 2
+                    "shipping_charge": {
+                        "type": "number"
+                    },
+                    "adjustment": {
+                        "type": "number"
                     }
-                ]
+                }
             },
             "Order": {
                 "type": "object",
@@ -868,6 +346,592 @@
                     "order": {
                         "id": "3435344",
                         "...": null
+                    }
+                }
+            },
+            "Payment": {
+                "type": "object",
+                "required": [
+                    "amount",
+                    "customer_id",
+                    "date",
+                    "payment_id",
+                    "payment_mode",
+                    "unused_amount"
+                ],
+                "properties": {
+                    "payment_id": {
+                        "type": "string"
+                    },
+                    "customer_id": {
+                        "type": "string"
+                    },
+                    "payment_mode": {
+                        "type": "string"
+                    },
+                    "amount": {
+                        "type": "number"
+                    },
+                    "unused_amount": {
+                        "type": "number"
+                    },
+                    "invoices": {
+                        "type": "array",
+                        "items": {
+                            "required": [
+                                "amount_applied",
+                                "invoice_id"
+                            ],
+                            "type": "object",
+                            "properties": {
+                                "amount_applied": {
+                                    "type": "number"
+                                },
+                                "invoice_id": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "bank_charges": {
+                        "type": "number"
+                    },
+                    "date": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "account_id": {
+                        "type": "string"
+                    },
+                    "account_name": {
+                        "type": "string"
+                    }
+                }
+            },
+            "Category": {
+                "type": "array",
+                "items": {
+                    "required": [
+                        "id",
+                        "name"
+                    ],
+                    "type": "object",
+                    "properties": {
+                        "id": {
+                            "type": "number"
+                        },
+                        "name": {
+                            "required": [
+                                "productsCount",
+                                "treeNodeLevel"
+                            ],
+                            "type": "object",
+                            "properties": {
+                                "tr": {
+                                    "type": "string"
+                                },
+                                "en": {
+                                    "type": "string"
+                                },
+                                "ar": {
+                                    "type": "string"
+                                },
+                                "treeNodeLevel": {
+                                    "type": "number"
+                                },
+                                "productsCount": {
+                                    "type": "number"
+                                },
+                                "parentId": {
+                                    "type": "number"
+                                }
+                            }
+                        }
+                    }
+                },
+                "example": [
+                    {
+                        "id": 4857,
+                        "name": {
+                            "tr": "Ayakkabı",
+                            "en": "Shoes",
+                            "ar": "حذاء"
+                        },
+                        "parentId": 32423,
+                        "productsCount": 352,
+                        "treeNodeLevel": 1
+                    },
+                    {
+                        "id": 4859,
+                        "name": {
+                            "tr": "Ayakkabı / Kadın",
+                            "en": "Shoes / Women",
+                            "ar": "حذاء / نسائي"
+                        },
+                        "parentId": 2435,
+                        "productsCount": 456,
+                        "treeNodeLevel": 2
+                    }
+                ]
+            },
+            "Log": {
+                "type": "object",
+                "required": [
+                    "code",
+                    "topic"
+                ],
+                "properties": {
+                    "topic": {
+                        "type": "string"
+                    },
+                    "code": {
+                        "type": "number",
+                        "example": "100 =>  Informational status response code indicates that everything so far is OK and that the client should continue with the request or ignore it if it is already finished."
+                    },
+                    "topicId": {
+                        "type": "string"
+                    },
+                    "storeId": {
+                        "type": "string"
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "logLevel": {
+                        "type": "string",
+                        "enum": [
+                            "info",
+                            "debug",
+                            "warn",
+                            "error"
+                        ]
+                    },
+                    "payload": {
+                        "type": "object"
+                    }
+                }
+            },
+            "Product": {
+                "type": "object",
+                "required": [
+                    "attributes",
+                    "description",
+                    "images",
+                    "last_stock_check",
+                    "name",
+                    "sku",
+                    "supplier",
+                    "variations"
+                ],
+                "properties": {
+                    "sku": {
+                        "type": "string",
+                        "description": "Product ID"
+                    },
+                    "supplier": {
+                        "type": "number",
+                        "description": "Supplier ref"
+                    },
+                    "name": {
+                        "required": [
+                            "tr"
+                        ],
+                        "type": "object",
+                        "properties": {
+                            "tr": {
+                                "type": "string"
+                            },
+                            "ar": {
+                                "type": "string"
+                            },
+                            "en": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "description": {
+                        "required": [
+                            "tr"
+                        ],
+                        "type": "object",
+                        "properties": {
+                            "tr": {
+                                "type": "string"
+                            },
+                            "en": {
+                                "type": "string"
+                            },
+                            "ar": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "last_stock_check": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2016-02-28T16:41:41.090Z"
+                    },
+                    "images": {
+                        "type": "array",
+                        "description": "List of images links from Knawat CDN servers",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "categories": {
+                        "type": "array",
+                        "description": "Array of categories",
+                        "items": {
+                            "$ref": "#/components/schemas/Category"
+                        }
+                    },
+                    "attributes": {
+                        "type": "array",
+                        "description": "Any other information about this product, materials, gender … etc",
+                        "items": {
+                            "$ref": "#/components/schemas/Attribute"
+                        }
+                    },
+                    "variations": {
+                        "type": "array",
+                        "description": "Product variations",
+                        "items": {
+                            "$ref": "#/components/schemas/ProductVariation"
+                        }
+                    }
+                },
+                "description": "An object that represents a Product.",
+                "example": {
+                    "sku": "4646030019238",
+                    "name": {
+                        "tr": "DAR KALIP PEMBE GÖMLEK",
+                        "ar": "قميص وردي قصير",
+                        "en": "Slimline Pink Shirt"
+                    },
+                    "description": {
+                        "tr": "%100 Pamuk<br>*Cep Detay <br>*Uzun Katlanabilir Kol<br>*Önden Düğmeli<br>*Yanları Düğmeli <br>*Dar Kalıp <br>*Boy Uzunluğu:63 cm<br>Numune Bedeni: 36/S/1<br>Modelin Ölçüleri: Boy:1,76, Göğüs:86, Bel:60, Kalça: 91",
+                        "en": "<ul><li>100% Cotton</li><li>*Pocket Detailed</li><li>*Long Layered Sleeves</li><li>*Front Buttons</li><li>*Buttons on Sides</li><li>*Narrow Cut</li><li>*Length:63 cm</li><li>Sample Size: 36/S/1</li><li>Model's Measurements: Height:1,76, Chest:86, Waist:60, Hip: 91</li></ul>",
+                        "ar": "<ul><li>%100 قطن</li><li>مزين بجيب</li><li>بكم طويل قابل للازالة</li><li>بأزرار من الامام</li><li>بأزرار من الجوانب</li><li>سليم فت</li><li>الطول:63 سم</li><li>مقاس الجسم: 36/S/1</li><li>قياسات العارض: الطول:1,76, الصدر:86, الوسط:60, الخصر: 91</li></ul>"
+                    },
+                    "last_stock_check": "2018-03-15T06:53:06.949Z",
+                    "supplier": 1615,
+                    "categories": [
+                        {
+                            "id": 4856,
+                            "name": {
+                                "tr": "Outdoors / Kadın",
+                                "en": "Outdoors / Women",
+                                "ar": "أوت دور / نسائي"
+                            }
+                        }
+                    ],
+                    "images": [
+                        "https://cdnp4.knawat.com/buyuk/788f8a17-d5d8-4ccb-b218-9e428b199228.jpg",
+                        "https://cdnp4.knawat.com/buyuk/d8f20963-1772-45af-849d-da84e66d9a95.jpg",
+                        "https://cdnp4.knawat.com/buyuk/fa36c9d4-51c4-434f-9ffd-94fb343ce0d8.jpg"
+                    ],
+                    "attributes": [
+                        {
+                            "id": 1,
+                            "name": {
+                                "tr": "Beden",
+                                "en": "Size",
+                                "ar": "مقاس"
+                            },
+                            "options": [
+                                {
+                                    "tr": "M",
+                                    "en": "M",
+                                    "ar": "M"
+                                },
+                                {
+                                    "tr": "XXL",
+                                    "en": "XXL",
+                                    "ar": "XXL"
+                                }
+                            ]
+                        },
+                        {
+                            "id": 2,
+                            "name": {
+                                "tr": "Renk",
+                                "en": "Color",
+                                "ar": "لون"
+                            },
+                            "options": [
+                                {
+                                    "tr": "Kırmızı",
+                                    "en": "Red",
+                                    "ar": "احمر"
+                                }
+                            ]
+                        },
+                        {
+                            "id": 3,
+                            "name": "Material",
+                            "options": [
+                                "15% Cotton",
+                                "25% Polyester"
+                            ]
+                        }
+                    ],
+                    "variations": [
+                        {
+                            "sku": "4646030019238-36",
+                            "price": 9.74,
+                            "market_price": 11.99,
+                            "weight": 0.5,
+                            "quantity": 10,
+                            "attributes": [
+                                {
+                                    "id": 1,
+                                    "name": {
+                                        "tr": "Beden",
+                                        "en": "Size",
+                                        "ar": "مقاس"
+                                    },
+                                    "option": {
+                                        "tr": "M",
+                                        "en": "M",
+                                        "ar": "M"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "sku": "4646030019238-38",
+                            "price": 9.74,
+                            "market_price": 11.99,
+                            "weight": 0.5,
+                            "quantity": 10,
+                            "barcode": 45234526,
+                            "attributes": [
+                                {
+                                    "id": 1,
+                                    "name": {
+                                        "tr": "Beden",
+                                        "en": "Size",
+                                        "ar": "مقاس"
+                                    },
+                                    "option": {
+                                        "tr": "XXL",
+                                        "en": "XXL",
+                                        "ar": "XXL"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "ProductVariation": {
+                "type": "object",
+                "required": [
+                    "cost_price",
+                    "quantity",
+                    "sale_price",
+                    "sku",
+                    "weight"
+                ],
+                "properties": {
+                    "sku": {
+                        "type": "string",
+                        "description": "Variation id"
+                    },
+                    "cost_price": {
+                        "type": "number",
+                        "description": "Your cost, Knawat sale product with this price"
+                    },
+                    "sale_price": {
+                        "type": "number",
+                        "description": "This is the listed price on your store"
+                    },
+                    "market_price": {
+                        "type": "number",
+                        "description": "Price before the discount"
+                    },
+                    "weight": {
+                        "type": "number",
+                        "description": "Product weight"
+                    },
+                    "quantity": {
+                        "type": "number"
+                    },
+                    "attributes": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Attribute"
+                        }
+                    }
+                },
+                "example": "{\n  \"sku\": \"4646030019238-36\",\n  \"cost_price\": 5.22,\n  \"sale_price\": 9.74,\n  \"market_price\": 11.99,\n  \"weight\": 0.5,\n  \"quantity\": 10,\n  \"attributes\": [\n    {\n      \"id\": 1,\n      \"name\": {\n        \"tr\": \"Beden\",\n        \"en\": \"Size\",\n        \"ar\": \"مقاس\"\n      },\n      \"option\": { \"tr\": \"M\", \"en\": \"M\", \"ar\": \"M\" }\n    }\n  ]\n}\n"
+            },
+            "Attribute": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "name",
+                    "option"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "number"
+                    },
+                    "name": {
+                        "required": [
+                            "tr"
+                        ],
+                        "type": "object",
+                        "properties": {
+                            "tr": {
+                                "type": "string"
+                            },
+                            "en": {
+                                "type": "string"
+                            },
+                            "ar": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "option": {
+                        "required": [
+                            "tr"
+                        ],
+                        "type": "object",
+                        "properties": {
+                            "tr": {
+                                "type": "string"
+                            },
+                            "en": {
+                                "type": "string"
+                            },
+                            "ar": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "example": "{\n  \"id\": 1,\n  \"name\": {\n    \"tr\": \"Beden\",\n    \"en\": \"Size\",\n    \"ar\": \"مقاس\"\n  },\n  \"option\": { \"tr\": \"M\", \"en\": \"M\", \"ar\": \"M\" }\n}\n"
+            },
+            "Membership": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "object",
+                        "properties": {
+                            "tr": {
+                                "type": "string"
+                            },
+                            "en": {
+                                "type": "string"
+                            },
+                            "ar": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "tagline": {
+                        "type": "object",
+                        "properties": {
+                            "tr": {
+                                "type": "string"
+                            },
+                            "en": {
+                                "type": "string"
+                            },
+                            "ar": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "description": {
+                        "type": "object",
+                        "properties": {
+                            "tr": {
+                                "type": "string"
+                            },
+                            "en": {
+                                "type": "string"
+                            },
+                            "ar": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "sort": {
+                        "type": "number"
+                    },
+                    "active": {
+                        "type": "boolean"
+                    },
+                    "public": {
+                        "type": "boolean"
+                    },
+                    "cost": {
+                        "type": "number"
+                    },
+                    "discount": {
+                        "type": "number"
+                    },
+                    "paymentFrequency": {
+                        "type": "number"
+                    },
+                    "paymentFrequencyType": {
+                        "type": "string",
+                        "enum": [
+                            "month",
+                            "year"
+                        ]
+                    },
+                    "attributes": {
+                        "type": "object",
+                        "properties": {}
+                    }
+                }
+            },
+            "Subscription": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "membershipId": {
+                        "type": "string"
+                    },
+                    "storeId": {
+                        "type": "string"
+                    },
+                    "invoiceId": {
+                        "type": "string"
+                    },
+                    "startDate": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "expireDate": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "autoRenew": {
+                        "type": "boolean"
+                    },
+                    "renewed": {
+                        "type": "boolean"
+                    },
+                    "retries": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
                     }
                 }
             },
@@ -1087,6 +1151,70 @@
                     }
                 }
             },
+            "Tax": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "country": {
+                        "type": "string"
+                    },
+                    "class": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "percentage": {
+                        "type": "number"
+                    },
+                    "omsId": {
+                        "type": "string"
+                    }
+                }
+            },
+            "Coupon": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "string"
+                    },
+                    "discount": {
+                        "type": "number"
+                    },
+                    "discountType": {
+                        "type": "string",
+                        "enum": [
+                            "$",
+                            "%"
+                        ]
+                    },
+                    "startDate": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "endDate": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "maxUses": {
+                        "type": "number"
+                    },
+                    "appliedMemberships": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "useCount": {
+                        "type": "number"
+                    }
+                }
+            },
             "ShipmentPolicy": {
                 "type": "object",
                 "required": [
@@ -1149,319 +1277,370 @@
                         }
                     }
                 }
-            },
-            "Log": {
-                "type": "object",
-                "required": [
-                    "code",
-                    "topic"
-                ],
-                "properties": {
-                    "topic": {
-                        "type": "string"
-                    },
-                    "code": {
-                        "type": "number",
-                        "example": "100 =>  Informational status response code indicates that everything so far is OK and that the client should continue with the request or ignore it if it is already finished."
-                    },
-                    "topicId": {
-                        "type": "string"
-                    },
-                    "storeId": {
-                        "type": "string"
-                    },
-                    "timestamp": {
-                        "type": "string",
-                        "format": "date"
-                    },
-                    "message": {
-                        "type": "string"
-                    },
-                    "logLevel": {
-                        "type": "string",
-                        "enum": [
-                            "info",
-                            "debug",
-                            "warn",
-                            "error"
-                        ]
-                    },
-                    "payload": {
-                        "type": "object"
-                    }
-                }
-            },
+            }
+        },
+        "requestBodies": {
             "Invoice": {
-                "type": "object",
-                "properties": {
-                    "invoice_id": {
-                        "type": "string"
-                    },
-                    "customer_name": {
-                        "type": "string"
-                    },
-                    "customer_id": {
-                        "type": "string"
-                    },
-                    "status": {
-                        "type": "string"
-                    },
-                    "invoice_number": {
-                        "type": "string"
-                    },
-                    "reference_number": {
-                        "type": "string"
-                    },
-                    "date": {
-                        "type": "string",
-                        "format": "date"
-                    },
-                    "due_date": {
-                        "type": "string",
-                        "format": "date"
-                    },
-                    "due_days": {
-                        "type": "string"
-                    },
-                    "total": {
-                        "type": "number"
-                    },
-                    "balance": {
-                        "type": "number"
-                    },
-                    "created_time": {
-                        "type": "string",
-                        "format": "date"
-                    },
-                    "last_modified_time": {
-                        "type": "string",
-                        "format": "date"
-                    },
-                    "shipping_charge": {
-                        "type": "number"
-                    },
-                    "adjustment": {
-                        "type": "number"
-                    }
-                }
-            },
-            "Payment": {
-                "type": "object",
-                "required": [
-                    "amount",
-                    "customer_id",
-                    "date",
-                    "payment_id",
-                    "payment_mode",
-                    "unused_amount"
-                ],
-                "properties": {
-                    "payment_id": {
-                        "type": "string"
-                    },
-                    "customer_id": {
-                        "type": "string"
-                    },
-                    "payment_mode": {
-                        "type": "string"
-                    },
-                    "amount": {
-                        "type": "number"
-                    },
-                    "unused_amount": {
-                        "type": "number"
-                    },
-                    "invoices": {
-                        "type": "array",
-                        "items": {
-                            "required": [
-                                "amount_applied",
-                                "invoice_id"
-                            ],
+                "content": {
+                    "application/json": {
+                        "schema": {
                             "type": "object",
                             "properties": {
-                                "amount_applied": {
-                                    "type": "number"
-                                },
-                                "invoice_id": {
+                                "storeId": {
                                     "type": "string"
+                                },
+                                "discount": {
+                                    "type": "object",
+                                    "properties": {
+                                        "value": {
+                                            "type": "number",
+                                            "positive": true
+                                        },
+                                        "type": {
+                                            "type": "string",
+                                            "enum": [
+                                                "entity_level"
+                                            ]
+                                        }
+                                    }
+                                },
+                                "items": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "sku": {
+                                                "type": "string"
+                                            },
+                                            "barcode": {
+                                                "type": "string"
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "description": {
+                                                "type": "string"
+                                            },
+                                            "url": {
+                                                "type": "string"
+                                            },
+                                            "image": {
+                                                "type": "string"
+                                            },
+                                            "weight": {
+                                                "type": "number"
+                                            },
+                                            "rate": {
+                                                "type": "number"
+                                            },
+                                            "quantity": {
+                                                "type": "number"
+                                            },
+                                            "accountId": {
+                                                "type": "string"
+                                            },
+                                            "purchaseRate": {
+                                                "type": "number"
+                                            },
+                                            "vendorId": {
+                                                "type": "number"
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
-                    },
-                    "bank_charges": {
-                        "type": "number"
-                    },
-                    "date": {
-                        "type": "string",
-                        "format": "date"
-                    },
-                    "account_id": {
-                        "type": "string"
-                    },
-                    "account_name": {
-                        "type": "string"
-                    }
-                }
-            },
-            "Subscription": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "string"
-                    },
-                    "membershipId": {
-                        "type": "string"
-                    },
-                    "storeId": {
-                        "type": "string"
-                    },
-                    "invoiceId": {
-                        "type": "string"
-                    },
-                    "startDate": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "expireDate": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "autoRenew": {
-                        "type": "boolean"
-                    },
-                    "renewed": {
-                        "type": "boolean"
-                    },
-                    "retries": {
-                        "type": "array",
-                        "items": {
-                            "type": "string",
-                            "format": "date-time"
-                        }
-                    }
-                }
-            },
-            "Coupon": {
-                "type": "object",
-                "properties": {
-                    "code": {
-                        "type": "string"
-                    },
-                    "discount": {
-                        "type": "number"
-                    },
-                    "discountType": {
-                        "type": "string",
-                        "enum": [
-                            "$",
-                            "%"
-                        ]
-                    },
-                    "startDate": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "endDate": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "maxUses": {
-                        "type": "number"
-                    },
-                    "appliedMemberships": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
-                    "useCount": {
-                        "type": "number"
                     }
                 }
             },
             "Membership": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "string"
-                    },
-                    "name": {
-                        "type": "object",
-                        "properties": {
-                            "tr": {
-                                "type": "string"
-                            },
-                            "en": {
-                                "type": "string"
-                            },
-                            "ar": {
-                                "type": "string"
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "object",
+                                    "properties": {
+                                        "tr": {
+                                            "type": "string"
+                                        },
+                                        "en": {
+                                            "type": "string"
+                                        },
+                                        "ar": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "tagline": {
+                                    "type": "object",
+                                    "properties": {
+                                        "tr": {
+                                            "type": "string"
+                                        },
+                                        "en": {
+                                            "type": "string"
+                                        },
+                                        "ar": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "description": {
+                                    "type": "object",
+                                    "properties": {
+                                        "tr": {
+                                            "type": "string"
+                                        },
+                                        "en": {
+                                            "type": "string"
+                                        },
+                                        "ar": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "sort": {
+                                    "type": "number"
+                                },
+                                "active": {
+                                    "type": "boolean"
+                                },
+                                "public": {
+                                    "type": "boolean"
+                                },
+                                "cost": {
+                                    "type": "number"
+                                },
+                                "discount": {
+                                    "type": "number"
+                                },
+                                "paymentFrequency": {
+                                    "type": "number"
+                                },
+                                "paymentFrequencyType": {
+                                    "type": "string",
+                                    "enum": [
+                                        "month",
+                                        "year"
+                                    ]
+                                },
+                                "attributes": {
+                                    "type": "object",
+                                    "properties": {}
+                                }
                             }
                         }
-                    },
-                    "tagline": {
-                        "type": "object",
-                        "properties": {
-                            "tr": {
-                                "type": "string"
-                            },
-                            "en": {
-                                "type": "string"
-                            },
-                            "ar": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "description": {
-                        "type": "object",
-                        "properties": {
-                            "tr": {
-                                "type": "string"
-                            },
-                            "en": {
-                                "type": "string"
-                            },
-                            "ar": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "sort": {
-                        "type": "number"
-                    },
-                    "active": {
-                        "type": "boolean"
-                    },
-                    "public": {
-                        "type": "boolean"
-                    },
-                    "cost": {
-                        "type": "number"
-                    },
-                    "discount": {
-                        "type": "number"
-                    },
-                    "paymentFrequency": {
-                        "type": "number"
-                    },
-                    "paymentFrequencyType": {
-                        "type": "string",
-                        "enum": [
-                            "month",
-                            "year"
-                        ]
-                    },
-                    "attributes": {
-                        "type": "object",
-                        "properties": {}
                     }
                 }
+            },
+            "Subscription": {
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "membershipId": {
+                                    "type": "string"
+                                },
+                                "storeId": {
+                                    "type": "string"
+                                },
+                                "invoiceId": {
+                                    "type": "string"
+                                },
+                                "startDate": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                },
+                                "expireDate": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                },
+                                "autoRenew": {
+                                    "type": "boolean"
+                                },
+                                "renewed": {
+                                    "type": "boolean"
+                                },
+                                "retries": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "Store": {
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/Store"
+                        }
+                    }
+                },
+                "required": true
+            },
+            "TaxCreate": {
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "required": true
+                                },
+                                "country": {
+                                    "type": "string",
+                                    "required": true
+                                },
+                                "class": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "required": true
+                                },
+                                "percentage": {
+                                    "type": "number",
+                                    "required": true
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "TaxUpdate": {
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string"
+                                },
+                                "country": {
+                                    "type": "string"
+                                },
+                                "class": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },
+                                "percentage": {
+                                    "type": "number"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "ShipmentPolicy": {
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/ShipmentPolicy"
+                        }
+                    }
+                },
+                "required": true
             }
         }
     },
     "paths": {
+        "/currencies/{currencyCode}": {
+            "get": {
+                "summary": "Get Currency By Code",
+                "tags": [
+                    "Currencies",
+                    "Enterprise Only"
+                ],
+                "description": "Gets currency code, name and rate",
+                "parameters": [
+                    {
+                        "name": "currencyCode",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "minLength": 3,
+                            "maxLength": 3
+                        }
+                    },
+                    {
+                        "name": "currencyCode",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status 200",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Currency"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedErrorBasic"
+                    },
+                    "404": {
+                        "description": "Status 404"
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": []
+                    }
+                ]
+            }
+        },
+        "/currencies": {
+            "get": {
+                "summary": "Get Currencies",
+                "tags": [
+                    "Currencies",
+                    "Enterprise Only"
+                ],
+                "description": "Get all currencies with names, code and rates info",
+                "responses": {
+                    "200": {
+                        "description": "Status 200",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Currency"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedErrorBasic"
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": []
+                    }
+                ]
+            }
+        },
         "/invoices": {
             "get": {
                 "summary": "List Invoices",
@@ -2302,11 +2481,30 @@
                 ]
             }
         },
-        "/token": {
-            "post": {
-                "summary": "Get token",
+        "/catalog/categories": {
+            "get": {
+                "summary": "Get list of categories",
                 "tags": [
-                    "Authentication"
+                    "Products"
+                ],
+                "description": "Get all categories related to my products.",
+                "parameters": [
+                    {
+                        "name": "parentId",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "treeNodeLevel",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "number"
+                        }
+                    }
                 ],
                 "responses": {
                     "200": {
@@ -2315,51 +2513,50 @@
                             "application/json": {
                                 "schema": {
                                     "type": "object",
-                                    "description": "Channel information",
                                     "properties": {
-                                        "channel": {
-                                            "type": "object"
+                                        "count": {
+                                            "type": "number"
+                                        },
+                                        "categories": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Category"
+                                            }
+                                        }
+                                    }
+                                },
+                                "examples": {
+                                    "response": {
+                                        "value": {
+                                            "count": 123,
+                                            "categories": [
+                                                {
+                                                    "id": 4857,
+                                                    "name": {
+                                                        "tr": "Ayakkabı",
+                                                        "en": "Shoes",
+                                                        "ar": "حذاء"
+                                                    },
+                                                    "parentId": 455,
+                                                    "productsCount": 100,
+                                                    "treeNodeLevel": 1
+                                                }
+                                            ]
                                         }
                                     }
                                 }
                             }
                         }
                     },
-                    "422": {
-                        "description": "Status 422",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "description": "consumerKey or consumerSecret is wrong"
-                                }
-                            }
-                        }
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedErrorToken"
                     }
                 },
-                "security": [],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "required": [
-                                    "consumerKey",
-                                    "consumerSecret"
-                                ],
-                                "properties": {
-                                    "consumerKey": {
-                                        "type": "string"
-                                    },
-                                    "consumerSecret": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "required": true
-                }
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/logs": {
@@ -2567,60 +2764,6 @@
                                 }
                             }
                         }
-                    }
-                },
-                "security": [
-                    {
-                        "basicAuth": []
-                    }
-                ]
-            }
-        },
-        "/products/{sku}": {
-            "get": {
-                "parameters": [
-                    {
-                        "name": "sku",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "summary": "Get Product by SKU",
-                "tags": [
-                    "Products",
-                    "Enterprise Only"
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Status 200"
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/UnauthorizedErrorBasic"
-                    }
-                },
-                "security": [
-                    {
-                        "basicAuth": []
-                    }
-                ]
-            }
-        },
-        "/products": {
-            "get": {
-                "summary": "Get all Knawat Products",
-                "tags": [
-                    "Products",
-                    "Enterprise Only"
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Status 200"
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/UnauthorizedErrorBasic"
                     }
                 },
                 "security": [
@@ -3228,29 +3371,67 @@
                 }
             }
         },
-        "coupons/:CODE": {
+        "/products": {
             "get": {
-                "summary": "Get Coupon",
+                "summary": "Get all Knawat Products",
                 "tags": [
-                    "Coupon"
+                    "Products",
+                    "Enterprise Only"
                 ],
+                "responses": {
+                    "200": {
+                        "description": "Status 200"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedErrorBasic"
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": []
+                    }
+                ]
+            }
+        },
+        "/products/{sku}": {
+            "get": {
                 "parameters": [
                     {
-                        "name": "CODE",
+                        "name": "sku",
                         "in": "path",
                         "required": true,
                         "schema": {
                             "type": "string"
                         }
+                    }
+                ],
+                "summary": "Get Product by SKU",
+                "tags": [
+                    "Products",
+                    "Enterprise Only"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status 200"
                     },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedErrorBasic"
+                    }
+                },
+                "security": [
                     {
-                        "name": "membership",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
+                        "basicAuth": []
+                    }
+                ]
+            }
+        },
+        "/membership": {
+            "post": {
+                "summary": "Create new membership",
+                "tags": [
+                    "Membership"
+                ],
+                "parameters": [
                     {
                         "name": "Authorization",
                         "in": "header",
@@ -3266,7 +3447,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Coupon"
+                                    "$ref": "#/components/schemas/Membership"
                                 }
                             }
                         }
@@ -3274,8 +3455,8 @@
                     "401": {
                         "$ref": "#/components/responses/UnauthorizedErrorBasic"
                     },
-                    "404": {
-                        "description": "Status 404",
+                    "500": {
+                        "description": "Status 500",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -3302,7 +3483,89 @@
                     {
                         "basicAuth": []
                     }
-                ]
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Membership"
+                            }
+                        }
+                    },
+                    "required": true
+                }
+            }
+        },
+        "/membership/{id}": {
+            "put": {
+                "summary": "Update Membership",
+                "tags": [
+                    "Membership"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status 200",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Membership"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedErrorBasic"
+                    },
+                    "500": {
+                        "description": "Status 500",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "message": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/Membership"
+                }
             }
         },
         "/subscription": {
@@ -3627,30 +3890,11 @@
                 }
             }
         },
-        "/stores": {
+        "/stores/me": {
             "get": {
-                "summary": "All User Stores",
+                "summary": "My Store info",
                 "tags": [
-                    "Stores",
-                    "Enterprise Only"
-                ],
-                "parameters": [
-                    {
-                        "name": "filter",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
+                    "Stores"
                 ],
                 "responses": {
                     "200": {
@@ -3658,16 +3902,13 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/Store"
-                                    }
+                                    "$ref": "#/components/schemas/Store"
                                 }
                             }
                         }
                     },
                     "401": {
-                        "$ref": "#/components/responses/UnauthorizedErrorBasic"
+                        "$ref": "#/components/responses/UnauthorizedErrorToken"
                     },
                     "404": {
                         "description": "Status 404",
@@ -3695,72 +3936,9 @@
                 },
                 "security": [
                     {
-                        "basicAuth": []
+                        "bearerAuth": []
                     }
                 ]
-            },
-            "post": {
-                "summary": "Create new store",
-                "tags": [
-                    "Stores",
-                    "Enterprise Only"
-                ],
-                "parameters": [
-                    {
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Status 200",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Store"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/UnauthorizedErrorBasic"
-                    },
-                    "500": {
-                        "description": "Status 500",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "errors": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "message": {
-                                                        "type": "string"
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "basicAuth": []
-                    }
-                ],
-                "requestBody": {
-                    "$ref": "#/components/requestBodies/Store"
-                }
             }
         },
         "/stores/{url}": {
@@ -3904,11 +4082,30 @@
                 }
             }
         },
-        "/stores/me": {
+        "/stores": {
             "get": {
-                "summary": "My Store info",
+                "summary": "All User Stores",
                 "tags": [
-                    "Stores"
+                    "Stores",
+                    "Enterprise Only"
+                ],
+                "parameters": [
+                    {
+                        "name": "filter",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
                 ],
                 "responses": {
                     "200": {
@@ -3916,13 +4113,16 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Store"
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Store"
+                                    }
                                 }
                             }
                         }
                     },
                     "401": {
-                        "$ref": "#/components/responses/UnauthorizedErrorToken"
+                        "$ref": "#/components/responses/UnauthorizedErrorBasic"
                     },
                     "404": {
                         "description": "Status 404",
@@ -3950,9 +4150,72 @@
                 },
                 "security": [
                     {
-                        "bearerAuth": []
+                        "basicAuth": []
                     }
                 ]
+            },
+            "post": {
+                "summary": "Create new store",
+                "tags": [
+                    "Stores",
+                    "Enterprise Only"
+                ],
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status 200",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Store"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedErrorBasic"
+                    },
+                    "500": {
+                        "description": "Status 500",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "message": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/Store"
+                }
             }
         },
         "/admin/stores": {
@@ -4013,6 +4276,432 @@
                                             "type": "number"
                                         }
                                     }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedErrorBasic"
+                    },
+                    "404": {
+                        "description": "Status 404",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "message": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": []
+                    }
+                ]
+            }
+        },
+        "/token": {
+            "post": {
+                "summary": "Get token",
+                "tags": [
+                    "Authentication"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status 200",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "description": "Channel information",
+                                    "properties": {
+                                        "channel": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Status 422",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "description": "consumerKey or consumerSecret is wrong"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "consumerKey",
+                                    "consumerSecret"
+                                ],
+                                "properties": {
+                                    "consumerKey": {
+                                        "type": "string"
+                                    },
+                                    "consumerSecret": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "required": true
+                }
+            }
+        },
+        "/tax": {
+            "post": {
+                "summary": "Create new tax",
+                "tags": [
+                    "Taxes"
+                ],
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status 200",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "tax": {
+                                            "$ref": "#/components/schemas/Tax"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedErrorBasic"
+                    },
+                    "500": {
+                        "description": "Status 500",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "message": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/TaxCreate",
+                    "required": true
+                }
+            }
+        },
+        "/tax/{id}": {
+            "put": {
+                "summary": "Update new tax",
+                "tags": [
+                    "Taxes"
+                ],
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status 200",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "tax": {
+                                            "$ref": "#/components/schemas/Tax"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedErrorBasic"
+                    },
+                    "500": {
+                        "description": "Status 500",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "message": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/TaxUpdate",
+                    "required": true
+                }
+            },
+            "delete": {
+                "summary": "Delete tax by id",
+                "tags": [
+                    "Taxes"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status 200",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Tax"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedErrorBasic"
+                    },
+                    "500": {
+                        "description": "Status 500",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "message": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": []
+                    }
+                ]
+            }
+        },
+        "/tax/{country}": {
+            "get": {
+                "summary": "get list of taxes by country",
+                "tags": [
+                    "Taxes"
+                ],
+                "parameters": [
+                    {
+                        "name": "country",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "class",
+                        "in": "query",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status 200",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "taxes": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Tax"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedErrorBasic"
+                    },
+                    "500": {
+                        "description": "Status 500",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "message": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": []
+                    }
+                ]
+            }
+        },
+        "coupons/:CODE": {
+            "get": {
+                "summary": "Get Coupon",
+                "tags": [
+                    "Coupon"
+                ],
+                "parameters": [
+                    {
+                        "name": "CODE",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "membership",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status 200",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Coupon"
                                 }
                             }
                         }
@@ -4281,149 +4970,6 @@
                     }
                 ]
             }
-        },
-        "/membership": {
-            "post": {
-                "summary": "Create new membership",
-                "tags": [
-                    "Membership"
-                ],
-                "parameters": [
-                    {
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Status 200",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Membership"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/UnauthorizedErrorBasic"
-                    },
-                    "500": {
-                        "description": "Status 500",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "errors": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "message": {
-                                                        "type": "string"
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "basicAuth": []
-                    }
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/Membership"
-                            }
-                        }
-                    },
-                    "required": true
-                }
-            }
-        },
-        "/membership/{id}": {
-            "put": {
-                "summary": "Update Membership",
-                "tags": [
-                    "Membership"
-                ],
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Status 200",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Membership"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/UnauthorizedErrorBasic"
-                    },
-                    "500": {
-                        "description": "Status 500",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "errors": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "message": {
-                                                        "type": "string"
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "basicAuth": []
-                    }
-                ],
-                "requestBody": {
-                    "$ref": "#/components/requestBodies/Membership"
-                }
-            }
         }
     },
     "security": [
@@ -4481,6 +5027,9 @@
         },
         {
             "name": "Membership"
+        },
+        {
+            "name": "Taxes"
         }
     ],
     "externalDocs": []

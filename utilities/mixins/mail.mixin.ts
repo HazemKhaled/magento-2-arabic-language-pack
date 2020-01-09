@@ -1,10 +1,22 @@
 import { ServiceSchema } from 'moleculer';
-import MailGun from 'mailgun-js';
+import nodemailer from 'nodemailer';
 
 export const Mail: ServiceSchema = {
   name: 'mail',
   settings: {
-    mail: MailGun({apiKey: process.env.MAIL_KEY, domain: process.env.MAIL_DOMAIN}),
+    mail: nodemailer.createTransport({
+      host: '',
+      port: 465,
+      secure: true, // use TLS
+      auth: {
+        user: 'username',
+        pass: 'pass',
+      },
+      tls: {
+        // do not fail on invalid certs
+        rejectUnauthorized: false,
+      },
+    }),
   },
   methods: {
     sendMail(to, subject, text) {

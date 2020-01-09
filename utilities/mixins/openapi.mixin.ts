@@ -286,10 +286,8 @@ export function OpenApiMixin(): ServiceSchema {
 
                 shouldUpdateSchema = false;
 
-                // tslint:disable-next-line:align
                 this.logger.debug(schema);
 
-                // tslint:disable-next-line:align
                 if (process.env.NODE_ENV !== 'production') {
                   fs.writeFileSync('./openapi.json', JSON.stringify(schema, null, 4), 'utf8');
                 }

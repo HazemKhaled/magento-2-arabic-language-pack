@@ -168,7 +168,6 @@ module.exports = {
       async handler(ctx) {
         const { page, limit, lastupdate = '' } = ctx.params;
         let { _source } = ctx.params;
-
         const fields = [
           'sku',
           'name',
@@ -197,7 +196,6 @@ module.exports = {
           ctx.params.keyword,
           ctx.params.currency,
         );
-
         // Emit async Event
         ctx.emit('list.afterRemote', ctx);
         return products;
@@ -629,10 +627,10 @@ module.exports = {
               try {
                 if (typeof instanceProductsFull.page[n]._source.externalId !== 'undefined')
                   p.externalId = instanceProductsFull.page[n]._source.externalId;
-                if (typeof instanceProductsFull._source.page[n].externalUrl !== 'undefined')
+                if (typeof instanceProductsFull.page[n]._source.externalUrl !== 'undefined')
                   p.externalUrl = instanceProductsFull.page[n]._source.externalUrl;
               } catch (err) {
-                this.logger.info('No externalID or externalURL');
+                this.logger.info(err);
               }
               return p;
             }
@@ -764,7 +762,6 @@ module.exports = {
             ];
             searchQuery.body.query.bool.minimum_should_match = 1;
           }
-
           if (page * size <= 10000) {
             this.logger.info('NO NEED FOR SCROLL YA M3LM');
             searchQuery.from = (page - 1) * size;
@@ -789,7 +786,7 @@ module.exports = {
         }
 
         const results = fullResult.concat(search.hits.hits);
-
+        console.log((parseInt(process.env.SCROLL_LIMIT)));
         if (endTrace > size && maxScroll > parseInt(process.env.SCROLL_LIMIT)) {
           maxScroll -= parseInt(process.env.SCROLL_LIMIT);
           endTrace -= parseInt(process.env.SCROLL_LIMIT);
@@ -807,7 +804,6 @@ module.exports = {
             maxScroll,
           );
         }
-
         return {
           page: scrollId ? results.slice(page * size - size, page * size) : results,
           totalProducts: search.hits.total,
