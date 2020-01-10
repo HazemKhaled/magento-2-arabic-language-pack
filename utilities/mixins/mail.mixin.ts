@@ -5,12 +5,13 @@ export const Mail: ServiceSchema = {
   name: 'mail',
   settings: {
     mail: nodemailer.createTransport({
-      host: '',
-      port: 465,
+      // @ts-ignore
+      host: process.env.MAIL_HOST,
+      port: process.env.MAIL_PORT,
       secure: true, // use TLS
       auth: {
-        user: 'username',
-        pass: 'pass',
+        user: process.env.MAIL_USER,
+        pass: process.env.MAIL_PASS,
       },
       tls: {
         // do not fail on invalid certs
