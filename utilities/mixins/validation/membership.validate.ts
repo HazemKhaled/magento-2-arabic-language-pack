@@ -8,6 +8,7 @@ export const MembershipValidation: ServiceSchema = {
         id: {
           type: 'string',
           optional: true,
+          pattern: '^m-[a-z0-9\-]+',
         },
         name: {
           type: 'object',
