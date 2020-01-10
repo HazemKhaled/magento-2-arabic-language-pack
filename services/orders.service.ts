@@ -87,6 +87,7 @@ const TheService: ServiceSchema = {
 
         // Update Order Items
         data.items = taxData.items;
+        data.isInclusiveTax = taxData.isInclusive;
 
         // Shipping
         const shipment = await this.shipment(
@@ -395,6 +396,7 @@ const TheService: ServiceSchema = {
 
             // Update Order Items
             data.items = taxData.items;
+            data.isInclusiveTax = taxData.isInclusive;
 
             // Shipping
             shipment = await this.shipment(
@@ -1003,10 +1005,15 @@ const TheService: ServiceSchema = {
     },
     async setTaxIds(instance, items) {
       const taxesMsg: {}[] = [];
+      let isInclusive = false;
       const itemsAfterTaxes = await Promise.all(
         items.map(
-          async (item: OrderItem) => {
+          async (item: OrderItem, index: number) => {
             const taxData = await this.getItemTax(instance, item);
+
+            if (index === 0) {
+              isInclusive = taxData.isInclusive;
+            }
 
             // delete taxClass attr.
             delete item.taxClass;
@@ -1021,8 +1028,10 @@ const TheService: ServiceSchema = {
 
             return item;
           }));
+
       return {
         items: itemsAfterTaxes,
+        isInclusive,
         msgs: taxesMsg,
       };
     },

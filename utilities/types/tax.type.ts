@@ -10,6 +10,7 @@ export interface Tax {
   percentage: number;
   name: string;
   omsId: string;
+  isInclusive: boolean;
 }
 
 /**

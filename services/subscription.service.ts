@@ -181,6 +181,7 @@ const TheService: ServiceSchema = {
               taxId: taxData.omsId,
             },
           ],
+          isInclusiveTax: taxData.isInclusive,
         };
         if (discount) {
           invoiceBody.discount = {
