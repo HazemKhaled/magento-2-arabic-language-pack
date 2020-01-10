@@ -84,7 +84,6 @@ const TheService: ServiceSchema = {
         // Taxes
         const taxData = await this.setTaxIds(instance, stock.items);
         const taxesMsg: {code: number; message: string;}[] = taxData.msgs;
-        data.isInclusiveTax = !!Number(process.env.IS_ORDER_TAX_INCLUSIVE) || true;
 
         // Update Order Items
         data.items = taxData.items;
@@ -393,7 +392,6 @@ const TheService: ServiceSchema = {
             // Taxes
             const taxData = await this.setTaxIds(instance, stock.items);
             const taxesMsg: {code: number; message: string;}[] = taxData.msgs;
-            data.isInclusiveTax = !!Number(process.env.IS_ORDER_TAX_INCLUSIVE) || true;
 
             // Update Order Items
             data.items = taxData.items;

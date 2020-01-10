@@ -16,8 +16,8 @@ const TaxesService: ServiceSchema = {
         const taxBody = ctx.params;
         const omsTax = await ctx.call('oms.createTax', {
           name: taxBody.name,
-          country: taxBody.country,
           percentage: taxBody.percentage,
+          type: 'tax',
         });
         taxBody.omsId = omsTax.tax.id;
         return this.adapter
@@ -36,7 +36,7 @@ const TaxesService: ServiceSchema = {
         $set.country = $set.country.toUpperCase();
         delete $set.id;
 
-        ctx.call('oms.updateTax', ['name', 'country', 'percentage'].reduce((acc, key) => {
+        ctx.call('oms.updateTax', ['name', 'percentage'].reduce((acc, key) => {
           if(!$set[key]) {
             delete acc[key as keyof {}];
           }
@@ -44,7 +44,6 @@ const TaxesService: ServiceSchema = {
         } ,{
           id,
           name: $set.name,
-          country: $set.country,
           percentage: $set.percentage,
         }));
 

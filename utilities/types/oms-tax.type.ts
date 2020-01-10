@@ -7,11 +7,7 @@
 export interface OmsTax {
     name: string;
     percentage: number;
-    type: string;
-    authorityName: string;
-    authorityId: string;
-    country: string;
-    isEditable: true;
+    type: 'tax' | 'compound_tax';
 }
 
 /**
