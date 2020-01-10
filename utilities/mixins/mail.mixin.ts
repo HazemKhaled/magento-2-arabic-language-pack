@@ -8,14 +8,9 @@ export const Mail: ServiceSchema = {
       // @ts-ignore
       host: process.env.MAIL_HOST,
       port: process.env.MAIL_PORT,
-      secure: true, // use TLS
       auth: {
         user: process.env.MAIL_USER,
         pass: process.env.MAIL_PASS,
-      },
-      tls: {
-        // do not fail on invalid certs
-        rejectUnauthorized: false,
       },
     }),
   },
@@ -27,7 +22,7 @@ export const Mail: ServiceSchema = {
         subject,
         text,
       };
-      return this.settings.mail(data, (err: unknown, body: {message: string; id: string;}) => {
+      return this.schema.settings.mail.sendMail(data, (err: unknown, body: {message: string; id: string;}) => {
         this.logger.info(err, body);
       });
     },
