@@ -90,7 +90,7 @@ const TheService: ServiceSchema = {
           .updateById(id, { $set: { ...params } })
           .then((res: Membership) => {
             this.broker.cacher.clean('membership.list:**');
-            this.broker.cacher.clean(`membership.get:${ctx.params.id}**`);
+            this.broker.cacher.clean(`membership.get:${id}**`);
             if (!res) {
               throw new MoleculerError('Membership not found', 404);
             }
