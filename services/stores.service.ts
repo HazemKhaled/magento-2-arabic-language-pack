@@ -78,7 +78,7 @@ const TheService: ServiceSchema = {
               if (res.internal_data && res.internal_data.omsId) {
                 omsData = (await ctx.call('oms.getCustomer', {
                   customerId: res.internal_data.omsId,
-                })) as { store: Store };
+                }).then(null, this.logger.info)) as { store: Store };
                 // If the DB response not null will return the data
                 return this.sanitizeResponse(res, omsData.store);
               }
@@ -111,7 +111,7 @@ const TheService: ServiceSchema = {
             if (res.internal_data && res.internal_data.omsId) {
               const omsData = (await ctx.call('oms.getCustomer', {
                 customerId: res.internal_data.omsId,
-              })) as { store: Store };
+              }).then(null, this.logger.info)) as { store: Store };
 
               // If the DB response not null will return the data
               if (!omsData) {
