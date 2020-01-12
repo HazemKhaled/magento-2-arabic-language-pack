@@ -12,9 +12,16 @@ const TaxesService: ServiceSchema = {
   actions: {
     tCreate: {
       auth: 'Basic',
-      handler(ctx: Context): RTax {
+      async handler(ctx: Context): Promise<RTax> {
+        const taxBody = ctx.params;
+        const omsTax = await ctx.call('oms.createTax', {
+          name: taxBody.name,
+          percentage: taxBody.percentage,
+          type: 'tax',
+        });
+        taxBody.omsId = omsTax.tax.id;
         return this.adapter
-          .insert(ctx.params)
+          .insert(taxBody)
           .then((tax: DbTax) => ({ tax: this.sanitizer(tax) }))
           .catch((err: any) => {
             throw new MoleculerError(err, 500);
@@ -26,8 +33,20 @@ const TaxesService: ServiceSchema = {
       handler(ctx: Context): RTax {
         const { id } = ctx.params;
         const $set = ctx.params;
-        $set.country = $set.country.toLowerCase();
+        $set.country = $set.country.toUpperCase();
         delete $set.id;
+
+        ctx.call('oms.updateTax', ['name', 'percentage'].reduce((acc, key) => {
+          if(!$set[key]) {
+            delete acc[key as keyof {}];
+          }
+          return acc;
+        } ,{
+          id,
+          name: $set.name,
+          percentage: $set.percentage,
+        }));
+
         return this.adapter
           .updateById(id, { $set })
           .then((tax: DbTax) => {
@@ -68,6 +87,7 @@ const TaxesService: ServiceSchema = {
     tDelete: {
       auth: 'Basic',
       handler(ctx: Context) {
+        ctx.call('oms.deleteTax', {id: ctx.params.id});
         return this.adapter
           .removeById(ctx.params.id)
           .then((tax: DbTax) => {

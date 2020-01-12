@@ -8,6 +8,7 @@ const TaxSchema = {
     country: { type: 'string' },
     'class': { type: 'array', items: { type: 'string' } },
     percentage: { type: 'number' },
+    omsId: { type: 'string' },
   },
 };
 

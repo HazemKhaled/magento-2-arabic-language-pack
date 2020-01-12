@@ -269,5 +269,28 @@ export const OmsValidation: ServiceSchema = {
         },
       },
     },
+    createTax: {
+      params: {
+        name: { type: 'string' },
+        percentage: { type: 'number' },
+        type: { type: 'enum', values: ['tax', 'compound_tax'] },
+        $$strict: true,
+      },
+    },
+    updateTax: {
+      params: {
+        id: 'string',
+        name: { type: 'string', optional: true },
+        percentage: { type: 'number', optional: true },
+        type: { type: 'enum', values: ['tax', 'compound_tax'], optional: true },
+        $$strict: true,
+      },
+    },
+    deleteTax: {
+      params: {
+        id: 'string',
+        $$strict: true,
+      },
+    },
   },
 };

@@ -57,6 +57,8 @@ export interface OrderItem {
   weight?: number;
   archive?: boolean;
   quantityRequired?: number;
+  taxId?: string;
+  taxClass?: string;
 }
 
 /**
