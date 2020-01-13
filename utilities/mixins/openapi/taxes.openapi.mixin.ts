@@ -9,6 +9,7 @@ const TaxSchema = {
     'class': { type: 'array', items: { type: 'string' } },
     percentage: { type: 'number' },
     omsId: { type: 'string' },
+    isInclusive: { type: 'boolean' },
   },
 };
 
@@ -22,6 +23,7 @@ const TaxCreateReq = {
           country: { type: 'string', required: true },
           'class': { type: 'array', items: { type: 'string' }, required: true },
           percentage: { type: 'number', required: true },
+          isInclusive: { type: 'boolean', required: true },
         },
       },
     },
@@ -38,6 +40,7 @@ const TaxUpdateReq = {
           country: { type: 'string' },
           'class': { type: 'array', items: { type: 'string' } },
           percentage: { type: 'number' },
+          isInclusive: { type: 'boolean' },
         },
       },
     },
