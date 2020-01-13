@@ -30,24 +30,15 @@ const TaxesService: ServiceSchema = {
     },
     tUpdate: {
       auth: 'Basic',
-      handler(ctx: Context): RTax {
+      async handler(ctx: Context): Promise<RTax> {
         const { id } = ctx.params;
         const $set = ctx.params;
-        $set.country = $set.country.toUpperCase();
+        if($set.country) {
+          $set.country = $set.country.toUpperCase();
+        }
         delete $set.id;
 
-        ctx.call('oms.updateTax', ['name', 'percentage'].reduce((acc, key) => {
-          if(!$set[key]) {
-            delete acc[key as keyof {}];
-          }
-          return acc;
-        } ,{
-          id,
-          name: $set.name,
-          percentage: $set.percentage,
-        }));
-
-        return this.adapter
+        const taxUpdateData = await this.adapter
           .updateById(id, { $set })
           .then((tax: DbTax) => {
             if (!tax) {
@@ -63,6 +54,19 @@ const TaxesService: ServiceSchema = {
               err.code < 500 ? err.code : 500,
             );
           });
+        if (taxUpdateData.tax){
+          ctx.call('oms.updateTax', ['name', 'percentage'].reduce((acc, key) => {
+            if(!$set[key]) {
+              delete acc[key as keyof {}];
+            }
+            return acc;
+          } ,{
+            id: taxUpdateData.tax.omsId,
+            name: $set.name,
+            percentage: $set.percentage,
+          }));
+        }
+        return taxUpdateData;
       },
     },
     tFindByCountry: {
@@ -86,14 +90,14 @@ const TaxesService: ServiceSchema = {
     },
     tDelete: {
       auth: 'Basic',
-      handler(ctx: Context) {
-        ctx.call('oms.deleteTax', {id: ctx.params.id});
-        return this.adapter
+      async handler(ctx: Context) {
+        const taxDeleteData = await this.adapter
           .removeById(ctx.params.id)
           .then((tax: DbTax) => {
             if (!tax) {
               throw new MoleculerError('There is no tax with that ID', 404);
             }
+
             return {
               tax: this.sanitizer(tax),
               message: 'Tax deleted successfully!',
@@ -105,6 +109,12 @@ const TaxesService: ServiceSchema = {
               err.code < 500 ? err.code : 500,
             );
           });
+
+        if(taxDeleteData.tax) {
+          ctx.call('oms.deleteTax', {id: taxDeleteData.tax.omsId});
+        }
+
+        return taxDeleteData;
       },
     },
     taxStatus: {
