@@ -11,7 +11,7 @@ export const SubscriptionValidation: ServiceSchema = {
         },
       },
     },
-    list: {
+    sList: {
       params: {
         storeId: {
           type: 'string',
