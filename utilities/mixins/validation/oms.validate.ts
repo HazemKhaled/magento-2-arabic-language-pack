@@ -211,14 +211,35 @@ export const OmsValidation: ServiceSchema = {
         amount: 'number',
         invoices: {
           type: 'array',
-          items: {
+          item: {
             type: 'object',
-            props: { amountApplied: 'number', invoiceId: 'string' },
+            props: {
+              amount_applied: {
+                type: 'number',
+                convert: true,
+              },
+              invoice_id: {
+                type: 'string',
+              },
+            },
           },
+          optional: true,
         },
-        bankCharges: 'number',
+        bankCharges: {
+          type: 'number',
+          optional: true,
+          convert: true,
+        },
         accountId: 'string',
-        referenceNumber: 'string',
+        referenceNumber: [{
+          type: 'string',
+          optional: true,
+        },
+        {
+          type: 'number',
+          integer: true,
+          optional: true,
+        }],
       },
     },
     listPayments: {
