@@ -331,7 +331,7 @@ export const SubscriptionOpenapi: ServiceSchema = {
     },
   },
   actions: {
-    list: {
+    sList: {
       openapi: SubscriptionListOpenapi,
     },
     create: {
