@@ -17,7 +17,7 @@ export interface Product {
   source_url?: string;
   images?: string[];
   barcode?: string;
-  taxClass?: string;
+  tax_class?: string;
 }
 
 /**

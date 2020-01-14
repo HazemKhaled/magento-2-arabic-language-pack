@@ -1,5 +1,5 @@
 import { ServiceSchema } from 'moleculer';
-import { Store, Product, Tax } from '../../utilities/types';
+import { Store, Tax, OrderItem } from '../../utilities/types';
 import { Mail } from './mail.mixin';
 
 type ErrorSchema = {code: number; message: string;};
@@ -16,7 +16,7 @@ const TaxCheck: ServiceSchema = {
      * @param {Product} item
      * @returns {{code: number, message: string} | Tax}
      */
-    async getItemTax(instance: Store, item: Product) {
+    async getItemTax(instance: Store, item: OrderItem) {
       // Check if the store billing address country is available
       if (!this.checkAddressCountry(instance)) {
         return {
@@ -98,7 +98,7 @@ const TaxCheck: ServiceSchema = {
      * @param {Product} item
      * @returns {boolean}
      */
-    checkItemTaxClass(item: Product): boolean {
+    checkItemTaxClass(item: OrderItem): boolean {
       return !!(item && item.taxClass);
     },
   },
