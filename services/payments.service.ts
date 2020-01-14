@@ -15,21 +15,26 @@ const TheService: ServiceSchema = {
           id: ctx.params.id,
         });
         if (instance.internal_data && instance.internal_data.omsId) {
+          const paymentBody: any = {
+            customerId: instance.internal_data.omsId,
+            paymentMode: ctx.params.payment_mode,
+            amount: ctx.params.amount,
+            accountId: ctx.params.account_id,
+          };
+          if (ctx.params.invoices) {
+            paymentBody.invoices = ctx.params.invoices.map((invoice: { [key: string]: string }) => ({
+              invoiceId: invoice.invoice_id,
+              amountApplied: invoice.amount_applied,
+            }));
+          }
+          if (ctx.params.bank_charges) {
+            paymentBody.bankCharges = ctx.params.bank_charges;
+          }
+          if (ctx.params.reference) {
+            paymentBody.referenceNumber = String(ctx.params.reference);
+          }
           return ctx
-            .call('oms.createPayment', {
-              customerId: instance.internal_data.omsId,
-              paymentMode: ctx.params.payment_mode,
-              amount: ctx.params.amount,
-              invoices: ctx.params.invoices
-                ? ctx.params.invoices.map((invoice: { [key: string]: string }) => ({
-                  invoiceId: invoice.invoice_id,
-                  amountApplied: invoice.amount_applied,
-                }))
-                : undefined,
-              accountId: ctx.params.account_id,
-              bankCharges: ctx.params.bank_charges,
-              referenceNumber: String(ctx.params.reference),
-            })
+            .call('oms.createPayment', paymentBody)
             .then(
               res => {
                 // Store balance
