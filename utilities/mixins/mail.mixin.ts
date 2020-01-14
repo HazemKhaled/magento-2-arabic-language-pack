@@ -15,7 +15,7 @@ export const Mail: ServiceSchema = {
     }),
   },
   methods: {
-    sendMail(to, subject, text) {
+    sendMail({to, subject, text}) {
       const data = {
         from: process.env.MP_MAIL,
         to,
