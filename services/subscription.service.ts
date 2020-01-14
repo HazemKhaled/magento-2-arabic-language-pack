@@ -50,7 +50,7 @@ const TheService: ServiceSchema = {
         };
       },
     },
-    list: {
+    sList: {
       auth: 'Basic',
       cache: {
         keys: ['storeId', 'membershipId', 'expireDate', 'startDate', 'page', 'perPage', 'sort'],
@@ -202,7 +202,7 @@ const TheService: ServiceSchema = {
         if (isError(applyCreditsResponse as { message: string; code: number })) {
           throw new MoleculerError(applyCreditsResponse.message, applyCreditsResponse.code || 500);
         }
-        const storeOldSubscription = await ctx.call('subscription.list', {
+        const storeOldSubscription = await ctx.call('subscription.sList', {
           storeId: ctx.params.storeId,
           expireDate: { operation: 'gte' },
         });
@@ -242,7 +242,7 @@ const TheService: ServiceSchema = {
           .then(
             (res: Subscription): {} => {
               this.broker.cacher.clean(`subscription.get:${instance.url}*`);
-              this.broker.cacher.clean(`subscription.list:${instance.url}*`);
+              this.broker.cacher.clean(`subscription.sList:${instance.url}*`);
               this.broker.cacher.clean(`stores.get:${instance.url}*`);
               this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
               ctx.call('subscription.checkCurrentSubGradingStatus', {
@@ -325,7 +325,7 @@ const TheService: ServiceSchema = {
           .updateById(ctx.params.id, { $set })
           .then((instance: Store) => {
             this.broker.cacher.clean(`subscription.get:${instance.url}*`);
-            this.broker.cacher.clean(`subscription.list:${instance.url}*`);
+            this.broker.cacher.clean(`subscription.sList:${instance.url}*`);
             this.broker.cacher.clean(`stores.get:${instance.url}*`);
             this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
             return instance;
@@ -337,7 +337,7 @@ const TheService: ServiceSchema = {
     },
     checkCurrentSubGradingStatus: {
       async handler(ctx: Context) {
-        const allSubBefore = await ctx.call('subscription.list', {
+        const allSubBefore = await ctx.call('subscription.sList', {
           storeId: ctx.params.id,
           expireDate: { operation: 'gte', date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7) },
           sort: { field: 'expireDate', order: -1 },
