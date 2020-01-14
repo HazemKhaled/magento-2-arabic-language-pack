@@ -44,10 +44,10 @@ const TaxCheck: ServiceSchema = {
       const country = instance.address.country;
 
       // Get tax data from taxes service
-      const [taxData]: Tax[] | ErrorSchema[] = await this.broker.call('taxes.tFindByCountry', {
+      const taxData: Tax | ErrorSchema = await this.broker.call('taxes.tFindByCountry', {
         country,
-        'class': taxClass,
-      }).then(null, (err: any) => ([{
+        'class': taxClass.toString(),
+      }).then((res: {taxes: Tax[]}) => res.taxes[0], (err: any) => ([{
         code: 4444,
         message: err.message,
       }]));
