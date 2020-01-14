@@ -97,6 +97,17 @@ export const InvoicesValidation: ServiceSchema = {
                 type: 'number',
                 optional: true,
               },
+              taxId: [{
+                type: 'number',
+                optional: true,
+              },{
+                type: 'string',
+                optional: true,
+              }],
+              isInclusiveTax: {
+                type: 'boolean',
+                optional: true,
+              },
               $$strict: true,
             },
           },
