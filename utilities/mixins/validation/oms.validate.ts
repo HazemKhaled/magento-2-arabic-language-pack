@@ -266,7 +266,7 @@ export const OmsValidation: ServiceSchema = {
         companyName: { type: 'string', optional: true },
         status: { type: 'string', optional: true },
         platform: { type: 'string', optional: true },
-        stockDate: { type: 'string', optional: true },
+        stockDate: [{ type: 'string', optional: true }, { type: 'date', convert: true, optional: true }],
         stockStatus: { type: 'string', optional: true },
         priceDate: { type: 'string', optional: true },
         priceStatus: { type: 'string', optional: true },
