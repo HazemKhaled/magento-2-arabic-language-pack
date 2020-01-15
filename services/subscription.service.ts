@@ -321,6 +321,7 @@ const TheService: ServiceSchema = {
           params.expireDate = new Date(params.expireDate);
         }
         $set = { ...params, ...$set };
+        delete $set.id;
         return this.adapter
           .updateById(ctx.params.id, { $set })
           .then((instance: Store) => {

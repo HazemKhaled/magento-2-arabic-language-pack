@@ -43,7 +43,7 @@ const TheService: ServiceSchema = {
               id: String(subscription.id),
               renewed: true,
             });
-            ctx.call('crm.addTagByUrl', {
+            ctx.call('crm.addTagsByUrl', {
               id: subscription.storeId,
               tag: 'subscription-renew',
             });
