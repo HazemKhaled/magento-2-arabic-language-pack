@@ -579,6 +579,8 @@ const TheService: ServiceSchema = {
           adjustmentDescription: order.adjustmentDescription,
           shipment_tracking_number: order.shipmentTrackingNumber,
           orderNumber: order.orderNumber,
+          taxTotal: order.taxTotal,
+          taxes: order.taxes,
         };
         if (order.meta_data && order.meta_data.length > 0) {
           order.meta_data.forEach((meta: any) => {
