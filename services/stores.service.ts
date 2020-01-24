@@ -127,10 +127,8 @@ const TheService: ServiceSchema = {
             return this.sanitizeResponse(res);
           }
 
-          // If null return Not Found error
-          ctx.meta.$statusMessage = 'Not Found';
-          ctx.meta.$statusCode = 404;
-          return { errors: [{ message: 'Store Not Found' }] };
+          // If null throw Not Found error
+          throw new MoleculerClientError('Store Not Found', 404);
         });
       },
     },
