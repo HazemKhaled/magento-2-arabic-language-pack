@@ -46,7 +46,7 @@ const TheService: ServiceSchema = {
           'GET stores/me': 'stores.me',
           'GET stores': 'stores.list',
           'POST stores': 'stores.create',
-          'GET stores/:id': 'stores.get',
+          'GET stores/:id': 'stores.sGet',
           'PUT stores/:id': 'stores.update',
           'PUT stores/:id/sync': 'stores.sync',
           'GET admin/stores': 'stores.storesList',

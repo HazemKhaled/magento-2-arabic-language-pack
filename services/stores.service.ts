@@ -96,7 +96,7 @@ const TheService: ServiceSchema = {
      * @param {string} id
      * @returns {Store}
      */
-    get: {
+    sGet: {
       auth: 'Basic',
       cache: {
         keys: ['id'],
@@ -127,8 +127,10 @@ const TheService: ServiceSchema = {
             return this.sanitizeResponse(res);
           }
 
-          // If null throw Not Found error
-          throw new MoleculerClientError('Store Not Found', 404);
+          // If null return Not Found error
+          ctx.meta.$statusMessage = 'Not Found';
+          ctx.meta.$statusCode = 404;
+          return { errors: [{ message: 'Store Not Found' }] };
         });
       },
     },
@@ -227,7 +229,7 @@ const TheService: ServiceSchema = {
       auth: 'Basic',
       async handler(ctx: Context) {
         // Clear cache
-        this.broker.cacher.clean(`stores.get:${ctx.params.url}`);
+        this.broker.cacher.clean(`stores.sGet:${ctx.params.url}`);
 
         // FIX: Clear only cache by email
         this.broker.cacher.clean('stores.list:**');
@@ -341,7 +343,7 @@ const TheService: ServiceSchema = {
         this.broker.cacher.clean(`stores.findInstance:${myStore.consumer_key}*`);
         this.broker.cacher.clean(`stores.findInstance:*${myStore.url}*`);
         this.broker.cacher.clean(`stores.me:${myStore.consumer_key}*`);
-        this.broker.cacher.clean(`stores.get:${myStore.url}*`);
+        this.broker.cacher.clean(`stores.sGet:${myStore.url}*`);
         this.broker.cacher.clean('stores.list**');
         this.broker.cacher.clean('stores.storesList:**');
         this.broker.cacher.clean(`products.list:${myStore.consumer_key}*`);
