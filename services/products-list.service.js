@@ -142,6 +142,7 @@ module.exports = {
       },
     },
     getProductsByVariationSku: {
+      auth: 'Basic',
       handler(ctx) {
         return ctx
           .call('products-list.search', {

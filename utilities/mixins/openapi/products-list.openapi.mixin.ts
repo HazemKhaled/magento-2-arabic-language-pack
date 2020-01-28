@@ -48,6 +48,38 @@ const ProductsListGetOpenapi = {
   ],
 };
 
+const ProductsByVariationOpenapi = {
+  $path: 'get /products/variation',
+  parameters: [
+    {
+      name: 'skus',
+      'in': 'query',
+      required: true,
+      schema: {
+        type: 'array',
+        items: {
+          type: 'string',
+        },
+      },
+    },
+  ],
+  summary: 'Get Product by Variation SKU',
+  tags: ['Products', 'Enterprise Only'],
+  responses: {
+    200: {
+      description: 'Status 200',
+    },
+    401: {
+      $ref: '#/components/responses/UnauthorizedErrorBasic',
+    },
+  },
+  security: [
+    {
+      basicAuth: [] as [],
+    },
+  ],
+};
+
 export const ProductsListOpenapi: ServiceSchema = {
   name: 'products-list',
   actions: {
@@ -56,6 +88,9 @@ export const ProductsListOpenapi: ServiceSchema = {
     },
     get: {
       openapi: ProductsListGetOpenapi,
+    },
+    getProductsByVariationSku: {
+      openapi: ProductsByVariationOpenapi,
     },
   },
 };
