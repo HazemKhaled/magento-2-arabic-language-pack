@@ -666,6 +666,7 @@ const TheService: ServiceSchema = {
           return { message: 'Order Not Found!' };
         }
         // Change here
+        //FIXME: Cancel it invoice not paid
         if (!['Order Placed', 'Processing'].includes(orderBeforeUpdate.status)) {
           ctx.meta.$statusCode = 405;
           ctx.meta.$statusMessage = 'Not Allowed';
