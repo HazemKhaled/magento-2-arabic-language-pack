@@ -520,6 +520,7 @@ const OrdersListOpenapi = {
           'date',
         ],
       },
+      'default': 'created_time',
     },
     {
       name: 'sortOrder',
@@ -532,6 +533,7 @@ const OrdersListOpenapi = {
           'D',
         ],
       },
+      'default': 'D',
     },
     {
       name: 'status',
