@@ -669,7 +669,7 @@ const TheService: ServiceSchema = {
         if (!['Order Placed', 'Processing'].includes(orderBeforeUpdate.status)) {
           ctx.meta.$statusCode = 405;
           ctx.meta.$statusMessage = 'Not Allowed';
-          return { message: 'The Order Is Now Processed With Knawat You Can Not Update It' };
+          return { message: 'The Order Is Now Processed With Knawat You Can Not Cancel It' };
         }
         if ('Cancelled' === orderBeforeUpdate.status) {
           return { message: 'The Order Is Already Cancelled' };
