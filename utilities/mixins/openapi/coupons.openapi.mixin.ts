@@ -15,7 +15,7 @@ const Coupon = {
 };
 
 const CouponsGetOpenapi = {
-  $path: 'get coupons/:CODE',
+  $path: 'get /coupons/:CODE',
   summary: 'Get Coupon',
   tags: ['Coupon'],
   parameters: [
