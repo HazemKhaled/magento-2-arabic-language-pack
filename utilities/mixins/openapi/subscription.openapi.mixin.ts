@@ -115,14 +115,6 @@ const SubscriptionListOpenapi = {
         },
       },
     },
-    {
-      name: 'Authorization',
-      'in': 'header',
-      required: true,
-      schema: {
-        type: 'string',
-      },
-    },
   ],
   responses: {
     200: {
@@ -176,16 +168,6 @@ const SubscriptionCreateOpenapi = {
   $path: 'post /subscription',
   summary: 'Create new Subscription',
   tags: ['Subscription'],
-  parameters: [
-    {
-      name: 'Authorization',
-      'in': 'header',
-      required: true,
-      schema: {
-        type: 'string',
-      },
-    },
-  ],
   responses: {
     200: {
       description: 'Status 200',
@@ -254,14 +236,6 @@ const SubscriptionUpdateOpenapi = {
     {
       name: 'id',
       'in': 'path',
-      required: true,
-      schema: {
-        type: 'string',
-      },
-    },
-    {
-      name: 'Authorization',
-      'in': 'header',
       required: true,
       schema: {
         type: 'string',

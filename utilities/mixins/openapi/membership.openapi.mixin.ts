@@ -87,16 +87,6 @@ const MembershipCreateOpenapi = {
   $path: 'post /membership',
   summary: 'Create new membership',
   tags: ['Membership'],
-  parameters: [
-    {
-      name: 'Authorization',
-      'in': 'header',
-      required: true,
-      schema: {
-        type: 'string',
-      },
-    },
-  ],
   responses: {
     200: {
       description: 'Status 200',
@@ -160,14 +150,6 @@ const MembershipUpdateOpenapi = {
     {
       name: 'id',
       'in': 'path',
-      required: true,
-      schema: {
-        type: 'string',
-      },
-    },
-    {
-      name: 'Authorization',
-      'in': 'header',
       required: true,
       schema: {
         type: 'string',

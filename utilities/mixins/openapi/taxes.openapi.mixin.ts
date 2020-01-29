@@ -51,16 +51,6 @@ const TaxCreate = {
   $path: 'post /tax',
   summary: 'Create new tax',
   tags: ['Taxes'],
-  parameters: [
-    {
-      name: 'Authorization',
-      'in': 'header',
-      required: true,
-      schema: {
-        type: 'string',
-      },
-    },
-  ],
   responses: {
     200: {
       description: 'Status 200',
@@ -116,14 +106,6 @@ const TaxUpdate = {
   summary: 'Update new tax',
   tags: ['Taxes'],
   parameters: [
-    {
-      name: 'Authorization',
-      'in': 'header',
-      required: true,
-      schema: {
-        type: 'string',
-      },
-    },
     {
       name: 'id',
       'in': 'path',
