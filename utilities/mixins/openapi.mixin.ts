@@ -58,7 +58,7 @@ export function OpenApiMixin(): ServiceSchema {
                 url: 'https://developer.knawat.com',
               },
               license: {
-                name: 'Knawat Copyright © - 2017 - 2019',
+                name: `Knawat Copyright © - 2017 -  ${new Date().getFullYear()}`,
                 url: 'https://knawat.com/terms-and-conditions/',
               },
               description: `Welcome to the Knawat MP documentation. Navigate through the documentation to learn more. If you encounter any problems when using our APIs, send us an email it@knawat.com;
@@ -79,18 +79,12 @@ We are happy to receive your questions. click here to [chat with us](https://git
             // https://swagger.io/specification/#serverObject
             servers: [
               {
-                url:
-                  process.env.APPURL ||
-                  `${this.isHTTPS ? 'https' : 'http'}://localhost:${this.server.address().port}`,
-                description: 'Development server',
+                description: 'Sandbox Server',
+                url: 'https://dev.mp.knawat.io/api',
               },
               {
                 description: 'Production Server',
                 url: 'https://mp.knawat.io/api',
-              },
-              {
-                description: 'Sandbox Server',
-                url: 'https://dev.mp.knawat.io/api',
               },
             ],
 
@@ -153,27 +147,14 @@ We are happy to receive your questions. click here to [chat with us](https://git
             // https://swagger.io/specification/#tagObject
             tags: [
               {
-                name: 'Authentication',
-                description: 'text here',
-              },
-              {
                 name: 'My Products',
                 description:
                   `How products can come to your API?
 ![](https://www.dropbox.com/s/tb8708y269pccx0/ZApp%20-%20products.png?dl=1)`,
                 externalDocs: {
                   description: 'Register and import some products',
-                  url: 'https://app.knawat.com',
+                  url: 'https://app.knawat.com/catalog',
                 },
-              },
-              {
-                name: 'Orders',
-              },
-              {
-                name: 'Invoices',
-              },
-              {
-                name: 'Payments',
               },
               {
                 name: 'Enterprise Only',
@@ -183,35 +164,17 @@ We are happy to receive your questions. click here to [chat with us](https://git
                 },
               },
               {
-                name: 'Stores',
-              },
-              {
                 name: 'Products',
                 description:
                   'This is how you can get all Knawat products to list it directly on your store, this endpoint for enterprise only customers only',
               },
-              {
-                name: 'Currencies',
-              },
-              {
-                name: 'Shipment',
-              },
-              {
-                name: 'Subscription',
-              },
-              {
-                name: 'Coupon',
-              },
-              {
-                name: 'Membership',
-              },
-              {
-                name: 'Taxes',
-              },
             ],
 
             // https://swagger.io/specification/#externalDocumentationObject
-            externalDocs: [],
+            externalDocs: [{
+              description: 'Find more info here',
+              url: 'https://docs.knawat.io',
+            }],
           });
 
           const services = this.broker.registry.getServiceList({
