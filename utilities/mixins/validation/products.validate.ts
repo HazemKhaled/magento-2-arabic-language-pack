@@ -36,6 +36,10 @@ export const ProductsValidation: ServiceSchema = {
           type: 'string',
           optional: true,
         },
+        externalId: {
+          type: 'string',
+          optional: true,
+        },
         currency: {
           type: 'string',
           optional: true,
