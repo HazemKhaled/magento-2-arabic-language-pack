@@ -20,6 +20,7 @@ export interface Order {
   externalInvoice?: string;
   invoice_url?: string;
   shipmentCourier?: string;
+  shipmentTrackingNumber?: string;
   shipping_method?: string;
   store?: {};
   orderNumber?: string;

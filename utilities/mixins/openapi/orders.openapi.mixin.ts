@@ -587,6 +587,9 @@ const OrdersListOpenapi = {
                 total: {
                   type: 'number',
                 },
+                trackingNumber: {
+                  type: 'string',
+                },
                 knawat_order_status: {
                   type: 'string',
                 },
