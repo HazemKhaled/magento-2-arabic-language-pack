@@ -252,15 +252,6 @@ const StoresGetOpenapi = {
   tags: ['Stores', 'Enterprise Only'],
   parameters: [
     {
-      name: 'Authorization',
-      'in': 'header',
-      required: true,
-      schema: {
-        type: 'string',
-      },
-    },
-
-    {
       name: 'url',
       'in': 'path',
       required: true,
@@ -323,14 +314,6 @@ const StoresListOpenapi = {
       name: 'filter',
       'in': 'query',
       required: false,
-      schema: {
-        type: 'string',
-      },
-    },
-    {
-      name: 'Authorization',
-      'in': 'header',
-      required: true,
       schema: {
         type: 'string',
       },
@@ -413,14 +396,6 @@ const StoresSListOpenapi = {
         type: 'number',
       },
     },
-    {
-      name: 'Authorization',
-      'in': 'header',
-      required: true,
-      schema: {
-        type: 'string',
-      },
-    },
   ],
   responses: {
     200: {
@@ -480,16 +455,6 @@ const StoresCreateOpenapi = {
   $path: 'post /stores',
   summary: 'Create new store',
   tags: ['Stores', 'Enterprise Only'],
-  parameters: [
-    {
-      name: 'Authorization',
-      'in': 'header',
-      required: true,
-      schema: {
-        type: 'string',
-      },
-    },
-  ],
   responses: {
     200: {
       description: 'Status 200',
@@ -546,14 +511,6 @@ const StoresUpdateOpenapi = {
     {
       name: 'url',
       'in': 'path',
-      required: true,
-      schema: {
-        type: 'string',
-      },
-    },
-    {
-      name: 'Authorization',
-      'in': 'header',
       required: true,
       schema: {
         type: 'string',

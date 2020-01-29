@@ -171,16 +171,6 @@ const InvoicesCreateOpenapi = {
   $path: 'post /invoices',
   summary: 'Create new invoice',
   tags: ['Invoices'],
-  parameters: [
-    {
-      name: 'Authorization',
-      'in': 'header',
-      required: true,
-      schema: {
-        type: 'string',
-      },
-    },
-  ],
   responses: {
     200: {
       description: 'Status 200',
@@ -238,14 +228,6 @@ const InvoicesApplyCreditsOpenapi = {
     {
       name: 'id',
       'in': 'path',
-      required: true,
-      schema: {
-        type: 'string',
-      },
-    },
-    {
-      name: 'Authorization',
-      'in': 'header',
       required: true,
       schema: {
         type: 'string',
