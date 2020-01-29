@@ -83,7 +83,7 @@ const TheService: ServiceSchema = {
 
         // Taxes
         const taxData = await this.setTaxIds(instance, stock.items);
-        const taxesMsg: {code: number; message: string;}[] = taxData.msgs;
+        const taxesMsg: { code: number; message: string; }[] = taxData.msgs;
 
         // Update Order Items
         data.items = taxData.items;
@@ -392,7 +392,7 @@ const TheService: ServiceSchema = {
 
             // Taxes
             const taxData = await this.setTaxIds(instance, stock.items);
-            const taxesMsg: {code: number; message: string;}[] = taxData.msgs;
+            const taxesMsg: { code: number; message: string; }[] = taxData.msgs;
 
             // Update Order Items
             data.items = taxData.items;

@@ -61,8 +61,19 @@ export function OpenApiMixin(): ServiceSchema {
                 name: 'Knawat Copyright © - 2017 - 2019',
                 url: 'https://knawat.com/terms-and-conditions/',
               },
-              description:
-                'Welcome to the Knawat MP documentation. Navigate through the documentation to learn more. If you encounter any problems when using our APIs, send us an email it@knawat.com;\n## What is Knawat? Knawat is a Drop-Shipping platform. We are bringing hundreds of thousands of products to let you list in your e-commerce store. We also do all operations behind the e-commerce, so once you receive an order, we will ship it to your customer with your invoice. ## What is Knawat MP API? Knawat MP APIs mainly for e-commerce stores, allows you to aggregate products to your store, update stock and prices, and send us your orders. ## Features\n  * Fetch products with pagination\n  * fetch one product to validate price or qty\n  * All prices in USD\n\n## To-Dos\n  * Fetch product(s) with your currency\n  * Advanced products search with keyword\n## Support and Chat\n  We are happy to receive your questions. click here to [chat with\n    us](https://gitter.im/Knawat/Lobby).\n',
+              description: `Welcome to the Knawat MP documentation. Navigate through the documentation to learn more. If you encounter any problems when using our APIs, send us an email it@knawat.com;
+
+## What is Knawat?
+
+Knawat is a Drop-Shipping platform. We are bringing hundreds of thousands of products to let you list in your e-commerce store. We also do all operations behind the e-commerce, so once you receive an order, we will ship it to your customer with your invoice.
+
+## What is Knawat MP API?
+
+Knawat MP APIs mainly for e-commerce stores, allows you to aggregate products to your store, update stock and prices, and send us your orders.
+
+## Support and Chat
+
+We are happy to receive your questions. click here to [chat with us](https://gitter.im/Knawat/Lobby)`,
             },
 
             // https://swagger.io/specification/#serverObject
@@ -108,7 +119,7 @@ export function OpenApiMixin(): ServiceSchema {
                 },
                 basicAuth: {
                   description:
-                    'Knawat provide <a href="#tag/Enterprise-Only">extra endpoints</a> for enterprise subscriptions, check <a href="https://knawat.com/plans">pricing here</a>.\n',
+                    'Knawat provide <a href="#tag/Enterprise-Only">extra endpoints</a> for enterprise subscriptions, check <a href="https://knawat.com/plans">pricing here</a>.',
                   type: 'http',
                   scheme: 'basic',
                 },
@@ -137,11 +148,7 @@ export function OpenApiMixin(): ServiceSchema {
             paths: {},
 
             // https://swagger.io/specification/#securityRequirementObject
-            security: [
-              {
-                basicAuth: [],
-              },
-            ],
+            security: [],
 
             // https://swagger.io/specification/#tagObject
             tags: [
@@ -152,7 +159,8 @@ export function OpenApiMixin(): ServiceSchema {
               {
                 name: 'My Products',
                 description:
-                  'How products can come to your API?\n![](https://www.dropbox.com/s/tb8708y269pccx0/ZApp%20-%20products.png?dl=1)\n',
+                  `How products can come to your API?
+![](https://www.dropbox.com/s/tb8708y269pccx0/ZApp%20-%20products.png?dl=1)`,
                 externalDocs: {
                   description: 'Register and import some products',
                   url: 'https://app.knawat.com',
