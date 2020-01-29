@@ -35,14 +35,6 @@ const CouponsGetOpenapi = {
         type: 'string',
       },
     },
-    {
-      name: 'Authorization',
-      'in': 'header',
-      required: true,
-      schema: {
-        type: 'string',
-      },
-    },
   ],
   responses: {
     200: {
