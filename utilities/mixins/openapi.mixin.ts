@@ -58,7 +58,7 @@ export function OpenApiMixin(): ServiceSchema {
                 url: 'https://developer.knawat.com',
               },
               license: {
-                name: 'Knawat Copyright © - 2017 - 2019',
+                name: `Knawat Copyright © - 2017 -  ${new Date().getFullYear()}`,
                 url: 'https://knawat.com/terms-and-conditions/',
               },
               description: `Welcome to the Knawat MP documentation. Navigate through the documentation to learn more. If you encounter any problems when using our APIs, send us an email it@knawat.com;
