@@ -79,18 +79,12 @@ We are happy to receive your questions. click here to [chat with us](https://git
             // https://swagger.io/specification/#serverObject
             servers: [
               {
-                url:
-                  process.env.APPURL ||
-                  `${this.isHTTPS ? 'https' : 'http'}://localhost:${this.server.address().port}`,
-                description: 'Development server',
+                description: 'Sandbox Server',
+                url: 'https://dev.mp.knawat.io/api',
               },
               {
                 description: 'Production Server',
                 url: 'https://mp.knawat.io/api',
-              },
-              {
-                description: 'Sandbox Server',
-                url: 'https://dev.mp.knawat.io/api',
               },
             ],
 
