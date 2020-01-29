@@ -505,6 +505,60 @@ const OrdersListOpenapi = {
         'default': 1,
       },
     },
+    {
+      name: 'sort',
+      'in': 'query',
+      required: false,
+      schema: {
+        type: 'string',
+        'enum': [
+          'created_time',
+          'customer_name',
+          'salesorder_number',
+          'shipment_date',
+          'total',
+          'date',
+        ],
+      },
+      'default': 'created_time',
+    },
+    {
+      name: 'sortOrder',
+      'in': 'query',
+      required: false,
+      schema: {
+        type: 'string',
+        'enum': [
+          'A',
+          'D',
+        ],
+      },
+      'default': 'D',
+    },
+    {
+      name: 'status',
+      'in': 'query',
+      required: false,
+      schema: {
+        type: 'string',
+        'enum': [
+          'draft',
+          'open',
+          'invoiced',
+          'partially_invoiced',
+          'void',
+          'overdue',
+        ],
+      },
+    },
+    {
+      name: 'externalId',
+      'in': 'query',
+      required: false,
+      schema: {
+        type: 'string',
+      },
+    },
   ],
   responses: {
     200: {

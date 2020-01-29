@@ -83,7 +83,7 @@ const TheService: ServiceSchema = {
 
         // Taxes
         const taxData = await this.setTaxIds(instance, stock.items);
-        const taxesMsg: {code: number; message: string;}[] = taxData.msgs;
+        const taxesMsg: { code: number; message: string; }[] = taxData.msgs;
 
         // Update Order Items
         data.items = taxData.items;
@@ -320,7 +320,7 @@ const TheService: ServiceSchema = {
           return { message: 'Order Not Found!' };
         }
         // Change here
-        if (!['Order Placed', 'Processing', 'Cancelled'].includes(orderBeforeUpdate.status)) {
+        if (!['Order Placed', 'Processing'].includes(orderBeforeUpdate.status)) {
           ctx.meta.$statusCode = 405;
           ctx.meta.$statusMessage = 'Not Allowed';
           return { message: 'The Order Is Now Processed With Knawat You Can Not Update It' };
@@ -392,7 +392,7 @@ const TheService: ServiceSchema = {
 
             // Taxes
             const taxData = await this.setTaxIds(instance, stock.items);
-            const taxesMsg: {code: number; message: string;}[] = taxData.msgs;
+            const taxesMsg: { code: number; message: string; }[] = taxData.msgs;
 
             // Update Order Items
             data.items = taxData.items;
@@ -666,10 +666,11 @@ const TheService: ServiceSchema = {
           return { message: 'Order Not Found!' };
         }
         // Change here
-        if (!['Order Placed', 'Processing', 'Cancelled'].includes(orderBeforeUpdate.status)) {
+        //FIXME: Allow cancel order if invoice not paid
+        if (!['Order Placed', 'Processing'].includes(orderBeforeUpdate.status)) {
           ctx.meta.$statusCode = 405;
           ctx.meta.$statusMessage = 'Not Allowed';
-          return { message: 'The Order Is Now Processed With Knawat You Can Not Update It' };
+          return { message: 'The Order Is Now Processed With Knawat You Can Not Cancel It' };
         }
         if ('Cancelled' === orderBeforeUpdate.status) {
           return { message: 'The Order Is Already Cancelled' };
