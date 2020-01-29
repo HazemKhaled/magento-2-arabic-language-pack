@@ -159,6 +159,7 @@ module.exports = {
           'lastupdate',
           'hideOutOfStock',
           'keyword',
+          'externalId',
           'currency',
           '_source',
         ],
