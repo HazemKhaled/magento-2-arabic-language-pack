@@ -651,6 +651,7 @@ const TheService: ServiceSchema = {
           createDate: order.createDate,
           updateDate: order.updateDate,
           total: order.total,
+          trackingNumber: order.shipmentTrackingNumber,
           knawat_order_status: order.status ? this.normalizeResponseStatus(order.status) : '',
           orderNumber: order.orderNumber,
         }));
