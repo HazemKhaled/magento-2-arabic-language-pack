@@ -159,6 +159,7 @@ module.exports = {
           'lastupdate',
           'hideOutOfStock',
           'keyword',
+          'externalId',
           'currency',
           '_source',
         ],
@@ -194,6 +195,7 @@ module.exports = {
           lastupdate,
           ctx.params.hideOutOfStock,
           ctx.params.keyword,
+          ctx.params.externalId,
           ctx.params.currency,
         );
         // Emit async Event
@@ -563,6 +565,7 @@ module.exports = {
       lastupdate = '',
       hideOutOfStock,
       keyword,
+      externalId,
       currency,
     ) {
       const instance = await this.broker.call('stores.findInstance', {
@@ -576,6 +579,7 @@ module.exports = {
         lastupdate,
         hideOutOfStock,
         keyword,
+        externalId,
       );
 
       const instanceProducts = instanceProductsFull.page.map(product => product._source.sku);
@@ -690,6 +694,7 @@ module.exports = {
       lastUpdated = '',
       hideOutOfStock,
       keyword,
+      externalId,
       fullResult = [],
       endTrace = 0,
       scrollId = false,
@@ -737,6 +742,14 @@ module.exports = {
                 query: keyword,
                 fields: ['sku.keyword', 'variations.sku.keyword'],
                 fuzziness: 'AUTO',
+              },
+            });
+          }
+
+          if (externalId) {
+            searchQuery.body.query.bool.must.push({
+              term: {
+                externalId,
               },
             });
           }
@@ -798,6 +811,7 @@ module.exports = {
             lastUpdated,
             hideOutOfStock,
             keyword,
+            externalId,
             results,
             endTrace,
             search._scroll_id,

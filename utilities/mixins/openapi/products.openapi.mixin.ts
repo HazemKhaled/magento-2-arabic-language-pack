@@ -450,6 +450,15 @@ const ProductsList = {
       },
     },
     {
+      name: 'externalId',
+      'in': 'query',
+      required: false,
+      description: 'filter with externalId',
+      schema: {
+        type: 'string',
+      },
+    },
+    {
       name: 'hideOutOfStock',
       'in': 'query',
       required: false,
