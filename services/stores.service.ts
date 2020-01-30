@@ -353,9 +353,9 @@ const TheService: ServiceSchema = {
           ctx.call('crm.updateStoreById', { id, ...ctx.params }).then(null, (error: unknown) => {
             this.sendLogs({
               topic: 'store',
-              topicId: ctx.params.url,
+              topicId: id,
               message: 'Update in OMS',
-              storeId: ctx.params.url,
+              storeId: id,
               logLevel: 'error',
               code: 500,
               payload: { error, params: ctx.params },
@@ -364,9 +364,9 @@ const TheService: ServiceSchema = {
         } else {
           this.sendLogs({
             topic: 'store',
-            topicId: ctx.params.url,
+            topicId: id,
             message: 'Update in OMS, omsId not found',
-            storeId: ctx.params.url,
+            storeId: id,
             logLevel: 'error',
             code: 500,
             payload: { params: ctx.params },
