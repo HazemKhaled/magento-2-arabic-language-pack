@@ -153,7 +153,7 @@ const TheService: ServiceSchema = {
         }
         discount = Math.max(discount, membership.discount);
         const instance = await ctx
-          .call('stores.get', { id: ctx.params.storeId })
+          .call('stores.sGet', { id: ctx.params.storeId })
           .then(null, err => err);
         if (isError(instance as { message: string; code: number })) {
           throw new MoleculerError(instance.message, instance.code || 500);
@@ -243,7 +243,7 @@ const TheService: ServiceSchema = {
             (res: Subscription): {} => {
               this.broker.cacher.clean(`subscription.get:${instance.url}*`);
               this.broker.cacher.clean(`subscription.sList:${instance.url}*`);
-              this.broker.cacher.clean(`stores.get:${instance.url}*`);
+              this.broker.cacher.clean(`stores.sGet:${instance.url}*`);
               this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
               ctx.call('subscription.checkCurrentSubGradingStatus', {
                 id: ctx.params.storeId,
@@ -327,7 +327,7 @@ const TheService: ServiceSchema = {
           .then((instance: Store) => {
             this.broker.cacher.clean(`subscription.get:${instance.url}*`);
             this.broker.cacher.clean(`subscription.sList:${instance.url}*`);
-            this.broker.cacher.clean(`stores.get:${instance.url}*`);
+            this.broker.cacher.clean(`stores.sGet:${instance.url}*`);
             this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
             return instance;
           })
