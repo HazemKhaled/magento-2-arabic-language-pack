@@ -139,12 +139,12 @@ const TheService: ServiceSchema = {
         const subscription = await ctx.call('subscription.get', { id: instance.url });
         switch (subscription.attributes.orderProcessingType) {
         case '$':
-          data.adjustment = subscription.attributes.orderProcessingFees;
+          data.adjustment = Number(subscription.attributes.orderProcessingFees);
           data.adjustmentDescription = 'Processing Fees';
           break;
         case '%':
-          subscription.adjustment = (subscription.attributes.orderProcessingFees / 100) * total;
-          subscription.adjustmentDescription = `Processing Fees ${
+          data.adjustment = (Number(subscription.attributes.orderProcessingFees) / 100) * total;
+          data.adjustmentDescription = `Processing Fees ${
             subscription.attributes.orderProcessingFees
           }%`;
           break;
