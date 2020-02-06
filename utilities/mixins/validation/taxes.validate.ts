@@ -57,11 +57,28 @@ export const TaxesValidation: ServiceSchema = {
         $$strict: true,
       },
     },
-    tFindByCountry: {
+    tGet: {
       params: {
+        id: 'string',
+      },
+    },
+    tList: {
+      params: {
+        page: {
+          type: 'number',
+          integer: true,
+          optional: true,
+        },
+        perPage: {
+          type: 'number',
+          integer: true,
+          max: 100,
+          optional: true,
+        },
         country: {
           type: 'string',
           pattern: '^[a-zA-Z]{2}$',
+          optional: true,
         },
         'class': [{
           type: 'string',
