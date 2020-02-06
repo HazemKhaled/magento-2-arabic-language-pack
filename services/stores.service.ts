@@ -195,12 +195,10 @@ const TheService: ServiceSchema = {
         return this.adapter
           .find(findBody)
           .then(async (res: Store[]) => {
-            if (res.length !== 0)
-              return {
-                stores: res.map(store => this.sanitizeResponse(store)),
-                total: await ctx.call('stores.countStores', { query }),
-              };
-            throw new MoleculerError('No Store found!', 404);
+            return {
+              stores: res.map(store => this.sanitizeResponse(store)),
+              total: await ctx.call('stores.countStores', {  key: ctx.params.id, query }),
+            };
           })
           .catch((err: any) => {
             if (err.name === 'MoleculerError') {
@@ -212,7 +210,7 @@ const TheService: ServiceSchema = {
     },
     countStores: {
       cache: {
-        keys: ['query'],
+        keys: ['key'],
         ttl: 60 * 60 * 24, // 1 day
       },
       handler(ctx: Context) {
