@@ -167,7 +167,7 @@ const TaxUpdate = {
 
 const TaxGet = {
   $path: 'get /tax/{id}',
-  summary: 'get list of taxes by country',
+  summary: 'Get tax by Id',
   tags: ['Taxes'],
   parameters: [
     {
@@ -228,7 +228,7 @@ const TaxGet = {
 
 const TaxList = {
   $path: 'get /tax',
-  summary: 'get list of taxes by country',
+  summary: 'Get taxes',
   tags: ['Taxes'],
   parameters: [
     {
