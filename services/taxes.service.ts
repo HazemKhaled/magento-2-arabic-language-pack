@@ -22,7 +22,11 @@ const TaxesService: ServiceSchema = {
         taxBody.omsId = omsTax.tax.id;
         return this.adapter
           .insert(taxBody)
-          .then((tax: DbTax) => ({ tax: this.sanitizer(tax) }))
+          .then((tax: DbTax) => {
+            this.broker.cacher.clean('taxes.tList:*');
+            this.broker.cacher.clean('taxes.tCount:*');
+            return { tax: this.sanitizer(tax) };
+          })
           .catch((err: any) => {
             throw new MoleculerError(err, 500);
           });
@@ -33,7 +37,7 @@ const TaxesService: ServiceSchema = {
       async handler(ctx: Context): Promise<RTax> {
         const { id } = ctx.params;
         const $set = ctx.params;
-        if($set.country) {
+        if ($set.country) {
           $set.country = $set.country.toUpperCase();
         }
         delete $set.id;
@@ -44,6 +48,11 @@ const TaxesService: ServiceSchema = {
             if (!tax) {
               throw new MoleculerError('There is no tax with that ID', 404);
             }
+
+            this.broker.cacher.clean(`taxes.tGet:${id}*`);
+            this.broker.cacher.clean('taxes.tList:*');
+            this.broker.cacher.clean('taxes.tCount:*');
+
             return {
               tax: this.sanitizer(tax),
             };
@@ -54,13 +63,13 @@ const TaxesService: ServiceSchema = {
               err.code < 500 ? err.code : 500,
             );
           });
-        if (taxUpdateData.tax){
+        if (taxUpdateData.tax) {
           ctx.call('oms.updateTax', ['name', 'percentage'].reduce((acc, key) => {
-            if(!$set[key]) {
+            if (!$set[key]) {
               delete acc[key as keyof {}];
             }
             return acc;
-          } ,{
+          }, {
             id: taxUpdateData.tax.omsId,
             name: $set.name,
             percentage: $set.percentage,
@@ -69,22 +78,59 @@ const TaxesService: ServiceSchema = {
         return taxUpdateData;
       },
     },
-    tFindByCountry: {
+    tGet: {
       auth: 'Basic',
+      cache: {
+        keys: ['id'],
+        ttl: 60 * 60, // 1 hour
+      },
+      handler(ctx: Context): RTax {
+        return this.adapter.findById(ctx.params.id).then((tax: DbTax) => {
+          if (tax) {
+            return { tax: this.sanitizer(tax) };
+          }
+          throw new MoleculerError('There is no tax with that ID', 404);
+        }).catch((err: any) => {
+          throw new MoleculerError(
+            err.message ? err.message : 'Something went wrong.',
+            err.code < 500 ? err.code : 500,
+          );
+        });
+      },
+    },
+    tList: {
+      auth: 'Basic',
+      cache: {
+        keys: ['page', 'perPage', 'country', 'class'],
+        ttl: 60 * 60, // 1 hour
+      },
       handler(ctx: Context): RTax[] {
-        const query = ctx.params;
-        query.country = query.country.toUpperCase();
-        if (Array.isArray(query.class)) {
-          query.class = { $in: query.class };
+        const { country } = ctx.params;
+        const classes = ctx.params.class;
+        const query: any = {};
+        if (country) {
+          query.country = country.toUpperCase();
         }
-        if (!query.class) {
-          delete query.class;
+        if (Array.isArray(classes)) {
+          query.class = { $in: classes };
         }
+        if (typeof classes === 'string' ) {
+          query.class = classes;
+        }
+        const page = ctx.params.page || 1;
+        const limit = ctx.params.perPage || 50;
+        const offset = (page - 1) * limit;
         return this.adapter
-          .find({ query })
-          .then((res: DbTax[]) => ({ taxes: res.map(tax => this.sanitizer(tax)) }))
+          .find({ limit, offset, query })
+          .then(async (res: DbTax[]) => ({
+            taxes: res.map(tax => this.sanitizer(tax)),
+            total: await ctx.call('taxes.tCount', { query }),
+          }))
           .catch((err: any) => {
-            throw new MoleculerError(err, 500);
+            throw new MoleculerError(
+              err.message ? err.message : 'Something went wrong.',
+              err.code < 500 ? err.code : 500,
+            );
           });
       },
     },
@@ -98,6 +144,10 @@ const TaxesService: ServiceSchema = {
               throw new MoleculerError('There is no tax with that ID', 404);
             }
 
+            this.broker.cacher.clean(`taxes.tGet:${ctx.params.id}*`);
+            this.broker.cacher.clean('taxes.tList:*');
+            this.broker.cacher.clean('taxes.tCount:*');
+
             return {
               tax: this.sanitizer(tax),
               message: 'Tax deleted successfully!',
@@ -110,8 +160,8 @@ const TaxesService: ServiceSchema = {
             );
           });
 
-        if(taxDeleteData.tax) {
-          ctx.call('oms.deleteTax', {id: taxDeleteData.tax.omsId});
+        if (taxDeleteData.tax) {
+          ctx.call('oms.deleteTax', { id: taxDeleteData.tax.omsId });
         }
 
         return taxDeleteData;
@@ -123,6 +173,17 @@ const TaxesService: ServiceSchema = {
           sales: !!Number(process.env.IS_SALES_TAX_INCLUSIVE),
           subscription: !!Number(process.env.IS_SUB_TAX_INCLUSIVE),
         };
+      },
+    },
+    tCount: {
+      cache: {
+        keys: ['query'],
+        ttl: 60 * 60,
+      },
+      handler(ctx: Context) {
+        return this.adapter.count({query: ctx.params.query}).catch(() => {
+          throw new MoleculerError('There is an error fetching the taxes total', 500);
+        });
       },
     },
   },

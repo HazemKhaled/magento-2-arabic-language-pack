@@ -105,7 +105,8 @@ const TheService: ServiceSchema = {
           // Taxes
           'POST tax': 'taxes.tCreate',
           'PUT tax/:id': 'taxes.tUpdate',
-          'GET tax/:country': 'taxes.tFindByCountry',
+          'GET tax/:id': 'taxes.tGet',
+          'GET tax': 'taxes.tList',
           'DELETE tax/:id': 'taxes.tDelete',
         },
 

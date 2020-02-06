@@ -165,15 +165,89 @@ const TaxUpdate = {
   },
 };
 
-const TaxFind = {
-  $path: 'get /tax/{country}',
+const TaxGet = {
+  $path: 'get /tax/{id}',
   summary: 'get list of taxes by country',
   tags: ['Taxes'],
   parameters: [
     {
-      name: 'country',
+      name: 'id',
       'in': 'path',
-      required: true,
+      schema: {
+        type: 'string',
+      },
+    },
+  ],
+  responses: {
+    200: {
+      description: 'Status 200',
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: {
+              tax: { $ref: '#/components/schemas/Tax' },
+            },
+          },
+        },
+      },
+    },
+    401: {
+      $ref: '#/components/responses/UnauthorizedErrorBasic',
+    },
+    500: {
+      description: 'Status 500',
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: {
+              errors: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    message: {
+                      type: 'string',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+  security: [
+    {
+      basicAuth: [] as any[],
+    },
+  ],
+};
+
+const TaxList = {
+  $path: 'get /tax',
+  summary: 'get list of taxes by country',
+  tags: ['Taxes'],
+  parameters: [
+    {
+      name: 'page',
+      'in': 'query',
+      schema: {
+        type: 'number',
+      },
+    },
+    {
+      name: 'perPage',
+      'in': 'query',
+      schema: {
+        type: 'number',
+      },
+    },
+    {
+      name: 'country',
+      'in': 'query',
       schema: {
         type: 'string',
       },
@@ -322,8 +396,11 @@ export const TaxOpenapi: ServiceSchema = {
     tUpdate: {
       openapi: TaxUpdate,
     },
-    tFindByCountry: {
-      openapi: TaxFind,
+    tGet: {
+      openapi: TaxGet,
+    },
+    tList: {
+      openapi: TaxList,
     },
     tDelete: {
       openapi: TaxDelete,
