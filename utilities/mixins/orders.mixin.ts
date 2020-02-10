@@ -22,7 +22,7 @@ export const OrdersOperations: ServiceSchema = {
      *     }>}
      */
     async stockProducts(
-      items: OrderItem[]
+      items: OrderItem[],
     ): Promise<{
       products: Array<{ _source: Product; _id: string }>;
       inStock: OrderItem[];
@@ -39,8 +39,8 @@ export const OrdersOperations: ServiceSchema = {
       const products: [{ _source: Product; _id: string }] = await this.broker.call(
         'products-list.getProductsByVariationSku',
         {
-          skus: orderItems
-        }
+          skus: orderItems,
+        },
       );
 
       const found: OrderItem[] = [];
@@ -64,21 +64,22 @@ export const OrdersOperations: ServiceSchema = {
               weight: item.weight,
               archive: product._source.archive,
               barcode: product._source.barcode,
+              taxClass: product._source.tax_class,
               description: `${item.attributes.reduce(
                 (accumulator, attribute, n) =>
                   accumulator.concat(
-                    `${n > 0 ? `\n` : ``}${attribute.name.en || attribute.name.tr}: ${attribute
-                      .option.en || attribute.option.tr}`
+                    `${n > 0 ? '\n' : ''}${attribute.name.en || attribute.name.tr}: ${attribute
+                      .option.en || attribute.option.tr}`,
                   ),
-                ''
-              )}`
-            }))
+                '',
+              )}`,
+            })),
         );
       });
 
       // Filter not Knawat products alone
       const notKnawat = items.filter(
-        (item: OrderItem) => !found.map((i: OrderItem) => i.sku).includes(item.sku)
+        (item: OrderItem) => !found.map((i: OrderItem) => i.sku).includes(item.sku),
       );
 
       // filter not archived products
@@ -86,7 +87,7 @@ export const OrdersOperations: ServiceSchema = {
 
       // filter products with enough stock
       const enoughStock = inStock.filter(
-        item => item.quantity > items.find(i => i.sku === item.sku && !item.archive).quantity
+        item => item.quantity > items.find(i => i.sku === item.sku && !item.archive).quantity,
       );
 
       // Filter products with out of stock put it into Object with sku is the key for every item to remove duplicated data
@@ -107,7 +108,7 @@ export const OrdersOperations: ServiceSchema = {
       // reform outOfStock to array of {}
       const outOfStock = Object.keys(outOfStockObject).map(key => ({
         ...outOfStockObject[key],
-        quantityRequired: items.find(i => i.sku === key).quantity
+        quantityRequired: items.find(i => i.sku === key).quantity,
       }));
 
       // Filter products with not enough qty it into Object with sku is the key for every item to remove duplicated data
@@ -121,7 +122,7 @@ export const OrdersOperations: ServiceSchema = {
       // reform not enough to array of {}
       const notEnoughStock: OrderItem[] = Object.keys(notEnoughStockObject).map(key => ({
         ...notEnoughStockObject[key],
-        quantityRequired: items.find(i => i.sku === key).quantity
+        quantityRequired: items.find(i => i.sku === key).quantity,
       }));
 
       // return all data
@@ -133,7 +134,7 @@ export const OrdersOperations: ServiceSchema = {
         orderItems,
         outOfStock,
         notEnoughStock,
-        notKnawat
+        notKnawat,
       };
     },
 
@@ -150,18 +151,18 @@ export const OrdersOperations: ServiceSchema = {
       items: OrderItem[],
       country: string,
       instance: Store,
-      providedMethod?: string
+      providedMethod?: string,
     ): Promise<Rule> {
       const shipmentWeight =
         items.reduce(
           (accumulator, item) => (accumulator = accumulator + item.weight * item.quantity),
-          0
+          0,
         ) * 1000;
       const shipmentRules: Rule[] = await this.broker
         .call('shipment.ruleByCountry', {
           country,
           weight: shipmentWeight,
-          price: 1
+          price: 1,
         })
         .then((rules: Rule[]) => rules.sort((a: Rule, b: Rule) => a.cost - b.cost));
 
@@ -175,16 +176,16 @@ export const OrdersOperations: ServiceSchema = {
         const shipmentMethod = sortedShippingMethods.reduceRight(
           (accumulator, method) =>
             accumulator.concat(
-              shipmentRules.find((rule: Rule) => rule.courier === method.name) || []
+              shipmentRules.find((rule: Rule) => rule.courier === method.name) || [],
             ),
-          []
+          [],
         );
         shipment =
           shipmentMethod.length > 0
             ? shipmentMethod[shipmentMethod.length - 1]
             : shipmentRules.length > 0
-            ? shipmentRules.sort((a: Rule, b: Rule) => a.cost - b.cost)[0]
-            : false;
+              ? shipmentRules.sort((a: Rule, b: Rule) => a.cost - b.cost)[0]
+              : false;
       }
 
       if (!shipment) {
@@ -192,6 +193,6 @@ export const OrdersOperations: ServiceSchema = {
       }
 
       return shipment;
-    }
-  }
+    },
+  },
 };

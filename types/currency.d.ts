@@ -1,4 +1,6 @@
 /**
+ * Currency type
+ *
  * @type {Currency}
  */
 export interface Currency {

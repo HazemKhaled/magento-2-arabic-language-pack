@@ -1,4 +1,4 @@
-import { I18n } from ".";
+import { I18n } from '.';
 
 /**
  * Membership type
@@ -7,16 +7,16 @@ import { I18n } from ".";
  * @interface Membership
  */
 export interface Membership {
-    id: string;
-    name: I18n;
-    tagline: I18n;
-    description: I18n;
-    sort: number;
-    active: boolean;
-	public: boolean;
-    cost: number;
-	discount: number;
-	paymentFrequency: number;
-	paymentFrequencyType: 'month' | 'year';
-	attributes: {[key: string]: any};
+  id: string;
+  name: I18n;
+  tagline: I18n;
+  description: I18n;
+  sort: number;
+  active: boolean;
+  public: boolean;
+  cost: number;
+  discount: number;
+  paymentFrequency: number;
+  paymentFrequencyType: 'month' | 'year';
+  attributes: { [key: string]: any };
 }

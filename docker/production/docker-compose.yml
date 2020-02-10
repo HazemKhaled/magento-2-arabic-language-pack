@@ -28,17 +28,6 @@ services:
     depends_on:
       - mongodb
 
-  users:
-    build:
-      context: ../../
-    image: microes
-    restart: always
-    env_file: .env
-    environment:
-      SERVICES: users
-    depends_on:
-      - mongodb
-
   catalog:
     build:
       context: ../../
@@ -70,7 +59,7 @@ services:
     restart: always
     env_file: .env
     environment:
-      SERVICES: currencies
+      SERVICES: currencies, taxes
 
   subscription:
     build:
@@ -118,6 +107,15 @@ services:
       SERVICES: shipment
     depends_on:
       - mongodb
+
+  oms:
+    build:
+      context: ../../
+    image: microes
+    restart: always
+    env_file: .env
+    environment:
+      SERVICES: oms
 
   elastic-update:
     build:

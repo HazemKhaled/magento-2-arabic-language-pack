@@ -1,91 +1,29 @@
 const ESService = require('moleculer-elasticsearch');
 const { MoleculerClientError } = require('moleculer').Errors;
-
+const { ProductsListOpenapi } = require('../utilities/mixins/openapi');
 const Transformation = require('../utilities/mixins/product-transformation.mixin');
+const { ProductsListValidation } = require('../utilities/mixins/validation/products-list.validate');
 
 module.exports = {
   name: 'products-list',
-  mixins: [Transformation, ESService],
+  mixins: [Transformation, ESService, ProductsListValidation, ProductsListOpenapi],
   settings: {
     elasticsearch: {
       host: `http://${process.env.ELASTIC_AUTH}@${process.env.ELASTIC_HOST}:${
         process.env.ELASTIC_PORT
       }`,
-      apiVersion: process.env.ELASTIC_VERSION || '6.x'
-    }
+      apiVersion: process.env.ELASTIC_VERSION || '6.x',
+    },
   },
   actions: {
     getAttributes: {
       auth: 'Basic',
-      params: {},
       handler(ctx) {
         ctx.call('products-list.search', {});
-      }
+      },
     },
     list: {
-      openapi: {
-        $path: 'get /products',
-        summary: 'Get all Knawat Products',
-        tags: ['Products', 'Enterprise Only'],
-        responses: {
-          '200': {
-            description: 'Status 200'
-          },
-          '401': {
-            $ref: '#/components/responses/UnauthorizedErrorBasic'
-          }
-        },
-        security: [
-          {
-            basicAuth: []
-          }
-        ]
-      },
       auth: 'Basic',
-      params: {
-        limit: {
-          type: 'number',
-          convert: true,
-          integer: true,
-          min: 1,
-          max: 100,
-          optional: true
-        },
-        page: { type: 'number', convert: true, integer: true, min: 1, optional: true },
-        price_to: {
-          type: 'number',
-          convert: true,
-          integer: true,
-          empty: false,
-          optional: true
-        },
-        price_from: {
-          type: 'number',
-          convert: true,
-          integer: true,
-          empty: false,
-          optional: true
-        },
-        keywordLang: { type: 'array', optional: true, items: { type: 'string', min: 2, max: 2 } },
-        keyword: { type: 'string', optional: true },
-        category_id: {
-          type: 'number',
-          convert: true,
-          integer: true,
-          min: -1,
-          optional: true
-        },
-        sortBy: { type: 'string', optional: true },
-        images: {
-          type: 'number',
-          optional: true,
-          integer: true,
-          max: 15,
-          min: 0,
-          empty: false,
-          convert: true
-        }
-      },
       cache: {
         keys: [
           'page',
@@ -96,14 +34,16 @@ module.exports = {
           'keywordLang',
           'category_id',
           'sortBy',
-          'images'
+          'images',
         ],
-        ttl: 30 * 60 // 10 mins
+        ttl: 30 * 60, // 10 mins
       },
       handler(ctx) {
         const filter = [];
         filter.push({
-          term: { archive: false }
+          term: {
+            archive: false,
+          },
         });
         if (ctx.params.price_from || ctx.params.price_to) {
           filter.push({
@@ -114,11 +54,11 @@ module.exports = {
                   'variations.sale': {
                     gte: ctx.params.price_from ? ctx.params.price_from : 0,
                     lte: ctx.params.price_to ? ctx.params.price_to : 1000000,
-                    boost: 2.0
-                  }
-                }
-              }
-            }
+                    boost: 2.0,
+                  },
+                },
+              },
+            },
           });
         }
         if (ctx.params.keyword) {
@@ -127,108 +67,82 @@ module.exports = {
               query: ctx.params.keyword,
               fields: [
                 ...(ctx.params.keywordLang ? ctx.params.keywordLang : ['tr', 'en', 'ar', 'fr']).map(
-                  l => `name.${l}.text`
+                  l => `name.${l}.text`,
                 ),
                 ...(ctx.params.keywordLang ? ctx.params.keywordLang : ['tr', 'en', 'ar', 'fr']).map(
-                  l => `description.${l}.text`
+                  l => `description.${l}.text`,
                 ),
                 'sku',
-                'variations.sku'
+                'variations.sku',
               ],
               // To get the result even if misspelled
-              fuzziness: 'AUTO'
-            }
+              fuzziness: 'AUTO',
+            },
           });
         }
         if (ctx.params.category_id)
-          filter.push({ term: { 'categories.id': parseInt(ctx.params.category_id) } });
+          filter.push({
+            term: {
+              'categories.id': parseInt(ctx.params.category_id),
+            },
+          });
         const sort = {};
         switch (ctx.params.sortBy) {
-          case 'salesDesc':
-            sort.sales_qty = { order: 'desc' };
-            break;
-          case 'updated':
-            sort.updated = { order: 'desc' };
-            break;
-          case 'createdAsc':
-            sort.created = { order: 'asc' };
-            break;
-          case 'createdDesc':
-            sort.created = { order: 'desc' };
-            break;
-          case 'priceAsc':
-            sort['variations.sale'] = {
-              order: 'asc',
-              nested_path: 'variations'
-            };
-            break;
-          case 'priceDesc':
-            sort['variations.sale'] = {
-              order: 'desc',
-              nested_path: 'variations'
-            };
-            break;
-          default:
-            break;
+        case 'salesDesc':
+          sort.sales_qty = { order: 'desc' };
+          break;
+        case 'updated':
+          sort.updated = { order: 'desc' };
+          break;
+        case 'createdAsc':
+          sort.created = { order: 'asc' };
+          break;
+        case 'createdDesc':
+          sort.created = { order: 'desc' };
+          break;
+        case 'priceAsc':
+          sort['variations.sale'] = {
+            order: 'asc',
+            nested_path: 'variations',
+          };
+          break;
+        case 'priceDesc':
+          sort['variations.sale'] = {
+            order: 'desc',
+            nested_path: 'variations',
+          };
+          break;
+        default:
+          break;
         }
         if (ctx.params.images) {
           filter.push({
             script: {
               script: {
-                source: `doc['images'].values.size() > ${parseInt(ctx.params.images)};`
-              }
-            }
+                source: `doc['images'].values.size() > ${parseInt(ctx.params.images)};`,
+              },
+            },
           });
         }
         const body = {
           sort: sort,
           query: {
             bool: {
-              filter: filter
-            }
-          }
+              filter: filter,
+            },
+          },
         };
         return this.searchCall(ctx.meta.user, body, ctx.params.limit, ctx.params.page);
-      }
+      },
     },
     get: {
-      openapi: {
-        $path: 'get /products/{sku}',
-        parameters: [
-          {
-            name: 'sku',
-            in: 'path',
-            required: true,
-            schema: {
-              type: 'string'
-            }
-          }
-        ],
-        summary: 'Get Product by SKU',
-        tags: ['Products', 'Enterprise Only'],
-        responses: {
-          '200': {
-            description: 'Status 200'
-          },
-          '401': {
-            $ref: '#/components/responses/UnauthorizedErrorBasic'
-          }
-        },
-        security: [
-          {
-            basicAuth: []
-          }
-        ]
-      },
       auth: 'Basic',
       handler() {
         throw new MoleculerClientError('Not Implemented Yet!!');
-      }
+      },
     },
     getProductsByVariationSku: {
-      params: {
-        skus: { type: 'array', items: { type: 'string' } }
-      },
+      auth: 'Basic',
       handler(ctx) {
         return ctx
           .call('products-list.search', {
@@ -245,35 +159,22 @@ module.exports = {
                           bool: {
                             filter: {
                               terms: {
-                                'variations.sku': ctx.params.skus
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            }
+                                'variations.sku': ctx.params.skus,
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+            },
           })
           .then(response => response.hits.hits);
-      }
+      },
     },
     updateQuantityAttributes: {
-      params: {
-        products: {
-          type: 'array',
-          items: {
-            type: 'object',
-            props: {
-              _id: { type: 'string', convert: true },
-              qty: { type: 'number', convert: true },
-              attribute: { type: 'string', convert: true }
-            }
-          }
-        }
-      },
       handler(ctx) {
         const bulk = [];
         ctx.params.products.forEach(product => {
@@ -281,22 +182,22 @@ module.exports = {
             update: {
               _index: 'products',
               _type: 'Product',
-              _id: product._id
-            }
+              _id: product._id,
+            },
           });
           bulk.push({
             doc: {
-              [product.attribute]: parseInt(product.qty) + 1
-            }
+              [product.attribute]: parseInt(product.qty) + 1,
+            },
           });
         });
         ctx.call('products-list.bulk', {
           index: 'products',
           type: 'Product',
-          body: bulk
+          body: bulk,
         });
-      }
-    }
+      },
+    },
   },
   methods: {
     /* SearchByFilters methods */
@@ -312,7 +213,7 @@ module.exports = {
       fullResult = [],
       scrollId = false,
       trace = 0,
-      maxScroll = 0
+      maxScroll = 0,
     ) {
       limit = limit ? parseInt(limit) : 10;
       page = page ? parseInt(page) : 1;
@@ -320,7 +221,10 @@ module.exports = {
       if (scrollId)
         result = await this.broker.call('products-list.call', {
           api: 'scroll',
-          params: { scroll: '30s', scrollId: scrollId }
+          params: {
+            scroll: '30s',
+            scrollId: scrollId,
+          },
         });
       else {
         result = await this.broker.call('products-list.search', {
@@ -328,7 +232,7 @@ module.exports = {
           type: 'Product',
           size: process.env.SCROLL_LIMIT,
           scroll: '1m',
-          body: body
+          body: body,
         });
         maxScroll = result.hits.total;
         trace = page * limit;
@@ -346,19 +250,21 @@ module.exports = {
           fullResult,
           result._scroll_id,
           trace,
-          maxScroll
+          maxScroll,
         );
       }
-      const instance = await this.broker.call('stores.findInstance', { consumerKey: user });
+      const instance = await this.broker.call('stores.findInstance', {
+        consumerKey: user,
+      });
       const rate = await this.broker.call('currencies.getCurrency', {
-        currencyCode: instance.currency
+        currencyCode: instance.currency,
       });
 
       return {
         products: fullResult
           .slice(
             scrollId ? -limit + trace + parseInt(process.env.SCROLL_LIMIT) : -limit + trace,
-            scrollId ? trace + parseInt(process.env.SCROLL_LIMIT) : trace
+            scrollId ? trace + parseInt(process.env.SCROLL_LIMIT) : trace,
           )
           .map(product => ({
             sku: product._source.sku,
@@ -373,12 +279,12 @@ module.exports = {
               product._source.variations,
               instance,
               rate.exchange_rate,
-              product._source.archive
-            )
+              product._source.archive,
+            ),
           })),
-        total: result.hits.total
+        total: result.hits.total,
       };
-    }
+    },
     /* SearchByFilters methods */
-  }
+  },
 };

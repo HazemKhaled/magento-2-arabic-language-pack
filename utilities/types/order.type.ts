@@ -20,6 +20,7 @@ export interface Order {
   externalInvoice?: string;
   invoice_url?: string;
   shipmentCourier?: string;
+  shipmentTrackingNumber?: string;
   shipping_method?: string;
   store?: {};
   orderNumber?: string;
@@ -57,6 +58,8 @@ export interface OrderItem {
   weight?: number;
   archive?: boolean;
   quantityRequired?: number;
+  taxId?: string;
+  taxClass?: string;
 }
 
 /**

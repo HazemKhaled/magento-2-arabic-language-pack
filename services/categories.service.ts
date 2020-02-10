@@ -2,8 +2,9 @@ import { Errors, ServiceSchema } from 'moleculer';
 import ESService, { SearchResponse } from 'moleculer-elasticsearch';
 
 import { I18nService } from '../utilities/mixins/i18n.mixin';
-import { CategoriesListOpenapi, CategoriesSettingsOpenapi } from '../utilities/openapi';
+import { CategoriesOpenapi } from '../utilities/mixins/openapi';
 import { Category } from '../utilities/types';
+import { CategoriesValidation } from '../utilities/mixins/validation';
 
 const { MoleculerClientError } = Errors;
 
@@ -14,19 +15,18 @@ const TheService: ServiceSchema = {
    * Service metadata
    */
   metadata: {},
-  mixins: [ESService, I18nService],
+  mixins: [ESService, I18nService, CategoriesValidation, CategoriesOpenapi],
 
   /**
    * Service settings
    */
   settings: {
-    openapi: CategoriesSettingsOpenapi,
     elasticsearch: {
       host: `http://${process.env.ELASTIC_AUTH}@${process.env.ELASTIC_HOST}:${
         process.env.ELASTIC_PORT
-        }`,
-      apiVersion: process.env.ELASTIC_VERSION || '6.x'
-    }
+      }`,
+      apiVersion: process.env.ELASTIC_VERSION || '6.x',
+    },
   },
 
   /**
@@ -39,15 +39,10 @@ const TheService: ServiceSchema = {
      * @returns {Array} Categories
      */
     list: {
-      openapi: CategoriesListOpenapi,
       auth: 'Bearer',
       cache: {
         ttl: 60 * 60, // 1 hour
-        keys: ['parentId', 'treeNodeLevel']
-      },
-      params: {
-        parentId: [{ type: 'number', optional: true }, { type: 'string', optional: true }],
-        treeNodeLevel: [{ type: 'number', optional: true }, { type: 'string', optional: true }]
+        keys: ['parentId', 'treeNodeLevel'],
       },
       async handler(ctx): Promise<Category[]> {
         const categories = await this.fetchCategories(ctx.params);
@@ -56,8 +51,8 @@ const TheService: ServiceSchema = {
           ctx.meta.$statusMessage = 'Not Found';
         }
         return categories;
-      }
-    }
+      },
+    },
   },
   methods: {
     /**
@@ -67,21 +62,21 @@ const TheService: ServiceSchema = {
      */
     fetchCategories(params = {}): Category[] {
       const query: any = {
-        bool: { filter: [], should: [], must_not: { term: { productsCount: 0 } } }
+        bool: { filter: [], should: [], must_not: { term: { productsCount: 0 } } },
       };
       if (Object.keys(params).length === 0) {
         query.bool.filter.push({
-          term: { treeNodeLevel: 1 }
+          term: { treeNodeLevel: 1 },
         });
       }
       if (params.parentId || params.parentId === 0)
         query.bool.should.push(
           { term: { parentId: params.parentId } },
-          { term: { _id: params.parentId } }
+          { term: { _id: params.parentId } },
         );
       if (params.treeNodeLevel) {
         query.bool.filter.push({
-          terms: { treeNodeLevel: params.treeNodeLevel.split(',') }
+          terms: { treeNodeLevel: params.treeNodeLevel.split(',') },
         });
       }
       return this.broker
@@ -90,14 +85,14 @@ const TheService: ServiceSchema = {
           type: '_doc',
           body: {
             size: 999,
-            query
-          }
+            query,
+          },
         })
         .then((result: SearchResponse<Category>) => {
           if (result.hits.total === 0) {
             return {
               status: 'failed',
-              message: 'There are no categories at the moment.'
+              message: 'There are no categories at the moment.',
             };
           }
           const response: any = {
@@ -111,9 +106,9 @@ const TheService: ServiceSchema = {
                   name: this.formatI18nText(category.name),
                   parentId: category.parentId,
                   productsCount: category.productsCount,
-                  treeNodeLevel: category.treeNodeLevel
+                  treeNodeLevel: category.treeNodeLevel,
                 };
-              })
+              }),
           };
           if (params.parentId && params.parentId !== '0') {
             const parent = result.hits.hits.find(cat => cat._id === params.parentId);
@@ -122,14 +117,14 @@ const TheService: ServiceSchema = {
               name: this.formatI18nText(parent._source.name),
               parentId: parent._source.parentId,
               productsCount: parent._source.productsCount,
-              treeNodeLevel: parent._source.treeNodeLevel
+              treeNodeLevel: parent._source.treeNodeLevel,
             };
           }
           return response;
         })
         .catch((error: any) => new MoleculerClientError(error));
-    }
-  }
+    },
+  },
 };
 
 export = TheService;

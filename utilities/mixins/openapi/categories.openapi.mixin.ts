@@ -1,4 +1,6 @@
-export const CategoriesSettingsOpenapi = {
+import { ServiceSchema } from 'moleculer';
+
+const CategoriesSettingsOpenapi = {
   components: {
     schemas: {
       Category: {
@@ -8,33 +10,33 @@ export const CategoriesSettingsOpenapi = {
           type: 'object',
           properties: {
             id: {
-              type: 'number'
+              type: 'number',
             },
             name: {
               required: ['productsCount', 'treeNodeLevel'],
               type: 'object',
               properties: {
                 tr: {
-                  type: 'string'
+                  type: 'string',
                 },
                 en: {
-                  type: 'string'
+                  type: 'string',
                 },
                 ar: {
-                  type: 'string'
+                  type: 'string',
                 },
                 treeNodeLevel: {
-                  type: 'number'
+                  type: 'number',
                 },
                 productsCount: {
-                  type: 'number'
+                  type: 'number',
                 },
                 parentId: {
-                  type: 'number'
-                }
-              }
-            }
-          }
+                  type: 'number',
+                },
+              },
+            },
+          },
         },
         example: [
           {
@@ -42,30 +44,30 @@ export const CategoriesSettingsOpenapi = {
             name: {
               tr: 'Ayakkabı',
               en: 'Shoes',
-              ar: 'حذاء'
+              ar: 'حذاء',
             },
             parentId: 32423,
             productsCount: 352,
-            treeNodeLevel: 1
+            treeNodeLevel: 1,
           },
           {
             id: 4859,
             name: {
               tr: 'Ayakkabı / Kadın',
               en: 'Shoes / Women',
-              ar: 'حذاء / نسائي'
+              ar: 'حذاء / نسائي',
             },
             parentId: 2435,
             productsCount: 456,
-            treeNodeLevel: 2
-          }
-        ]
-      }
-    }
-  }
+            treeNodeLevel: 2,
+          },
+        ],
+      },
+    },
+  },
 };
 
-export const CategoriesListOpenapi = {
+const CategoriesListOpenapi = {
   $path: 'get /catalog/categories',
   summary: 'Get list of categories',
   tags: ['Products'],
@@ -73,23 +75,23 @@ export const CategoriesListOpenapi = {
   parameters: [
     {
       name: 'parentId',
-      in: 'query',
+      'in': 'query',
       required: false,
       schema: {
-        type: 'number'
-      }
+        type: 'number',
+      },
     },
     {
       name: 'treeNodeLevel',
-      in: 'query',
+      'in': 'query',
       required: false,
       schema: {
-        type: 'number'
-      }
-    }
+        type: 'number',
+      },
+    },
   ],
   responses: {
-    '200': {
+    200: {
       description: 'Status 200',
       content: {
         'application/json': {
@@ -97,15 +99,15 @@ export const CategoriesListOpenapi = {
             type: 'object',
             properties: {
               count: {
-                type: 'number'
+                type: 'number',
               },
               categories: {
                 type: 'array',
                 items: {
-                  $ref: '#/components/schemas/Category'
-                }
-              }
-            }
+                  $ref: '#/components/schemas/Category',
+                },
+              },
+            },
           },
           examples: {
             response: {
@@ -117,26 +119,36 @@ export const CategoriesListOpenapi = {
                     name: {
                       tr: 'Ayakkabı',
                       en: 'Shoes',
-                      ar: 'حذاء'
+                      ar: 'حذاء',
                     },
                     parentId: 455,
                     productsCount: 100,
-                    treeNodeLevel: 1
-                  }
-                ]
-              }
-            }
-          }
-        }
-      }
+                    treeNodeLevel: 1,
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
     },
-    '401': {
-      $ref: '#/components/responses/UnauthorizedErrorToken'
-    }
+    401: {
+      $ref: '#/components/responses/UnauthorizedErrorToken',
+    },
   },
   security: [
     {
-      bearerAuth: [] as any[]
-    }
-  ]
+      bearerAuth: [] as any[],
+    },
+  ],
+};
+
+export const CategoriesOpenapi: ServiceSchema = {
+  name: 'categories',
+  settings: {
+    openapi: CategoriesSettingsOpenapi,
+  },
+  actions: {
+    list: { openapi: CategoriesListOpenapi },
+  },
 };
