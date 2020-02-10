@@ -28,17 +28,6 @@ services:
     depends_on:
       - mongodb
 
-  users:
-    build:
-      context: ../../
-    image: microes
-    restart: always
-    env_file: .env
-    environment:
-      SERVICES: users
-    depends_on:
-      - mongodb
-
   catalog:
     build:
       context: ../../
