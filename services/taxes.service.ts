@@ -117,8 +117,8 @@ const TaxesService: ServiceSchema = {
         if (typeof classes === 'string' ) {
           query.class = classes;
         }
-        const page = ctx.params.page || 1;
-        const limit = ctx.params.perPage || 50;
+        const page = Number(ctx.params.page) || 1;
+        const limit = Number(ctx.params.perPage) || 50;
         const offset = (page - 1) * limit;
         return this.adapter
           .find({ limit, offset, query })
