@@ -67,11 +67,13 @@ export const TaxesValidation: ServiceSchema = {
         page: {
           type: 'number',
           integer: true,
+          convert: true,
           optional: true,
         },
         perPage: {
           type: 'number',
           integer: true,
+          convert: true,
           max: 100,
           optional: true,
         },

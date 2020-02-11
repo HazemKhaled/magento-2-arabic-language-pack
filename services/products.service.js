@@ -799,7 +799,6 @@ module.exports = {
         }
 
         const results = fullResult.concat(search.hits.hits);
-        console.log((parseInt(process.env.SCROLL_LIMIT)));
         if (endTrace > size && maxScroll > parseInt(process.env.SCROLL_LIMIT)) {
           maxScroll -= parseInt(process.env.SCROLL_LIMIT);
           endTrace -= parseInt(process.env.SCROLL_LIMIT);
