@@ -272,11 +272,11 @@ const TheService: ServiceSchema = {
             $ne: true,
           },
         };
-
         const expiredSubscription = await this.adapter.findOne(query).catch();
         if (!expiredSubscription) {
           return null;
         }
+        expiredSubscription._id = expiredSubscription._id.toString();
         const currentSubscription = await ctx.call('subscription.get', {
           id: expiredSubscription.storeId,
         });
@@ -294,7 +294,7 @@ const TheService: ServiceSchema = {
         const date = new Date();
         date.setUTCHours(0, 0, 0, 0);
         ctx.call('subscription.updateSubscription', {
-          id: String(expiredSubscription._id),
+          id: expiredSubscription._id,
           retries: expiredSubscription.retries
             ? [...expiredSubscription.retries, new Date(date)]
             : [new Date(date)],
