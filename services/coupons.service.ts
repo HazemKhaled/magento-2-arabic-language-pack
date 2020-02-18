@@ -66,6 +66,9 @@ const TheService: ServiceSchema = {
         if (ctx.params.membership) {
           query.appliedMemberships = ctx.params.membership;
         }
+        if (ctx.params.type) {
+          query.type = ctx.params.type;
+        }
         return this.adapter
           .findOne(query)
           .then((res: Coupon) => {
