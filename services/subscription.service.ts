@@ -124,6 +124,7 @@ const TheService: ServiceSchema = {
             .call('coupons.get', {
               id: ctx.params.coupon,
               membership: ctx.params.membership,
+              type: 'subscription',
             })
             .then(null, err => err);
           if (isError(coupon)) {
