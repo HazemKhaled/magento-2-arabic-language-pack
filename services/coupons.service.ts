@@ -12,6 +12,31 @@ const TheService: ServiceSchema = {
     create: {
       auth: 'Basic',
       handler(ctx: Context): Promise<Coupon> {
+        const { params } = ctx;
+        if (params.type === 'salesorder' && typeof params.discount === 'number') {
+          const error = new MoleculerError('Parameters validation error!', 422, 'VALIDATION_ERROR', [{
+            type: 'object',
+            field: 'discount',
+            actual: params.discountType,
+            message: 'The \'discount\' field must be an object!',
+          }]);
+          error.name = 'Validation error';
+          throw error;
+        }
+        if (params.type === 'subscription' && (typeof params.discount !== 'number' || !params.discountType)) {
+          const error = new MoleculerError('Parameters validation error!', 422, 'VALIDATION_ERROR', [{
+            type: 'enumValue',
+            expected: [
+              '$',
+              '%',
+            ],
+            actual: String(params.discountType),
+            field: 'discountType',
+            message: 'The \'discountType\' field is required!',
+          }]);
+          error.name = 'Validation error';
+          throw error;
+        }
         return this.adapter
           .insert(this.createCouponSanitize(ctx.params))
           .then((res: Coupon) => {
@@ -146,13 +171,15 @@ const TheService: ServiceSchema = {
     createCouponSanitize(params) {
       return {
         _id: params.code,
+        type: params.type, // Coupon type 'salesorder | subscription'
         useCount: 0,
         startDate: new Date(params.startDate),
         endDate: new Date(params.endDate),
-        discount: params.discount,
+        discount: params.discount, // Integer | Object { tax, shipping, total }
         discountType: params.discountType,
         maxUses: params.maxUses,
         appliedMemberships: params.appliedMemberships,
+        auto: params.auto, // Auto apply 'boolean'
       };
     },
   },
