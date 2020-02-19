@@ -193,7 +193,7 @@ const TheService: ServiceSchema = {
               type: '‘%‘ | ‘$‘',
             },
           },
-          actual: String(params.discountType),
+          actual: params.discount,
           field: 'discount.total',
           message: 'The \'discount.total\' field is required!',
         }]);
