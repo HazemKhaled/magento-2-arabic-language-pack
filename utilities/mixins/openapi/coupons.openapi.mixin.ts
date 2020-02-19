@@ -59,6 +59,14 @@ const CouponsGetOpenapi = {
         type: 'string',
       },
     },
+    {
+      name: 'type',
+      'in': 'query',
+      required: false,
+      schema: {
+        type: 'string',
+      },
+    },
   ],
   responses: {
     200: {
@@ -105,6 +113,46 @@ const CouponsGetOpenapi = {
   ],
 };
 
+const CouponsCreateOpenapi = {
+  $path: 'post /coupons',
+  summary: 'Create Coupon',
+  tags: ['Coupon'],
+  requestBody: {
+    content: {
+      'application/json': {
+        schema: {
+          $ref: '#/components/schemas/Coupon',
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Status 200',
+      content: {
+        'application/json': {
+          schema: {
+            $ref: '#/components/schemas/Coupon',
+          },
+        },
+      },
+    },
+    401: {
+      $ref: '#/components/responses/UnauthorizedErrorBasic',
+    },
+  },
+  security: [
+    {
+      basicAuth: [] as any[],
+    },
+  ],
+};
+
+const CouponsUpdateOpenapi = {
+  ...CouponsCreateOpenapi,
+  $path: 'put /coupons/:code',
+  summary: 'Update Coupon',
+};
 export const CouponsOpenapi: ServiceSchema = {
   name: 'coupons',
   settings: {
@@ -117,6 +165,12 @@ export const CouponsOpenapi: ServiceSchema = {
     },
   },
   actions: {
+    create: {
+      openapi: CouponsCreateOpenapi,
+    },
+    update: {
+      openapi: CouponsUpdateOpenapi,
+    },
     get: {
       openapi: CouponsGetOpenapi,
     },
