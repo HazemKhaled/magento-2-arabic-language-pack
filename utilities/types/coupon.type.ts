@@ -6,11 +6,20 @@
  */
 export interface Coupon {
     code: string;
-	discount: number;
-	discountType: '$' | '%';
+	discount: {
+        total?: Discount,
+        shipping?: Discount,
+        tax?: Discount
+    };
 	startDate: Date;
 	endDate: Date;
 	maxUses: number;
     appliedMemberships: string[];
     useCount: number;
+    auto: boolean;
+}
+
+interface Discount {
+    value: number,
+    type: '$' | '%'
 }

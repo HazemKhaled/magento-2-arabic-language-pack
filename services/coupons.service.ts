@@ -13,26 +13,34 @@ const TheService: ServiceSchema = {
       auth: 'Basic',
       handler(ctx: Context): Promise<Coupon> {
         const { params } = ctx;
-        if (params.type === 'salesorder' && typeof params.discount === 'number') {
+        if (params.type === 'salesorder' && (!params.discount || Object.keys(params.discount).length < 1)) {
           const error = new MoleculerError('Parameters validation error!', 422, 'VALIDATION_ERROR', [{
             type: 'object',
             field: 'discount',
-            actual: params.discountType,
-            message: 'The \'discount\' field must be an object!',
+            expected: {
+              '‘total‘ | ‘shipping‘ | ‘tax‘': {
+                value: 'number',
+                type: '‘%‘ | ‘$‘',
+              },
+            },
+            actual: params.discount,
+            message: 'The \'discount\' object must have at least one field!',
           }]);
           error.name = 'Validation error';
           throw error;
         }
-        if (params.type === 'subscription' && (typeof params.discount !== 'number' || !params.discountType)) {
+        if (params.type === 'subscription' && (!params.discount || !params.discount.total)) {
           const error = new MoleculerError('Parameters validation error!', 422, 'VALIDATION_ERROR', [{
             type: 'enumValue',
-            expected: [
-              '$',
-              '%',
-            ],
+            expected: {
+              'discount.total': {
+                value: 'number',
+                type: '‘%‘ | ‘$‘',
+              },
+            },
             actual: String(params.discountType),
-            field: 'discountType',
-            message: 'The \'discountType\' field is required!',
+            field: 'discount.total',
+            message: 'The \'discount.total\' field is required!',
           }]);
           error.name = 'Validation error';
           throw error;

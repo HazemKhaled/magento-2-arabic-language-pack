@@ -143,12 +143,12 @@ const TheService: ServiceSchema = {
         const cost = membership.cost;
         let discount = 0;
         if (coupon) {
-          switch (coupon.discountType) {
+          switch (coupon.discount.total.type) {
           case '$':
-            discount = Math.min(coupon.discount, cost);
+            discount = Math.min(coupon.discount.total.value, cost);
             break;
           case '%':
-            discount = (cost / 100) * coupon.discount;
+            discount = (cost / 100) * coupon.discount.total.value;
             break;
           }
         }

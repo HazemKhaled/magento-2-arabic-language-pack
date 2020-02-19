@@ -13,52 +13,38 @@ export const CouponsValidation: ServiceSchema = {
           type: 'enum',
           values: ['salesorder', 'subscription'],
         },
-        discount: [
-          {
-            type: 'number',
-            positive: true,
-          },
-          {
-            type: 'object',
-            props: {
-              tax: {
-                type: 'object',
-                optional: true,
-                props: {
-                  value: { type: 'number', integer: true },
-                  type: { type: 'enum', values: ['%', '$'] },
-                  $$strict: true,
-                },
+        discount: {
+          type: 'object',
+          props: {
+            tax: {
+              type: 'object',
+              optional: true,
+              props: {
+                value: { type: 'number', integer: true },
+                type: { type: 'enum', values: ['%', '$'] },
+                $$strict: true,
               },
-              salesorder: {
-                type: 'object',
-                optional: true,
-                props: {
-                  value: { type: 'number', integer: true },
-                  type: { type: 'enum', values: ['%', '$'] },
-                  $$strict: true,
-                },
-              },
-              total: {
-                type: 'object',
-                optional: true,
-                props: {
-                  value: { type: 'number', integer: true },
-                  type: { type: 'enum', values: ['%', '$'] },
-                  $$strict: true,
-                },
-              },
-              $$strict: true,
             },
+            shipping: {
+              type: 'object',
+              optional: true,
+              props: {
+                value: { type: 'number', integer: true },
+                type: { type: 'enum', values: ['%', '$'] },
+                $$strict: true,
+              },
+            },
+            total: {
+              type: 'object',
+              optional: true,
+              props: {
+                value: { type: 'number', integer: true },
+                type: { type: 'enum', values: ['%', '$'] },
+                $$strict: true,
+              },
+            },
+            $$strict: true,
           },
-        ],
-        discountType: {
-          type: 'enum',
-          values: [
-            '$',
-            '%',
-          ],
-          optional: true,
         },
         startDate: {
           type: 'date',
@@ -114,53 +100,38 @@ export const CouponsValidation: ServiceSchema = {
           values: ['salesorder', 'subscription'],
           optional: true,
         },
-        discount: [
-          {
-            type: 'number',
-            positive: true,
-            optional: true,
-          },
-          {
-            type: 'object',
-            props: {
-              tax: {
-                type: 'object',
-                optional: true,
-                props: {
-                  value: { type: 'number', integer: true },
-                  type: { type: 'enum', values: ['%', '$'] },
-                  $$strict: true,
-                },
+        discount: {
+          type: 'object',
+          props: {
+            tax: {
+              type: 'object',
+              optional: true,
+              props: {
+                value: { type: 'number', integer: true },
+                type: { type: 'enum', values: ['%', '$'] },
+                $$strict: true,
               },
-              salesorder: {
-                type: 'object',
-                optional: true,
-                props: {
-                  value: { type: 'number', integer: true },
-                  type: { type: 'enum', values: ['%', '$'] },
-                  $$strict: true,
-                },
-              },
-              total: {
-                type: 'object',
-                optional: true,
-                props: {
-                  value: { type: 'number', integer: true },
-                  type: { type: 'enum', values: ['%', '$'] },
-                  $$strict: true,
-                },
-              },
-              $$strict: true,
             },
-            optional: true,
+            shipping: {
+              type: 'object',
+              optional: true,
+              props: {
+                value: { type: 'number', integer: true },
+                type: { type: 'enum', values: ['%', '$'] },
+                $$strict: true,
+              },
+            },
+            total: {
+              type: 'object',
+              optional: true,
+              props: {
+                value: { type: 'number', integer: true },
+                type: { type: 'enum', values: ['%', '$'] },
+                $$strict: true,
+              },
+            },
+            $$strict: true,
           },
-        ],
-        discountType: {
-          type: 'enum',
-          values: [
-            '$',
-            '%',
-          ],
           optional: true,
         },
         startDate: {
