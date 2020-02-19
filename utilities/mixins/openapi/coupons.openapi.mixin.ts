@@ -4,8 +4,32 @@ const Coupon = {
   type: 'object',
   properties: {
     code: { type: 'string' },
-    discount: { type: 'number' },
-    discountType: { type: 'string', 'enum': ['$', '%'] },
+    discount: {
+      type: 'object',
+      properties: {
+        total: {
+          type: 'object',
+          properties: {
+            value: { type: 'number' },
+            type: { type: 'string', 'enum': ['%', '$']},
+          },
+        },
+        shipping: {
+          type: 'object',
+          properties: {
+            value: { type: 'number' },
+            type: { type: 'string', 'enum': ['%', '$']},
+          },
+        },
+        tax: {
+          type: 'object',
+          properties: {
+            value: { type: 'number' },
+            type: { type: 'string', 'enum': ['%', '$']},
+          },
+        },
+      },
+    },
     startDate: { type: 'string', format: 'date-time' },
     endDate: { type: 'string', format: 'date-time' },
     maxUses: { type: 'number' },

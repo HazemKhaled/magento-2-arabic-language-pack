@@ -155,8 +155,7 @@ const TheService: ServiceSchema = {
         useCount: 0,
         startDate: new Date(params.startDate),
         endDate: new Date(params.endDate),
-        discount: params.discount, // Integer | Object { tax, shipping, total }
-        discountType: params.discountType,
+        discount: params.discount, // Object { tax, shipping, total }
         maxUses: params.maxUses,
         appliedMemberships: params.appliedMemberships,
         auto: params.auto, // Auto apply 'boolean'
