@@ -654,6 +654,7 @@ const TheService: ServiceSchema = {
           trackingNumber: order.shipmentTrackingNumber,
           knawat_order_status: order.status ? this.normalizeResponseStatus(order.status) : '',
           orderNumber: order.orderNumber,
+          invoice_url: order.externalInvoice,
         }));
       },
     },
