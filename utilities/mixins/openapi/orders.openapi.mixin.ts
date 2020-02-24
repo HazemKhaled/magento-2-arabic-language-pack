@@ -182,6 +182,47 @@ const OrderResponse = {
   },
 };
 
+const OrderList  = {
+  type: 'array',
+  items: {
+    type: 'object',
+    properties: {
+      id: {
+        type: 'string',
+      },
+      externalId: {
+        type: 'string',
+      },
+      status: {
+        type: 'string',
+      },
+      createDate: {
+        type: 'string',
+        format: 'date',
+      },
+      updateDate: {
+        type: 'string',
+        format: 'date',
+      },
+      total: {
+        type: 'number',
+      },
+      trackingNumber: {
+        type: 'string',
+      },
+      knawat_order_status: {
+        type: 'string',
+      },
+      orderNumber: {
+        type: 'string',
+      },
+      invoice_url: {
+        type: 'string',
+      },
+    },
+  },
+};
+
 const OrdersCreateOpenapi = {
   $path: 'post /orders',
   summary: 'Create order',
@@ -528,10 +569,7 @@ const OrdersListOpenapi = {
       required: false,
       schema: {
         type: 'string',
-        'enum': [
-          'A',
-          'D',
-        ],
+        'enum': ['A', 'D'],
       },
       'default': 'D',
     },
@@ -541,14 +579,7 @@ const OrdersListOpenapi = {
       required: false,
       schema: {
         type: 'string',
-        'enum': [
-          'draft',
-          'open',
-          'invoiced',
-          'partially_invoiced',
-          'void',
-          'overdue',
-        ],
+        'enum': ['draft', 'open', 'invoiced', 'partially_invoiced', 'void', 'overdue'],
       },
     },
     {
@@ -566,35 +597,7 @@ const OrdersListOpenapi = {
       content: {
         'application/json': {
           schema: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                id: {
-                  type: 'string',
-                },
-                status: {
-                  type: 'string',
-                },
-                createDate: {
-                  type: 'string',
-                  format: 'date',
-                },
-                updateDate: {
-                  type: 'string',
-                  format: 'date',
-                },
-                total: {
-                  type: 'number',
-                },
-                trackingNumber: {
-                  type: 'string',
-                },
-                knawat_order_status: {
-                  type: 'string',
-                },
-              },
-            },
+            $ref: '#/components/schemas/OrderList',
           },
         },
       },
@@ -682,6 +685,7 @@ export const OrdersOpenapi: ServiceSchema = {
       components: {
         schemas: {
           Order,
+          OrderList,
           OrderResponse,
         },
       },
