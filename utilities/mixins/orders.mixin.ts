@@ -194,13 +194,15 @@ export const OrdersOperations: ServiceSchema = {
 
       return shipment;
     },
-    async discount({code, membership, orderExpenses}) {
+    async discount({code, membership, orderExpenses, isValid}) {
       const warnings = [];
-      const couponQuery: {membership: string; type: 'salesorder'; id?: string; isValid: boolean;} = {
+      const couponQuery: {membership: string; type: 'salesorder'; id?: string; isValid?: boolean;} = {
         membership,
         type: 'salesorder',
-        isValid: true,
       };
+      if (isValid) {
+        couponQuery.isValid = isValid;
+      }
       if (code) {
         couponQuery.id = code;
       }
