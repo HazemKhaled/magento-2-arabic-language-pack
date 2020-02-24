@@ -160,11 +160,12 @@ const TheService: ServiceSchema = {
         };
 
         if (ctx.params.coupon) {
-          const discountResponse: {warnings?: [], discount?: number} = await this.discount(ctx.params.coupon, subscription.membership.id, orderExpenses);
+          const discountResponse: {warnings?: [], discount?: number; coupon: string;} = await this.discount(ctx.params.coupon, subscription.membership.id, orderExpenses);
           if (Array.isArray(discountResponse)) {
             warnings = warnings.concat(discountResponse.warnings);
           } else {
             data.discount = discountResponse.discount.toString();
+            data.coupon = discountResponse.coupon;
           }
         }
 
@@ -453,9 +454,8 @@ const TheService: ServiceSchema = {
               tax: taxTotal,
               adjustment: data.adjustment,
             };
-
-            if (ctx.params.coupon) {
-              const discountResponse: {warnings?: [], discount?: number} = await this.discount(ctx.params.coupon, subscription.membership.id, orderExpenses);
+            if (orderBeforeUpdate.coupon) {
+              const discountResponse: {warnings?: [], discount?: number} = await this.discount(orderBeforeUpdate.coupon, subscription.membership.id, orderExpenses);
               if (Array.isArray(discountResponse)) {
                 warnings = warnings.concat(discountResponse.warnings);
               } else {
@@ -607,6 +607,8 @@ const TheService: ServiceSchema = {
           billing: order.billing,
           shipping: order.shipping,
           total: order.total,
+          coupon: order.coupon,
+          discount: order.discount,
           externalId: order.externalId,
           createDate: order.createDate,
           updateDate: order.updateDate,
