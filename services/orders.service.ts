@@ -163,6 +163,7 @@ const TheService: ServiceSchema = {
           code: ctx.params.coupon,
           membership: subscription.membership.id,
           orderExpenses,
+          isValid: true,
         });
         if (Array.isArray(discountResponse) && ctx.params.coupon) {
           warnings = warnings.concat(discountResponse.warnings);
@@ -236,6 +237,12 @@ const TheService: ServiceSchema = {
             })
             .then(r => this.logger.info(r));
         }
+
+        // If coupon used update quantity
+        if (data.coupon) {
+          ctx.call('coupons.updateCount', { id: data.coupon });
+        }
+
         // Clearing order list action(API) cache
         this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
 
@@ -459,7 +466,11 @@ const TheService: ServiceSchema = {
               adjustment: data.adjustment,
             };
             if (orderBeforeUpdate.coupon) {
-              const discountResponse: { warnings?: [], discount?: number } = await this.discount({ code: orderBeforeUpdate.coupon, membership: subscription.membership.id, orderExpenses });
+              const discountResponse: { warnings?: [], discount?: number } = await this.discount({
+                code: orderBeforeUpdate.coupon,
+                membership: subscription.membership.id,
+                orderExpenses,
+              });
               if (Array.isArray(discountResponse)) {
                 warnings = warnings.concat(discountResponse.warnings);
               } else {
