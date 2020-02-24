@@ -148,7 +148,7 @@ const TheService: ServiceSchema = {
             discount = Math.min(coupon.discount.total.value, cost);
             break;
           case '%':
-            discount = (cost / 100) * coupon.discount.total.value;
+            discount = +((cost / 100) * coupon.discount.total.value).toFixed(2);
             break;
           }
         }
