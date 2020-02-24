@@ -133,7 +133,7 @@ const TheService: ServiceSchema = {
         // Calculate the order total
         const total: number =
           data.items.reduce(
-            (accumulator: number, current: OrderItem) => accumulator + current.purchaseRate,
+            (accumulator: number, current: OrderItem) => accumulator + current.purchaseRate * current.quantity,
             0,
           ) + (data.isInclusiveTax ? 0 : taxTotal);
 
@@ -434,9 +434,9 @@ const TheService: ServiceSchema = {
             // Calculate the order total
             const total: number =
               data.items.reduce(
-                (accumulator: number, current: OrderItem) => accumulator + current.purchaseRate,
+                (accumulator: number, current: OrderItem) => accumulator + current.purchaseRate * current.quantity,
                 0,
-              ) + (data.shippingCharge || orderBeforeUpdate.shippingCharge);
+              ) + (data.isInclusiveTax ? 0 : taxTotal);
 
             // Getting the current user subscription
             const subscription = await ctx.call('subscription.get', { id: instance.url });
@@ -524,6 +524,7 @@ const TheService: ServiceSchema = {
             billing: order.billing,
             shipping: order.shipping,
             createDate: order.createDate,
+            discount: order.discount,
             notes: order.notes || '',
             shipping_method: order.shipmentCourier,
             shipping_charge: order.shippingCharge,
@@ -543,11 +544,11 @@ const TheService: ServiceSchema = {
           this.logger.error(err);
           this.sendLogs({
             topicId: orderBeforeUpdate.externalId,
-            message: err && err.error && err.error.message ? err.error.message : 'Order Error',
+            message: err && err.stack || (err.error && err.error.message) ? err.error.message : 'Order Error',
             storeId: instance.url,
             logLevel: 'error',
             code: 500,
-            payload: { errors: err.error || err, params: ctx.params },
+            payload: { errors: err.error || err.stack, params: ctx.params },
           });
           ctx.meta.$statusCode = 500;
           ctx.meta.$statusMessage = 'Internal Server Error';

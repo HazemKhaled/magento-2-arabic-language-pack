@@ -151,7 +151,7 @@ export const OmsValidation: ServiceSchema = {
               quantity: 'number',
               productType: { type: 'string', optional: true },
               purchaseRate: { type: 'number', optional: true },
-              vendorId: { type: 'string', optional: true },
+              vendorId: [{ type: 'string', optional: true }, { type: 'number', optional: true }],
               accountId: { type: 'string', optional: true },
             },
           },
