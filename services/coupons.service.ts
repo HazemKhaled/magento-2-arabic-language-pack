@@ -106,7 +106,7 @@ const TheService: ServiceSchema = {
         const updateBody = { ...ctx.params };
         delete updateBody.id;
         return this.adapter
-          .updateById(id, { $set: updateBody })
+          .updateMany({ _id: id }, { $set: updateBody })
           .then((coupon: Coupon) => {
             if (!coupon) {
               throw new MoleculerError('No Coupons found!', 404);
@@ -125,7 +125,7 @@ const TheService: ServiceSchema = {
       auth: 'Basic',
       async handler(ctx: Context) {
         return this.adapter
-          .updateById(ctx.params.id.toUpperCase(), { $inc: { useCount: 1 } })
+          .updateMany({ _id: ctx.params.id.toUpperCase() }, { $inc: { useCount: 1 } })
           .then((coupon: Coupon) => {
             if (!coupon) {
               throw new MoleculerError('No Coupons found!', 404);
