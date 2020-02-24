@@ -78,8 +78,7 @@ export const CouponsValidation: ServiceSchema = {
         },
         {
           type: 'number',
-        },
-        ],
+        }],
         membership: {
           type: 'string',
           optional: true,
@@ -87,6 +86,30 @@ export const CouponsValidation: ServiceSchema = {
         type: {
           type: 'enum',
           values: ['salesorder', 'subscription'],
+        },
+      },
+    },
+    list: {
+      params: {
+        id: [{
+          type: 'string',
+          optional: true,
+        },
+        {
+          type: 'number',
+          optional: true,
+        }],
+        membership: {
+          type: 'string',
+          optional: true,
+        },
+        type: {
+          type: 'enum',
+          values: ['salesorder', 'subscription'],
+        },
+        isValid: {
+          type: 'boolean',
+          optional: true,
         },
       },
     },

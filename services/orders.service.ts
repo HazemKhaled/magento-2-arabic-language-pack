@@ -20,7 +20,7 @@ const TheService: ServiceSchema = {
     createOrder: {
       auth: 'Bearer',
       async handler(ctx: Context) {
-        let warnings: {code: number; message: string;}[] = []; // Initialize warnings array
+        let warnings: { code: number; message: string; }[] = []; // Initialize warnings array
         // Get the Store instance
         const instance = await ctx.call('stores.findInstance', {
           consumerKey: ctx.meta.user,
@@ -159,14 +159,18 @@ const TheService: ServiceSchema = {
           adjustment: data.adjustment,
         };
 
-        if (ctx.params.coupon) {
-          const discountResponse: {warnings?: [], discount?: number; coupon: string;} = await this.discount(ctx.params.coupon, subscription.membership.id, orderExpenses);
-          if (Array.isArray(discountResponse)) {
-            warnings = warnings.concat(discountResponse.warnings);
-          } else {
-            data.discount = discountResponse.discount.toString();
-            data.coupon = discountResponse.coupon;
-          }
+        const discountResponse: { warnings?: [], discount?: number; coupon: string; } = await this.discount({
+          code: ctx.params.coupon,
+          membership: subscription.membership.id,
+          orderExpenses,
+        });
+        if (Array.isArray(discountResponse) && ctx.params.coupon) {
+          warnings = warnings.concat(discountResponse.warnings);
+        }
+        if (discountResponse && discountResponse.discount) {
+          console.log(discountResponse);
+          data.discount = discountResponse.discount.toString();
+          data.coupon = discountResponse.coupon;
         }
 
         // Checking for processing fees
@@ -319,7 +323,7 @@ const TheService: ServiceSchema = {
     updateOrder: {
       auth: 'Bearer',
       async handler(ctx) {
-        let warnings: {code: number; message: string;}[] = []; // Initialize warnings array
+        let warnings: { code: number; message: string; }[] = []; // Initialize warnings array
         const instance = await ctx.call('stores.findInstance', {
           consumerKey: ctx.meta.user,
         });
@@ -455,7 +459,7 @@ const TheService: ServiceSchema = {
               adjustment: data.adjustment,
             };
             if (orderBeforeUpdate.coupon) {
-              const discountResponse: {warnings?: [], discount?: number} = await this.discount(orderBeforeUpdate.coupon, subscription.membership.id, orderExpenses);
+              const discountResponse: { warnings?: [], discount?: number } = await this.discount({ code: orderBeforeUpdate.coupon, membership: subscription.membership.id, orderExpenses });
               if (Array.isArray(discountResponse)) {
                 warnings = warnings.concat(discountResponse.warnings);
               } else {

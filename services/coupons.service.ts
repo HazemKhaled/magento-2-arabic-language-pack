@@ -69,9 +69,23 @@ const TheService: ServiceSchema = {
       cache: {
         ttl: 60 * 60, // 1 hour
       },
-      handler(): Promise<Coupon[]> {
+      handler(ctx): Promise<Coupon[]> {
+        const query: { [key: string]: {} } = {};
+        if (ctx.params.isValid) {
+          query.startDate = { $lte: new Date() };
+          query.endDate = { $gte: new Date() };
+        }
+        if (ctx.params.id) {
+          query._id = ctx.params.id.toUpperCase();
+        }
+        if (ctx.params.membership) {
+          query.appliedMemberships = ctx.params.membership;
+        }
+        if (ctx.params.type) {
+          query.type = ctx.params.type;
+        }
         return this.adapter
-          .find()
+          .find(query)
           .then((res: Coupon[]) => {
             if (res.length !== 0) return res.map(coupon => this.normalizeId(coupon));
             throw new MoleculerError('No Coupons found!', 404);
