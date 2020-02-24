@@ -194,5 +194,38 @@ export const OrdersOperations: ServiceSchema = {
 
       return shipment;
     },
+    async discount(code, membership, orderExpenses) {
+      const warnings = [];
+      const coupon = await this.broker
+        .call('coupons.get', {
+          id: code,
+          membership: membership,
+          type: 'salesorder',
+        })
+        .then(null, (err: Error) => err);
+      if (coupon instanceof Error) {
+        warnings.push({
+          message: coupon.message,
+          code: 2323,
+        });
+        return {warnings};
+      } else {
+        const discount = Object.keys(coupon.discount).reduce((totalDis: number, key: 'total' | 'tax' | 'shipping') => {
+          if (orderExpenses[key]) {
+            const disObj: { value: number; type: '%' | '$'; } = coupon.discount[key];
+            switch (disObj.type) {
+            case '$':
+              totalDis += orderExpenses[key] < disObj.value ? orderExpenses[key] - disObj.value : disObj.value;
+              break;
+            case '%':
+              totalDis += orderExpenses[key] / 100 * disObj.value;
+              break;
+            }
+            return totalDis;
+          }
+        }, 0);
+        return {discount, coupon: code};
+      }
+    },
   },
 };

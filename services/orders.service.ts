@@ -20,6 +20,7 @@ const TheService: ServiceSchema = {
     createOrder: {
       auth: 'Bearer',
       async handler(ctx: Context) {
+        let warnings: {code: number; message: string;}[] = []; // Initialize warnings array
         // Get the Store instance
         const instance = await ctx.call('stores.findInstance', {
           consumerKey: ctx.meta.user,
@@ -88,6 +89,7 @@ const TheService: ServiceSchema = {
         // Update Order Items
         data.items = taxData.items;
         data.isInclusiveTax = taxData.isInclusive;
+        const { taxTotal } = taxData;
 
         // Shipping
         const shipment = await this.shipment(
@@ -133,7 +135,7 @@ const TheService: ServiceSchema = {
           data.items.reduce(
             (accumulator: number, current: OrderItem) => accumulator + current.purchaseRate,
             0,
-          ) + data.shippingCharge;
+          ) + (data.isInclusiveTax ? 0 : taxTotal);
 
         // Getting the current user subscription
         const subscription = await ctx.call('subscription.get', { id: instance.url });
@@ -148,6 +150,22 @@ const TheService: ServiceSchema = {
             subscription.attributes.orderProcessingFees
           }%`;
           break;
+        }
+
+        const orderExpenses = {
+          total,
+          shipping: data.shippingCharge,
+          tax: taxTotal,
+          adjustment: data.adjustment,
+        };
+
+        if (ctx.params.coupon) {
+          const discountResponse: {warnings?: [], discount?: number} = await this.discount(ctx.params.coupon, subscription.membership.id, orderExpenses);
+          if (Array.isArray(discountResponse)) {
+            warnings = warnings.concat(discountResponse.warnings);
+          } else {
+            data.discount = discountResponse.discount.toString();
+          }
         }
 
         // Checking for processing fees
@@ -244,6 +262,7 @@ const TheService: ServiceSchema = {
             notes: order.notes || '',
             shipping_method: order.shipmentCourier,
             shipping_charge: order.shippingCharge,
+            discount: order.discount,
             adjustment: order.adjustment,
             adjustmentDescription: order.adjustmentDescription,
             orderNumber: order.orderNumber,
@@ -274,7 +293,7 @@ const TheService: ServiceSchema = {
           );
         }
         // Initializing warnings array if we have a Warning
-        let warnings = this.warningsMessenger(
+        warnings = warnings.concat(this.warningsMessenger(
           stock.outOfStock,
           stock.notEnoughStock,
           data,
@@ -283,7 +302,7 @@ const TheService: ServiceSchema = {
           ctx.params.shipping,
           shipment,
           ctx.params,
-        );
+        ));
         warnings = warnings.concat(taxesMsg);
         if (warnings.length > 0) message.warnings = warnings;
         this.sendLogs({
@@ -299,6 +318,7 @@ const TheService: ServiceSchema = {
     updateOrder: {
       auth: 'Bearer',
       async handler(ctx) {
+        let warnings: {code: number; message: string;}[] = []; // Initialize warnings array
         const instance = await ctx.call('stores.findInstance', {
           consumerKey: ctx.meta.user,
         });
@@ -393,6 +413,7 @@ const TheService: ServiceSchema = {
             // Taxes
             const taxData = await this.setTaxIds(instance, stock.items);
             const taxesMsg: { code: number; message: string; }[] = taxData.msgs;
+            const { taxTotal } = taxData;
 
             // Update Order Items
             data.items = taxData.items;
@@ -425,8 +446,25 @@ const TheService: ServiceSchema = {
                 subscription.attributes.orderProcessingFees
               }%`;
             }
+
+            const orderExpenses = {
+              total,
+              shipping: data.shippingCharge,
+              tax: taxTotal,
+              adjustment: data.adjustment,
+            };
+
+            if (ctx.params.coupon) {
+              const discountResponse: {warnings?: [], discount?: number} = await this.discount(ctx.params.coupon, subscription.membership.id, orderExpenses);
+              if (Array.isArray(discountResponse)) {
+                warnings = warnings.concat(discountResponse.warnings);
+              } else {
+                data.discount = discountResponse.discount.toString();
+              }
+            }
+
             // Initializing warnings array if we have a Warning
-            let warnings = this.warningsMessenger(
+            warnings = warnings.concat(this.warningsMessenger(
               stock.outOfStock,
               stock.notEnoughStock,
               data,
@@ -435,7 +473,7 @@ const TheService: ServiceSchema = {
               ctx.params.shipping,
               shipment,
               ctx.params,
-            );
+            ));
             warnings = warnings.concat(taxesMsg);
             if (warnings.length > 0) message.warnings = warnings;
           }
@@ -1010,6 +1048,7 @@ const TheService: ServiceSchema = {
     async setTaxIds(instance, items) {
       const taxesMsg: {}[] = [];
       let isInclusive = false;
+      let taxTotal = 0;
       const itemsAfterTaxes = await Promise.all(
         items.map(
           async (item: OrderItem, index: number) => {
@@ -1030,13 +1069,17 @@ const TheService: ServiceSchema = {
               taxesMsg.push(taxData);
             }
 
+            if (taxData.percentage) {
+              taxTotal += item.rate / 100 * taxData.percentage;
+            }
+
             return item;
           }));
-
       return {
         items: itemsAfterTaxes,
         isInclusive,
         msgs: taxesMsg,
+        taxTotal,
       };
     },
   },
