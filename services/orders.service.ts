@@ -164,6 +164,7 @@ const TheService: ServiceSchema = {
           membership: subscription.membership.id,
           orderExpenses,
           isValid: true,
+          isAuto: !!!ctx.params.coupon,
         });
         if (Array.isArray(discountResponse) && ctx.params.coupon) {
           warnings = warnings.concat(discountResponse.warnings);

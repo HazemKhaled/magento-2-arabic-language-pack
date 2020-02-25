@@ -74,6 +74,10 @@ const TheService: ServiceSchema = {
         if (ctx.params.isValid) {
           query.startDate = { $lte: new Date() };
           query.endDate = { $gte: new Date() };
+          query.$expr = { $gt: ['$maxUses', '$useCount'] };
+        }
+        if (ctx.params.isAuto) {
+          query.auto = ctx.params.isAuto;
         }
         if (ctx.params.id) {
           query._id = ctx.params.id.toUpperCase();
@@ -84,8 +88,9 @@ const TheService: ServiceSchema = {
         if (ctx.params.type) {
           query.type = ctx.params.type;
         }
+        console.log(query);
         return this.adapter
-          .find(query)
+          .find({query})
           .then((res: Coupon[]) => {
             if (res.length !== 0) return res.map(coupon => this.normalizeId(coupon));
             throw new MoleculerError('No Coupons found!', 404);

@@ -111,6 +111,10 @@ export const CouponsValidation: ServiceSchema = {
           type: 'boolean',
           optional: true,
         },
+        isAuto: {
+          type: 'boolean',
+          optional: true,
+        },
       },
     },
     update: {
