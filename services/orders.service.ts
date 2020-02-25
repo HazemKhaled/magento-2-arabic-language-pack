@@ -169,7 +169,6 @@ const TheService: ServiceSchema = {
           warnings = warnings.concat(discountResponse.warnings);
         }
         if (discountResponse && discountResponse.discount) {
-          console.log(discountResponse);
           data.discount = discountResponse.discount.toString();
           data.coupon = discountResponse.coupon;
         }
