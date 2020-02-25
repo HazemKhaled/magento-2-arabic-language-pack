@@ -88,7 +88,6 @@ const TheService: ServiceSchema = {
         if (ctx.params.type) {
           query.type = ctx.params.type;
         }
-        console.log(query);
         return this.adapter
           .find({query})
           .then((res: Coupon[]) => {
