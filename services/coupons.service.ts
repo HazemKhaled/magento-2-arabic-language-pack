@@ -12,6 +12,7 @@ const TheService: ServiceSchema = {
     create: {
       auth: 'Basic',
       handler(ctx: Context): Promise<Coupon> {
+        this.couponTypeCheck(ctx.params);
         return this.adapter
           .insert(this.createCouponSanitize(ctx.params))
           .then((res: Coupon) => {
@@ -40,6 +41,9 @@ const TheService: ServiceSchema = {
         };
         if (ctx.params.membership) {
           query.appliedMemberships = ctx.params.membership;
+        }
+        if (ctx.params.type) {
+          query.type = ctx.params.type;
         }
         return this.adapter
           .findOne(query)
@@ -83,6 +87,7 @@ const TheService: ServiceSchema = {
     update: {
       auth: 'Basic',
       async handler(ctx: Context): Promise<Coupon> {
+        this.couponTypeCheck(ctx.params);
         const id = ctx.params.id.toUpperCase();
         const updateBody = { ...ctx.params };
         delete updateBody.id;
@@ -146,14 +151,54 @@ const TheService: ServiceSchema = {
     createCouponSanitize(params) {
       return {
         _id: params.code,
+        type: params.type, // Coupon type 'salesorder | subscription'
         useCount: 0,
         startDate: new Date(params.startDate),
         endDate: new Date(params.endDate),
-        discount: params.discount,
-        discountType: params.discountType,
+        discount: params.discount, // Object { tax, shipping, total }
         maxUses: params.maxUses,
         appliedMemberships: params.appliedMemberships,
+        auto: params.auto, // Auto apply 'boolean'
       };
+    },
+    /**
+     * Validate different coupons type
+     *
+     * @param {Coupon} params
+     */
+    couponTypeCheck(params) {
+      if (params.type === 'salesorder' && (!params.discount || Object.keys(params.discount).length < 1)) {
+        const error = new MoleculerError('Parameters validation error!', 422, 'VALIDATION_ERROR', [{
+          type: 'object',
+          field: 'discount',
+          expected: {
+            '‘total‘ | ‘shipping‘ | ‘tax‘': {
+              value: 'number',
+              type: '‘%‘ | ‘$‘',
+            },
+          },
+          actual: params.discount,
+          message: 'The \'discount\' object must have at least one field!',
+        }]);
+        error.name = 'Validation error';
+        throw error;
+      }
+      if (params.type === 'subscription' && (!params.discount || !params.discount.total)) {
+        const error = new MoleculerError('Parameters validation error!', 422, 'VALIDATION_ERROR', [{
+          type: 'enumValue',
+          expected: {
+            'discount.total': {
+              value: 'number',
+              type: '‘%‘ | ‘$‘',
+            },
+          },
+          actual: params.discount,
+          field: 'discount.total',
+          message: 'The \'discount.total\' field is required!',
+        }]);
+        error.name = 'Validation error';
+        throw error;
+      }
     },
   },
 };

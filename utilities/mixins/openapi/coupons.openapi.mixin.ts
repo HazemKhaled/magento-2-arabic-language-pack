@@ -4,8 +4,32 @@ const Coupon = {
   type: 'object',
   properties: {
     code: { type: 'string' },
-    discount: { type: 'number' },
-    discountType: { type: 'string', 'enum': ['$', '%'] },
+    discount: {
+      type: 'object',
+      properties: {
+        total: {
+          type: 'object',
+          properties: {
+            value: { type: 'number' },
+            type: { type: 'string', 'enum': ['%', '$']},
+          },
+        },
+        shipping: {
+          type: 'object',
+          properties: {
+            value: { type: 'number' },
+            type: { type: 'string', 'enum': ['%', '$']},
+          },
+        },
+        tax: {
+          type: 'object',
+          properties: {
+            value: { type: 'number' },
+            type: { type: 'string', 'enum': ['%', '$']},
+          },
+        },
+      },
+    },
     startDate: { type: 'string', format: 'date-time' },
     endDate: { type: 'string', format: 'date-time' },
     maxUses: { type: 'number' },
@@ -29,6 +53,14 @@ const CouponsGetOpenapi = {
     },
     {
       name: 'membership',
+      'in': 'query',
+      required: false,
+      schema: {
+        type: 'string',
+      },
+    },
+    {
+      name: 'type',
       'in': 'query',
       required: false,
       schema: {
@@ -81,6 +113,46 @@ const CouponsGetOpenapi = {
   ],
 };
 
+const CouponsCreateOpenapi = {
+  $path: 'post /coupons',
+  summary: 'Create Coupon',
+  tags: ['Coupon'],
+  requestBody: {
+    content: {
+      'application/json': {
+        schema: {
+          $ref: '#/components/schemas/Coupon',
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Status 200',
+      content: {
+        'application/json': {
+          schema: {
+            $ref: '#/components/schemas/Coupon',
+          },
+        },
+      },
+    },
+    401: {
+      $ref: '#/components/responses/UnauthorizedErrorBasic',
+    },
+  },
+  security: [
+    {
+      basicAuth: [] as any[],
+    },
+  ],
+};
+
+const CouponsUpdateOpenapi = {
+  ...CouponsCreateOpenapi,
+  $path: 'put /coupons/:code',
+  summary: 'Update Coupon',
+};
 export const CouponsOpenapi: ServiceSchema = {
   name: 'coupons',
   settings: {
@@ -93,6 +165,12 @@ export const CouponsOpenapi: ServiceSchema = {
     },
   },
   actions: {
+    create: {
+      openapi: CouponsCreateOpenapi,
+    },
+    update: {
+      openapi: CouponsUpdateOpenapi,
+    },
     get: {
       openapi: CouponsGetOpenapi,
     },

@@ -124,6 +124,7 @@ const TheService: ServiceSchema = {
             .call('coupons.get', {
               id: ctx.params.coupon,
               membership: ctx.params.membership,
+              type: 'subscription',
             })
             .then(null, err => err);
           if (isError(coupon)) {
@@ -142,12 +143,12 @@ const TheService: ServiceSchema = {
         const cost = membership.cost;
         let discount = 0;
         if (coupon) {
-          switch (coupon.discountType) {
+          switch (coupon.discount.total.type) {
           case '$':
-            discount = Math.min(coupon.discount, cost);
+            discount = Math.min(coupon.discount.total.value, cost);
             break;
           case '%':
-            discount = +((cost / 100) * coupon.discount).toFixed(2);
+            discount = +((cost / 100) * coupon.discount.total.value).toFixed(2);
             break;
           }
         }
