@@ -22,6 +22,7 @@ export interface Order {
   shipmentCourier?: string;
   shipmentTrackingNumber?: string;
   shipping_method?: string;
+  discount?: number;
   store?: {};
   orderNumber?: string;
 }
@@ -84,6 +85,7 @@ export interface OMSResponse {
     billing: OrderAddress;
     shipmentCourier?: string;
     shippingCharge: number;
+    discount?: number;
     total: number;
     hasQtyCancelled: boolean;
     notes?: string;

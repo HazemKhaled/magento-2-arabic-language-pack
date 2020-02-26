@@ -12,6 +12,7 @@ const TheService: ServiceSchema = {
     create: {
       auth: 'Basic',
       handler(ctx: Context): Promise<Coupon> {
+        this.couponTypeCheck(ctx.params);
         return this.adapter
           .insert(this.createCouponSanitize(ctx.params))
           .then((res: Coupon) => {
@@ -41,6 +42,9 @@ const TheService: ServiceSchema = {
         if (ctx.params.membership) {
           query.appliedMemberships = ctx.params.membership;
         }
+        if (ctx.params.type) {
+          query.type = ctx.params.type;
+        }
         return this.adapter
           .findOne(query)
           .then((res: Coupon) => {
@@ -65,9 +69,27 @@ const TheService: ServiceSchema = {
       cache: {
         ttl: 60 * 60, // 1 hour
       },
-      handler(): Promise<Coupon[]> {
+      handler(ctx): Promise<Coupon[]> {
+        const query: { [key: string]: {} } = {};
+        if (ctx.params.isValid) {
+          query.startDate = { $lte: new Date() };
+          query.endDate = { $gte: new Date() };
+          query.$expr = { $gt: ['$maxUses', '$useCount'] };
+        }
+        if (ctx.params.isAuto) {
+          query.auto = ctx.params.isAuto;
+        }
+        if (ctx.params.id) {
+          query._id = ctx.params.id.toUpperCase();
+        }
+        if (ctx.params.membership) {
+          query.appliedMemberships = ctx.params.membership;
+        }
+        if (ctx.params.type) {
+          query.type = ctx.params.type;
+        }
         return this.adapter
-          .find()
+          .find({query})
           .then((res: Coupon[]) => {
             if (res.length !== 0) return res.map(coupon => this.normalizeId(coupon));
             throw new MoleculerError('No Coupons found!', 404);
@@ -83,11 +105,12 @@ const TheService: ServiceSchema = {
     update: {
       auth: 'Basic',
       async handler(ctx: Context): Promise<Coupon> {
+        this.couponTypeCheck(ctx.params);
         const id = ctx.params.id.toUpperCase();
         const updateBody = { ...ctx.params };
         delete updateBody.id;
         return this.adapter
-          .updateById(id, { $set: updateBody })
+          .updateMany({ _id: id }, { $set: updateBody })
           .then((coupon: Coupon) => {
             if (!coupon) {
               throw new MoleculerError('No Coupons found!', 404);
@@ -106,7 +129,7 @@ const TheService: ServiceSchema = {
       auth: 'Basic',
       async handler(ctx: Context) {
         return this.adapter
-          .updateById(ctx.params.id.toUpperCase(), { $inc: { useCount: 1 } })
+          .updateMany({ _id: ctx.params.id.toUpperCase() }, { $inc: { useCount: 1 } })
           .then((coupon: Coupon) => {
             if (!coupon) {
               throw new MoleculerError('No Coupons found!', 404);
@@ -146,14 +169,54 @@ const TheService: ServiceSchema = {
     createCouponSanitize(params) {
       return {
         _id: params.code,
+        type: params.type, // Coupon type 'salesorder | subscription'
         useCount: 0,
         startDate: new Date(params.startDate),
         endDate: new Date(params.endDate),
-        discount: params.discount,
-        discountType: params.discountType,
+        discount: params.discount, // Object { tax, shipping, total }
         maxUses: params.maxUses,
         appliedMemberships: params.appliedMemberships,
+        auto: params.auto, // Auto apply 'boolean'
       };
+    },
+    /**
+     * Validate different coupons type
+     *
+     * @param {Coupon} params
+     */
+    couponTypeCheck(params) {
+      if (params.type === 'salesorder' && (!params.discount || Object.keys(params.discount).length < 1)) {
+        const error = new MoleculerError('Parameters validation error!', 422, 'VALIDATION_ERROR', [{
+          type: 'object',
+          field: 'discount',
+          expected: {
+            '‘total‘ | ‘shipping‘ | ‘tax‘': {
+              value: 'number',
+              type: '‘%‘ | ‘$‘',
+            },
+          },
+          actual: params.discount,
+          message: 'The \'discount\' object must have at least one field!',
+        }]);
+        error.name = 'Validation error';
+        throw error;
+      }
+      if (params.type === 'subscription' && (!params.discount || !params.discount.total)) {
+        const error = new MoleculerError('Parameters validation error!', 422, 'VALIDATION_ERROR', [{
+          type: 'enumValue',
+          expected: {
+            'discount.total': {
+              value: 'number',
+              type: '‘%‘ | ‘$‘',
+            },
+          },
+          actual: params.discount,
+          field: 'discount.total',
+          message: 'The \'discount.total\' field is required!',
+        }]);
+        error.name = 'Validation error';
+        throw error;
+      }
     },
   },
 };
