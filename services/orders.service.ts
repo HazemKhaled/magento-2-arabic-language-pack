@@ -3,7 +3,7 @@ import { v1 as uuidv1 } from 'uuid';
 
 import { OrdersOpenapi } from '../utilities/mixins/openapi';
 import { OrdersOperations } from '../utilities/mixins/orders.mixin';
-import { Log, OMSResponse, Order, OrderAddress, OrderItem, Product, Tax } from '../utilities/types';
+import { Log, OrderOMSResponse, Order, OrderAddress, OrderItem, Product, Tax } from '../utilities/types';
 import { OrdersValidation } from '../utilities/mixins/validation';
 import TaxCheck = require('../utilities/mixins/tax.mixin');
 
@@ -203,7 +203,7 @@ const TheService: ServiceSchema = {
         )}${data.notes}`;
         data.subscription = subscription.membership.name.en;
         this.logger.info(JSON.stringify(data));
-        const result: OMSResponse = await ctx.call('oms.createNewOrder', data);
+        const result: OrderOMSResponse = await ctx.call('oms.createNewOrder', data);
         if (!result.salesorder) {
           this.sendLogs({
             topicId: data.externalId,
@@ -259,7 +259,7 @@ const TheService: ServiceSchema = {
         const order = result.salesorder;
         const message: {
           status?: string;
-          data?: OMSResponse['salesorder'] | any; // Remove any after
+          data?: OrderOMSResponse['salesorder'] | any; // Remove any after
           warnings?: Array<{}>;
           errors?: Array<{}>;
         } = {
@@ -376,7 +376,7 @@ const TheService: ServiceSchema = {
 
         const message: {
           status?: string;
-          data?: OMSResponse['salesorder'] | any; // Remove any after
+          data?: OrderOMSResponse['salesorder'] | any; // Remove any after
           warnings?: Array<{}>;
           errors?: Array<{}>;
         } = {};
@@ -497,7 +497,7 @@ const TheService: ServiceSchema = {
             ? this.normalizeStatus(data.status)
             : data.status;
           // Update order
-          const result: OMSResponse = await ctx.call('oms.updateOrderById', {
+          const result: OrderOMSResponse = await ctx.call('oms.updateOrderById', {
             customerId: instance.internal_data.omsId,
             orderId: ctx.params.id,
             ...data,
