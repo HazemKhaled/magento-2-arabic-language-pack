@@ -635,6 +635,7 @@ const TheService: ServiceSchema = {
           adjustmentDescription: order.adjustmentDescription,
           shipment_tracking_number: order.shipmentTrackingNumber,
           orderNumber: order.orderNumber,
+          invoice_url: order.externalInvoice,
           taxTotal: order.taxTotal,
           taxes: order.taxes,
         };
