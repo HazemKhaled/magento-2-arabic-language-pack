@@ -36,6 +36,7 @@ const Coupon = {
     maxUses: { type: 'number' },
     appliedMemberships: { type: 'array', items: { type: 'string' } },
     useCount: { type: 'number' },
+    auto: { type: 'boolean' },
   },
 };
 
