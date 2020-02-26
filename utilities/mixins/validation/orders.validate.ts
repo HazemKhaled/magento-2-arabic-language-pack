@@ -5,17 +5,18 @@ export const OrdersValidation: ServiceSchema = {
   actions: {
     createOrder: {
       params: {
-        id: [{
-          type: 'string',
-          empty: false,
-          optional: true,
-        },
-        {
-          type: 'number',
-          integer: true,
-          convert: true,
-          optional: true,
-        },
+        id: [
+          {
+            type: 'string',
+            empty: false,
+            optional: true,
+          },
+          {
+            type: 'number',
+            integer: true,
+            convert: true,
+            optional: true,
+          },
         ],
         status: {
           type: 'enum',
@@ -104,6 +105,10 @@ export const OrdersValidation: ServiceSchema = {
           optional: true,
         },
         shipping_method: {
+          type: 'string',
+          optional: true,
+        },
+        coupon: {
           type: 'string',
           optional: true,
         },

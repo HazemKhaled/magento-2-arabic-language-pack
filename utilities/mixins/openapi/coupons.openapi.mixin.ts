@@ -30,6 +30,7 @@ const Coupon = {
         },
       },
     },
+    type: { type: 'string', 'enum': ['salesorder', 'subscription'] },
     startDate: { type: 'string', format: 'date-time' },
     endDate: { type: 'string', format: 'date-time' },
     maxUses: { type: 'number' },
@@ -75,6 +76,99 @@ const CouponsGetOpenapi = {
         'application/json': {
           schema: {
             $ref: '#/components/schemas/Coupon',
+          },
+        },
+      },
+    },
+    401: {
+      $ref: '#/components/responses/UnauthorizedErrorBasic',
+    },
+    404: {
+      description: 'Status 404',
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: {
+              errors: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    message: {
+                      type: 'string',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+  security: [
+    {
+      basicAuth: [] as any[],
+    },
+  ],
+};
+
+const CouponsListOpenapi = {
+  $path: 'get /coupons',
+  summary: 'List Coupons',
+  tags: ['Coupon'],
+  parameters: [
+    {
+      name: 'code',
+      'in': 'query',
+      required: false,
+      schema: {
+        type: 'string',
+      },
+    },
+    {
+      name: 'membership',
+      'in': 'query',
+      required: false,
+      schema: {
+        type: 'string',
+      },
+    },
+    {
+      name: 'type',
+      'in': 'query',
+      required: false,
+      schema: {
+        type: 'string',
+        'enum': ['salesorder', 'subscription'],
+      },
+    },
+    {
+      name: 'isValid',
+      'in': 'query',
+      required: false,
+      schema: {
+        type: 'boolean',
+      },
+    },
+    {
+      name: 'isAuto',
+      'in': 'query',
+      required: false,
+      schema: {
+        type: 'boolean',
+      },
+    },
+  ],
+  responses: {
+    200: {
+      description: 'Status 200',
+      content: {
+        'application/json': {
+          schema: {
+            type: 'array',
+            items: { $ref: '#/components/schemas/Coupon' },
           },
         },
       },
@@ -173,6 +267,9 @@ export const CouponsOpenapi: ServiceSchema = {
     },
     get: {
       openapi: CouponsGetOpenapi,
+    },
+    list: {
+      openapi: CouponsListOpenapi,
     },
   },
 };
