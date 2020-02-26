@@ -211,7 +211,10 @@ const TheService: ServiceSchema = {
           const parsedRes = await res.json();
           if (!res.ok) {
             throw new MoleculerError(
-              parsedRes && parsedRes.error && parsedRes.error.message,
+              parsedRes &&
+              parsedRes.error &&
+              (parsedRes.error.details ||
+              parsedRes.error.message),
               res.status,
             );
           }
