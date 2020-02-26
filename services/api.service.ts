@@ -80,6 +80,7 @@ const TheService: ServiceSchema = {
           'GET invoices': 'invoices.get',
           'POST invoices': 'invoices.create',
           'POST invoices/:id/credits': 'invoices.applyCredits',
+          'GET invoice/:storeId/external/:id': 'invoices.renderInvoice',
 
           // Payments
           'POST payments/:id': 'payments.add',

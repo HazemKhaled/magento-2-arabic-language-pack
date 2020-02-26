@@ -2,11 +2,12 @@ import { Context, Errors, ServiceSchema } from 'moleculer';
 import { InvoicesOpenapi } from '../utilities/mixins/openapi';
 import { Invoice } from '../utilities/types';
 import { InvoicesValidation } from '../utilities/mixins/validation';
+import { InvoicePage } from '../utilities/mixins/invoicePage';
 const MoleculerError = Errors.MoleculerError;
 
 const TheService: ServiceSchema = {
   name: 'invoices',
-  mixins: [InvoicesValidation, InvoicesOpenapi],
+  mixins: [InvoicesValidation, InvoicesOpenapi, InvoicePage],
   actions: {
     get: {
       auth: 'Bearer',
@@ -129,6 +130,21 @@ const TheService: ServiceSchema = {
           .then(null, err => {
             throw new MoleculerError(err.message, err.code || 500);
           });
+      },
+    },
+    renderInvoice: {
+      params: {},
+      async handler(ctx: Context) {
+        const store = await ctx.call('stores.findInstance', { id: ctx.params.storeId });
+        ctx.meta.user = store.consumer_key;
+        const orders = await ctx.call('orders.list', {
+          externalId: ctx.params.id,
+        });
+        const order = await ctx.call('orders.getOrder', {
+          order_id: orders[0].id,
+        });
+        ctx.meta.$responseType = 'text/html';
+        return this.renderInvoice(store, order);
       },
     },
   },
