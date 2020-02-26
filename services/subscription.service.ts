@@ -21,7 +21,7 @@ const TheService: ServiceSchema = {
     get: {
       cache: {
         keys: ['id'],
-        ttl: 60 * 60, // 1 hour
+        ttl: 60 * 60 * 24, // 1 day
       },
       async handler(ctx: Context): Promise<any | false> {
         const subscription =
@@ -54,7 +54,7 @@ const TheService: ServiceSchema = {
       auth: 'Basic',
       cache: {
         keys: ['storeId', 'membershipId', 'expireDate', 'startDate', 'page', 'perPage', 'sort'],
-        ttl: 60 * 60, // 1 hour
+        ttl: 60 * 60 * 24, // 1 day
       },
       async handler(ctx: Context): Promise<Subscription | false> {
         const query: { [key: string]: any } = {};

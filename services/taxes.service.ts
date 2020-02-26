@@ -82,7 +82,7 @@ const TaxesService: ServiceSchema = {
       auth: 'Basic',
       cache: {
         keys: ['id'],
-        ttl: 60 * 60, // 1 hour
+        ttl: 60 * 60 * 24, // 1 day
       },
       handler(ctx: Context): RTax {
         return this.adapter.findById(ctx.params.id).then((tax: DbTax) => {
@@ -102,7 +102,7 @@ const TaxesService: ServiceSchema = {
       auth: 'Basic',
       cache: {
         keys: ['page', 'perPage', 'country', 'class'],
-        ttl: 60 * 60, // 1 hour
+        ttl: 60 * 60 * 24, // 1 day
       },
       handler(ctx: Context): RTax[] {
         const { country } = ctx.params;
