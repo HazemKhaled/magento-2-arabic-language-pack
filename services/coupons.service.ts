@@ -31,7 +31,7 @@ const TheService: ServiceSchema = {
       auth: 'Basic',
       cache: {
         keys: ['id', 'membership'],
-        ttl: 60 * 60, // 1 hour
+        ttl: 60 * 60 * 24, // 1 day
       },
       handler(ctx: Context): Promise<Coupon> {
         const query: { [key: string]: {} } = {
@@ -67,7 +67,7 @@ const TheService: ServiceSchema = {
     list: {
       auth: 'Basic',
       cache: {
-        ttl: 60 * 60, // 1 hour
+        ttl: 60 * 60 * 24, // 1 day
       },
       handler(ctx): Promise<Coupon[]> {
         const query: { [key: string]: {} } = {};

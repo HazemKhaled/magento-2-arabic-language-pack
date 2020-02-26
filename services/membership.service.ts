@@ -39,7 +39,7 @@ const TheService: ServiceSchema = {
       auth: 'Basic',
       cache: {
         keys: ['id'],
-        ttl: 60 * 60, // 1 hour
+        ttl: 60 * 60 * 24, // 1 day
       },
       handler(ctx: Context): Promise<Membership> {
         return this.adapter
@@ -63,7 +63,7 @@ const TheService: ServiceSchema = {
     list: {
       auth: 'Basic',
       cache: {
-        ttl: 60 * 60, // 1 hour
+        ttl: 60 * 60 * 24, // 1 day
       },
       handler(): Promise<Membership[]> {
         return this.adapter
