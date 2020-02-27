@@ -105,10 +105,10 @@ export const InvoicePage: ServiceSchema = {
                                 ${item.quantity}
                             </td>
                             <td class="invoice-item-price">
-                                ${item.rate * store.sale_price}
+                                ${+(item.rate * store.sale_price).toFixed(4)}
                             </td>
                             <td class="invoice-item-total">
-                                ${item.total * store.sale_price}
+                                ${+(item.total * store.sale_price).toFixed(4)}
                             </td>
                         </tr>`;
     // eslint-disable-next-line indent
