@@ -319,5 +319,50 @@ export const InvoicesOpenapi: ServiceSchema = {
     applyCredits: {
       openapi: InvoicesApplyCreditsOpenapi,
     },
+    renderInvoice: {
+      openapi: {
+        $path: 'get /invoice/{storeId}/external/{id}',
+        summary: 'Get HTML invoice',
+        tags: ['Invoices'],
+        responses: {
+          200: {
+            description: 'Status 200',
+            content: {
+              'text/html': {
+                schema: {
+                  type: 'string',
+                },
+              },
+            },
+          },
+          401: {
+            $ref: '#/components/responses/UnauthorizedErrorBasic',
+          },
+          500: {
+            description: 'Status 500',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    errors: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          message: {
+                            type: 'string',
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
 };
