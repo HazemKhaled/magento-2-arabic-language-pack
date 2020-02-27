@@ -5,8 +5,8 @@ export const InvoicePage: ServiceSchema = {
   name: 'invoicePage',
   methods: {
     renderInvoice(store: Store, order: Order) {
-      const subTotal = +(order.items.reduce((a, i) => a + i.rate * i.quantity, 0) * store.sale_price).toFixed(2);
-      const total = subTotal + order.shipping_charge + order.taxTotal + order.adjustment;
+      const subTotal = +(order.items.reduce((a, i) => a + i.rate * i.quantity, 0) * store.sale_price).toFixed(4);
+      const total = +(subTotal + order.shipping_charge + order.taxTotal + order.adjustment).toFixed(4);
       return `<!DOCTYPE html>
             <html lang="en">
 
