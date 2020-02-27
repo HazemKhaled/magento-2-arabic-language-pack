@@ -118,14 +118,17 @@ const TheService: ServiceSchema = {
         delete updateBody.id;
         return this.adapter
           .collection.findOneAndUpdate({_id: id}, { $set: updateBody }, { returnOriginal : false })
-          .then((coupon: {value: Coupon}) => {
-            if (!coupon) {
+          .then((dbResponse: {value: Coupon}) => {
+            if (!dbResponse) {
               throw new MoleculerError('No Coupons found!', 404);
             }
 
             this.broker.cacher.clean('coupons.list:**');
             this.broker.cacher.clean(`coupons.get:${id}*`);
-            return coupon.value;
+            const coupon = dbResponse.value;
+            coupon.code = coupon._id;
+            delete coupon._id;
+            return coupon;
           })
           .catch((err: any) => {
             throw new MoleculerError(err, 500);
