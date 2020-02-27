@@ -68,6 +68,7 @@ const TheService: ServiceSchema = {
       auth: 'Basic',
       cache: {
         ttl: 60 * 60 * 24, // 1 day
+        keys: ['id', 'membership', 'type', 'isValid', 'isAuto'],
       },
       handler(ctx): Promise<Coupon[]> {
         const query: { [key: string]: {} } = {};
@@ -91,7 +92,7 @@ const TheService: ServiceSchema = {
         return this.adapter
           .find({query})
           .then((res: Coupon[]) => {
-            if (res.length !== 0) return res.map(coupon => this.normalizeId(coupon));
+            if (res.length) return res.map(coupon => this.normalizeId(coupon));
             throw new MoleculerError('No Coupons found!', 404);
           })
           .catch((err: any) => {
@@ -108,16 +109,25 @@ const TheService: ServiceSchema = {
         this.couponTypeCheck(ctx.params);
         const id = ctx.params.id.toUpperCase();
         const updateBody = { ...ctx.params };
+        if (updateBody.startDate) {
+          updateBody.startDate = new Date(updateBody.startDate);
+        }
+        if (updateBody.endDate) {
+          updateBody.endDate = new Date(updateBody.endDate);
+        }
         delete updateBody.id;
         return this.adapter
-          .updateMany({ _id: id }, { $set: updateBody })
-          .then((coupon: Coupon) => {
-            if (!coupon) {
+          .collection.findOneAndUpdate({_id: id}, { $set: updateBody }, { returnOriginal : false })
+          .then((dbResponse: {value: Coupon}) => {
+            if (!dbResponse) {
               throw new MoleculerError('No Coupons found!', 404);
             }
 
             this.broker.cacher.clean('coupons.list:**');
             this.broker.cacher.clean(`coupons.get:${id}*`);
+            const coupon = dbResponse.value;
+            coupon.code = coupon._id;
+            delete coupon._id;
             return coupon;
           })
           .catch((err: any) => {

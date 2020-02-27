@@ -178,7 +178,7 @@ const TheService: ServiceSchema = {
         this.sendLogs({
           topic: 'order',
           topicId: data.externalId,
-          message: `Subscription Package: ${subscription ? subscription.membership_name : 'Free'}`,
+          message: `Subscription Package: ${subscription ? subscription.membership.name.en : 'Free'}`,
           storeId: instance.url,
           logLevel: 'info',
           code: 2103,
