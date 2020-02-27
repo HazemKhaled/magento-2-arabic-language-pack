@@ -105,10 +105,10 @@ export const InvoicePage: ServiceSchema = {
                                 ${item.quantity}
                             </td>
                             <td class="invoice-item-price">
-                                ${+(item.rate * store.sale_price).toFixed(4)}
+                                ${+(item.rate * store.sale_price).toFixed(4)}$
                             </td>
                             <td class="invoice-item-total">
-                                ${+(item.total * store.sale_price).toFixed(4)}
+                                ${+(item.total * store.sale_price).toFixed(4)}$
                             </td>
                         </tr>`;
     // eslint-disable-next-line indent
@@ -122,7 +122,7 @@ export const InvoicePage: ServiceSchema = {
                           SUBTOTAL
                         </td>
                         <td class="text-right">
-                          ${subTotal}
+                          ${subTotal}$
                         </td>
                       </tr>
                       <tr>
@@ -131,7 +131,7 @@ export const InvoicePage: ServiceSchema = {
                           TAX
                         </td>
                         <td class="text-right">
-                          ${order.taxTotal}
+                          ${order.taxTotal}$
                         </td>
                       </tr>
                       <tr>
@@ -140,7 +140,7 @@ export const InvoicePage: ServiceSchema = {
                           Shipping
                         </td>
                         <td class="text-right">
-                          ${order.shipping_charge}
+                          ${order.shipping_charge}$
                         </td>
                       </tr>
                       <tr>
@@ -149,7 +149,7 @@ export const InvoicePage: ServiceSchema = {
                           Adjustment
                         </td>
                         <td class="text-right">
-                          ${order.adjustment}
+                          ${order.adjustment}$
                         </td>
                       </tr>
                       <tr class="invoice-total">
@@ -158,7 +158,7 @@ export const InvoicePage: ServiceSchema = {
                           GRAND TOTAL
                         </td>
                         <td class="text-right">
-                          ${total}
+                          ${total}$
                         </td>
                       </tr>
                     </tfoot>
