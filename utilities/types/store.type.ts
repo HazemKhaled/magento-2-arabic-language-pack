@@ -9,6 +9,7 @@ import { OrderAddress, Subscription } from '.';
 export interface Store {
   id: string;
   _id: string;
+  name: string;
   currency: string;
   status: 'confirmed' | 'unconfirmed' | 'archived' | 'error';
   url: string;
@@ -23,7 +24,7 @@ export interface Store {
   languages: string[];
   credit: number;
   debit: number;
-  internal_data: { [key: string]: unknown };
+  internal_data: { [key: string]: any };
   subscription?: Subscription;
   address: OrderAddress;
 }

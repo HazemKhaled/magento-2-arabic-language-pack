@@ -37,7 +37,7 @@ const TheService: ServiceSchema = {
       auth: 'Basic',
       cache: {
         keys: ['consumerKey', 'id'],
-        ttl: 60 * 60, // 1 hour
+        ttl: 60 * 60 * 24, // 1 day
       },
       handler(ctx: Context) {
         let query: { _id?: string } | false = false;
@@ -64,7 +64,7 @@ const TheService: ServiceSchema = {
       auth: 'Bearer',
       cache: {
         keys: ['#user'],
-        ttl: 60 * 60, // 1 hour
+        ttl: 60 * 60 * 24, // 1 day
       },
       handler(ctx: Context) {
         return this.adapter
@@ -100,7 +100,7 @@ const TheService: ServiceSchema = {
       auth: 'Basic',
       cache: {
         keys: ['id'],
-        ttl: 60 * 60, // 1 hour
+        ttl: 60 * 60 * 24, // 1 day
       },
       handler(ctx: Context) {
         return this.adapter.findById(ctx.params.id).then(async (res: Store | null) => {
@@ -144,7 +144,7 @@ const TheService: ServiceSchema = {
       auth: 'Basic',
       cache: {
         keys: ['filter'],
-        ttl: 60 * 60, // 1 hour
+        ttl: 60 * 60 * 24, // 1 day
       },
       handler(ctx: Context) {
         let params: { where?: {}; limit?: {}; order?: string; sort?: {} } = {};
@@ -376,6 +376,10 @@ const TheService: ServiceSchema = {
     },
     sync: {
       auth: 'Basic',
+      cache: {
+        ttl: 60 * 60 * 3,
+        keys: ['id', 'timestamp'],
+      },
       async handler(ctx) {
         const storeId = ctx.params.id;
         const instance = await ctx.call('stores.findInstance', {
@@ -505,7 +509,7 @@ const TheService: ServiceSchema = {
     resolveBearerToken: {
       cache: {
         keys: ['token'],
-        ttl: 60 * 60, // 1 hour
+        ttl: 60 * 60 * 24 * 30, // 1 hour
       },
       handler(ctx: Context) {
         return new this.Promise((resolve: any, reject: any) => {
@@ -549,7 +553,7 @@ const TheService: ServiceSchema = {
     resolveBasicToken: {
       cache: {
         keys: ['token'],
-        ttl: 60 * 60, // 1 hour
+        ttl: 60 * 60 * 24, // 1 day
       },
       handler(ctx: Context) {
         return fetch(`${process.env.AUTH_BASEURL}/login`, {

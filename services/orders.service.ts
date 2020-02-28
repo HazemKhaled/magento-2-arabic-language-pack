@@ -3,7 +3,7 @@ import { v1 as uuidv1 } from 'uuid';
 
 import { OrdersOpenapi } from '../utilities/mixins/openapi';
 import { OrdersOperations } from '../utilities/mixins/orders.mixin';
-import { Log, OMSResponse, Order, OrderAddress, OrderItem, Product, Tax } from '../utilities/types';
+import { Log, OrderOMSResponse, Order, OrderAddress, OrderItem, Product, Tax } from '../utilities/types';
 import { OrdersValidation } from '../utilities/mixins/validation';
 import TaxCheck = require('../utilities/mixins/tax.mixin');
 
@@ -20,6 +20,7 @@ const TheService: ServiceSchema = {
     createOrder: {
       auth: 'Bearer',
       async handler(ctx: Context) {
+        let warnings: { code: number; message: string; }[] = []; // Initialize warnings array
         // Get the Store instance
         const instance = await ctx.call('stores.findInstance', {
           consumerKey: ctx.meta.user,
@@ -88,6 +89,7 @@ const TheService: ServiceSchema = {
         // Update Order Items
         data.items = taxData.items;
         data.isInclusiveTax = taxData.isInclusive;
+        const { taxTotal } = taxData;
 
         // Shipping
         const shipment = await this.shipment(
@@ -131,9 +133,9 @@ const TheService: ServiceSchema = {
         // Calculate the order total
         const total: number =
           data.items.reduce(
-            (accumulator: number, current: OrderItem) => accumulator + current.purchaseRate,
+            (accumulator: number, current: OrderItem) => accumulator + current.rate * current.quantity,
             0,
-          ) + data.shippingCharge;
+          ) + (data.isInclusiveTax ? 0 : taxTotal);
 
         // Getting the current user subscription
         const subscription = await ctx.call('subscription.get', { id: instance.url });
@@ -150,11 +152,33 @@ const TheService: ServiceSchema = {
           break;
         }
 
+        const orderExpenses = {
+          total,
+          shipping: data.shippingCharge,
+          tax: taxTotal,
+          adjustment: data.adjustment,
+        };
+
+        const discountResponse: { warnings?: [], discount?: number; coupon: string; } = await this.discount({
+          code: ctx.params.coupon,
+          membership: subscription.membership.id,
+          orderExpenses,
+          isValid: true,
+          isAuto: !ctx.params.coupon,
+        });
+        if (Array.isArray(discountResponse) && ctx.params.coupon) {
+          warnings = warnings.concat(discountResponse.warnings);
+        }
+        if (discountResponse && discountResponse.discount) {
+          data.discount = discountResponse.discount.toString();
+          data.coupon = discountResponse.coupon;
+        }
+
         // Checking for processing fees
         this.sendLogs({
           topic: 'order',
           topicId: data.externalId,
-          message: `Subscription Package: ${subscription ? subscription.membership_name : 'Free'}`,
+          message: `Subscription Package: ${subscription ? subscription.membership.name.en : 'Free'}`,
           storeId: instance.url,
           logLevel: 'info',
           code: 2103,
@@ -179,7 +203,7 @@ const TheService: ServiceSchema = {
         )}${data.notes}`;
         data.subscription = subscription.membership.name.en;
         this.logger.info(JSON.stringify(data));
-        const result: OMSResponse = await ctx.call('oms.createNewOrder', data);
+        const result: OrderOMSResponse = await ctx.call('oms.createNewOrder', data);
         if (!result.salesorder) {
           this.sendLogs({
             topicId: data.externalId,
@@ -213,6 +237,12 @@ const TheService: ServiceSchema = {
             })
             .then(r => this.logger.info(r));
         }
+
+        // If coupon used update quantity
+        if (data.coupon) {
+          ctx.call('coupons.updateCount', { id: data.coupon });
+        }
+
         // Clearing order list action(API) cache
         this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
 
@@ -229,7 +259,7 @@ const TheService: ServiceSchema = {
         const order = result.salesorder;
         const message: {
           status?: string;
-          data?: OMSResponse['salesorder'] | any; // Remove any after
+          data?: OrderOMSResponse['salesorder'] | any; // Remove any after
           warnings?: Array<{}>;
           errors?: Array<{}>;
         } = {
@@ -244,6 +274,7 @@ const TheService: ServiceSchema = {
             notes: order.notes || '',
             shipping_method: order.shipmentCourier,
             shipping_charge: order.shippingCharge,
+            discount: order.discount,
             adjustment: order.adjustment,
             adjustmentDescription: order.adjustmentDescription,
             orderNumber: order.orderNumber,
@@ -274,7 +305,7 @@ const TheService: ServiceSchema = {
           );
         }
         // Initializing warnings array if we have a Warning
-        let warnings = this.warningsMessenger(
+        warnings = warnings.concat(this.warningsMessenger(
           stock.outOfStock,
           stock.notEnoughStock,
           data,
@@ -283,7 +314,7 @@ const TheService: ServiceSchema = {
           ctx.params.shipping,
           shipment,
           ctx.params,
-        );
+        ));
         warnings = warnings.concat(taxesMsg);
         if (warnings.length > 0) message.warnings = warnings;
         this.sendLogs({
@@ -299,6 +330,7 @@ const TheService: ServiceSchema = {
     updateOrder: {
       auth: 'Bearer',
       async handler(ctx) {
+        let warnings: { code: number; message: string; }[] = []; // Initialize warnings array
         const instance = await ctx.call('stores.findInstance', {
           consumerKey: ctx.meta.user,
         });
@@ -344,7 +376,7 @@ const TheService: ServiceSchema = {
 
         const message: {
           status?: string;
-          data?: OMSResponse['salesorder'] | any; // Remove any after
+          data?: OrderOMSResponse['salesorder'] | any; // Remove any after
           warnings?: Array<{}>;
           errors?: Array<{}>;
         } = {};
@@ -393,6 +425,7 @@ const TheService: ServiceSchema = {
             // Taxes
             const taxData = await this.setTaxIds(instance, stock.items);
             const taxesMsg: { code: number; message: string; }[] = taxData.msgs;
+            const { taxTotal } = taxData;
 
             // Update Order Items
             data.items = taxData.items;
@@ -413,9 +446,9 @@ const TheService: ServiceSchema = {
             // Calculate the order total
             const total: number =
               data.items.reduce(
-                (accumulator: number, current: OrderItem) => accumulator + current.purchaseRate,
+                (accumulator: number, current: OrderItem) => accumulator + current.purchaseRate * current.quantity,
                 0,
-              ) + (data.shippingCharge || orderBeforeUpdate.shippingCharge);
+              ) + (data.isInclusiveTax ? 0 : taxTotal);
 
             // Getting the current user subscription
             const subscription = await ctx.call('subscription.get', { id: instance.url });
@@ -425,8 +458,28 @@ const TheService: ServiceSchema = {
                 subscription.attributes.orderProcessingFees
               }%`;
             }
+
+            const orderExpenses = {
+              total,
+              shipping: data.shippingCharge,
+              tax: taxTotal,
+              adjustment: data.adjustment,
+            };
+            if (orderBeforeUpdate.coupon) {
+              const discountResponse: { warnings?: [], discount?: number } = await this.discount({
+                code: orderBeforeUpdate.coupon,
+                membership: subscription.membership.id,
+                orderExpenses,
+              });
+              if (Array.isArray(discountResponse)) {
+                warnings = warnings.concat(discountResponse.warnings);
+              } else {
+                data.discount = discountResponse.discount.toString();
+              }
+            }
+
             // Initializing warnings array if we have a Warning
-            let warnings = this.warningsMessenger(
+            warnings = warnings.concat(this.warningsMessenger(
               stock.outOfStock,
               stock.notEnoughStock,
               data,
@@ -435,7 +488,7 @@ const TheService: ServiceSchema = {
               ctx.params.shipping,
               shipment,
               ctx.params,
-            );
+            ));
             warnings = warnings.concat(taxesMsg);
             if (warnings.length > 0) message.warnings = warnings;
           }
@@ -444,7 +497,7 @@ const TheService: ServiceSchema = {
             ? this.normalizeStatus(data.status)
             : data.status;
           // Update order
-          const result: OMSResponse = await ctx.call('oms.updateOrderById', {
+          const result: OrderOMSResponse = await ctx.call('oms.updateOrderById', {
             customerId: instance.internal_data.omsId,
             orderId: ctx.params.id,
             ...data,
@@ -486,6 +539,7 @@ const TheService: ServiceSchema = {
             billing: order.billing,
             shipping: order.shipping,
             createDate: order.createDate,
+            discount: order.discount,
             notes: order.notes || '',
             shipping_method: order.shipmentCourier,
             shipping_charge: order.shippingCharge,
@@ -505,11 +559,11 @@ const TheService: ServiceSchema = {
           this.logger.error(err);
           this.sendLogs({
             topicId: orderBeforeUpdate.externalId,
-            message: err && err.error && err.error.message ? err.error.message : 'Order Error',
+            message: err && err.stack || (err.error && err.error.message) ? err.error.message : 'Order Error',
             storeId: instance.url,
             logLevel: 'error',
             code: 500,
-            payload: { errors: err.error || err, params: ctx.params },
+            payload: { errors: err.error || err.stack, params: ctx.params },
           });
           ctx.meta.$statusCode = 500;
           ctx.meta.$statusMessage = 'Internal Server Error';
@@ -528,7 +582,7 @@ const TheService: ServiceSchema = {
       auth: 'Bearer',
       cache: {
         keys: ['order_id'],
-        ttl: 60 * 60, // 1 hour
+        ttl: 60 * 60 * 24, // 1 hour
       },
       async handler(ctx) {
         const instance = await ctx.call('stores.findInstance', {
@@ -568,6 +622,8 @@ const TheService: ServiceSchema = {
           billing: order.billing,
           shipping: order.shipping,
           total: order.total,
+          coupon: order.coupon,
+          discount: order.discount,
           externalId: order.externalId,
           createDate: order.createDate,
           updateDate: order.updateDate,
@@ -579,6 +635,7 @@ const TheService: ServiceSchema = {
           adjustmentDescription: order.adjustmentDescription,
           shipment_tracking_number: order.shipmentTrackingNumber,
           orderNumber: order.orderNumber,
+          invoice_url: order.externalInvoice,
           taxTotal: order.taxTotal,
           taxes: order.taxes,
         };
@@ -605,7 +662,7 @@ const TheService: ServiceSchema = {
       auth: 'Bearer',
       cache: {
         keys: ['#user', 'limit', 'page', 'sort', 'sortOrder', 'status', 'externalId'],
-        ttl: 60 * 60,
+        ttl: 60 * 60 * 24,
       },
       async handler(ctx) {
         const instance = await ctx.call('stores.findInstance', {
@@ -654,6 +711,7 @@ const TheService: ServiceSchema = {
           trackingNumber: order.shipmentTrackingNumber,
           knawat_order_status: order.status ? this.normalizeResponseStatus(order.status) : '',
           orderNumber: order.orderNumber,
+          invoice_url: order.externalInvoice,
         }));
       },
     },
@@ -1010,6 +1068,7 @@ const TheService: ServiceSchema = {
     async setTaxIds(instance, items) {
       const taxesMsg: {}[] = [];
       let isInclusive = false;
+      let taxTotal = 0;
       const itemsAfterTaxes = await Promise.all(
         items.map(
           async (item: OrderItem, index: number) => {
@@ -1030,13 +1089,17 @@ const TheService: ServiceSchema = {
               taxesMsg.push(taxData);
             }
 
+            if (taxData.percentage) {
+              taxTotal += item.rate / 100 * taxData.percentage;
+            }
+
             return item;
           }));
-
       return {
         items: itemsAfterTaxes,
         isInclusive,
         msgs: taxesMsg,
+        taxTotal,
       };
     },
   },

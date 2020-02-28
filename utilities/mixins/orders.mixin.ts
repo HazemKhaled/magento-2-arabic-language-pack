@@ -1,6 +1,6 @@
 import { ServiceSchema } from 'moleculer';
 
-import { OrderItem, Product, Store, Variation } from '../types';
+import { OrderItem, Product, Store, Variation, Coupon } from '../types';
 import { Rule } from '../types/shipment.type';
 
 export const OrdersOperations: ServiceSchema = {
@@ -193,6 +193,55 @@ export const OrdersOperations: ServiceSchema = {
       }
 
       return shipment;
+    },
+    async discount({code, membership, orderExpenses, isValid, isAuto}) {
+      const warnings = [];
+      const couponQuery: {
+        membership: string;
+        type: 'salesorder';
+        id?: string;
+        isValid?: boolean;
+        isAuto?: boolean;
+      } = {
+        membership,
+        type: 'salesorder',
+      };
+      if (isValid) {
+        couponQuery.isValid = isValid;
+      }
+      if (isAuto) {
+        couponQuery.isAuto = isAuto;
+      }
+      if (code) {
+        couponQuery.id = code;
+      }
+      let coupon = await this.broker
+        .call('coupons.list', couponQuery )
+        .then(null, (err: Error) => err);
+      if (coupon instanceof Error) {
+        warnings.push({
+          message: coupon.message,
+          code: 2323,
+        });
+        return {warnings};
+      } else {
+        [coupon] = coupon;
+        const discount = Object.keys(coupon.discount).reduce((totalDis: number, key: 'total' | 'tax' | 'shipping') => {
+          if (orderExpenses[key]) {
+            const disObj: { value: number; type: '%' | '$'; } = coupon.discount[key];
+            switch (disObj.type) {
+            case '$':
+              totalDis += orderExpenses[key] < disObj.value ? orderExpenses[key] - disObj.value : disObj.value;
+              break;
+            case '%':
+              totalDis += orderExpenses[key] / 100 * disObj.value;
+              break;
+            }
+          }
+          return totalDis;
+        }, 0);
+        return {discount, coupon: coupon.code};
+      }
     },
   },
 };
