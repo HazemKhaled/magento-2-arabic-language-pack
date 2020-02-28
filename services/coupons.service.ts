@@ -71,11 +71,13 @@ const TheService: ServiceSchema = {
         keys: ['id', 'membership', 'type', 'isValid', 'isAuto'],
       },
       handler(ctx): Promise<Coupon[]> {
+        this.couponListValidation(ctx.params);
         const query: { [key: string]: {} } = {};
         if (ctx.params.isValid) {
           query.startDate = { $lte: new Date() };
           query.endDate = { $gte: new Date() };
           query.$expr = { $gt: ['$maxUses', '$useCount'] };
+          query.minAppliedAmount = { $lte: ctx.params.totalAmount };
         }
         if (ctx.params.isAuto) {
           query.auto = ctx.params.isAuto;
@@ -185,6 +187,7 @@ const TheService: ServiceSchema = {
         endDate: new Date(params.endDate),
         discount: params.discount, // Object { tax, shipping, total }
         maxUses: params.maxUses,
+        minAppliedAmount: params.minAppliedAmount || 0,
         appliedMemberships: params.appliedMemberships,
         auto: params.auto, // Auto apply 'boolean'
       };
@@ -223,6 +226,27 @@ const TheService: ServiceSchema = {
           actual: params.discount,
           field: 'discount.total',
           message: 'The \'discount.total\' field is required!',
+        }]);
+        error.name = 'Validation error';
+        throw error;
+      }
+    },
+
+    /**
+     * Validate coupon list isValid should provide totalAmount
+     *
+     * @param {Coupon} params
+     */
+    couponListValidation(params) {
+      if (params.isValid && !params.totalAmount && params.totalAmount !== 0) {
+        const error = new MoleculerError('Parameters validation error!', 422, 'VALIDATION_ERROR', [{
+          type: 'number',
+          expected: {
+            totalAmount: 'number',
+          },
+          actual: params.totalAmount,
+          field: 'totalAmount',
+          message: 'The \'totalAmount\' field is required!',
         }]);
         error.name = 'Validation error';
         throw error;

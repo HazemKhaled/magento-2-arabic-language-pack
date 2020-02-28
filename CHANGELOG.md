@@ -1,5 +1,38 @@
 # Changelog
 
+
+## 1.4.1
+
+### 🚀 Features
+
+- Coupons new schema with discount for
+    - Total
+    - Shipping
+    - Taxes
+- Minimum amount to apply the coupon
+- Coupon validation to update
+- Sales order coupons
+- Auto applied sales order coupons according to user subscription
+- Branded invoices
+- Add create & update to coupon openapi
+
+### 🐛 Fixes
+- Coupon validation actual field name
+- Coupon update (string hex bytes issue)
+- Open api response in get orders
+- Subscription discount fraction issue
+
+### ✨ Enhancements
+
+- Update coupon list with new filter features
+- Allow cors for localhost
+- Update coupon openapi
+- Update caching ttl
+- Make payment reference is required
+- Taxes limited to given countries through env variable
+
+
+
 ## 1.4.0
 
 ### 🚀 Features

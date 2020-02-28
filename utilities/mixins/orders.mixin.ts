@@ -201,6 +201,7 @@ export const OrdersOperations: ServiceSchema = {
         type: 'salesorder';
         id?: string;
         isValid?: boolean;
+        totalAmount?: number;
         isAuto?: boolean;
       } = {
         membership,
@@ -208,6 +209,7 @@ export const OrdersOperations: ServiceSchema = {
       };
       if (isValid) {
         couponQuery.isValid = isValid;
+        couponQuery.totalAmount = orderExpenses.total;
       }
       if (isAuto) {
         couponQuery.isAuto = isAuto;
