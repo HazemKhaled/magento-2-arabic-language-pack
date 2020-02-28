@@ -34,6 +34,7 @@ const CreateCoupon = {
     startDate: { type: 'string', format: 'date-time' },
     endDate: { type: 'string', format: 'date-time' },
     maxUses: { type: 'number' },
+    minAppliedAmount: { type: 'number' },
     appliedMemberships: { type: 'array', items: { type: 'string' } },
     auto: { type: 'boolean' },
   },
@@ -150,6 +151,14 @@ const CouponsListOpenapi = {
       schema: {
         type: 'string',
         'enum': ['salesorder', 'subscription'],
+      },
+    },
+    {
+      name: 'totalAmount',
+      'in': 'query',
+      required: false,
+      schema: {
+        type: 'number',
       },
     },
     {
