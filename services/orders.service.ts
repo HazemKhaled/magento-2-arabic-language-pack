@@ -133,7 +133,7 @@ const TheService: ServiceSchema = {
         // Calculate the order total
         const total: number =
           data.items.reduce(
-            (accumulator: number, current: OrderItem) => accumulator + current.purchaseRate * current.quantity,
+            (accumulator: number, current: OrderItem) => accumulator + current.rate * current.quantity,
             0,
           ) + (data.isInclusiveTax ? 0 : taxTotal);
 
