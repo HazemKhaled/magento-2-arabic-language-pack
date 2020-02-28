@@ -9,6 +9,7 @@
     - Total
     - Shipping
     - Taxes
+- Minimum amount to apply the coupon
 - Coupon validation to update
 - Sales order coupons
 - Auto applied sales order coupons according to user subscription
