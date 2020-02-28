@@ -1,6 +1,6 @@
 import { ServiceSchema } from 'moleculer';
 
-const Coupon = {
+const CreateCoupon = {
   type: 'object',
   properties: {
     code: { type: 'string' },
@@ -35,8 +35,15 @@ const Coupon = {
     endDate: { type: 'string', format: 'date-time' },
     maxUses: { type: 'number' },
     appliedMemberships: { type: 'array', items: { type: 'string' } },
-    useCount: { type: 'number' },
     auto: { type: 'boolean' },
+  },
+};
+
+const Coupon = {
+  type: 'object',
+  properties: {
+    ...CreateCoupon.properties,
+    useCount: { type: 'number' },
   },
 };
 
@@ -216,7 +223,7 @@ const CouponsCreateOpenapi = {
     content: {
       'application/json': {
         schema: {
-          $ref: '#/components/schemas/Coupon',
+          $ref: '#/components/schemas/CreateCoupon',
         },
       },
     },
@@ -255,6 +262,7 @@ export const CouponsOpenapi: ServiceSchema = {
       components: {
         schemas: {
           Coupon,
+          CreateCoupon,
         },
       },
     },
