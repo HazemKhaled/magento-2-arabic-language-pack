@@ -237,8 +237,8 @@ export const OrdersOperations: ServiceSchema = {
               totalDis += orderExpenses[key] / 100 * disObj.value;
               break;
             }
-            return totalDis;
           }
+          return totalDis;
         }, 0);
         return {discount, coupon: coupon.code};
       }
