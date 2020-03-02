@@ -59,6 +59,10 @@ export const CouponsValidation: ServiceSchema = {
           integer: true,
           positive: true,
         },
+        minAppliedAmount: {
+          type: 'number',
+          optional: true,
+        },
         appliedMemberships: {
           type: 'array',
           items: {
@@ -106,6 +110,10 @@ export const CouponsValidation: ServiceSchema = {
         type: {
           type: 'enum',
           values: ['salesorder', 'subscription'],
+        },
+        totalAmount: {
+          type: 'number',
+          optional: true,
         },
         isValid: {
           type: 'boolean',
@@ -175,6 +183,10 @@ export const CouponsValidation: ServiceSchema = {
           type: 'number',
           integer: true,
           positive: true,
+          optional: true,
+        },
+        minAppliedAmount: {
+          type: 'number',
           optional: true,
         },
         appliedMemberships: {
