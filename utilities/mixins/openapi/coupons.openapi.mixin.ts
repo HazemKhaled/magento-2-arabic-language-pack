@@ -147,7 +147,7 @@ const CouponsListOpenapi = {
     {
       name: 'type',
       'in': 'query',
-      required: false,
+      required: true,
       schema: {
         type: 'string',
         'enum': ['salesorder', 'subscription'],
@@ -166,7 +166,9 @@ const CouponsListOpenapi = {
       'in': 'query',
       required: false,
       schema: {
-        type: 'boolean',
+        type: 'string',
+        format: 'enum',
+        values: ['0', '1'],
       },
     },
     {
@@ -174,7 +176,9 @@ const CouponsListOpenapi = {
       'in': 'query',
       required: false,
       schema: {
-        type: 'boolean',
+        type: 'string',
+        format: 'enum',
+        values: ['0', '1'],
       },
     },
   ],
