@@ -73,14 +73,16 @@ const TheService: ServiceSchema = {
       handler(ctx): Promise<Coupon[]> {
         this.couponListValidation(ctx.params);
         const query: { [key: string]: {} } = {};
-        if (ctx.params.isValid) {
+        const isAuto = Number(ctx.params.isAuto);
+        const isValid = Number(ctx.params.isValid);
+        if (isValid) {
           query.startDate = { $lte: new Date() };
           query.endDate = { $gte: new Date() };
           query.$expr = { $gt: ['$maxUses', '$useCount'] };
-          query.minAppliedAmount = { $lte: ctx.params.totalAmount };
+          query.minAppliedAmount = { $lte: Number(ctx.params.totalAmount) };
         }
-        if (ctx.params.isAuto) {
-          query.auto = ctx.params.isAuto;
+        if (isAuto) {
+          query.auto = !!isAuto;
         }
         if (ctx.params.id) {
           query._id = ctx.params.id.toUpperCase();
