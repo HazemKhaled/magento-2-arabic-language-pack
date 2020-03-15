@@ -81,9 +81,14 @@ const TheService: ServiceSchema = {
     applyCredits: {
       auth: 'Bearer',
       async handler(ctx: Context) {
-        const instance = await ctx.call('stores.findInstance', {
-          consumerKey: ctx.meta.user,
-        });
+        const instance = await ctx.call('stores.me');
+        const {params} = ctx;
+        if(params.useSavedPaymentMethods && instance.credit < params.paymentAmount) {
+          await ctx.call('payments.charge', {
+            storeId: instance.url,
+            amount: params.paymentAmount - instance.credit,
+          });
+        }
         if (instance.errors) {
           throw new MoleculerError('Store not found', 404);
         }

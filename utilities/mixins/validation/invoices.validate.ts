@@ -120,6 +120,14 @@ export const InvoicesValidation: ServiceSchema = {
         id: {
           type: 'string',
         },
+        useSavedPaymentMethods: {
+          type: 'boolean',
+          optional: true,
+        },
+        paymentAmount: {
+          type: 'number',
+          optional: true,
+        },
       },
     },
     createOrderInvoice: {
