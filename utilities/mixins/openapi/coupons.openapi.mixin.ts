@@ -153,34 +153,6 @@ const CouponsListOpenapi = {
         'enum': ['salesorder', 'subscription'],
       },
     },
-    {
-      name: 'totalAmount',
-      'in': 'query',
-      required: false,
-      schema: {
-        type: 'number',
-      },
-    },
-    {
-      name: 'isValid',
-      'in': 'query',
-      required: false,
-      schema: {
-        type: 'string',
-        format: 'enum',
-        values: ['0', '1'],
-      },
-    },
-    {
-      name: 'isAuto',
-      'in': 'query',
-      required: false,
-      schema: {
-        type: 'string',
-        format: 'enum',
-        values: ['0', '1'],
-      },
-    },
   ],
   responses: {
     200: {
