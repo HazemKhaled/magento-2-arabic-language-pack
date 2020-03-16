@@ -113,7 +113,30 @@ const TaxCheck: ServiceSchema = {
     checkItemTaxClass(item: OrderItem): boolean {
       return !!(item && item.taxClass);
     },
+    /**
+     *
+     * Get Item Tax and calculate the value
+     *
+     * @param {Store} instance
+     * @param {Product} item
+     * @returns {0 | Tax}
+     */
+    async getTaxWithCalc(instance: Store, item: OrderItem): Promise<ValueTax | 0> {
+      const tax: ValueTax  = await this.getItemTax(instance, item);
+      if (!tax.omsId) {
+        return 0;
+      }
+      tax.value = 0;
+      if (!tax.isInclusive) {
+        tax.value = item.rate/100 * tax.percentage;
+      }
+      return tax;
+    },
   },
 };
+
+interface ValueTax extends Tax {
+  value?: number;
+}
 
 export = TaxCheck;
