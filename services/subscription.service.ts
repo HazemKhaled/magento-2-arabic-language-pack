@@ -162,11 +162,18 @@ const TheService: ServiceSchema = {
         if (instance.errors) {
           throw new MoleculerError(instance.errors[0].message, 404);
         }
-        if (instance.credit < cost - discount) {
-          throw new MoleculerError('User don\'t have enough balance!', 402);
-        }
 
-        const taxData = await this.getItemTax(instance, {taxClass: 'service'});
+
+        const taxData = await this.getTaxWithCalc(instance, { taxClass: 'service', rate: cost });
+
+        const total = +(cost + (taxData.value || 0) - discount).toFixed(2);
+        if (instance.credit < total) {
+          await ctx.call('payments.charge', {
+            storeId: instance.url,
+            amount: total - instance.credit,
+            force: true,
+          });
+        }
 
         const invoiceBody: { [key: string]: any } = {
           storeId: ctx.params.storeId,
@@ -184,12 +191,14 @@ const TheService: ServiceSchema = {
           ],
           isInclusiveTax: taxData.isInclusive,
         };
+
         if (discount) {
           invoiceBody.discount = {
             value: discount,
             type: 'entity_level',
           };
         }
+
         const invoice = await ctx.call('invoices.create', invoiceBody).then(null, err => err);
         if (isError(invoice as { message: string; code: number })) {
           throw new MoleculerError(invoice.message, invoice.code || 500);
