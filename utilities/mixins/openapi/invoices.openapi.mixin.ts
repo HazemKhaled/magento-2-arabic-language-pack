@@ -234,26 +234,6 @@ const InvoicesApplyCreditsOpenapi = {
       },
     },
   ],
-  requestBody: {
-    content: {
-      'application/json': {
-        schema: {
-          type: 'object',
-          properties: {
-            useSavedPaymentMethods: {
-              type: 'boolean',
-              required: true,
-            },
-            paymentAmount: {
-              type: 'number',
-              required: true,
-            },
-          },
-          required: false,
-        },
-      },
-    },
-  },
   responses: {
     200: {
       description: 'Status 200',
@@ -313,6 +293,25 @@ const InvoicesApplyCreditsOpenapi = {
       basicAuth: [] as any[],
     },
   ],
+  requestBody: {
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            useSavedPaymentMethods: {
+              type: 'boolean',
+              required: true,
+            },
+            paymentAmount: {
+              type: 'number',
+              required: true,
+            },
+          },
+        },
+      },
+    },
+  },
 };
 
 export const InvoicesOpenapi: ServiceSchema = {
