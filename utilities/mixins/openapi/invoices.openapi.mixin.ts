@@ -234,6 +234,20 @@ const InvoicesApplyCreditsOpenapi = {
       },
     },
   ],
+  requestBody: {
+    type: 'object',
+    properties: {
+      useSavedPaymentMethods: {
+        type: 'boolean',
+        required: true,
+      },
+      paymentAmount: {
+        type: 'number',
+        required: true,
+      },
+    },
+    required: false,
+  },
   responses: {
     200: {
       description: 'Status 200',
