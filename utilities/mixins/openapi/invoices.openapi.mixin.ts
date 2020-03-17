@@ -235,18 +235,24 @@ const InvoicesApplyCreditsOpenapi = {
     },
   ],
   requestBody: {
-    type: 'object',
-    properties: {
-      useSavedPaymentMethods: {
-        type: 'boolean',
-        required: true,
-      },
-      paymentAmount: {
-        type: 'number',
-        required: true,
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            useSavedPaymentMethods: {
+              type: 'boolean',
+              required: true,
+            },
+            paymentAmount: {
+              type: 'number',
+              required: true,
+            },
+          },
+          required: false,
+        },
       },
     },
-    required: false,
   },
   responses: {
     200: {
