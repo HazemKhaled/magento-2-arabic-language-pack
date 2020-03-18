@@ -290,7 +290,7 @@ const InvoicesApplyCreditsOpenapi = {
   },
   security: [
     {
-      basicAuth: [] as any[],
+      bearerAuth: [] as any[],
     },
   ],
   requestBody: {
