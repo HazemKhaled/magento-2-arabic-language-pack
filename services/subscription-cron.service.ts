@@ -37,11 +37,6 @@ const TheService: ServiceSchema = {
         if (!subscription) {
           return null;
         }
-        const store: Store = await ctx.call('stores.findInstance', { id: subscription.storeId });
-
-        if (store.internal_data && store.internal_data.auto_renew === false) {
-          return null;
-        }
 
         try {
           const createSubResponse = await ctx.call('subscription.create', {

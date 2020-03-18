@@ -281,6 +281,9 @@ const TheService: ServiceSchema = {
           renewed: {
             $ne: true,
           },
+          autoRenew: {
+            $ne: false,
+          },
         };
         const expiredSubscription = await this.adapter.findOne(query).catch();
         if (!expiredSubscription) {
