@@ -35,7 +35,7 @@ module.exports = {
     getInstanceProduct: {
       auth: 'Bearer',
       cache: {
-        keys: ['#user', 'sku'],
+        keys: ['#user', 'sku', 'currency'],
         ttl: 60,
       },
       async handler(ctx) {
