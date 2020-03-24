@@ -89,6 +89,9 @@ const Order = {
     trackingNumber: {
       type: 'string',
     },
+    coupon: {
+      type: 'string',
+    },
   },
   example: {
     id: '12763',
@@ -114,6 +117,7 @@ const Order = {
     },
     invoice_url: 'http://example.com/invoice.pdf',
     notes: 'My Orders',
+    coupon: 'TEST',
   },
 };
 const OrderResponse = {
@@ -124,7 +128,104 @@ const OrderResponse = {
       'enum': ['success', 'fail'],
     },
     order: {
-      $ref: '#/components/schemas/Order',
+      type: 'object',
+      required: ['items', 'orderNumber', 'shipping', 'status', 'total'],
+      properties: {
+        id: {
+          type: 'string',
+          description: 'Order External ID',
+        },
+        status: {
+          type: 'string',
+          'enum': ['pending', 'processing', 'cancelled'],
+        },
+        items: {
+          type: 'array',
+          items: {
+            required: ['quantity', 'sku'],
+            type: 'object',
+            properties: {
+              quantity: {
+                type: 'number',
+                minimum: 1,
+                maximum: 10,
+              },
+              sku: {
+                type: 'string',
+              },
+            },
+          },
+          minItems: 1,
+        },
+        shipping: {
+          required: ['address_1', 'city', 'country', 'first_name', 'last_name', 'state'],
+          type: 'object',
+          properties: {
+            first_name: {
+              type: 'string',
+            },
+            last_name: {
+              type: 'string',
+            },
+            company: {
+              type: 'string',
+            },
+            address_1: {
+              type: 'string',
+            },
+            address_2: {
+              type: 'string',
+            },
+            city: {
+              type: 'string',
+            },
+            state: {
+              type: 'string',
+            },
+            postcode: {
+              type: 'string',
+            },
+            country: {
+              type: 'string',
+              description: 'ISO 3166-1 alpha-2 codes are two-letter country codes',
+              minLength: 2,
+              maxLength: 2,
+              example: 'TR',
+            },
+            email: {
+              type: 'string',
+            },
+            phone: {
+              type: 'string',
+            },
+          },
+        },
+        invoice_url: {
+          type: 'string',
+          description: 'Optional invoice to print with the order',
+        },
+        notes: {
+          type: 'string',
+        },
+        shipping_method: {
+          type: 'string',
+        },
+        orderNumber: {
+          type: 'string',
+        },
+        trackingNumber: {
+          type: 'string',
+        },
+        coupon: {
+          type: 'string',
+        },
+        total: {
+          type: 'number',
+        },
+        discount: {
+          type: 'number',
+        },
+      },
     },
     warning: {
       type: 'array',
@@ -176,8 +277,72 @@ const OrderResponse = {
   example: {
     status: 'success',
     order: {
-      id: '3435344',
-      '...': null as any,
+      id: '12763',
+      status: 'pending',
+      items: [
+        {
+          quantity: 1,
+          sku: 'H3576AZ17HSNM13-XS',
+        },
+      ],
+      shipping: {
+        first_name: 'John',
+        last_name: 'Doe',
+        company: 'Knawat',
+        address_1: 'Halaskargazi Mahallesi, D10 KAT5 Cd, Rumeli Cd. 35-37',
+        address_2: '',
+        city: 'Şişli',
+        state: 'İstanbul',
+        postcode: '34371',
+        country: 'TR',
+        email: 'info@knawat.com',
+        phone: '(0212) 296 11 94',
+      },
+      invoice_url: 'http://example.com/invoice.pdf',
+      notes: 'My Orders',
+      total: 11,
+      discount: 1.3,
+    },
+  },
+};
+
+const OrderList  = {
+  type: 'array',
+  items: {
+    type: 'object',
+    properties: {
+      id: {
+        type: 'string',
+      },
+      externalId: {
+        type: 'string',
+      },
+      status: {
+        type: 'string',
+      },
+      createDate: {
+        type: 'string',
+        format: 'date',
+      },
+      updateDate: {
+        type: 'string',
+        format: 'date',
+      },
+      total: {
+        type: 'number',
+      },
+      trackingNumber: {
+        type: 'string',
+      },
+      knawat_order_status: {
+        type: 'string',
+      },
+      orderNumber: {
+        type: 'string',
+      },
+      invoice_url: {
+        type: 'string',
+      },
     },
   },
 };
@@ -528,10 +693,7 @@ const OrdersListOpenapi = {
       required: false,
       schema: {
         type: 'string',
-        'enum': [
-          'A',
-          'D',
-        ],
+        'enum': ['A', 'D'],
       },
       'default': 'D',
     },
@@ -541,14 +703,7 @@ const OrdersListOpenapi = {
       required: false,
       schema: {
         type: 'string',
-        'enum': [
-          'draft',
-          'open',
-          'invoiced',
-          'partially_invoiced',
-          'void',
-          'overdue',
-        ],
+        'enum': ['draft', 'open', 'invoiced', 'partially_invoiced', 'void', 'overdue'],
       },
     },
     {
@@ -566,35 +721,7 @@ const OrdersListOpenapi = {
       content: {
         'application/json': {
           schema: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                id: {
-                  type: 'string',
-                },
-                status: {
-                  type: 'string',
-                },
-                createDate: {
-                  type: 'string',
-                  format: 'date',
-                },
-                updateDate: {
-                  type: 'string',
-                  format: 'date',
-                },
-                total: {
-                  type: 'number',
-                },
-                trackingNumber: {
-                  type: 'string',
-                },
-                knawat_order_status: {
-                  type: 'string',
-                },
-              },
-            },
+            $ref: '#/components/schemas/OrderList',
           },
         },
       },
@@ -682,6 +809,7 @@ export const OrdersOpenapi: ServiceSchema = {
       components: {
         schemas: {
           Order,
+          OrderList,
           OrderResponse,
         },
       },

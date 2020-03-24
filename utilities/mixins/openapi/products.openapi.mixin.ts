@@ -245,7 +245,21 @@ const ProductVariation = {
     },
   },
   example:
-    '{\n  "sku": "4646030019238-36",\n  "cost_price": 5.22,\n  "sale_price": 9.74,\n  "market_price": 11.99,\n  "weight": 0.5,\n  "quantity": 10,\n  "attributes": [\n    {\n      "id": 1,\n      "name": {\n        "tr": "Beden",\n        "en": "Size",\n        "ar": "مقاس"\n      },\n      "option": { "tr": "M", "en": "M", "ar": "M" }\n    }\n  ]\n}\n',
+    {
+      sku: '4646030019238-36',
+      cost_price: 5.22,
+      sale_price: 9.74,
+      market_price: 11.99,
+      weight: 0.5,
+      quantity: 10,
+      attributes: [
+        {
+          id: 1,
+          name: { tr: 'Beden', en: 'Size', ar: 'مقاس' },
+          option: { tr: 'M', en: 'M', ar: 'M' },
+        },
+      ],
+    },
 };
 
 const Attribute = {

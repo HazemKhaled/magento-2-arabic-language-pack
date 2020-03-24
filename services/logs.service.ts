@@ -42,12 +42,14 @@ const TheService: ServiceSchema = {
             },
           })
           .then(res => {
-            if (res.result === 'created')
+            if (res.result === 'created'){
+              this.broker.cacher.clean('log*');
               return {
                 status: 'success',
                 message: 'created',
                 id: res._id,
               };
+            }
             ctx.meta.$statusCode = 500;
             ctx.meta.$statusMessage = 'Internal Server Error';
             return {
@@ -60,6 +62,9 @@ const TheService: ServiceSchema = {
     },
     getLogs: {
       auth: 'Basic',
+      cache: {
+        ttl: 60 * 60 * 24,
+      },
       handler(ctx: Context) {
         const body: {
           size?: number;

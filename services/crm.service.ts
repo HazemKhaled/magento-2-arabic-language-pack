@@ -35,7 +35,10 @@ const TheService: ServiceSchema = {
       },
     },
     findStoreByUrl: {
-      cache: false,
+      cache: {
+        ttl: 60 * 60 * 24,
+        keys: ['id'],
+      },
       handler(ctx: Context) {
         return this.request({
           path: 'crm/v2/accounts/search',
