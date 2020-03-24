@@ -342,6 +342,16 @@ const GetInstanceProduct = {
         type: 'string',
       },
     },
+    {
+      name: 'currency',
+      'in': 'query',
+      required: false,
+      description: 'Currency for the product returned',
+      example: 'USD',
+      schema: {
+        type: 'string',
+      },
+    },
   ],
 };
 

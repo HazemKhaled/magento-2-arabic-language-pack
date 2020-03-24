@@ -40,6 +40,7 @@ module.exports = {
       },
       async handler(ctx) {
         const { sku } = ctx.params;
+        const { currency } = ctx.params;
         let { _source } = ctx.params;
 
         const fields = [
@@ -60,7 +61,7 @@ module.exports = {
         } else {
           _source = fields.includes(_source) ? _source : null;
         }
-        const product = await this.fetchProduct(sku, ctx.meta.user, _source);
+        const product = await this.fetchProduct(sku, ctx.meta.user, _source, currency);
         if (product === 404) {
           ctx.meta.$statusCode = 404;
           ctx.meta.$statusMessage = 'Not Found';
@@ -485,7 +486,7 @@ module.exports = {
      * @returns {Object} Product
      * @memberof ElasticLib
      */
-    async fetchProduct(sku, id, _source) {
+    async fetchProduct(sku, id, _source, currency) {
       const instance = await this.broker.call('stores.findInstance', {
         consumerKey: id,
       });
@@ -521,7 +522,7 @@ module.exports = {
           return 404;
         }
         const currencyRate = await this.broker.call('currencies.getCurrency', {
-          currencyCode: instance.currency,
+          currencyCode: currency || instance.currency,
         });
         const source = result.hits.hits[0]._source;
         return {
