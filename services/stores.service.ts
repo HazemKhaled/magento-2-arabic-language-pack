@@ -6,7 +6,7 @@ const MoleculerError = Errors.MoleculerError;
 
 import { v1 as uuidv1, v4 as uuidv4 } from 'uuid';
 import { StoresOpenapi } from '../utilities/mixins/openapi';
-import { Log, OmsStore, Store, StoreUser } from '../utilities/types';
+import { Log, OmsStore, Store, StoreUser, User } from '../utilities/types';
 import { StoresValidation } from '../utilities/mixins/validation';
 const { MoleculerClientError } = Errors;
 
@@ -664,6 +664,12 @@ const TheService: ServiceSchema = {
     },
     createOmsStore(params) {
       const body: OmsStore = {};
+
+      params.users.forEach((user: User) => {
+        // Backward compatibility since zoho require contact last
+        if (!user.last_name) user.last_name = params.name;
+      });
+
       // Sanitized params keys
       const keys: string[] = [
         'url',
