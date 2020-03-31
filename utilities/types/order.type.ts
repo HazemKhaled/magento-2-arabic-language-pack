@@ -11,7 +11,7 @@ export interface Order {
   line_items?: OrderItem[];
   items?: OrderItem[];
   billing?: object;
-  shipping: object;
+  shipping: OrderAddress;
   total?: number;
   createDate?: Date;
   externalId?: string;
@@ -22,8 +22,12 @@ export interface Order {
   shipmentCourier?: string;
   shipmentTrackingNumber?: string;
   shipping_method?: string;
+  discount?: number;
   store?: {};
   orderNumber?: string;
+  taxTotal?: number;
+  shipping_charge?: number;
+  adjustment?: number;
 }
 
 /**
@@ -68,7 +72,7 @@ export interface OrderItem {
  * @export
  * @interface OMSResponse
  */
-export interface OMSResponse {
+export interface OrderOMSResponse {
   salesorder: {
     id?: string;
     store?: {
@@ -84,6 +88,7 @@ export interface OMSResponse {
     billing: OrderAddress;
     shipmentCourier?: string;
     shippingCharge: number;
+    discount?: number;
     total: number;
     hasQtyCancelled: boolean;
     notes?: string;

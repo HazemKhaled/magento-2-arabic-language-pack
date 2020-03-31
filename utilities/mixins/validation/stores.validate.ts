@@ -432,6 +432,11 @@ export const StoresValidation: ServiceSchema = {
         id: {
           type: 'string',
         },
+        timestamp: {
+          type: 'string',
+          optional: true,
+        },
+        $$strict: true,
       },
     },
     login: {

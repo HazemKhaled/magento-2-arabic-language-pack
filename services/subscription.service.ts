@@ -21,7 +21,7 @@ const TheService: ServiceSchema = {
     get: {
       cache: {
         keys: ['id'],
-        ttl: 60 * 60, // 1 hour
+        ttl: 60 * 60 * 24, // 1 day
       },
       async handler(ctx: Context): Promise<any | false> {
         const subscription =
@@ -34,7 +34,7 @@ const TheService: ServiceSchema = {
           id: subscription.membershipId || 'free',
         });
         return {
-          id: subscription._id || -1,
+          id: (subscription._id && subscription._id.toString()) || -1,
           ...subscription,
           membershipId: undefined,
           membership: {
@@ -54,7 +54,7 @@ const TheService: ServiceSchema = {
       auth: 'Basic',
       cache: {
         keys: ['storeId', 'membershipId', 'expireDate', 'startDate', 'page', 'perPage', 'sort'],
-        ttl: 60 * 60, // 1 hour
+        ttl: 60 * 60 * 24, // 1 day
       },
       async handler(ctx: Context): Promise<Subscription | false> {
         const query: { [key: string]: any } = {};
@@ -124,6 +124,7 @@ const TheService: ServiceSchema = {
             .call('coupons.get', {
               id: ctx.params.coupon,
               membership: ctx.params.membership,
+              type: 'subscription',
             })
             .then(null, err => err);
           if (isError(coupon)) {
@@ -142,12 +143,12 @@ const TheService: ServiceSchema = {
         const cost = membership.cost;
         let discount = 0;
         if (coupon) {
-          switch (coupon.discountType) {
+          switch (coupon.discount.total.type) {
           case '$':
-            discount = Math.min(coupon.discount, cost);
+            discount = Math.min(coupon.discount.total.value, cost);
             break;
           case '%':
-            discount = +((cost / 100) * coupon.discount).toFixed(2);
+            discount = +((cost / 100) * coupon.discount.total.value).toFixed(2);
             break;
           }
         }

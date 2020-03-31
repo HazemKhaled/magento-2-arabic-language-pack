@@ -25,6 +25,18 @@ const TaxCheck: ServiceSchema = {
         };
       }
 
+      // Get countries that should apply taxes to it
+      const taxCountries = process.env.TAX_COUNTRIES
+        ? process.env.TAX_COUNTRIES.toUpperCase().trim().split(',') : [];
+
+      // If the country is not listed for taxes return
+      if (!taxCountries.includes(instance.address.country.toUpperCase())) {
+        return {
+          code: 0,
+          message: 'No taxes for this country',
+        };
+      }
+
       // Check if the item tax class attr. is available
       if (!this.checkItemTaxClass(item)) {
         // Send Email with item sku informing that it doesn't have tax class
@@ -58,7 +70,7 @@ const TaxCheck: ServiceSchema = {
         this.sendMail({
           to: process.env.TAX_MISSING_MAIL,
           subject: 'Country missing tax class',
-          text: `${country} has no tax data for this tax class '${taxClass}'.`,
+          text: `${country} has no tax data for this tax class '${taxClass}', sku '${item.sku}'.`,
         });
 
         return {

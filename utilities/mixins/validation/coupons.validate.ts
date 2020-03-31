@@ -9,16 +9,42 @@ export const CouponsValidation: ServiceSchema = {
           type: 'string',
           pattern: '[A-Z]',
         },
-        discount: {
-          type: 'number',
-          positive: true,
-        },
-        discountType: {
+        type: {
           type: 'enum',
-          values: [
-            '$',
-            '%',
-          ],
+          values: ['salesorder', 'subscription'],
+        },
+        discount: {
+          type: 'object',
+          props: {
+            tax: {
+              type: 'object',
+              optional: true,
+              props: {
+                value: { type: 'number', integer: true },
+                type: { type: 'enum', values: ['%', '$'] },
+                $$strict: true,
+              },
+            },
+            shipping: {
+              type: 'object',
+              optional: true,
+              props: {
+                value: { type: 'number', integer: true },
+                type: { type: 'enum', values: ['%', '$'] },
+                $$strict: true,
+              },
+            },
+            total: {
+              type: 'object',
+              optional: true,
+              props: {
+                value: { type: 'number', integer: true },
+                type: { type: 'enum', values: ['%', '$'] },
+                $$strict: true,
+              },
+            },
+            $$strict: true,
+          },
         },
         startDate: {
           type: 'date',
@@ -33,11 +59,18 @@ export const CouponsValidation: ServiceSchema = {
           integer: true,
           positive: true,
         },
+        minAppliedAmount: {
+          type: 'number',
+          optional: true,
+        },
         appliedMemberships: {
           type: 'array',
           items: {
             type: 'string',
           },
+        },
+        auto: {
+          type: 'boolean',
         },
         $$strict: true,
       },
@@ -49,10 +82,45 @@ export const CouponsValidation: ServiceSchema = {
         },
         {
           type: 'number',
-        },
-        ],
+        }],
         membership: {
           type: 'string',
+          optional: true,
+        },
+        type: {
+          type: 'enum',
+          values: ['salesorder', 'subscription'],
+        },
+      },
+    },
+    list: {
+      params: {
+        id: [{
+          type: 'string',
+          optional: true,
+        },
+        {
+          type: 'number',
+          optional: true,
+        }],
+        membership: {
+          type: 'string',
+          optional: true,
+        },
+        type: {
+          type: 'enum',
+          values: ['salesorder', 'subscription'],
+        },
+        totalAmount: {
+          type: 'number',
+          optional: true,
+        },
+        isValid: {
+          type: 'boolean',
+          optional: true,
+        },
+        isAuto: {
+          type: 'boolean',
           optional: true,
         },
       },
@@ -62,17 +130,43 @@ export const CouponsValidation: ServiceSchema = {
         id: {
           type: 'string',
         },
-        discount: {
-          type: 'number',
-          positive: true,
+        type: {
+          type: 'enum',
+          values: ['salesorder', 'subscription'],
           optional: true,
         },
-        discountType: {
-          type: 'enum',
-          values: [
-            '$',
-            '%',
-          ],
+        discount: {
+          type: 'object',
+          props: {
+            tax: {
+              type: 'object',
+              optional: true,
+              props: {
+                value: { type: 'number', integer: true },
+                type: { type: 'enum', values: ['%', '$'] },
+                $$strict: true,
+              },
+            },
+            shipping: {
+              type: 'object',
+              optional: true,
+              props: {
+                value: { type: 'number', integer: true },
+                type: { type: 'enum', values: ['%', '$'] },
+                $$strict: true,
+              },
+            },
+            total: {
+              type: 'object',
+              optional: true,
+              props: {
+                value: { type: 'number', integer: true },
+                type: { type: 'enum', values: ['%', '$'] },
+                $$strict: true,
+              },
+            },
+            $$strict: true,
+          },
           optional: true,
         },
         startDate: {
@@ -91,11 +185,19 @@ export const CouponsValidation: ServiceSchema = {
           positive: true,
           optional: true,
         },
+        minAppliedAmount: {
+          type: 'number',
+          optional: true,
+        },
         appliedMemberships: {
           type: 'array',
           items: {
             type: 'string',
           },
+          optional: true,
+        },
+        auto: {
+          type: 'boolean',
           optional: true,
         },
         $$strict: true,

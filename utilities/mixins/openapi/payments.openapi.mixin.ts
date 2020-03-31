@@ -86,11 +86,12 @@ const PaymentsAddOpenapi = {
     },
   ],
   requestBody: {
+    required: true,
     content: {
       'application/json': {
         schema: {
           type: 'object',
-          required: ['amount', 'payment_mode'],
+          required: ['amount', 'payment_mode', 'reference'],
           properties: {
             payment_mode: {
               type: 'string',
@@ -117,14 +118,17 @@ const PaymentsAddOpenapi = {
               type: 'string',
             },
             bank_charges: {
+              type: 'number',
+              description: 'Account id should provide id for account with type bank',
+            },
+            reference: {
               type: 'string',
-              description: 'Requires account_id when used',
+              description: 'Payment gateway reference id',
             },
           },
         },
       },
     },
-    required: true,
   },
 };
 

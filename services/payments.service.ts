@@ -56,7 +56,7 @@ const TheService: ServiceSchema = {
       auth: 'Bearer',
       cache: {
         keys: ['#user', 'page', 'limit', 'reference_number', 'payment_mode'],
-        ttl: 60 * 60,
+        ttl: 60 * 60 * 24,
       },
       async handler(ctx: Context) {
         const instance = await ctx.call('stores.findInstance', {

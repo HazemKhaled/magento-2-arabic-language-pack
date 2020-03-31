@@ -46,12 +46,10 @@ export const PaymentsValidation: ServiceSchema = {
         },
         reference: [{
           type: 'string',
-          optional: true,
         },
         {
           type: 'number',
           integer: true,
-          optional: true,
         },
         ],
       },
