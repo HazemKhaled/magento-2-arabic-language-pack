@@ -556,6 +556,7 @@ const TheService: ServiceSchema = {
             adjustmentDescription: order.adjustmentDescription,
             orderNumber: order.orderNumber,
           };
+          if (warnings.length > 0) message.warnings = warnings;
           this.sendLogs({
             topicId: data.externalId,
             message: 'Order updated successfully',
