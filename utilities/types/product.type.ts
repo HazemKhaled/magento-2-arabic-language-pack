@@ -35,6 +35,7 @@ export interface Variation {
   market_price: number;
   weight: number;
   quantity: number;
+  archive?: boolean;
   attributes: Attribute[];
   logs?: object[];
   cost?: number;
