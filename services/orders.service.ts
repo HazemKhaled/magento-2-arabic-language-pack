@@ -6,10 +6,11 @@ import { OrdersOperations } from '../utilities/mixins/orders.mixin';
 import { Log, OrderOMSResponse, Order, OrderAddress, OrderItem, Product, Tax } from '../utilities/types';
 import { OrdersValidation } from '../utilities/mixins/validation';
 import TaxCheck = require('../utilities/mixins/tax.mixin');
+import { Mail } from '../utilities/mixins/mail.mixin';
 
 const TheService: ServiceSchema = {
   name: 'orders',
-  mixins: [OrdersOperations, OrdersValidation, OrdersOpenapi, TaxCheck],
+  mixins: [OrdersOperations, OrdersValidation, OrdersOpenapi, TaxCheck, Mail],
   settings: {
     BASEURL:
       process.env.NODE_ENV === 'production'
@@ -188,20 +189,26 @@ const TheService: ServiceSchema = {
         data.status = ['pending', 'processing', 'cancelled'].includes(data.status)
           ? this.normalizeStatus(data.status)
           : data.status;
-        data.notes = `${stock.outOfStock.reduce(
-          (accumulator, item) =>
-            `${accumulator} SKU: ${item.sku} Required Qty: ${
-              item.quantityRequired
-            } Available Qty: ${item.quantity}\n`,
-          '',
-        )}${stock.notEnoughStock.reduce(
-          (accumulator, item) =>
-            `${accumulator} SKU: ${item.sku} Required Qty: ${
-              item.quantityRequired
-            } Available Qty: ${item.quantity}\n`,
-          '',
-        )}${data.notes}`;
         data.subscription = subscription.membership.name.en;
+
+        // Initializing warnings array if we have a Warning
+        warnings = warnings.concat(this.warningsMessenger(
+          stock.outOfStock,
+          stock.notEnoughStock,
+          data,
+          instance,
+          ctx.params.shipping_method,
+          ctx.params.shipping,
+          shipment,
+          ctx.params,
+        ));
+        warnings = warnings.concat(taxesMsg);
+
+        if (warnings.length) {
+          data.notes = `${warnings.reduce(
+            (accumulator, item) => `${accumulator}${item.message}\n`, '----*System Warnings*----\n')}${data.notes && '-----*Customer Note*-----\n'}${data.notes}`;
+        }
+
         this.logger.info(JSON.stringify(data));
         const result: OrderOMSResponse = await ctx.call('oms.createNewOrder', data);
         if (!result.salesorder) {
@@ -280,7 +287,16 @@ const TheService: ServiceSchema = {
             orderNumber: order.orderNumber,
           },
         };
-        if (order.id && order.status === 'open') {
+
+        if (warnings.length) {
+          this.sendMail({
+            to: process.env.SUPPORT_MAIL,
+            subject: 'Order Warnings',
+            text: `${warnings.reduce((a, o) => `${a}${o.message}\n`, 'OrderID: ${order.id}\n')}`,
+          });
+        }
+
+        if (order.id && order.status === 'open' && !warnings.length) {
           setTimeout(
             (instanceCopy, orderCopy) => {
               ctx
@@ -304,18 +320,7 @@ const TheService: ServiceSchema = {
             order,
           );
         }
-        // Initializing warnings array if we have a Warning
-        warnings = warnings.concat(this.warningsMessenger(
-          stock.outOfStock,
-          stock.notEnoughStock,
-          data,
-          instance,
-          ctx.params.shipping_method,
-          ctx.params.shipping,
-          shipment,
-          ctx.params,
-        ));
-        warnings = warnings.concat(taxesMsg);
+
         if (warnings.length > 0) message.warnings = warnings;
         this.sendLogs({
           topicId: data.externalId,
@@ -490,7 +495,11 @@ const TheService: ServiceSchema = {
               ctx.params,
             ));
             warnings = warnings.concat(taxesMsg);
-            if (warnings.length > 0) message.warnings = warnings;
+
+            if (warnings.length) {
+              data.notes = `${warnings.reduce(
+                (accumulator, item) => `${accumulator}${item.message}\n`, '----*System Warnings*----\n')}${orderBeforeUpdate.notes}`;
+            }
           }
           // Convert status
           data.status = ['pending', 'processing', 'cancelled'].includes(data.status)
@@ -925,7 +934,13 @@ const TheService: ServiceSchema = {
       try {
         if (outOfStock.length > 0) {
           warnings.push({
-            message: `This items are out of stock ${outOfStock.map(e => e.sku).join()}`,
+            message: `${outOfStock.reduce(
+              (accumulator, item) =>
+                `${accumulator}${accumulator && '\n'}SKU: ${item.sku} Required Qty: ${
+                  item.quantityRequired
+                } Available Qty: ${item.quantity}`,
+              '',
+            )}`,
             skus: outOfStock.map(e => e.sku),
             code: 1102,
           });
@@ -941,9 +956,13 @@ const TheService: ServiceSchema = {
         }
         if (notEnoughStock.length > 0) {
           warnings.push({
-            message: `This items quantities are not enough stock ${notEnoughStock
-              .map(e => e.sku)
-              .join()}`,
+            message: `${notEnoughStock.reduce(
+              (accumulator, item) =>
+                `${accumulator}${accumulator && '\n'}SKU: ${item.sku} Required Qty: ${
+                  item.quantityRequired
+                } Available Qty: ${item.quantity}`,
+              '',
+            )}`,
             skus: notEnoughStock.map(e => e.sku),
             code: 1103,
           });
