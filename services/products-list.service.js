@@ -148,6 +148,7 @@ module.exports = {
           .call('products-list.search', {
             index: 'products',
             type: 'Product',
+            size: 1000,
             body: {
               query: {
                 bool: {
