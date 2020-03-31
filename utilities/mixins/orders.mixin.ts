@@ -62,7 +62,7 @@ export const OrdersOperations: ServiceSchema = {
               vendorId: product._source.seller_id,
               image: product._source.images[0],
               weight: item.weight,
-              archive: product._source.archive,
+              archive: product._source.archive || item.archive,
               barcode: product._source.barcode || undefined,
               taxClass: product._source.tax_class,
               description: `${item.attributes.reduce(
