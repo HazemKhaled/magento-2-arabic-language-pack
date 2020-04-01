@@ -10,6 +10,7 @@ export interface Store {
   id: string;
   _id: string;
   name: string;
+  logo?: string;
   currency: string;
   status: 'confirmed' | 'unconfirmed' | 'archived' | 'error';
   url: string;
