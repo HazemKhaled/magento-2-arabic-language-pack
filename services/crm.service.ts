@@ -6,7 +6,7 @@ import { CrmValidation } from '../utilities/mixins/validation';
 const MoleculerError = Errors.MoleculerError;
 
 interface CrmData extends Store {
-  last_update?: string;
+  last_order_date?: string;
   membership_id?: string;
   subscription_expiration?: string;
 }
@@ -185,13 +185,13 @@ const TheService: ServiceSchema = {
         phone: 'Billing_Phone',
         membership_id: 'Subscription_Name',
         subscription_expiration: 'Subscription_Expiration',
-        last_update: 'Last_Update',
+        last_order_date: 'Last_Order_Date',
       };
       Object.keys(params).forEach((key: keyof CrmData) => {
         if (typeof params[key] === 'string') {
           newObj[crmParams[key] as keyof CrmStore] = params[key];
         }
-        if (key === 'last_update' || key === 'subscription_expiration') {
+        if (key === 'last_order_date' || key === 'subscription_expiration') {
           const date = new Date(params[key]);
           const year = date.getFullYear();
           const month = `${date.getMonth() > 8 ? '' : '0'}${date.getMonth()+1}`;

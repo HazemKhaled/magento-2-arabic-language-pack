@@ -156,7 +156,7 @@ export const CrmValidation: ServiceSchema = {
           },
           optional: true,
         },
-        last_update: {
+        last_order_date: {
           type: 'date',
           convert: true,
           optional: true,

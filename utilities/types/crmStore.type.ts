@@ -25,4 +25,7 @@ export interface CrmStore {
     Billing_Street?: string;
     Billing_Name?: string;
     Billing_Phone?: string;
+    Last_Order_Date: string;
+    Subscription_Name: string;
+    Subscription_Expiration: string;
 }
