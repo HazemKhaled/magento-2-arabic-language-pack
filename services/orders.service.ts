@@ -250,6 +250,9 @@ const TheService: ServiceSchema = {
           ctx.call('coupons.updateCount', { id: data.coupon });
         }
 
+        // Update CRM last update
+        ctx.call('crm.updateStoreById', { id: instance.url, last_update: Date.now() });
+
         // Clearing order list action(API) cache
         this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
 
