@@ -251,7 +251,7 @@ const TheService: ServiceSchema = {
         }
 
         // Update CRM last update
-        ctx.call('crm.updateStoreById', { id: instance.url, last_update: Date.now() });
+        ctx.call('crm.updateStoreById', { id: instance.url, last_order_date: Date.now() });
 
         // Clearing order list action(API) cache
         this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
