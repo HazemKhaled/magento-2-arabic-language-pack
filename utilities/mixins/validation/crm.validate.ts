@@ -156,6 +156,20 @@ export const CrmValidation: ServiceSchema = {
           },
           optional: true,
         },
+        last_update: {
+          type: 'date',
+          convert: true,
+          optional: true,
+        },
+        membership_id: {
+          type: 'string',
+          optional: true,
+        },
+        subscription_expiration: {
+          type: 'date',
+          convert: true,
+          optional: true,
+        },
       },
     },
     addTagsByUrl: {
