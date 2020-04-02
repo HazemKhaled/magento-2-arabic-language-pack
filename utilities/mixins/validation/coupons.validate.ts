@@ -90,6 +90,7 @@ export const CouponsValidation: ServiceSchema = {
         type: {
           type: 'enum',
           values: ['salesorder', 'subscription'],
+          optional: true,
         },
       },
     },
