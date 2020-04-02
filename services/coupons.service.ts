@@ -38,6 +38,7 @@ const TheService: ServiceSchema = {
           _id: ctx.params.id.toUpperCase(),
           startDate: { $lte: new Date() },
           endDate: { $gte: new Date() },
+          type: 'subscription',
         };
         if (ctx.params.membership) {
           query.appliedMemberships = ctx.params.membership;
