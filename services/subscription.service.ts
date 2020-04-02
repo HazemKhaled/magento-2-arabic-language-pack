@@ -258,6 +258,7 @@ const TheService: ServiceSchema = {
               ctx.call('subscription.checkCurrentSubGradingStatus', {
                 id: ctx.params.storeId,
               });
+              ctx.call('crm.updateStoreById', { id: ctx.params.storeId, membership_id: membership.id, subscription_expiration: expireDate.getTime() });
               return { ...res, id: res._id, _id: undefined };
             },
           );

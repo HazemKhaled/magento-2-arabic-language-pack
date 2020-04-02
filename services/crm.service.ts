@@ -5,6 +5,12 @@ import { CrmStore, OrderAddress, Store } from '../utilities/types';
 import { CrmValidation } from '../utilities/mixins/validation';
 const MoleculerError = Errors.MoleculerError;
 
+interface CrmData extends Store {
+  last_order_date?: string;
+  membership_id?: string;
+  subscription_expiration?: string;
+}
+
 const TheService: ServiceSchema = {
   name: 'crm',
   mixins: [CrmValidation],
@@ -152,12 +158,13 @@ const TheService: ServiceSchema = {
           throw new MoleculerError(err.message, err.code);
         });
     },
-    transformStoreParams(params: Store) {
+    transformStoreParams(params: CrmData) {
       const newObj: any = {
         id: params.id,
       };
       const crmParams: { [key: string]: string } = {
         type: 'Platform',
+        status: 'Store_Status',
         stock_date: 'Stock_Date',
         stock_status: 'Stock_Status',
         price_date: 'Price_Date',
@@ -177,10 +184,25 @@ const TheService: ServiceSchema = {
         first_name: 'Billing_Name',
         last_name: 'Billing_Name',
         phone: 'Billing_Phone',
+        membership_id: 'Subscription_Name',
+        subscription_expiration: 'Subscription_Expiration',
+        last_order_date: 'Last_Order_Date',
       };
-      Object.keys(params).forEach((key: keyof Store) => {
+      Object.keys(params).forEach((key: keyof CrmData) => {
         if (typeof params[key] === 'string') {
           newObj[crmParams[key] as keyof CrmStore] = params[key];
+        }
+        if (key === 'last_order_date' || key === 'subscription_expiration') {
+          const date = new Date(params[key]);
+          const year = date.getFullYear();
+          const month = `${date.getMonth() > 8 ? '' : '0'}${date.getMonth()+1}`;
+          const day = `${date.getDate() > 9 ? '' : '0'}${date.getDate()}`;
+          const time = `${date.toTimeString().slice(0,8)}`;
+          const timeZoneOffset = -date.getTimezoneOffset()/60;
+          const timeZone = `${timeZoneOffset < 0 ? '-' : '+'}${Math.abs(timeZoneOffset) > 9 ? '' : '0'}${Math.abs(timeZoneOffset)}:00`;
+          console.log(`${year}-${month}-${day}T${time}${timeZone}`);
+          newObj[crmParams[key] as keyof CrmStore] = `${year}-${month}-${day}T${time}${timeZone}`;
+          console.log(newObj[crmParams[key]]);
         }
         if (key === 'address') {
           Object.keys(params[key]).forEach(attr => {
@@ -203,7 +225,7 @@ const TheService: ServiceSchema = {
         );
       }
       if (params.address && (params.address.first_name || params.address.last_name)) {
-        newObj.Billing_Name = `${params.address.first_name}${params.address.last_name}`;
+        newObj.Billing_Name = `${params.address.first_name} ${params.address.last_name}`;
       }
       return newObj;
     },
