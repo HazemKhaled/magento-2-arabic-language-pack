@@ -61,7 +61,7 @@ const TheService: ServiceSchema = {
     },
     updateStoreById: {
       async handler(ctx: Context) {
-        const crmStore = await ctx.call('crm.findStoreByUrl', { id: 'King' });
+        const crmStore = await ctx.call('crm.findStoreByUrl', { id: ctx.params.id });
         ctx.params.id = crmStore.id;
         return this.request({
           method: 'put',
