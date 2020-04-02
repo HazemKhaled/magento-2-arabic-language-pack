@@ -6,6 +6,7 @@
  */
 export interface CrmStore {
     id: string;
+    Store_Status: string;
     Platform?: string;
     Stock_Date?: string;
     Stock_Status?: string;
