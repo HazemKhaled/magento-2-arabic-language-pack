@@ -164,6 +164,7 @@ const TheService: ServiceSchema = {
       };
       const crmParams: { [key: string]: string } = {
         type: 'Platform',
+        status: 'Store_Status',
         stock_date: 'Stock_Date',
         stock_status: 'Stock_Status',
         price_date: 'Price_Date',
