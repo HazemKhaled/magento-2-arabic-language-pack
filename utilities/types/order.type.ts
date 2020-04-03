@@ -96,6 +96,7 @@ export interface OrderOMSResponse {
     adjustment: number;
     adjustmentDescription: string;
     orderNumber: string;
+    taxTotal: number;
   };
   error?: { [key: string]: any };
 }
