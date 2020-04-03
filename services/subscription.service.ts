@@ -140,6 +140,9 @@ const TheService: ServiceSchema = {
         if (!membership) {
           throw new MoleculerError('No membership found', 404);
         }
+        if (membership.isDefault) {
+          throw new MoleculerError('Could not create subscription for default memberships!', 405);
+        }
         const cost = membership.cost;
         let discount = 0;
         if (coupon) {
@@ -162,11 +165,13 @@ const TheService: ServiceSchema = {
         if (instance.errors) {
           throw new MoleculerError(instance.errors[0].message, 404);
         }
-        if (instance.credit < cost - discount) {
-          throw new MoleculerError('User don\'t have enough balance!', 402);
-        }
 
         const taxData = await this.getItemTax(instance, {taxClass: 'service'});
+        const tax = +(taxData.isInclusive === false ? taxData.percentage / 100 * cost : 0).toFixed(2);
+
+        if (instance.credit < cost + tax - discount) {
+          throw new MoleculerError('User don\'t have enough balance!', 402);
+        }
 
         const invoiceBody: { [key: string]: any } = {
           storeId: ctx.params.storeId,
