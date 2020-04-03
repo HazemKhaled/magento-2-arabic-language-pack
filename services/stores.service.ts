@@ -625,6 +625,7 @@ const TheService: ServiceSchema = {
       // Sanitized params keys
       const keys = [
         'name',
+        'logo',
         'status',
         'type',
         'updated',

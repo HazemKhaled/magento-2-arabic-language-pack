@@ -28,6 +28,7 @@ export interface Order {
   taxTotal?: number;
   shipping_charge?: number;
   adjustment?: number;
+  storeLogo?: string;
 }
 
 /**
