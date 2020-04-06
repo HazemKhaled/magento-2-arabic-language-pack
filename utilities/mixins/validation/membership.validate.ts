@@ -219,11 +219,6 @@ export const MembershipValidation: ServiceSchema = {
             type: 'number',
           },
         ],
-        country: {
-          type: 'string',
-          pattern: '^[A-Z]{2}$',
-          optional: true,
-        },
       },
     },
     list: {
