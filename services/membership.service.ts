@@ -3,11 +3,12 @@ import DbService from '../utilities/mixins/mongo.mixin';
 import { MembershipOpenapi } from '../utilities/mixins/openapi';
 import { Membership } from '../utilities/types';
 import { MembershipValidation } from '../utilities/mixins/validation';
+import TaxCheck from '../utilities/mixins/tax.mixin';
 const MoleculerError = Errors.MoleculerError;
 
 const TheService: ServiceSchema = {
   name: 'membership',
-  mixins: [DbService('membership'), MembershipValidation, MembershipOpenapi],
+  mixins: [DbService('membership'), MembershipValidation, MembershipOpenapi, TaxCheck],
   actions: {
     create: {
       auth: 'Basic',
@@ -63,14 +64,26 @@ const TheService: ServiceSchema = {
     list: {
       auth: 'Basic',
       cache: {
+        keys: ['country'],
         ttl: 60 * 60 * 24, // 1 day
       },
-      handler(): Promise<Membership[]> {
+      handler(ctx): Promise<Membership[]> {
+        const { country } = ctx.params;
+        let query: { [key: string]: any } = {};
+        if (ctx.params.country) {
+          query = {
+            $or: [
+              { country },
+              { country: { $exists: false } },
+            ],
+          };
+        }
         return this.adapter
-          .find()
+          .find({query})
           .then((res: Membership[]) => {
-            if (res.length !== 0) return res.map(membership => this.normalizeId(membership));
-            throw new MoleculerError('No Membership found!', 404);
+            if (!res.length) throw new MoleculerError('No Membership found!', 404);
+            const cMemberships = res.filter(m => m.country === country);
+            return Promise.all((cMemberships.length ? cMemberships : res).map(membership => this.normalizeId(membership)));
           })
           .catch((err: any) => {
             if (err.name === 'MoleculerError') {
@@ -112,10 +125,20 @@ const TheService: ServiceSchema = {
      * @param {({_id: string})} obj
      * @returns
      */
-    normalizeId(obj: { _id: string }) {
+    async normalizeId(obj: { _id: string; country?: string; cost: number }) {
+      let tax = 0;
+      if (obj.country) {
+        const taxData = await this.getItemTax(obj.country, {taxClass: 'service'});
+        tax = +(taxData.isInclusive === false ? taxData.percentage / 100 * obj.cost : 0).toFixed(2);
+      }
       const newObj = {
         id: obj._id,
         ...obj,
+        cost: +(obj.cost + tax).toFixed(2),
+        totals: {
+          cost: obj.cost,
+          tax,
+        },
       };
       delete newObj._id;
       return newObj;
