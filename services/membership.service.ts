@@ -128,8 +128,8 @@ const TheService: ServiceSchema = {
     async normalizeId(obj: { _id: string; country?: string; cost: number }) {
       let tax = 0;
       if (obj.country) {
-        const taxData = await this.getItemTax(obj.country, {taxClass: 'service'});
-        tax = +(taxData.isInclusive === false ? taxData.percentage / 100 * obj.cost : 0).toFixed(2);
+        const taxData = await this.getTaxWithCalc(obj.country, {taxClass: 'service', rate: obj.cost});
+        tax = taxData.value;
       }
       const newObj = {
         id: obj._id,
