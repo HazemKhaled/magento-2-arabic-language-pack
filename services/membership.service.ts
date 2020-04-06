@@ -126,22 +126,42 @@ const TheService: ServiceSchema = {
      * @returns
      */
     async normalizeId(obj: { _id: string; country?: string; cost: number }) {
-      let tax = 0;
+      let taxData = { value: 0 };
       if (obj.country) {
-        const taxData = await this.getTaxWithCalc(obj.country, {taxClass: 'service', rate: obj.cost});
-        tax = taxData.value;
+        taxData = await this.getTaxWithCalc(obj.country, {taxClass: 'service', rate: obj.cost});
       }
       const newObj = {
         id: obj._id,
         ...obj,
-        cost: +(obj.cost + tax).toFixed(2),
+        cost: +(obj.cost + taxData.value).toFixed(2),
         totals: {
           cost: obj.cost,
-          tax,
+          taxData: taxData.value ? taxData : {},
         },
       };
       delete newObj._id;
       return newObj;
+    },
+    async listNormalize(objArr: Array<{ _id: string; country?: string; cost: number }>) {
+      let taxData: any = 0;
+      if (objArr[0].country) {
+        taxData = await this.getItemTax(objArr[0].country, {taxClass: 'service'});
+      }
+      return objArr.map(obj => {
+        const tax = taxData && +(taxData.isInclusive === false ? taxData.percentage / 100 * objArr[0].cost : 0).toFixed(2);
+        taxData.value = tax;
+        const newObj = {
+          id: obj._id,
+          ...obj,
+          cost: +(obj.cost + tax).toFixed(2),
+          totals: {
+            cost: obj.cost,
+            taxData: taxData || {},
+          },
+        };
+        delete newObj._id;
+        return newObj;
+      });
     },
   },
 };
