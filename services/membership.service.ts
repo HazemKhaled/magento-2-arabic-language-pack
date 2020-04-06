@@ -26,7 +26,7 @@ const TheService: ServiceSchema = {
           .insert(params)
           .then((res: Membership) => {
             this.broker.cacher.clean('membership.list:**');
-            return this.normalizeId(res);
+            return this.normalize(res);
           })
           .catch((err: any) => {
             if (err.name === 'MoleculerError') {
@@ -49,9 +49,9 @@ const TheService: ServiceSchema = {
             if (!res) {
               return this.adapter
                 .findOne({ isDefault: true })
-                .then((def: Membership) => this.normalizeId(def));
+                .then((def: Membership) => this.normalize(def));
             }
-            return this.normalizeId(res);
+            return this.normalize(res);
           })
           .catch((err: any) => {
             if (err.name === 'MoleculerError') {
@@ -83,7 +83,7 @@ const TheService: ServiceSchema = {
           .then((res: Membership[]) => {
             if (!res.length) throw new MoleculerError('No Membership found!', 404);
             const cMemberships = res.filter(m => m.country === country);
-            return Promise.all((cMemberships.length ? cMemberships : res).map(membership => this.normalizeId(membership)));
+            return this.listNormalize(cMemberships.length ? cMemberships : res);
           })
           .catch((err: any) => {
             if (err.name === 'MoleculerError') {
@@ -107,7 +107,7 @@ const TheService: ServiceSchema = {
             if (!res) {
               throw new MoleculerError('Membership not found', 404);
             }
-            return this.normalizeId(res);
+            return this.normalize(res);
           })
           .catch((err: any) => {
             if (err.name === 'MoleculerError') {
@@ -125,7 +125,7 @@ const TheService: ServiceSchema = {
      * @param {({_id: string})} obj
      * @returns
      */
-    async normalizeId(obj: { _id: string; country?: string; cost: number }) {
+    async normalize(obj: { _id: string; country?: string; cost: number }) {
       let tax = 0;
       if (obj.country) {
         const taxData = await this.getItemTax(obj.country, {taxClass: 'service'});
@@ -142,6 +142,26 @@ const TheService: ServiceSchema = {
       };
       delete newObj._id;
       return newObj;
+    },
+    async listNormalize(objArr: Array<{ _id: string; country?: string; cost: number }>) {
+      let taxData: any = 0;
+      if (objArr[0].country) {
+        taxData = await this.getItemTax(objArr[0].country, {taxClass: 'service'});
+      }
+      return objArr.map(obj => {
+        const tax = taxData && +(taxData.isInclusive === false ? taxData.percentage / 100 * objArr[0].cost : 0).toFixed(2);
+        const newObj = {
+          id: obj._id,
+          ...obj,
+          cost: +(obj.cost + tax).toFixed(2),
+          totals: {
+            cost: obj.cost,
+            tax,
+          },
+        };
+        delete newObj._id;
+        return newObj;
+      });
     },
   },
 };
