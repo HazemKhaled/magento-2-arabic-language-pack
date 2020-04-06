@@ -15,6 +15,7 @@ export interface Membership {
   active: boolean;
   public: boolean;
   cost: number;
+  country?: string;
   discount: number;
   paymentFrequency: number;
   paymentFrequencyType: 'month' | 'year';

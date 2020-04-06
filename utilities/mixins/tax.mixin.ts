@@ -16,21 +16,23 @@ const TaxCheck: ServiceSchema = {
      * @param {Product} item
      * @returns {{code: number, message: string} | Tax}
      */
-    async getItemTax(instance: Store, item: OrderItem) {
+    async getItemTax(instance: Store | string, item: OrderItem) {
       // Check if the store billing address country is available
-      if (!this.checkAddressCountry(instance)) {
+      if (typeof instance !== 'string' && !this.checkAddressCountry(instance)) {
         return {
           code: 1234,
           message: 'Messing Store Address',
         };
       }
 
+      const country = (typeof instance !== 'string' ? instance.address.country : instance).toUpperCase();
+
       // Get countries that should apply taxes to it
       const taxCountries = process.env.TAX_COUNTRIES
         ? process.env.TAX_COUNTRIES.toUpperCase().trim().split(',') : [];
 
       // If the country is not listed for taxes return
-      if (!taxCountries.includes(instance.address.country.toUpperCase())) {
+      if (!taxCountries.includes(country)) {
         return {
           code: 0,
           message: 'No taxes for this country',
@@ -53,7 +55,6 @@ const TaxCheck: ServiceSchema = {
       }
 
       const taxClass = item.taxClass;
-      const country = instance.address.country;
 
       // Get tax data from taxes service
       const taxData: Tax | ErrorSchema = await this.broker.call('taxes.tList', {
