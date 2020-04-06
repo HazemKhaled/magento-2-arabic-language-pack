@@ -90,19 +90,12 @@ export const MembershipValidation: ServiceSchema = {
           type: 'boolean',
           optional: true,
         },
+        country: {
+          type: 'string',
+          pattern: '^[A-Z]{2}$',
+          optional: true,
+        },
         $$strict: true,
-      },
-    },
-    get: {
-      params: {
-        id: [
-          {
-            type: 'string',
-          },
-          {
-            type: 'number',
-          },
-        ],
       },
     },
     update: {
@@ -208,7 +201,33 @@ export const MembershipValidation: ServiceSchema = {
           type: 'boolean',
           optional: true,
         },
+        country: {
+          type: 'string',
+          pattern: '^[A-Z]{2}$',
+          optional: true,
+        },
         $$strict: true,
+      },
+    },
+    get: {
+      params: {
+        id: [
+          {
+            type: 'string',
+          },
+          {
+            type: 'number',
+          },
+        ],
+      },
+    },
+    list: {
+      params: {
+        country: {
+          type: 'string',
+          pattern: '^[A-Z]{2}$',
+          optional: true,
+        },
       },
     },
   },

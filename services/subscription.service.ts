@@ -140,6 +140,9 @@ const TheService: ServiceSchema = {
         if (!membership) {
           throw new MoleculerError('No membership found', 404);
         }
+        if (membership.isDefault) {
+          throw new MoleculerError('Could not create subscription for default memberships!', 405);
+        }
         const cost = membership.cost;
         let discount = 0;
         if (coupon) {
@@ -163,16 +166,18 @@ const TheService: ServiceSchema = {
           throw new MoleculerError(instance.errors[0].message, 404);
         }
 
-
         const taxData = await this.getTaxWithCalc(instance, { taxClass: 'service', rate: cost });
+        const tax = taxData.value;
 
-        const total = +(cost + (taxData.value || 0) - discount).toFixed(2);
-        if (instance.credit < total) {
-          await ctx.call('payments.charge', {
-            storeId: instance.url,
-            amount: total - instance.credit,
-            force: true,
-          });
+        if (instance.credit < cost + tax - discount) {
+          const total = +(cost + (taxData.value || 0) - discount).toFixed(2);
+          if (instance.credit < total) {
+            await ctx.call('payments.charge', {
+              storeId: instance.url,
+              amount: total - instance.credit,
+              force: true,
+            });
+          }
         }
 
         const invoiceBody: { [key: string]: any } = {
