@@ -290,9 +290,28 @@ const InvoicesApplyCreditsOpenapi = {
   },
   security: [
     {
-      basicAuth: [] as any[],
+      bearerAuth: [] as any[],
     },
   ],
+  requestBody: {
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            useSavedPaymentMethods: {
+              type: 'boolean',
+              required: true,
+            },
+            paymentAmount: {
+              type: 'number',
+              required: true,
+            },
+          },
+        },
+      },
+    },
+  },
 };
 
 export const InvoicesOpenapi: ServiceSchema = {

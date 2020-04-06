@@ -67,6 +67,10 @@ export const StoresValidation: ServiceSchema = {
         name: {
           type: 'string',
         },
+        logo: {
+          type: 'url',
+          optional: true,
+        },
         status: {
           type: 'enum',
           values: [
@@ -249,6 +253,10 @@ export const StoresValidation: ServiceSchema = {
         },
         name: {
           type: 'string',
+          optional: true,
+        },
+        logo: {
+          type: 'url',
           optional: true,
         },
         status: {
