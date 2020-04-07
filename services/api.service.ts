@@ -83,8 +83,8 @@ const TheService: ServiceSchema = {
           'GET invoice/:storeId/external/:id': 'invoices.renderInvoice',
 
           // Payments paymentApp
-          'POST payments/:type/transaction': 'payments.transaction',
-          'GET payments/callback': 'payments.callback',
+          'POST paymentGateway/:type/transaction': 'paymentGateway.transaction',
+          'GET paymentGateway/callback': 'paymentGateway.callback',
 
           // Payments mp
           'POST payments/:id': 'payments.add',

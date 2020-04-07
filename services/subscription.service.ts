@@ -171,7 +171,7 @@ const TheService: ServiceSchema = {
         if (instance.credit < +(cost + taxData.value - discount).toFixed(2)) {
           const total = +(cost + (taxData.value || 0) - discount).toFixed(2);
           if (instance.credit < total) {
-            await ctx.call('payments.charge', {
+            await ctx.call('paymentGateway.charge', {
               storeId: instance.url,
               amount: total - instance.credit,
               force: true,
