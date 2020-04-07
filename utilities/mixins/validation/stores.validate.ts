@@ -76,6 +76,7 @@ export const StoresValidation: ServiceSchema = {
           values: [
             'confirmed',
             'unconfirmed',
+            'uninstalled',
             'archived',
             'error',
           ],
@@ -264,6 +265,7 @@ export const StoresValidation: ServiceSchema = {
           values: [
             'confirmed',
             'unconfirmed',
+            'uninstalled',
             'archived',
             'error',
           ],

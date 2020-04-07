@@ -19,7 +19,7 @@ const StoreSchema = {
     },
     status: {
       type: 'string',
-      'enum': ['confirmed', 'unconfirmed', 'archived', 'error'],
+      'enum': ['confirmed', 'unconfirmed', 'uninstalled', 'archived', 'error'],
     },
     type: {
       type: 'string',
