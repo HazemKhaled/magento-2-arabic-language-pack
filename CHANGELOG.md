@@ -30,7 +30,7 @@
 - Nats not used from docker
 - Get products by variation limit
 - Use getTaxWithCalc method
-
+- Add uninstalled option to store status
 
 ## 1.4.1
 
