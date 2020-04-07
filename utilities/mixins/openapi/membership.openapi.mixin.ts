@@ -155,6 +155,14 @@ const MembershipUpdateOpenapi = {
         type: 'string',
       },
     },
+    {
+      name: 'country',
+      'in': 'query',
+      required: false,
+      schema: {
+        type: 'string',
+      },
+    },
   ],
   responses: {
     200: {
