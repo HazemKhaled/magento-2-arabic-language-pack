@@ -167,9 +167,8 @@ const TheService: ServiceSchema = {
         }
 
         const taxData = await this.getTaxWithCalc(instance, { taxClass: 'service', rate: cost });
-        const tax = taxData.value;
 
-        if (instance.credit < cost + tax - discount) {
+        if (instance.credit < +(cost + taxData.value - discount).toFixed(2)) {
           const total = +(cost + (taxData.value || 0) - discount).toFixed(2);
           if (instance.credit < total) {
             await ctx.call('payments.charge', {
