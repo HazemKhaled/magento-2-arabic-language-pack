@@ -149,12 +149,11 @@ const TheService: ServiceSchema = {
         taxData = await this.getItemTax(country || objArr[0].country, {taxClass: 'service'});
       }
       return objArr.map(obj => {
-        const tax = taxData.percentage ? +(taxData.isInclusive === false ? taxData.percentage / 100 * objArr[0].cost : 0).toFixed(2) : 0;
-        taxData.value = tax;
+        taxData.value = taxData.percentage ? +(taxData.isInclusive === false ? taxData.percentage / 100 * obj.cost : 0).toFixed(2) : 0;
         const newObj = {
           id: obj._id,
           ...obj,
-          cost: +(obj.cost + tax).toFixed(2),
+          cost: +(obj.cost + taxData.value).toFixed(2),
           totals: {
             cost: obj.cost,
             taxData,
