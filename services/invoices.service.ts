@@ -60,13 +60,20 @@ const TheService: ServiceSchema = {
         if (instance.errors) {
           throw new MoleculerError('Store not found', 404);
         }
+
+        const invoiceParams: {[key:string]: string} = {
+          customerId: instance.internal_data.omsId,
+          discount: ctx.params.discount && ctx.params.discount.value,
+          discountType: ctx.params.discount && ctx.params.discount.type,
+          items: ctx.params.items,
+        };
+
+        if (ctx.params.coupon) {
+          invoiceParams.coupon = ctx.params.coupon;
+        }
+
         return ctx
-          .call('oms.createInvoice', {
-            customerId: instance.internal_data.omsId,
-            discount: ctx.params.discount && ctx.params.discount.value,
-            discountType: ctx.params.discount && ctx.params.discount.type,
-            items: ctx.params.items,
-          })
+          .call('oms.createInvoice', invoiceParams)
           .then(
             res => {
               this.broker.cacher.clean(`invoices.get:${instance.consumer_key}*`);
@@ -171,6 +178,7 @@ const TheService: ServiceSchema = {
         last_modified_time: invoice.lastModifiedTime,
         shipping_charge: invoice.shippingCharge,
         adjustment: invoice.adjustment,
+        coupon: invoice.coupon,
       };
     },
   },

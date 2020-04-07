@@ -168,13 +168,15 @@ const TheService: ServiceSchema = {
 
         const taxData = await this.getTaxWithCalc(instance, { taxClass: 'service', rate: cost });
 
-        const total = +(cost + (taxData.value || 0) - discount).toFixed(2);
-        if (instance.credit < total) {
-          await ctx.call('payments.charge', {
-            storeId: instance.url,
-            amount: total - instance.credit,
-            force: true,
-          });
+        if (instance.credit < +(cost + taxData.value - discount).toFixed(2)) {
+          const total = +(cost + (taxData.value || 0) - discount).toFixed(2);
+          if (instance.credit < total) {
+            await ctx.call('payments.charge', {
+              storeId: instance.url,
+              amount: total - instance.credit,
+              force: true,
+            });
+          }
         }
 
         const invoiceBody: { [key: string]: any } = {
@@ -199,6 +201,10 @@ const TheService: ServiceSchema = {
             value: discount,
             type: 'entity_level',
           };
+        }
+
+        if (coupon) {
+          invoiceBody.coupon = coupon.code;
         }
 
         const invoice = await ctx.call('invoices.create', invoiceBody).then(null, err => err);
