@@ -118,11 +118,13 @@ export const SubscriptionValidation: ServiceSchema = {
         page: {
           type: 'number',
           positive: true,
+          convert: true,
           optional: true,
         },
         perPage: {
           type: 'number',
           positive: true,
+          convert: true,
           optional: true,
         },
         sort: {
