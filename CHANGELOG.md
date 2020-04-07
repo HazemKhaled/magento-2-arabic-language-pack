@@ -1,5 +1,34 @@
 # Changelog
 
+## 1.5.1
+
+### 🚀 Features
+
+- Payment end-points
+- Apply credits by saved payments methods
+- Subscription charge try
+- Auto renew subscription query
+- Get product by sku with currency option
+- Store logo
+- Send store logo with create order
+- Add "subscription, storeStatus and lastOrderDate" to update crm
+- Add country option to Memberships and calculate the taxes according to the country
+
+### 🐛 Fixes
+
+- Coupon list docs & validation
+- Order items limit
+- Openapi docs applyCredits to bearer auth
+- Add total & tax total fields to order response
+- Send coupon with subscription invoice
+
+### ✨ Enhancements
+
+- Products example doc
+- Nats not used from docker
+- Get products by variation limit
+- Use getTaxWithCalc method
+
 
 ## 1.4.1
 
