@@ -83,7 +83,7 @@ const TheService: ServiceSchema = {
           .then((res: Membership[]) => {
             if (!res.length) throw new MoleculerError('No Membership found!', 404);
             const cMemberships = res.filter(m => m.country === country);
-            return this.listNormalize(cMemberships.length ? cMemberships : res);
+            return this.listNormalize(cMemberships.length ? cMemberships : res, country);
           })
           .catch((err: any) => {
             if (err.name === 'MoleculerError') {
