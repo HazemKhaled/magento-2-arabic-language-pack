@@ -288,6 +288,8 @@ const TheService: ServiceSchema = {
             adjustment: order.adjustment,
             adjustmentDescription: order.adjustmentDescription,
             orderNumber: order.orderNumber,
+            total: order.total,
+            taxTotal: order.taxTotal,
           },
         };
 
@@ -558,6 +560,8 @@ const TheService: ServiceSchema = {
             adjustment: order.adjustment,
             adjustmentDescription: order.adjustmentDescription,
             orderNumber: order.orderNumber,
+            total: order.total,
+            taxTotal: order.taxTotal,
           };
           if (warnings.length > 0) message.warnings = warnings;
           this.sendLogs({
