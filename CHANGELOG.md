@@ -13,6 +13,7 @@
 - Send store logo with create order
 - Add "subscription, storeStatus and lastOrderDate" to update crm
 - Add country option to Memberships and calculate the taxes according to the country
+- Send order warnings to Zoho & knawat support
 
 ### 🐛 Fixes
 
