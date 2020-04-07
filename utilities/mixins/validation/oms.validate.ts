@@ -17,6 +17,7 @@ export const OmsValidation: ServiceSchema = {
         customerId: { type: 'string' },
         discount: { type: 'number', positive: true, optional: true },
         discountType: { type: 'enum', values: ['entity_level'], optional: true },
+        coupon: { type: 'string', optional: true },
         items: {
           type: 'array',
           items: {

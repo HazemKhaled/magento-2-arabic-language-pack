@@ -204,6 +204,10 @@ const TheService: ServiceSchema = {
           };
         }
 
+        if (coupon) {
+          invoiceBody.coupon = coupon.code;
+        }
+
         const invoice = await ctx.call('invoices.create', invoiceBody).then(null, err => err);
         if (isError(invoice as { message: string; code: number })) {
           throw new MoleculerError(invoice.message, invoice.code || 500);
