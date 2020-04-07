@@ -6,6 +6,7 @@
 
 - Payment end-points
 - Apply credits by saved payments methods
+- Automatically charge saved cards while adding subscription
 - Subscription charge try
 - Auto renew subscription query
 - Get product by sku with currency option
