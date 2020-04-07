@@ -36,6 +36,19 @@ const MembershipSchema = {
     paymentFrequency: { type: 'number' },
     paymentFrequencyType: { type: 'string', 'enum': ['month', 'year'] },
     attributes: { type: 'object', properties: {} },
+    totals: {
+      cost: { type: 'number' },
+      taxData: {
+        id: { type: 'string' },
+        name: { type: 'string' },
+        country: { type: 'string' },
+        'class': { type: 'array', items: { type: 'string' } },
+        percentage: { type: 'number' },
+        isInclusive: { type: 'boolean' },
+        omsId: { type: 'string' },
+        value: { type: 'number' },
+      },
+    },
   },
 };
 
