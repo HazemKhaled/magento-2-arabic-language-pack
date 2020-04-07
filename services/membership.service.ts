@@ -127,7 +127,7 @@ const TheService: ServiceSchema = {
      */
     async normalize(obj: { _id: string; country?: string; cost: number }, country: string) {
       let taxData: any = { value: 0 };
-      if (obj.country) {
+      if (country || obj.country) {
         taxData = (await this.getTaxWithCalc(country || obj.country, {taxClass: 'service', rate: obj.cost})) || {};
         taxData.value = taxData.percentage ? +(taxData.isInclusive === false ? taxData.percentage / 100 * obj.cost : 0).toFixed(2) : 0;
       }
@@ -145,7 +145,7 @@ const TheService: ServiceSchema = {
     },
     async listNormalize(objArr: Array<{ _id: string; country?: string; cost: number }>, country: string) {
       let taxData: any = {};
-      if (objArr[0].country) {
+      if (country || objArr[0].country) {
         taxData = await this.getItemTax(country || objArr[0].country, {taxClass: 'service'});
       }
       return objArr.map(obj => {
