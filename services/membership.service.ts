@@ -39,7 +39,7 @@ const TheService: ServiceSchema = {
     get: {
       auth: 'Basic',
       cache: {
-        keys: ['id'],
+        keys: ['id', 'country'],
         ttl: 60 * 60 * 24, // 1 day
       },
       handler(ctx: Context): Promise<Membership> {
@@ -51,7 +51,7 @@ const TheService: ServiceSchema = {
                 .findOne({ isDefault: true })
                 .then((def: Membership) => this.normalize(def));
             }
-            return this.normalize(res);
+            return this.normalize(res, ctx.params.country);
           })
           .catch((err: any) => {
             if (err.name === 'MoleculerError') {
@@ -83,7 +83,7 @@ const TheService: ServiceSchema = {
           .then((res: Membership[]) => {
             if (!res.length) throw new MoleculerError('No Membership found!', 404);
             const cMemberships = res.filter(m => m.country === country);
-            return this.listNormalize(cMemberships.length ? cMemberships : res);
+            return this.listNormalize(cMemberships.length ? cMemberships : res, country);
           })
           .catch((err: any) => {
             if (err.name === 'MoleculerError') {
@@ -125,10 +125,10 @@ const TheService: ServiceSchema = {
      * @param {({_id: string})} obj
      * @returns
      */
-    async normalize(obj: { _id: string; country?: string; cost: number }) {
+    async normalize(obj: { _id: string; country?: string; cost: number }, country: string) {
       let taxData: any = { value: 0 };
       if (obj.country) {
-        taxData = (await this.getTaxWithCalc(obj.country, {taxClass: 'service', rate: obj.cost})) || {};
+        taxData = (await this.getTaxWithCalc(country || obj.country, {taxClass: 'service', rate: obj.cost})) || {};
         taxData.value = taxData.percentage ? +(taxData.isInclusive === false ? taxData.percentage / 100 * obj.cost : 0).toFixed(2) : 0;
       }
       const newObj = {
@@ -143,10 +143,10 @@ const TheService: ServiceSchema = {
       delete newObj._id;
       return newObj;
     },
-    async listNormalize(objArr: Array<{ _id: string; country?: string; cost: number }>) {
+    async listNormalize(objArr: Array<{ _id: string; country?: string; cost: number }>, country: string) {
       let taxData: any = {};
       if (objArr[0].country) {
-        taxData = await this.getItemTax(objArr[0].country, {taxClass: 'service'});
+        taxData = await this.getItemTax(country || objArr[0].country, {taxClass: 'service'});
       }
       return objArr.map(obj => {
         const tax = taxData.percentage ? +(taxData.isInclusive === false ? taxData.percentage / 100 * objArr[0].cost : 0).toFixed(2) : 0;
