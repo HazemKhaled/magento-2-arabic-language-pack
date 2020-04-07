@@ -52,6 +52,9 @@ const InvoiceSchema = {
     adjustment: {
       type: 'number',
     },
+    coupon: {
+      type: 'string',
+    },
   },
 };
 
@@ -69,6 +72,7 @@ const InvoiceResponse = {
               type: { type: 'string', 'enum': ['entity_level'] },
             },
           },
+          coupon: { type: 'string' },
           items: {
             type: 'array',
             items: {

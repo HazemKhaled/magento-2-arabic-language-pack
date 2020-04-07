@@ -112,6 +112,10 @@ export const InvoicesValidation: ServiceSchema = {
           type: 'boolean',
           optional: true,
         },
+        coupon: {
+          type: 'string',
+          optional: true,
+        },
         $$strict: true,
       },
     },
