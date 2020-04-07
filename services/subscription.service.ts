@@ -99,9 +99,9 @@ const TheService: ServiceSchema = {
           findBody.sort = { [ctx.params.sort.field]: ctx.params.sort.order };
         }
         if (ctx.params.perPage) {
-          findBody.limit = ctx.params.perPage;
+          findBody.limit = +ctx.params.perPage;
         }
-        findBody.offset = (findBody.limit || 100) * (ctx.params.page ? ctx.params.page - 1 : 0);
+        findBody.offset = (findBody.limit || 100) * (ctx.params.page ? +ctx.params.page - 1 : 0);
         return this.adapter
           .find(findBody)
           .then((res: Subscription[]) => {
