@@ -91,7 +91,7 @@ const TheService: ServiceSchema = {
         const instance = await ctx.call('stores.me');
         const {params} = ctx;
         if(params.useSavedPaymentMethods && instance.credit < params.paymentAmount) {
-          await ctx.call('payments.charge', {
+          await ctx.call('paymentGateway.charge', {
             storeId: instance.url,
             amount: params.paymentAmount - instance.credit,
           });

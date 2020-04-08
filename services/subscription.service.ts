@@ -99,9 +99,9 @@ const TheService: ServiceSchema = {
           findBody.sort = { [ctx.params.sort.field]: ctx.params.sort.order };
         }
         if (ctx.params.perPage) {
-          findBody.limit = ctx.params.perPage;
+          findBody.limit = +ctx.params.perPage;
         }
-        findBody.offset = (findBody.limit || 100) * (ctx.params.page ? ctx.params.page - 1 : 0);
+        findBody.offset = (findBody.limit || 100) * (ctx.params.page ? +ctx.params.page - 1 : 0);
         return this.adapter
           .find(findBody)
           .then((res: Subscription[]) => {
@@ -171,7 +171,7 @@ const TheService: ServiceSchema = {
         if (instance.credit < +(cost + taxData.value - discount).toFixed(2)) {
           const total = +(cost + (taxData.value || 0) - discount).toFixed(2);
           if (instance.credit < total) {
-            await ctx.call('payments.charge', {
+            await ctx.call('paymentGateway.charge', {
               storeId: instance.url,
               amount: total - instance.credit,
               force: true,
