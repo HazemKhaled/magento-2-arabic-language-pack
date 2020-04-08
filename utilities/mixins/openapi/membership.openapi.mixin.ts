@@ -39,10 +39,10 @@ const MembershipSchema = {
     totals: {
       type: 'object',
       properties: {
-        type: 'object',
-        properties: {
-          cost: { type: 'number' },
-          taxData: {
+        cost: { type: 'number' },
+        taxData: {
+          type: 'object',
+          properties: {
             id: { type: 'string' },
             name: { type: 'string' },
             country: { type: 'string' },
