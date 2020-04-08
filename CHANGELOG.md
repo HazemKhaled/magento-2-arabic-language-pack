@@ -23,6 +23,7 @@
 - Openapi docs applyCredits to bearer auth
 - Add total & tax total fields to order response
 - Send coupon with subscription invoice
+- List subscription pagination
 
 ### ✨ Enhancements
 
