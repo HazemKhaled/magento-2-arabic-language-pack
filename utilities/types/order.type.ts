@@ -28,6 +28,7 @@ export interface Order {
   taxTotal?: number;
   shipping_charge?: number;
   adjustment?: number;
+  storeLogo?: string;
 }
 
 /**
@@ -95,6 +96,7 @@ export interface OrderOMSResponse {
     adjustment: number;
     adjustmentDescription: string;
     orderNumber: string;
+    taxTotal: number;
   };
   error?: { [key: string]: any };
 }

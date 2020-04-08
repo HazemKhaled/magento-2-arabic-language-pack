@@ -3,7 +3,7 @@ import { v1 as uuidv1 } from 'uuid';
 
 import { OrdersOpenapi } from '../utilities/mixins/openapi';
 import { OrdersOperations } from '../utilities/mixins/orders.mixin';
-import { Log, OrderOMSResponse, Order, OrderAddress, OrderItem, Product, Tax } from '../utilities/types';
+import { Log, OrderOMSResponse, Order, OrderAddress, OrderItem, Product, Tax, Store } from '../utilities/types';
 import { OrdersValidation } from '../utilities/mixins/validation';
 import TaxCheck = require('../utilities/mixins/tax.mixin');
 import { Mail } from '../utilities/mixins/mail.mixin';
@@ -206,7 +206,7 @@ const TheService: ServiceSchema = {
 
         if (warnings.length) {
           data.notes = `${warnings.reduce(
-            (accumulator, item) => `${accumulator}${item.message}\n`, '----*System Warnings*----\n')}${data.notes && '-----*Customer Note*-----\n'}${data.notes}`;
+            (accumulator, item) => `${accumulator}${item.message}\n`, '----*System Warnings*----\n')}${data.notes ? `-----*Customer Note*-----\n${data.notes}` : ''}`;
         }
 
         this.logger.info(JSON.stringify(data));
@@ -250,6 +250,9 @@ const TheService: ServiceSchema = {
           ctx.call('coupons.updateCount', { id: data.coupon });
         }
 
+        // Update CRM last update
+        ctx.call('crm.updateStoreById', { id: instance.url, last_order_date: Date.now() });
+
         // Clearing order list action(API) cache
         this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
 
@@ -285,6 +288,8 @@ const TheService: ServiceSchema = {
             adjustment: order.adjustment,
             adjustmentDescription: order.adjustmentDescription,
             orderNumber: order.orderNumber,
+            total: order.total,
+            taxTotal: order.taxTotal,
           },
         };
 
@@ -498,7 +503,7 @@ const TheService: ServiceSchema = {
 
             if (warnings.length) {
               data.notes = `${warnings.reduce(
-                (accumulator, item) => `${accumulator}${item.message}\n`, '----*System Warnings*----\n')}${orderBeforeUpdate.notes}`;
+                (accumulator, item) => `${accumulator}${item.message}\n`, '----*System Warnings*----\n')}${orderBeforeUpdate.notes ? orderBeforeUpdate.notes : ''}`;
             }
           }
           // Convert status
@@ -555,6 +560,8 @@ const TheService: ServiceSchema = {
             adjustment: order.adjustment,
             adjustmentDescription: order.adjustmentDescription,
             orderNumber: order.orderNumber,
+            total: order.total,
+            taxTotal: order.taxTotal,
           };
           if (warnings.length > 0) message.warnings = warnings;
           this.sendLogs({
@@ -1037,7 +1044,7 @@ const TheService: ServiceSchema = {
      * @param {Order} params
      * @returns
      */
-    orderData(params: Order, instance, create = false) {
+    orderData(params: Order, instance: Store, create = false) {
       const data: Order = {
         status: params.status,
         items: params.items || params.line_items,
@@ -1061,6 +1068,9 @@ const TheService: ServiceSchema = {
               name: instance.name,
               users: instance.users,
             };
+        if (instance.logo) {
+          data.storeLogo = instance.logo;
+        }
       }
       return data;
     },

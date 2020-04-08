@@ -13,9 +13,13 @@ const StoreSchema = {
       type: 'string',
       minLength: 3,
     },
+    logo: {
+      type: 'string',
+      format: 'url',
+    },
     status: {
       type: 'string',
-      'enum': ['confirmed', 'unconfirmed', 'archived', 'error'],
+      'enum': ['confirmed', 'unconfirmed', 'uninstalled', 'archived', 'error'],
     },
     type: {
       type: 'string',

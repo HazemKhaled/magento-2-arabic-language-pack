@@ -99,9 +99,9 @@ const TheService: ServiceSchema = {
           findBody.sort = { [ctx.params.sort.field]: ctx.params.sort.order };
         }
         if (ctx.params.perPage) {
-          findBody.limit = ctx.params.perPage;
+          findBody.limit = +ctx.params.perPage;
         }
-        findBody.offset = (findBody.limit || 100) * (ctx.params.page ? ctx.params.page - 1 : 0);
+        findBody.offset = (findBody.limit || 100) * (ctx.params.page ? +ctx.params.page - 1 : 0);
         return this.adapter
           .find(findBody)
           .then((res: Subscription[]) => {
@@ -166,11 +166,17 @@ const TheService: ServiceSchema = {
           throw new MoleculerError(instance.errors[0].message, 404);
         }
 
-        const taxData = await this.getItemTax(instance, {taxClass: 'service'});
-        const tax = +(taxData.isInclusive === false ? taxData.percentage / 100 * cost : 0).toFixed(2);
+        const taxData = await this.getTaxWithCalc(instance, { taxClass: 'service', rate: cost });
 
-        if (instance.credit < cost + tax - discount) {
-          throw new MoleculerError('User don\'t have enough balance!', 402);
+        if (instance.credit < +(cost + taxData.value - discount).toFixed(2)) {
+          const total = +(cost + (taxData.value || 0) - discount).toFixed(2);
+          if (instance.credit < total) {
+            await ctx.call('paymentGateway.charge', {
+              storeId: instance.url,
+              amount: total - instance.credit,
+              force: true,
+            });
+          }
         }
 
         const invoiceBody: { [key: string]: any } = {
@@ -189,12 +195,18 @@ const TheService: ServiceSchema = {
           ],
           isInclusiveTax: taxData.isInclusive,
         };
+
         if (discount) {
           invoiceBody.discount = {
             value: discount,
             type: 'entity_level',
           };
         }
+
+        if (coupon) {
+          invoiceBody.coupon = coupon.code;
+        }
+
         const invoice = await ctx.call('invoices.create', invoiceBody).then(null, err => err);
         if (isError(invoice as { message: string; code: number })) {
           throw new MoleculerError(invoice.message, invoice.code || 500);
@@ -254,6 +266,7 @@ const TheService: ServiceSchema = {
               ctx.call('subscription.checkCurrentSubGradingStatus', {
                 id: ctx.params.storeId,
               });
+              ctx.call('crm.updateStoreById', { id: ctx.params.storeId, membership_id: membership.id, subscription_expiration: expireDate.getTime() });
               return { ...res, id: res._id, _id: undefined };
             },
           );
@@ -276,6 +289,9 @@ const TheService: ServiceSchema = {
           },
           renewed: {
             $ne: true,
+          },
+          autoRenew: {
+            $ne: false,
           },
         };
         const expiredSubscription = await this.adapter.findOne(query).catch();

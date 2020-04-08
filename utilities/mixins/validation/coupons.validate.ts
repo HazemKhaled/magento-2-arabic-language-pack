@@ -115,16 +115,31 @@ export const CouponsValidation: ServiceSchema = {
         },
         totalAmount: {
           type: 'number',
+          convert: true,
           optional: true,
         },
-        isValid: {
-          type: 'boolean',
-          optional: true,
-        },
-        isAuto: {
-          type: 'boolean',
-          optional: true,
-        },
+        isValid: [
+          {
+            type: 'boolean',
+            optional: true,
+          },
+          {
+            type: 'enum',
+            values: ['0', '1'],
+            optional: true,
+          },
+        ],
+        isAuto: [
+          {
+            type: 'boolean',
+            optional: true,
+          },
+          {
+            type: 'enum',
+            values: ['0', '1'],
+            optional: true,
+          },
+        ],
       },
     },
     update: {

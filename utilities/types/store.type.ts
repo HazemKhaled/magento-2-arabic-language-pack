@@ -10,8 +10,9 @@ export interface Store {
   id: string;
   _id: string;
   name: string;
+  logo?: string;
   currency: string;
-  status: 'confirmed' | 'unconfirmed' | 'archived' | 'error';
+  status: 'confirmed' | 'unconfirmed' | 'archived' | 'error' | 'uninstalled';
   url: string;
   consumer_secret: string;
   consumer_key: string;

@@ -67,11 +67,16 @@ export const StoresValidation: ServiceSchema = {
         name: {
           type: 'string',
         },
+        logo: {
+          type: 'url',
+          optional: true,
+        },
         status: {
           type: 'enum',
           values: [
             'confirmed',
             'unconfirmed',
+            'uninstalled',
             'archived',
             'error',
           ],
@@ -251,11 +256,16 @@ export const StoresValidation: ServiceSchema = {
           type: 'string',
           optional: true,
         },
+        logo: {
+          type: 'url',
+          optional: true,
+        },
         status: {
           type: 'enum',
           values: [
             'confirmed',
             'unconfirmed',
+            'uninstalled',
             'archived',
             'error',
           ],

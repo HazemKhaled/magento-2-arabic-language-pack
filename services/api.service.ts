@@ -82,7 +82,11 @@ const TheService: ServiceSchema = {
           'POST invoices/:id/credits': 'invoices.applyCredits',
           'GET invoice/:storeId/external/:id': 'invoices.renderInvoice',
 
-          // Payments
+          // paymentGateway
+          'POST paymentGateway/:type/transaction': 'paymentGateway.transaction',
+          'GET paymentGateway/callback': 'paymentGateway.callback',
+
+          // Payments mp
           'POST payments/:id': 'payments.add',
           'GET payments': 'payments.get',
 

@@ -112,6 +112,10 @@ export const InvoicesValidation: ServiceSchema = {
           type: 'boolean',
           optional: true,
         },
+        coupon: {
+          type: 'string',
+          optional: true,
+        },
         $$strict: true,
       },
     },
@@ -119,6 +123,14 @@ export const InvoicesValidation: ServiceSchema = {
       params: {
         id: {
           type: 'string',
+        },
+        useSavedPaymentMethods: {
+          type: 'boolean',
+          optional: true,
+        },
+        paymentAmount: {
+          type: 'number',
+          optional: true,
         },
       },
     },
