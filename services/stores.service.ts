@@ -532,7 +532,7 @@ const TheService: ServiceSchema = {
                 consumerKey: decoded.id,
               });
               if (instance.status) {
-                return decoded;
+                return instance;
               }
             }
           })
