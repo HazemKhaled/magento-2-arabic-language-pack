@@ -94,6 +94,17 @@ const TheService: ServiceSchema = {
         });
       },
     },
+    addTagsToRecord: {
+      handler(ctx: Context): Promise<object> {
+        const { module, id, tag_names: tagNames } = ctx.params;
+
+        return this.request({
+          method: 'post',
+          path: `/crm/v2/${module}/${id}/actions/add_tags`,
+          params: { tag_names: tagNames },
+        });
+      },
+    },
   },
   methods: {
     /**

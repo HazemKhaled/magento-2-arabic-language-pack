@@ -121,6 +121,7 @@ const TheService: ServiceSchema = {
 
           // CRM
           'GET crm/:module/search': 'crm.findModuleRecords',
+          'GET crm/:module/:id/tags/add': 'crm.addTagsToRecord',
         },
 
         // Disable to call not-mapped actions
