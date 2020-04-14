@@ -220,6 +220,7 @@ const SubscriptionCreateOpenapi = {
             storeId: { type: 'string', format: 'url', required: true },
             membership: { type: 'string', required: true },
             coupon: { type: 'string' },
+            grantTo: { type: 'string', format: 'url' }
           },
         },
       },
