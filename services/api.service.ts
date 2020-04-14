@@ -120,7 +120,7 @@ const TheService: ServiceSchema = {
           'POST customer/data_request': 'gdpr.customerDataRequest',
 
           // CRM
-          'GET crm/:module/search': 'crm.findModuleRecords',
+          'GET crm/:module': 'crm.findRecords',
           'POST crm/:module/:id/tags/add': 'crm.addTagsToRecord',
           'POST crm/:module/:id/tags/remove': 'crm.removeTagsToRecord',
         },

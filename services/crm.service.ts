@@ -83,7 +83,7 @@ const TheService: ServiceSchema = {
         });
       },
     },
-    findModuleRecords: {
+    findRecords: {
       handler(ctx: Context): Promise<object> {
         const { module, criteria, email, phone, word } = ctx.params;
 
