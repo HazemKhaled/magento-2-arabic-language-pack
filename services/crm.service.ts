@@ -105,6 +105,17 @@ const TheService: ServiceSchema = {
         });
       },
     },
+    removeTagsToRecord: {
+      handler(ctx: Context): Promise<object> {
+        const { module, id, tag } = ctx.params;
+
+        return this.request({
+          method: 'post',
+          path: `/crm/v2/${module}/${id}/actions/remove_tags`,
+          params: { tag_names: tag },
+        });
+      },
+    },
   },
   methods: {
     /**

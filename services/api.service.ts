@@ -121,7 +121,8 @@ const TheService: ServiceSchema = {
 
           // CRM
           'GET crm/:module/search': 'crm.findModuleRecords',
-          'GET crm/:module/:id/tags/add': 'crm.addTagsToRecord',
+          'POST crm/:module/:id/tags/add': 'crm.addTagsToRecord',
+          'POST crm/:module/:id/tags/remove': 'crm.removeTagsToRecord',
         },
 
         // Disable to call not-mapped actions
@@ -132,26 +133,26 @@ const TheService: ServiceSchema = {
           process.env.NODE_ENV === 'production'
             ? false
             : {
-              // Configures the Access-Control-Allow-Origin CORS header.
-              origin: ['http://localhost*'],
-              // Configures the Access-Control-Allow-Methods CORS header.
-              methods: ['POST', 'GET', 'PUT', 'DELETE', 'OPTION'],
-              // Configures the Access-Control-Allow-Headers CORS header.
-              allowedHeaders: [
-                '*',
-                'Origin',
-                'X-Requested-With',
-                'Content-Type',
-                'Accept',
-                'Authorization',
-              ],
-              // Configures the Access-Control-Expose-Headers CORS header.
-              exposedHeaders: [],
-              // Configures the Access-Control-Allow-Credentials CORS header.
-              credentials: true,
-              // Configures the Access-Control-Max-Age CORS header.
-              maxAge: 3600,
-            },
+                // Configures the Access-Control-Allow-Origin CORS header.
+                origin: ['http://localhost*'],
+                // Configures the Access-Control-Allow-Methods CORS header.
+                methods: ['POST', 'GET', 'PUT', 'DELETE', 'OPTION'],
+                // Configures the Access-Control-Allow-Headers CORS header.
+                allowedHeaders: [
+                  '*',
+                  'Origin',
+                  'X-Requested-With',
+                  'Content-Type',
+                  'Accept',
+                  'Authorization',
+                ],
+                // Configures the Access-Control-Expose-Headers CORS header.
+                exposedHeaders: [],
+                // Configures the Access-Control-Allow-Credentials CORS header.
+                credentials: true,
+                // Configures the Access-Control-Max-Age CORS header.
+                maxAge: 3600,
+              },
 
         // Parse body content
         bodyParsers: {
