@@ -167,7 +167,7 @@ const TheService: ServiceSchema = {
       body: { [key: string]: unknown };
       bodyType: 'json' | 'formData';
       params: { [key: string]: string };
-    }) {
+    }): Promise<object> {
       let url = process.env.ZOHO_CRM_URL;
       let queryString = '';
       const headers: { [key: string]: string } = {
@@ -212,8 +212,8 @@ const TheService: ServiceSchema = {
           throw new MoleculerError(err.message, err.code);
         });
     },
-    transformStoreParams(params: CrmData) {
-      const newObj: any = {
+    transformStoreParams(params: CrmData): object {
+      const newObj: { [key: string]: string } = {
         id: params.id,
       };
       const crmParams: { [key: string]: string } = {
