@@ -256,9 +256,8 @@ const TheService: ServiceSchema = {
           const timeZone = `${timeZoneOffset < 0 ? '-' : '+'}${
             Math.abs(timeZoneOffset) > 9 ? '' : '0'
           }${Math.abs(timeZoneOffset)}:00`;
-          console.log(`${year}-${month}-${day}T${time}${timeZone}`);
+
           newObj[crmParams[key] as keyof CrmStore] = `${year}-${month}-${day}T${time}${timeZone}`;
-          console.log(newObj[crmParams[key]]);
         }
         if (key === 'address') {
           Object.keys(params[key]).forEach(attr => {
