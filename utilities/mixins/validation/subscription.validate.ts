@@ -160,7 +160,7 @@ export const SubscriptionValidation: ServiceSchema = {
         },
         grantTo: {
           type: 'url',
-          optional: true
+          optional: true,
         },
         $$strict: true,
       },
