@@ -93,6 +93,18 @@ const TheService: ServiceSchema = {
         });
       },
     },
+    updateRecord: {
+      handler(ctx: Context): Promise<object> {
+        const { module, id, data } = ctx.params;
+
+        return this.request({
+          method: 'put',
+          path: `/crm/v2/${module}/${id}`,
+          bodyType: 'json',
+          body: { data },
+        });
+      },
+    },
     findRecords: {
       handler(ctx: Context): Promise<object> {
         const { module, criteria, email, phone, word } = ctx.params;
@@ -115,7 +127,7 @@ const TheService: ServiceSchema = {
         });
       },
     },
-    removeTagsToRecord: {
+    removeTagsFromRecord: {
       handler(ctx: Context): Promise<object> {
         const { module, id, tag } = ctx.params;
 

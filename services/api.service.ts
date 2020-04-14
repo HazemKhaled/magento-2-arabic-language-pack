@@ -122,8 +122,9 @@ const TheService: ServiceSchema = {
           // CRM
           'GET crm/:module': 'crm.findRecords',
           'POST crm/:module': 'crm.createRecord',
+          'POST crm/:module/:id': 'crm.updateRecord',
           'POST crm/:module/:id/tags/add': 'crm.addTagsToRecord',
-          'POST crm/:module/:id/tags/remove': 'crm.removeTagsToRecord',
+          'POST crm/:module/:id/tags/remove': 'crm.removeTagsFromRecord',
         },
 
         // Disable to call not-mapped actions
