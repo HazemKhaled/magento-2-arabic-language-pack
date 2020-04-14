@@ -83,6 +83,18 @@ const TheService: ServiceSchema = {
         });
       },
     },
+    createRecord: {
+      handler(ctx: Context): Promise<object> {
+        const { module, data } = ctx.params;
+
+        return this.request({
+          method: 'post',
+          path: `/crm/v2/${module}`,
+          bodyType: 'json',
+          body: { data },
+        });
+      },
+    },
     findRecords: {
       handler(ctx: Context): Promise<object> {
         const { module, criteria, email, phone, word } = ctx.params;
