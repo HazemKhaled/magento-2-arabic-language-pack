@@ -118,6 +118,9 @@ const TheService: ServiceSchema = {
           'POST customer/redact': 'gdpr.customerRedact',
           'POST store/redact': 'gdpr.storeRedact',
           'POST customer/data_request': 'gdpr.customerDataRequest',
+
+          // CRM
+          'GET crm/:module/search': 'crm.findModuleRecords',
         },
 
         // Disable to call not-mapped actions

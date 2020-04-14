@@ -83,6 +83,17 @@ const TheService: ServiceSchema = {
         });
       },
     },
+    findModuleRecords: {
+      handler(ctx: Context): Promise<object> {
+        const { module, criteria, email, phone, word } = ctx.params;
+
+        return this.request({
+          method: 'get',
+          path: `/crm/v2/${module}/search`,
+          params: { criteria, email, phone, word },
+        });
+      },
+    },
   },
   methods: {
     /**
@@ -195,11 +206,13 @@ const TheService: ServiceSchema = {
         if (key === 'last_order_date' || key === 'subscription_expiration') {
           const date = new Date(params[key]);
           const year = date.getFullYear();
-          const month = `${date.getMonth() > 8 ? '' : '0'}${date.getMonth()+1}`;
+          const month = `${date.getMonth() > 8 ? '' : '0'}${date.getMonth() + 1}`;
           const day = `${date.getDate() > 9 ? '' : '0'}${date.getDate()}`;
-          const time = `${date.toTimeString().slice(0,8)}`;
-          const timeZoneOffset = -date.getTimezoneOffset()/60;
-          const timeZone = `${timeZoneOffset < 0 ? '-' : '+'}${Math.abs(timeZoneOffset) > 9 ? '' : '0'}${Math.abs(timeZoneOffset)}:00`;
+          const time = `${date.toTimeString().slice(0, 8)}`;
+          const timeZoneOffset = -date.getTimezoneOffset() / 60;
+          const timeZone = `${timeZoneOffset < 0 ? '-' : '+'}${
+            Math.abs(timeZoneOffset) > 9 ? '' : '0'
+          }${Math.abs(timeZoneOffset)}:00`;
           console.log(`${year}-${month}-${day}T${time}${timeZone}`);
           newObj[crmParams[key] as keyof CrmStore] = `${year}-${month}-${day}T${time}${timeZone}`;
           console.log(newObj[crmParams[key]]);
