@@ -20,7 +20,7 @@ const TheService: ServiceSchema = {
   actions: {
     refreshToken: {
       cache: false,
-      handler() {
+      handler(): Promise<object> {
         return this.request({
           method: 'post',
           isAccountsUrl: true,
@@ -58,14 +58,13 @@ const TheService: ServiceSchema = {
       },
     },
     updateStoreById: {
-      async handler(ctx: Context) {
-        const crmStore = await ctx.call('crm.findStoreByUrl', { id: ctx.params.id });
-        ctx.params.id = crmStore.id;
-        return this.request({
-          method: 'put',
-          path: 'crm/v2/accounts',
-          bodyType: 'json',
-          body: { data: [this.transformStoreParams(ctx.params)] },
+      async handler(ctx: Context): Promise<object> {
+        const { id: crmStoreId } = await ctx.call('crm.findStoreByUrl', { id: ctx.params.id });
+
+        return ctx.call('crm.updateRecord', {
+          module: 'accounts',
+          id: crmStoreId,
+          data: [this.transformStoreParams(ctx.params)],
         });
       },
     },
