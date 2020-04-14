@@ -45,18 +45,16 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 * 24,
         keys: ['id'],
       },
-      handler(ctx: Context) {
-        return this.request({
-          path: 'crm/v2/accounts/search',
-          params: {
-            criteria: `((Account_Name:equals:${ctx.params.id}))`,
-          },
-        }).then((res: any) => {
-          if (!res.data[0]) {
-            throw new MoleculerError('Store Not Found', 404);
-          }
-          return res.data[0];
+      async handler(ctx: Context): Promise<object> {
+        const res = await ctx.call('crm.findRecords', {
+          module: 'accounts',
+          criteria: `((Account_Name:equals:${ctx.params.id}))`,
         });
+
+        if (!res.data[0]) {
+          throw new MoleculerError('Store Not Found', 404);
+        }
+        return res.data[0];
       },
     },
     updateStoreById: {
