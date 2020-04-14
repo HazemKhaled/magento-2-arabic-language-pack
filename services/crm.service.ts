@@ -72,14 +72,14 @@ const TheService: ServiceSchema = {
       },
     },
     addTagsByUrl: {
-      async handler(ctx: Context) {
-        const crmStore = await ctx.call('crm.findStoreByUrl', { id: ctx.params.id });
-        return this.request({
-          method: 'post',
-          path: `crm/v2/accounts/${crmStore.id}/actions/add_tags`,
-          params: {
-            tag_names: ctx.params.tag,
-          },
+      async handler(ctx: Context): Promise<object> {
+        const { id, tag } = ctx.params;
+        const { id: crmStoreId } = await ctx.call('crm.findStoreByUrl', { id });
+
+        return ctx.call('crm.addTagsToRecord', {
+          module: 'accounts',
+          id: crmStoreId,
+          tag,
         });
       },
     },
@@ -96,12 +96,12 @@ const TheService: ServiceSchema = {
     },
     addTagsToRecord: {
       handler(ctx: Context): Promise<object> {
-        const { module, id, tag_names: tagNames } = ctx.params;
+        const { module, id, tag } = ctx.params;
 
         return this.request({
           method: 'post',
           path: `/crm/v2/${module}/${id}/actions/add_tags`,
-          params: { tag_names: tagNames },
+          params: { tag_names: tag },
         });
       },
     },
