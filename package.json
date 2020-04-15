@@ -5,7 +5,7 @@
   "description": "Knawat MarketPlace API layer",
   "author": "Knawat, LLC.",
   "engines": {
-    "node": "12.x.x"
+    "node": "10.x.x"
   },
   "scripts": {
     "build": "tsc",
@@ -16,8 +16,8 @@
     "deps": "npm-check -u",
     "ci": "jest --watch",
     "test": "jest --coverage",
-    "lint": "tsc --noEmit && eslint . --ext .ts,.tsx",
-    "lint:fix": "tsc --noEmit && eslint . --ext .ts,.tsx --fix",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint-fix": "eslint . --ext .ts,.tsx --fix",
     "cdoc": "node ./utilities/scripts/docs-checker.script.js",
     "prettier": "prettier services/*.ts utilities/**/*.ts *.ts --write"
   },
@@ -30,16 +30,14 @@
     "@types/node-fetch": "^2.3.3",
     "@types/request-promise": "^4.1.43",
     "@types/uuid": "^3.4.4",
-    "@typescript-eslint/eslint-plugin": "^2.27.0",
-    "@typescript-eslint/parser": "^2.27.0",
-    "eslint": "^6.8.0",
-    "eslint-config-prettier": "^6.10.1",
-    "eslint-plugin-prettier": "^3.1.2",
+    "@typescript-eslint/eslint-plugin": "^2.11.0",
+    "@typescript-eslint/parser": "^2.11.0",
+    "eslint": "^6.7.2",
     "jest": "^24.8.0",
     "jest-cli": "^24.8.0",
     "moleculer-repl": "^0.5.7",
     "npm-check": "^5.9.0",
-    "prettier": "^2.0.4",
+    "prettier": "^1.17.0",
     "ts-jest": "^24.0.2",
     "ts-node": "^8.1.0",
     "typescript": "^3.4.5"
