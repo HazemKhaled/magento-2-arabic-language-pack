@@ -65,12 +65,12 @@ const TheService: ServiceSchema = {
         const keys: { [key: string]: string } = {
           page: 'page',
           limit: 'perPage',
-          reference_number: 'reference_number',
-          payment_mode: 'payment_mode',
+          reference_number: 'referenceNumber',
+          payment_mode: 'paymentMode',
         };
         const queryParams: { [key: string]: string } = {};
         Object.keys(ctx.params).forEach(key => {
-          if (ctx.params[key]) queryParams[keys[key]] = ctx.params[key];
+          queryParams[keys[key]] = ctx.params[key];
         });
         if (instance.internal_data && instance.internal_data.omsId) {
           return ctx
