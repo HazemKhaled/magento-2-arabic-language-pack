@@ -68,7 +68,7 @@ export const ProductsValidation: ServiceSchema = {
         },
       },
     },
-    'import': {
+    import: {
       params: {
         products: {
           type: 'array',

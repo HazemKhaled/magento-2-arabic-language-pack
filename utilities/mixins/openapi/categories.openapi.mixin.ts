@@ -75,7 +75,7 @@ const CategoriesListOpenapi = {
   parameters: [
     {
       name: 'parentId',
-      'in': 'query',
+      in: 'query',
       required: false,
       schema: {
         type: 'number',
@@ -83,7 +83,7 @@ const CategoriesListOpenapi = {
     },
     {
       name: 'treeNodeLevel',
-      'in': 'query',
+      in: 'query',
       required: false,
       schema: {
         type: 'number',

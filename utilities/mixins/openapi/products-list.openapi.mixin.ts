@@ -24,7 +24,7 @@ const ProductsListGetOpenapi = {
   parameters: [
     {
       name: 'sku',
-      'in': 'path',
+      in: 'path',
       required: true,
       schema: {
         type: 'string',
@@ -53,7 +53,7 @@ const ProductsByVariationOpenapi = {
   parameters: [
     {
       name: 'skus',
-      'in': 'query',
+      in: 'query',
       required: true,
       schema: {
         type: 'array',

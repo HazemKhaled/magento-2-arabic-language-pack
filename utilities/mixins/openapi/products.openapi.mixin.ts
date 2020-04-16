@@ -348,7 +348,7 @@ const GetInstanceProduct = {
   parameters: [
     {
       name: 'sku',
-      'in': 'path',
+      in: 'path',
       required: true,
       description: 'Identifier of the Task',
       example: '47ee3550-b619',
@@ -358,7 +358,7 @@ const GetInstanceProduct = {
     },
     {
       name: 'currency',
-      'in': 'query',
+      in: 'query',
       required: false,
       description: 'Currency for the product returned',
       example: 'USD',
@@ -432,29 +432,29 @@ const ProductsList = {
   parameters: [
     {
       name: 'limit',
-      'in': 'query',
+      in: 'query',
       required: false,
       description: 'Size of the page to retrieve.',
       schema: {
         type: 'integer',
         maximum: 100,
-        'default': 10,
+        default: 10,
       },
     },
     {
       name: 'page',
-      'in': 'query',
+      in: 'query',
       required: false,
       description: 'Number of the page to retrieve.',
       schema: {
         type: 'integer',
         minimum: 1,
-        'default': 1,
+        default: 1,
       },
     },
     {
       name: 'lastupdate',
-      'in': 'query',
+      in: 'query',
       required: false,
       description:
         'Timestamp(seconds since Jan 01 1970. (UTC)) of last import run DateTime (must be in UTC), API will respond only products which are updated/created after this timestamp.',
@@ -466,7 +466,7 @@ const ProductsList = {
     },
     {
       name: 'keyword',
-      'in': 'query',
+      in: 'query',
       required: false,
       description: 'Full text search in sku field',
       schema: {
@@ -475,7 +475,7 @@ const ProductsList = {
     },
     {
       name: 'externalId',
-      'in': 'query',
+      in: 'query',
       required: false,
       description: 'filter with externalId',
       schema: {
@@ -484,7 +484,7 @@ const ProductsList = {
     },
     {
       name: 'hideOutOfStock',
-      'in': 'query',
+      in: 'query',
       required: false,
       description: 'Hide out of stock products',
       example: '1 => Hide archived products else will not hide',
@@ -494,7 +494,7 @@ const ProductsList = {
     },
     {
       name: 'currency',
-      'in': 'query',
+      in: 'query',
       required: false,
       description: '3 digit numeric ISO 4217 codes',
       schema: {
@@ -698,7 +698,7 @@ const InstanceUpdate = {
   parameters: [
     {
       name: 'sku',
-      'in': 'query',
+      in: 'query',
       required: true,
       schema: {
         type: 'string',
@@ -932,7 +932,7 @@ export const ProductsOpenapi: ServiceSchema = {
     deleteInstanceProduct: {
       openapi: DeleteInstanceProduct,
     },
-    'import': {
+    import: {
       openapi: ProductsImport,
     },
     instanceUpdate: {
