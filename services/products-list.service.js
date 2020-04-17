@@ -177,7 +177,7 @@ module.exports = {
             },
           })
           .then(response => {
-            return response.hits.hits.map(({_source}) => _source);
+            return { products: response.hits.hits.map(({_source}) => _source) };
           });
       },
     },
