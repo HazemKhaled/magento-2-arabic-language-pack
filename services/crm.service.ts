@@ -34,7 +34,7 @@ const TheService: ServiceSchema = {
           bodyType: 'formData',
         }).then((res: { access_token: string; error: string }) => {
           if (res.error) {
-            throw new MoleculerError(res.error, 401);
+            throw this.errorFactory(res.error, 401);
           }
           this.settings.accessToken = res.access_token;
         });
@@ -52,7 +52,7 @@ const TheService: ServiceSchema = {
         });
 
         if (!res.data[0]) {
-          throw new MoleculerError('Store Not Found', 404);
+          throw this.errorFactory('Store not found!', 404);
         }
         return res.data[0];
       },
@@ -191,11 +191,12 @@ const TheService: ServiceSchema = {
       }
       if (params) {
         queryString = Object.keys(params).reduce(
-          (accumulator, key) => `${accumulator ? '&' : '?'}${key}=${params[key]}`,
+          (accumulator, key) => params[key] ?`${accumulator}${accumulator ? '&' : '?'}${key}=${params[key]}` : accumulator,
           '',
         );
       }
       fetchParams.headers = headers;
+      console.log(url, path, queryString, fetchParams);
       return fetch(`${url}/${path}${queryString}`, fetchParams)
         .then(async res => {
           const parsedRes = await res.json();
@@ -204,12 +205,12 @@ const TheService: ServiceSchema = {
             return this.request({ method, path, isAccountsUrl, body, bodyType, params });
           }
           if (!res.ok && res.status !== 401) {
-            throw new MoleculerError(parsedRes, res.status);
+            throw this.errorFactory(parsedRes, res.status);
           }
           return parsedRes;
         })
         .catch(err => {
-          throw new MoleculerError(err.message, err.code);
+          throw this.errorFactory(err.message, err.code);
         });
     },
     transformStoreParams(params: CrmData): object {
@@ -244,7 +245,7 @@ const TheService: ServiceSchema = {
       };
       Object.keys(params).forEach((key: keyof CrmData) => {
         if (typeof params[key] === 'string') {
-          newObj[crmParams[key] as keyof CrmStore] = params[key];
+          newObj[crmParams[key] as keyof CrmStore] = params[key] as string;
         }
         if (key === 'last_order_date' || key === 'subscription_expiration') {
           const date = new Date(params[key]);
@@ -283,6 +284,11 @@ const TheService: ServiceSchema = {
         newObj.Billing_Name = `${params.address.first_name} ${params.address.last_name}`;
       }
       return newObj;
+    },
+    errorFactory(msg, code) {
+      const error = new MoleculerError(msg, code);
+      error.name = 'CRM Service';
+      return error;
     },
   },
 };
