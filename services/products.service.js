@@ -509,7 +509,7 @@ module.exports = {
             },
           })
           .then(res =>
-            res.hits.total > 0
+            res.hits.total.value > 0
               ? this.broker.call('products.search', {
                 index: 'products',
                 type: '_doc',
@@ -518,7 +518,7 @@ module.exports = {
               })
               : res,
           );
-        if (result.hits.total === 0) {
+        if (result.hits.total.value === 0) {
           return 404;
         }
         const currencyRate = await this.broker.call('currencies.getCurrency', {
@@ -787,7 +787,7 @@ module.exports = {
 
           search = await this.broker.call('products.search', searchQuery);
 
-          maxScroll = search.hits.total;
+          maxScroll = search.hits.total.value;
         } else {
           search = await this.broker.call('products.call', {
             api: 'scroll',
@@ -819,7 +819,7 @@ module.exports = {
         }
         return {
           page: scrollId ? results.slice(page * size - size, page * size) : results,
-          totalProducts: search.hits.total,
+          totalProducts: search.hits.total.value,
         };
       } catch (err) {
         return new MoleculerClientError(err);
