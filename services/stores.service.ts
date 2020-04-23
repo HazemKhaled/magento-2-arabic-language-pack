@@ -160,7 +160,7 @@ const TheService: ServiceSchema = {
         const query = {
           query: { ...params.where } || {},
           limit: params.limit || 100,
-          skip: params.skip || 0,
+          offset: params.skip || 0,
           sort: params.sort,
         };
         if (params.order) {
