@@ -88,15 +88,15 @@ const TheService: ServiceSchema = {
             query,
           },
         })
-        .then((result: SearchResponse<Category>) => {
-          if (result.hits.total === 0) {
+        .then((result: {hits:{total: {value: number},hits:[{_id: string, _source: Category}]}}) => {
+          if (result.hits.total.value === 0) {
             return {
               status: 'failed',
               message: 'There are no categories at the moment.',
             };
           }
           const response: any = {
-            count: result.hits.total,
+            count: result.hits.total.value,
             categories: result.hits.hits
               .filter(cat => cat._id !== params.parentId)
               .map((param: { _id: string; _source: Category }) => {

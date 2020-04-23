@@ -100,9 +100,9 @@ const TheService: ServiceSchema = {
             body,
           })
           .then(res => {
-            if (res.hits.total > 0)
+            if (res.hits.total.value > 0)
               return res.hits.hits.map((item: { _source: Log }) => item._source);
-            if (res.hits.total === 0) {
+            if (res.hits.total.value === 0) {
               ctx.meta.$statusCode = 404;
               ctx.meta.$statusMessage = 'Not Found';
               return {
