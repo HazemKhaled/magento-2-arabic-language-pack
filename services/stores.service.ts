@@ -147,7 +147,7 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 * 24, // 1 day
       },
       handler(ctx: Context) {
-        let params: { where?: {}; limit?: {}; order?: string; sort?: {} } = {};
+        let params: { where?: {}; limit?: {}; skip?: {}; order?: string; sort?: {} } = {};
         try {
           params = JSON.parse(ctx.params.filter);
         } catch (err) {
@@ -160,6 +160,7 @@ const TheService: ServiceSchema = {
         const query = {
           query: { ...params.where } || {},
           limit: params.limit || 100,
+          skip: params.skip || 0,
           sort: params.sort,
         };
         if (params.order) {
