@@ -48,7 +48,7 @@ const TheService: ServiceSchema = {
         });
         // Check the available products and quantities return object with inStock products info
         const stock: {
-          products: Array<{ _source: Product; _id: string }>;
+          products: Product[];
           inStock: OrderItem[];
           enoughStock: OrderItem[];
           items: OrderItem[];
@@ -264,9 +264,9 @@ const TheService: ServiceSchema = {
 
         // Update products sales quantity
         ctx.call('products-list.updateQuantityAttributes', {
-          products: stock.products.map((product: { _source: Product; _id: string }) => ({
-            _id: product._id,
-            qty: product._source.sales_qty || 0,
+          products: stock.products.map((product: Product) => ({
+            _id: product.sku,
+            qty: product.sales_qty || 0,
             attribute: 'sales_qty',
           })),
         });
