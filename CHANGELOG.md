@@ -1,5 +1,32 @@
 # Changelog
 
+## 1.6.0
+
+### 🚀 Features
+
+- GDPR end-points
+- Subscription grantTo option
+
+### 🐛 Fixes
+
+- List payment query string params
+- getProductsByVariationSku response schema
+- Update store get store before update
+
+### ✨ Enhancements
+
+- Prettier with lint
+- Auto format on save typescript
+- Nodejs 12
+- Elastic protocol to elastic connection URL
+- Skip param to get stores
+- Merge internal_data & external_data on update store
+- Deprecate create omsId from create store
+- Create omsId to create order, invoice & payment
+- Order & invoice list response if no records
+- openapi
+
+
 ## 1.5.1
 
 ### 🚀 Features
