@@ -1,13 +1,13 @@
 import { Context, Errors, ServiceSchema } from 'moleculer';
 import { PaymentsOpenapi } from '../utilities/mixins/openapi';
-import { Payment, PaymentInvoice, OmsStore } from '../utilities/types';
+import { Payment, PaymentInvoice } from '../utilities/types';
 import { PaymentsValidation } from '../utilities/mixins/validation';
-import { MpError } from '../utilities/adapters';
+import { Oms } from '../utilities/mixins/oms.mixin';
 const MoleculerError = Errors.MoleculerError;
 
 const TheService: ServiceSchema = {
   name: 'payments',
-  mixins: [PaymentsValidation, PaymentsOpenapi],
+  mixins: [PaymentsValidation, PaymentsOpenapi, Oms],
   actions: {
     add: {
       auth: 'Basic',
@@ -18,19 +18,7 @@ const TheService: ServiceSchema = {
 
         // create OMS contact if no oms ID
         if (!instance.internal_data || !instance.internal_data.omsId) {
-          await this.createOmsStore(ctx.params)
-            .then((response: { store: OmsStore }) => {
-              instance.internal_data = instance.internal_data || {};
-              if (!response.store) throw response;
-              instance.internal_data.omsId = response.store && response.store.id;
-              ctx.call('stores.update', {
-                id: ctx.params.url,
-                internal_data: instance.internal_data,
-              });
-            })
-            .catch((err: unknown) => {
-              throw new MpError('PaymentsError', 'Can\'t create oms contact!', 503, err.toString(), err);
-            });
+          await this.addOmsStore(instance);
         }
 
         const paymentBody: any = {

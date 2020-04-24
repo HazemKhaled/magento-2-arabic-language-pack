@@ -1,17 +1,17 @@
-import { MpError } from './../utilities/adapters/mpError';
 import { Context, ServiceSchema } from 'moleculer';
 import { v1 as uuidv1 } from 'uuid';
 
 import { OrdersOpenapi } from '../utilities/mixins/openapi';
 import { OrdersOperations } from '../utilities/mixins/orders.mixin';
-import { Log, OrderOMSResponse, Order, OrderAddress, OrderItem, Product, Store, OmsStore } from '../utilities/types';
+import { Log, OrderOMSResponse, Order, OrderAddress, OrderItem, Product, Store } from '../utilities/types';
 import { OrdersValidation } from '../utilities/mixins/validation';
 import TaxCheck = require('../utilities/mixins/tax.mixin');
 import { Mail } from '../utilities/mixins/mail.mixin';
+import { Oms } from '../utilities/mixins/oms.mixin';
 
 const TheService: ServiceSchema = {
   name: 'orders',
-  mixins: [OrdersOperations, OrdersValidation, OrdersOpenapi, TaxCheck, Mail],
+  mixins: [OrdersOperations, OrdersValidation, OrdersOpenapi, TaxCheck, Mail, Oms],
   settings: {
     BASEURL:
       process.env.NODE_ENV === 'production'
@@ -30,19 +30,7 @@ const TheService: ServiceSchema = {
 
         // create OMS contact if no oms ID
         if (!instance.internal_data || !instance.internal_data.omsId) {
-          await this.createOmsStore(ctx.params)
-            .then((response: { store: OmsStore }) => {
-              instance.internal_data = instance.internal_data || {};
-              if (!response.store) throw response;
-              instance.internal_data.omsId = response.store && response.store.id;
-              ctx.call('stores.update', {
-                id: ctx.params.url,
-                internal_data: instance.internal_data,
-              });
-            })
-            .catch((err: unknown) => {
-              throw new MpError('OrdersError', 'Can\'t create oms contact!', 503, err.toString(), err);
-            });
+          await this.addOmsStore(instance);
         }
 
         const data = this.orderData(ctx.params, instance, true);

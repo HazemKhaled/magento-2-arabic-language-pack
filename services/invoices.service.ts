@@ -1,14 +1,14 @@
 import { Context, Errors, ServiceSchema } from 'moleculer';
 import { InvoicesOpenapi } from '../utilities/mixins/openapi';
-import { Invoice, OmsStore } from '../utilities/types';
+import { Invoice } from '../utilities/types';
 import { InvoicesValidation } from '../utilities/mixins/validation';
 import { InvoicePage } from '../utilities/mixins/invoicePage';
-import { MpError } from '../utilities/adapters';
+import { Oms } from '../utilities/mixins/oms.mixin';
 const MoleculerError = Errors.MoleculerError;
 
 const TheService: ServiceSchema = {
   name: 'invoices',
-  mixins: [InvoicesValidation, InvoicesOpenapi, InvoicePage],
+  mixins: [InvoicesValidation, InvoicesOpenapi, InvoicePage, Oms],
   actions: {
     get: {
       auth: 'Bearer',
@@ -65,19 +65,7 @@ const TheService: ServiceSchema = {
 
         // create OMS contact if no oms ID
         if (!instance.internal_data || !instance.internal_data.omsId) {
-          await this.createOmsStore(ctx.params)
-            .then((response: { store: OmsStore }) => {
-              instance.internal_data = instance.internal_data || {};
-              if (!response.store) throw response;
-              instance.internal_data.omsId = response.store && response.store.id;
-              ctx.call('stores.update', {
-                id: ctx.params.url,
-                internal_data: instance.internal_data,
-              });
-            })
-            .catch((err: unknown) => {
-              throw new MpError('InvoicesError', 'Can\'t create oms contact!', 503, err.toString(), err);
-            });
+          await this.addOmsStore(instance);
         }
 
         const invoiceParams: {[key:string]: string} = {

@@ -226,7 +226,7 @@ export const StoresValidation: ServiceSchema = {
               optional: true,
             },
             postcode: {
-              type: 'number',
+              type: 'string',
               optional: true,
             },
             country: {
@@ -416,7 +416,7 @@ export const StoresValidation: ServiceSchema = {
               optional: true,
             },
             postcode: {
-              type: 'number',
+              type: 'string',
               optional: true,
             },
             country: {
