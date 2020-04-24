@@ -222,7 +222,7 @@ const TheService: ServiceSchema = {
           throw new MoleculerError(applyCreditsResponse.message, applyCreditsResponse.code || 500);
         }
         const storeOldSubscription = await ctx.call('subscription.sList', {
-          storeId: ctx.params.storeId,
+          storeId: ctx.params.grantTo || ctx.params.storeId,
           expireDate: { operation: 'gte' },
         });
         let startDate = new Date();
