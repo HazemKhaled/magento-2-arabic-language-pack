@@ -49,7 +49,7 @@ const TheService: ServiceSchema = {
               },
             );
         }
-        throw new MoleculerError('No Record Found For This Store!', 404);
+        return [];
       },
     },
     create: {
