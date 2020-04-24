@@ -3,14 +3,15 @@ import { v1 as uuidv1 } from 'uuid';
 
 import { OrdersOpenapi } from '../utilities/mixins/openapi';
 import { OrdersOperations } from '../utilities/mixins/orders.mixin';
-import { Log, OrderOMSResponse, Order, OrderAddress, OrderItem, Product, Tax, Store } from '../utilities/types';
+import { Log, OrderOMSResponse, Order, OrderAddress, OrderItem, Product, Store } from '../utilities/types';
 import { OrdersValidation } from '../utilities/mixins/validation';
 import TaxCheck = require('../utilities/mixins/tax.mixin');
 import { Mail } from '../utilities/mixins/mail.mixin';
+import { Oms } from '../utilities/mixins/oms.mixin';
 
 const TheService: ServiceSchema = {
   name: 'orders',
-  mixins: [OrdersOperations, OrdersValidation, OrdersOpenapi, TaxCheck, Mail],
+  mixins: [OrdersOperations, OrdersValidation, OrdersOpenapi, TaxCheck, Mail, Oms],
   settings: {
     BASEURL:
       process.env.NODE_ENV === 'production'
@@ -26,6 +27,11 @@ const TheService: ServiceSchema = {
         const instance = await ctx.call('stores.findInstance', {
           consumerKey: ctx.meta.user,
         });
+
+        // create OMS contact if no oms ID
+        if (!instance.internal_data || !instance.internal_data.omsId) {
+          await this.setOmsId(instance);
+        }
 
         const data = this.orderData(ctx.params, instance, true);
 

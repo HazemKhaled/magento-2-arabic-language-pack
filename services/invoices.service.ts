@@ -3,11 +3,12 @@ import { InvoicesOpenapi } from '../utilities/mixins/openapi';
 import { Invoice } from '../utilities/types';
 import { InvoicesValidation } from '../utilities/mixins/validation';
 import { InvoicePage } from '../utilities/mixins/invoicePage';
+import { Oms } from '../utilities/mixins/oms.mixin';
 const MoleculerError = Errors.MoleculerError;
 
 const TheService: ServiceSchema = {
   name: 'invoices',
-  mixins: [InvoicesValidation, InvoicesOpenapi, InvoicePage],
+  mixins: [InvoicesValidation, InvoicesOpenapi, InvoicePage, Oms],
   actions: {
     get: {
       auth: 'Bearer',
@@ -57,8 +58,14 @@ const TheService: ServiceSchema = {
         const instance = await ctx.call('stores.findInstance', {
           id: ctx.params.storeId,
         });
+
         if (instance.errors) {
           throw new MoleculerError('Store not found', 404);
+        }
+
+        // create OMS contact if no oms ID
+        if (!instance.internal_data || !instance.internal_data.omsId) {
+          await this.setOmsId(instance);
         }
 
         const invoiceParams: {[key:string]: string} = {
