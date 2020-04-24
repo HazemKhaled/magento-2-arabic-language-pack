@@ -293,6 +293,14 @@ const TheService: ServiceSchema = {
         // if no new updates
         if (Object.keys(store).length === 0) return storeBefore;
 
+        // Merge internal_data
+        if (ctx.params.internal_data) {
+          store.internal_data = {
+            ...storeBefore.internal_data,
+            ...ctx.params.internal_data,
+          };
+        }
+
         const myStore: Store = await this.adapter
           .updateById(id, { $set: store })
           .then(async (res: Store) => {
