@@ -295,10 +295,12 @@ const TheService: ServiceSchema = {
 
         // Merge internal_data
         if (ctx.params.internal_data) {
-          store.internal_data = {
-            ...storeBefore.internal_data,
-            ...ctx.params.internal_data,
-          };
+          store.internal_data = this.merge2Objects(storeBefore.internal_data, ctx.params.internal_data);
+        }
+
+        // Merge external_data
+        if (ctx.params.external_data) {
+          store.external_data = this.merge2Objects(storeBefore.external_data, ctx.params.external_data);
         }
 
         const myStore: Store = await this.adapter
@@ -699,6 +701,13 @@ const TheService: ServiceSchema = {
       }
 
       return { channel: user };
+    },
+
+    merge2Objects(oldObj, newObj) {
+      return {
+        ...oldObj,
+        ...newObj,
+      };
     },
   },
 };
