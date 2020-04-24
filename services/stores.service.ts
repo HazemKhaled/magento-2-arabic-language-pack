@@ -272,7 +272,7 @@ const TheService: ServiceSchema = {
         const { id } = ctx.params;
         delete ctx.params.id;
         // storeBefore
-        const storeBefore = this.adapter.findById(id);
+        const storeBefore = await this.adapter.findById(id);
 
         // If the store not found return Not Found error
         if (!storeBefore) {
@@ -293,6 +293,16 @@ const TheService: ServiceSchema = {
 
         // if no new updates
         if (Object.keys(store).length === 0) return storeBefore;
+
+        // Merge internal_data
+        if (ctx.params.internal_data) {
+          store.internal_data = this.merge2Objects(storeBefore.internal_data, ctx.params.internal_data);
+        }
+
+        // Merge external_data
+        if (ctx.params.external_data) {
+          store.external_data = this.merge2Objects(storeBefore.external_data, ctx.params.external_data);
+        }
 
         const myStore: Store = await this.adapter
           .updateById(id, { $set: store })
@@ -692,6 +702,13 @@ const TheService: ServiceSchema = {
       }
 
       return { channel: user };
+    },
+
+    merge2Objects(oldObj, newObj) {
+      return {
+        ...oldObj,
+        ...newObj,
+      };
     },
   },
 };
