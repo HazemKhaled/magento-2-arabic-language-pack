@@ -253,29 +253,6 @@ const TheService: ServiceSchema = {
             };
           });
 
-        // create in OMS
-        this.createOmsStore(ctx.params)
-          .then((response: { store: OmsStore }) => {
-            const internal = myStore.internal_data;
-            if (!response.store) throw response;
-            internal.omsId = response.store && response.store.id;
-            ctx.call('stores.update', {
-              id: ctx.params.url,
-              internal_data: internal,
-            });
-          })
-          .catch((err: unknown) => {
-            this.sendLogs({
-              topic: 'store',
-              topicId: ctx.params.url,
-              message: 'Create in OMS',
-              storeId: ctx.params.url,
-              logLevel: 'error',
-              code: 500,
-              payload: { error: err, params: ctx.params },
-            });
-          });
-
         return myStore || error;
       },
     },
