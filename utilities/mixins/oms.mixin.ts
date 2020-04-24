@@ -58,7 +58,7 @@ export const Oms: ServiceSchema = {
       body.priceDate = params.price_date;
       return this.broker.call('oms.createCustomer', body).catch(console.log);
     },
-    addOmsStore(instance) {
+    setOmsId(instance) {
       return this.createOmsStore(instance)
         .then((response: { store: OmsStore }) => {
           instance.internal_data = instance.internal_data || {};

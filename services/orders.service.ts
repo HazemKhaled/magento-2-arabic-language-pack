@@ -30,7 +30,7 @@ const TheService: ServiceSchema = {
 
         // create OMS contact if no oms ID
         if (!instance.internal_data || !instance.internal_data.omsId) {
-          await this.addOmsStore(instance);
+          await this.setOmsId(instance);
         }
 
         const data = this.orderData(ctx.params, instance, true);
