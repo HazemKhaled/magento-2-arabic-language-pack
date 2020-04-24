@@ -6,13 +6,14 @@ const MoleculerError = Errors.MoleculerError;
 
 import { v1 as uuidv1, v4 as uuidv4 } from 'uuid';
 import { StoresOpenapi } from '../utilities/mixins/openapi';
-import { Log, OmsStore, Store, StoreUser, User } from '../utilities/types';
+import { Oms } from '../utilities/mixins/oms.mixin';
+import { Log, Store, StoreUser } from '../utilities/types';
 import { StoresValidation } from '../utilities/mixins/validation';
 const { MoleculerClientError } = Errors;
 
 const TheService: ServiceSchema = {
   name: 'stores',
-  mixins: [DbService('stores'), StoresValidation, StoresOpenapi],
+  mixins: [DbService('stores'), StoresValidation, StoresOpenapi, Oms],
   settings: {
     /** Secret for JWT */
     JWT_SECRET: process.env.JWT_SECRET || 'jwt-conduit-secret',
