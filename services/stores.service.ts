@@ -271,7 +271,7 @@ const TheService: ServiceSchema = {
         const { id } = ctx.params;
         delete ctx.params.id;
         // storeBefore
-        const storeBefore = this.adapter.findById(id);
+        const storeBefore = await this.adapter.findById(id);
 
         // If the store not found return Not Found error
         if (!storeBefore) {
