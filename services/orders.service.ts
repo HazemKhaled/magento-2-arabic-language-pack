@@ -692,11 +692,7 @@ const TheService: ServiceSchema = {
           consumerKey: ctx.meta.user,
         });
         if (!(instance.internal_data && instance.internal_data.omsId)) {
-          ctx.meta.$statusCode = 404;
-          ctx.meta.$statusMessage = 'Not Found';
-          return {
-            message: 'There is no orders for this store!',
-          };
+          return [];
         }
         const queryParams: { [key: string]: string } = {};
         if (ctx.params.limit) queryParams.perPage = ctx.params.limit;
