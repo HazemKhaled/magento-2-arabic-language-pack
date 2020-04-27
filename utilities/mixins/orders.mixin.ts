@@ -24,7 +24,7 @@ export const OrdersOperations: ServiceSchema = {
     async stockProducts(
       items: OrderItem[],
     ): Promise<{
-      products: Array<{ _source: Product; _id: string }>;
+      products: Product[];
       inStock: OrderItem[];
       enoughStock: OrderItem[];
       items: OrderItem[];
@@ -36,7 +36,7 @@ export const OrdersOperations: ServiceSchema = {
       const orderItems = items.map(item => item.sku);
 
       // get the products from DB
-      const products: [{ _source: Product; _id: string }] = await this.broker.call(
+      const { products }: { products: Product[] } = await this.broker.call(
         'products-list.getProductsByVariationSku',
         {
           skus: orderItems,
@@ -48,23 +48,23 @@ export const OrdersOperations: ServiceSchema = {
       // Filter Knawat products and reformat the items data
       products.forEach(product => {
         found.push(
-          ...product._source.variations
+          ...product.variations
             .filter((variation: Variation) => orderItems.includes(variation.sku))
             .map(item => ({
               sku: item.sku,
               quantity: item.quantity,
-              name: product._source.name.en
-                ? product._source.name.en.text
-                : product._source.name.tr.text,
-              url: product._source.source_url,
+              name: product.name.en
+                ? product.name.en.text
+                : product.name.tr.text,
+              url: product.source_url,
               rate: item.sale,
               purchaseRate: item.cost,
-              vendorId: product._source.seller_id,
-              image: product._source.images[0],
+              vendorId: product.seller_id,
+              image: product.images[0],
               weight: item.weight,
-              archive: product._source.archive || item.archive,
-              barcode: product._source.barcode || undefined,
-              taxClass: product._source.tax_class,
+              archive: product.archive || item.archive,
+              barcode: product.barcode || undefined,
+              taxClass: product.tax_class,
               description: `${item.attributes.reduce(
                 (accumulator, attribute, n) =>
                   accumulator.concat(
@@ -87,7 +87,7 @@ export const OrdersOperations: ServiceSchema = {
 
       // filter products with enough stock
       const enoughStock = inStock.filter(
-        item => item.quantity > items.find(i => i.sku === item.sku && !item.archive).quantity,
+        item => item.quantity >= items.find(i => i.sku === item.sku && !item.archive).quantity,
       );
 
       // Filter products with out of stock put it into Object with sku is the key for every item to remove duplicated data

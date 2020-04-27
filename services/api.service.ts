@@ -1,6 +1,6 @@
 import { Context, ServiceSchema } from 'moleculer';
 import ApiGateway from 'moleculer-web';
-import { Log } from '../utilities/types';
+import { Log, Store } from '../utilities/types';
 
 import { OpenApiMixin } from '../utilities/mixins/openapi.mixin';
 
@@ -113,6 +113,11 @@ const TheService: ServiceSchema = {
           'GET tax/:id': 'taxes.tGet',
           'GET tax': 'taxes.tList',
           'DELETE tax/:id': 'taxes.tDelete',
+
+          // GDPR
+          'POST customer/redact': 'gdpr.customerRedact',
+          'POST store/redact': 'gdpr.storeRedact',
+          'POST customer/data_request': 'gdpr.customerDataRequest',
         },
 
         // Disable to call not-mapped actions
@@ -237,17 +242,18 @@ const TheService: ServiceSchema = {
                 new UnAuthorizedError(ERR_NO_TOKEN, req.headers.authorization),
               );
             }
-            return ctx.call('stores.resolveBearerToken', { token }).then((user: { id: string }) => {
+            return ctx.call('stores.resolveBearerToken', { token }).then((user: Store) => {
               if (!user) {
                 return this.Promise.reject(
                   new UnAuthorizedError(ERR_INVALID_TOKEN, req.headers.authorization),
                 );
               }
               if (user) {
-                this.logger.info('Authenticated via JWT: ', user.id);
+                this.logger.info('Authenticated via JWT: ', user.consumer_key);
                 // Reduce user fields (it will be transferred to other nodes)
-                ctx.meta.user = user.id;
+                ctx.meta.user = user.consumer_key;
                 ctx.meta.token = token;
+                ctx.meta.storeId = user.id;
               }
               return user;
             });

@@ -12,3 +12,4 @@ export * from './subscription.openapi.mixin';
 export * from './products-list.openapi.mixin';
 export * from './products.openapi.mixin';
 export * from './taxes.openapi.mixin';
+export * from './gdpr.openapi.mixin';

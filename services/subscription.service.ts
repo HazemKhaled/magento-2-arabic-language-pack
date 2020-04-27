@@ -191,6 +191,7 @@ const TheService: ServiceSchema = {
               rate: cost,
               quantity: 1,
               taxId: taxData.omsId,
+              description: `StoreId: ${ctx.params.storeId}${ctx.params.grantTo ? ` Granted To: ${ctx.params.grantTo}`: ''}`,
             },
           ],
           isInclusiveTax: taxData.isInclusive,
@@ -221,7 +222,7 @@ const TheService: ServiceSchema = {
           throw new MoleculerError(applyCreditsResponse.message, applyCreditsResponse.code || 500);
         }
         const storeOldSubscription = await ctx.call('subscription.sList', {
-          storeId: ctx.params.storeId,
+          storeId: ctx.params.grantTo || ctx.params.storeId,
           expireDate: { operation: 'gte' },
         });
         let startDate = new Date();
@@ -249,14 +250,21 @@ const TheService: ServiceSchema = {
             id: ctx.params.coupon,
           });
         }
+        const subscriptionBody: Subscription = {
+          membershipId: membership.id,
+          storeId: ctx.params.storeId,
+          invoiceId: invoice.invoice.invoiceId,
+          startDate,
+          expireDate,
+        };
+
+        if (ctx.params.grantTo) {
+          subscriptionBody.storeId = ctx.params.grantTo;
+          subscriptionBody.donor = ctx.params.storeId;
+        }
+
         return this.adapter
-          .insert({
-            membershipId: membership.id,
-            storeId: ctx.params.storeId,
-            invoiceId: invoice.invoice.invoiceId,
-            startDate,
-            expireDate,
-          })
+          .insert(subscriptionBody)
           .then(
             (res: Subscription): {} => {
               this.broker.cacher.clean(`subscription.get:${instance.url}*`);

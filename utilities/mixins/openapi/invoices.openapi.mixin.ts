@@ -1,6 +1,6 @@
 import { ServiceSchema } from 'moleculer';
 
-const InvoiceSchema = {
+const InvoiceResponse = {
   type: 'object',
   properties: {
     invoice_id: {
@@ -59,46 +59,39 @@ const InvoiceSchema = {
   },
 };
 
-const InvoiceResponse = {
-  content: {
-    'application/json': {
-      schema: {
+const InvoiceSchema = {
+  type: 'object',
+  properties: {
+    storeId: { type: 'string' },
+    discount: {
+      type: 'object',
+      properties: {
+        value: { type: 'number', positive: true, required: true },
+        type: { type: 'string', 'enum': ['entity_level'], required: true },
+      },
+    },
+    coupon: { type: 'string', required: false },
+    items: {
+      type: 'array',
+      items: {
         type: 'object',
         properties: {
-          storeId: { type: 'string' },
-          discount: {
-            type: 'object',
-            properties: {
-              value: { type: 'number', positive: true, required: true },
-              type: { type: 'string', 'enum': ['entity_level'], required: true },
-            },
-            required: false,
-          },
-          coupon: { type: 'string', required: false },
-          items: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                sku: { type: 'string', required: true },
-                barcode: { type: 'string', required: false },
-                name: { type: 'string', required: true },
-                description: { type: 'string', required: false },
-                url: { type: 'string', required: false },
-                image: { type: 'string', required: false },
-                weight: { type: 'number', required: false },
-                rate: { type: 'number', required: true },
-                quantity: { type: 'number', required: true },
-                accountId: { type: 'string', required: false },
-                purchaseRate: { type: 'number', required: false },
-                vendorId: { type: 'number', required: false },
-                taxId: { type: 'string', required: false },
-                taxName: { type: 'string', required: false },
-                taxType: { type: 'string', required: false },
-                taxPercentage: { type: 'number', required: false },
-              },
-            },
-          },
+          sku: { type: 'string', required: true },
+          barcode: { type: 'string', required: false },
+          name: { type: 'string', required: true },
+          description: { type: 'string', required: false },
+          url: { type: 'string', required: false },
+          image: { type: 'string', required: false },
+          weight: { type: 'number', required: false },
+          rate: { type: 'number', required: true },
+          quantity: { type: 'number', required: true },
+          accountId: { type: 'string', required: false },
+          purchaseRate: { type: 'number', required: false },
+          vendorId: { type: 'number', required: false },
+          taxId: { type: 'string', required: false },
+          taxName: { type: 'string', required: false },
+          taxType: { type: 'string', required: false },
+          taxPercentage: { type: 'number', required: false },
         },
       },
     },
@@ -221,7 +214,13 @@ const InvoicesCreateOpenapi = {
     },
   ],
   requestBody: {
-    $ref: '#/components/requestBodies/Invoice',
+    content: {
+      'application/json': {
+        schema: {
+          $ref: '#/components/requestBodies/Invoice',
+        },
+      },
+    },
     required: true,
   },
 };
@@ -326,10 +325,10 @@ export const InvoicesOpenapi: ServiceSchema = {
     openapi: {
       components: {
         schemas: {
-          Invoice: InvoiceSchema,
+          Invoice: InvoiceResponse,
         },
         requestBodies: {
-          Invoice: InvoiceResponse,
+          Invoice: InvoiceSchema,
         },
       },
     },

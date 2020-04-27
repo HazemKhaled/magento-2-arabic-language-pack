@@ -9,7 +9,7 @@ module.exports = {
   mixins: [Transformation, ESService, ProductsListValidation, ProductsListOpenapi],
   settings: {
     elasticsearch: {
-      host: `http://${process.env.ELASTIC_AUTH}@${process.env.ELASTIC_HOST}:${
+      host: `${process.env.ELASTIC_PROTOCOL}://${process.env.ELASTIC_AUTH}@${process.env.ELASTIC_HOST}:${
         process.env.ELASTIC_PORT
       }`,
       apiVersion: process.env.ELASTIC_VERSION || '6.x',
@@ -143,6 +143,10 @@ module.exports = {
     },
     getProductsByVariationSku: {
       auth: 'Basic',
+      cache: {
+        keys: ['skus'],
+        ttl: 60 * 60 * 5,
+      },
       handler(ctx) {
         return ctx
           .call('products-list.search', {
@@ -172,7 +176,9 @@ module.exports = {
               },
             },
           })
-          .then(response => response.hits.hits);
+          .then(response => {
+            return { products: response.hits.hits.map(({_source}) => _source) };
+          });
       },
     },
     updateQuantityAttributes: {
@@ -267,25 +273,27 @@ module.exports = {
             scrollId ? -limit + trace + parseInt(process.env.SCROLL_LIMIT) : -limit + trace,
             scrollId ? trace + parseInt(process.env.SCROLL_LIMIT) : trace,
           )
-          .map(product => ({
-            sku: product._source.sku,
-            name: this.formatI18nText(product._source.name),
-            description: this.formatI18nText(product._source.description),
-            supplier: product._source.seller_id,
-            images: product._source.images,
-            last_check_date: product._source.last_check_date,
-            categories: this.formatCategories(product._source.categories),
-            attributes: this.formatAttributes(product._source.attributes),
-            variations: this.formatVariations(
-              product._source.variations,
-              instance,
-              rate.exchange_rate,
-              product._source.archive,
-            ),
-          })),
+          .map(product => this.productSanitize(product, instance, rate)),
         total: result.hits.total,
       };
     },
-    /* SearchByFilters methods */
+    productSanitize(product, instance, rate) {
+      return {
+        sku: product._source.sku,
+        name: this.formatI18nText(product._source.name),
+        description: this.formatI18nText(product._source.description),
+        supplier: product._source.seller_id,
+        images: product._source.images,
+        last_check_date: product._source.last_check_date,
+        categories: this.formatCategories(product._source.categories),
+        attributes: this.formatAttributes(product._source.attributes),
+        variations: this.formatVariations(
+          product._source.variations,
+          instance,
+          rate.exchange_rate,
+          product._source.archive,
+        ),
+      };
+    },
   },
 };

@@ -3,14 +3,15 @@ import { v1 as uuidv1 } from 'uuid';
 
 import { OrdersOpenapi } from '../utilities/mixins/openapi';
 import { OrdersOperations } from '../utilities/mixins/orders.mixin';
-import { Log, OrderOMSResponse, Order, OrderAddress, OrderItem, Product, Tax, Store } from '../utilities/types';
+import { Log, OrderOMSResponse, Order, OrderAddress, OrderItem, Product, Store } from '../utilities/types';
 import { OrdersValidation } from '../utilities/mixins/validation';
 import TaxCheck = require('../utilities/mixins/tax.mixin');
 import { Mail } from '../utilities/mixins/mail.mixin';
+import { Oms } from '../utilities/mixins/oms.mixin';
 
 const TheService: ServiceSchema = {
   name: 'orders',
-  mixins: [OrdersOperations, OrdersValidation, OrdersOpenapi, TaxCheck, Mail],
+  mixins: [OrdersOperations, OrdersValidation, OrdersOpenapi, TaxCheck, Mail, Oms],
   settings: {
     BASEURL:
       process.env.NODE_ENV === 'production'
@@ -27,6 +28,11 @@ const TheService: ServiceSchema = {
           consumerKey: ctx.meta.user,
         });
 
+        // create OMS contact if no oms ID
+        if (!instance.internal_data || !instance.internal_data.omsId) {
+          await this.setOmsId(instance);
+        }
+
         const data = this.orderData(ctx.params, instance, true);
 
         this.sendLogs({
@@ -42,7 +48,7 @@ const TheService: ServiceSchema = {
         });
         // Check the available products and quantities return object with inStock products info
         const stock: {
-          products: Array<{ _source: Product; _id: string }>;
+          products: Product[];
           inStock: OrderItem[];
           enoughStock: OrderItem[];
           items: OrderItem[];
@@ -258,9 +264,9 @@ const TheService: ServiceSchema = {
 
         // Update products sales quantity
         ctx.call('products-list.updateQuantityAttributes', {
-          products: stock.products.map((product: { _source: Product; _id: string }) => ({
-            _id: product._id,
-            qty: product._source.sales_qty || 0,
+          products: stock.products.map((product: Product) => ({
+            _id: product.sku,
+            qty: product.sales_qty || 0,
             attribute: 'sales_qty',
           })),
         });
@@ -686,11 +692,7 @@ const TheService: ServiceSchema = {
           consumerKey: ctx.meta.user,
         });
         if (!(instance.internal_data && instance.internal_data.omsId)) {
-          ctx.meta.$statusCode = 404;
-          ctx.meta.$statusMessage = 'Not Found';
-          return {
-            message: 'There is no orders for this store!',
-          };
+          return [];
         }
         const queryParams: { [key: string]: string } = {};
         if (ctx.params.limit) queryParams.perPage = ctx.params.limit;
@@ -985,11 +987,6 @@ const TheService: ServiceSchema = {
           });
         }
         if ((!instance.shipping_methods || !instance.shipping_methods[0].name) && !shippingMethod) {
-          warnings.push({
-            message: `There is no default shipping method for your store, It’ll be shipped with ${shipment.courier ||
-              'Standard'}, Contact our customer support for more info`,
-            code: 2102,
-          });
           this.sendLogs({
             topic: 'order',
             topicId: data.externalId,
@@ -1007,13 +1004,6 @@ const TheService: ServiceSchema = {
             instance.shipping_methods[0].name &&
             shipment.courier !== instance.shipping_methods[0].name)
         ) {
-          warnings.push({
-            message: `Can’t ship to ${
-              shipping.country
-            } with provided courier, It’ll be shipped with ${shipment.courier ||
-              'Standard'}, Contact our customer support for more info`,
-            code: 2101,
-          });
           this.sendLogs({
             topic: 'order',
             topicId: data.externalId,
@@ -1101,10 +1091,10 @@ const TheService: ServiceSchema = {
       let taxTotal = 0;
       const itemsAfterTaxes = await Promise.all(
         items.map(
-          async (item: OrderItem, index: number) => {
+          async (item: OrderItem) => {
             const taxData = await this.getItemTax(instance, item);
 
-            if (index === 0) {
+            if (!isInclusive) {
               isInclusive = taxData.isInclusive;
             }
 
