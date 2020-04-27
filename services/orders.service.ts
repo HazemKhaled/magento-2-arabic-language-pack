@@ -987,11 +987,6 @@ const TheService: ServiceSchema = {
           });
         }
         if ((!instance.shipping_methods || !instance.shipping_methods[0].name) && !shippingMethod) {
-          warnings.push({
-            message: `There is no default shipping method for your store, It’ll be shipped with ${shipment.courier ||
-              'Standard'}, Contact our customer support for more info`,
-            code: 2102,
-          });
           this.sendLogs({
             topic: 'order',
             topicId: data.externalId,
@@ -1009,13 +1004,6 @@ const TheService: ServiceSchema = {
             instance.shipping_methods[0].name &&
             shipment.courier !== instance.shipping_methods[0].name)
         ) {
-          warnings.push({
-            message: `Can’t ship to ${
-              shipping.country
-            } with provided courier, It’ll be shipped with ${shipment.courier ||
-              'Standard'}, Contact our customer support for more info`,
-            code: 2101,
-          });
           this.sendLogs({
             topic: 'order',
             topicId: data.externalId,
@@ -1103,10 +1091,10 @@ const TheService: ServiceSchema = {
       let taxTotal = 0;
       const itemsAfterTaxes = await Promise.all(
         items.map(
-          async (item: OrderItem, index: number) => {
+          async (item: OrderItem) => {
             const taxData = await this.getItemTax(instance, item);
 
-            if (index === 0) {
+            if (!isInclusive) {
               isInclusive = taxData.isInclusive;
             }
 
