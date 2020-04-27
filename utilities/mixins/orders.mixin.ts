@@ -87,7 +87,7 @@ export const OrdersOperations: ServiceSchema = {
 
       // filter products with enough stock
       const enoughStock = inStock.filter(
-        item => item.quantity > items.find(i => i.sku === item.sku && !item.archive).quantity,
+        item => item.quantity >= items.find(i => i.sku === item.sku && !item.archive).quantity,
       );
 
       // Filter products with out of stock put it into Object with sku is the key for every item to remove duplicated data
