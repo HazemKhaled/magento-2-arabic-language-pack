@@ -12,6 +12,7 @@
 - List payment query string params
 - getProductsByVariationSku response schema
 - Update store get store before update
+- Order equal item quantity with the sock
 
 ### ✨ Enhancements
 
@@ -24,6 +25,7 @@
 - Deprecate create omsId from create store
 - Create omsId to create order, invoice & payment
 - Order & invoice list response if no records
+- Change shipment method send info instead of warning
 - openapi
 
 
