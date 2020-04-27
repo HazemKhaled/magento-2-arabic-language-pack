@@ -1091,10 +1091,10 @@ const TheService: ServiceSchema = {
       let taxTotal = 0;
       const itemsAfterTaxes = await Promise.all(
         items.map(
-          async (item: OrderItem, index: number) => {
+          async (item: OrderItem) => {
             const taxData = await this.getItemTax(instance, item);
 
-            if (index === 0) {
+            if (!isInclusive) {
               isInclusive = taxData.isInclusive;
             }
 
