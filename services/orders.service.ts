@@ -993,7 +993,7 @@ const TheService: ServiceSchema = {
             message: `There is no default shipping method for your store, It’ll be shipped with ${shipment.courier ||
               'Standard'}`,
             storeId: instance.url,
-            logLevel: 'info',
+            logLevel: 'warn',
             code: 2102,
             payload: { shipment, params },
           });
@@ -1012,7 +1012,7 @@ const TheService: ServiceSchema = {
             } with provided courier, It’ll be shipped with ${shipment.courier ||
               'Standard'}, Contact our customer support for more info`,
             storeId: instance.url,
-            logLevel: 'info',
+            logLevel: 'warn',
             code: 2101,
             payload: { shipment, params },
           });

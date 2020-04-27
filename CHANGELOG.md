@@ -25,7 +25,7 @@
 - Deprecate create omsId from create store
 - Create omsId to create order, invoice & payment
 - Order & invoice list response if no records
-- Change shipment method send info instead of warning
+- Remove shipment method changed warning from response
 - openapi
 
 
