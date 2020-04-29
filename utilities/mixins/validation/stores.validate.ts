@@ -23,7 +23,7 @@ export const StoresValidation: ServiceSchema = {
         id: {
           type: 'string',
         },
-        withBalance: {
+        withoutBalance: {
           type: 'string',
           optional: true,
         },
