@@ -101,7 +101,7 @@ const TheService: ServiceSchema = {
     sGet: {
       auth: 'Basic',
       cache: {
-        keys: ['id'],
+        keys: ['id',  'withBalance'],
         ttl: 60 * 60 * 24, // 1 day
       },
       handler(ctx: Context) {
@@ -110,7 +110,7 @@ const TheService: ServiceSchema = {
             if (res.users) {
               res.subscription = await ctx.call('subscription.get', { id: ctx.params.id });
             }
-            if (res.internal_data && res.internal_data.omsId) {
+            if (res.internal_data && res.internal_data.omsId && ctx.params.withBalance !== '1') {
               const omsData = (await ctx.call('oms.getCustomer', {
                 customerId: res.internal_data.omsId,
               }).then(null, this.logger.error)) as { store: Store };
