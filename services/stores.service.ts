@@ -101,7 +101,7 @@ const TheService: ServiceSchema = {
     sGet: {
       auth: 'Basic',
       cache: {
-        keys: ['id',  'withBalance'],
+        keys: ['id',  'withoutBalance'],
         ttl: 60 * 60 * 24, // 1 day
       },
       handler(ctx: Context) {
