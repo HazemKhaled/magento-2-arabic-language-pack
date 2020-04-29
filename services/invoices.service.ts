@@ -191,8 +191,8 @@ const TheService: ServiceSchema = {
     },
     async cacheUpdate(invoice, instance) {
       const invoices = { invoices: [this.invoiceSanitize(invoice)] };
-      this.broker.cacher.set(`invoices.get:${instance.consumer_key}|undefined|undefined|reference_number|undefined`, invoices);
-      this.broker.cacher.set(`invoices.get:${instance.consumer_key}|undefined|undefined|undefined|invoice_number`, invoices);
+      this.broker.cacher.set(`invoices.get:${instance.consumer_key}|undefined|undefined|${invoice.referenceNumber}|undefined`, invoices);
+      this.broker.cacher.set(`invoices.get:${instance.consumer_key}|undefined|undefined|undefined|${invoice.invoiceNumber}`, invoices);
     },
   },
 };
