@@ -82,8 +82,9 @@ const TheService: ServiceSchema = {
         return ctx
           .call('oms.createInvoice', invoiceParams)
           .then(
-            res => {
-              this.broker.cacher.clean(`invoices.get:${instance.consumer_key}*`);
+            async res => {
+              await this.broker.cacher.clean(`invoices.get:${instance.consumer_key}**`);
+              this.cacheUpdate(res.invoice, instance);
               return res;
             },
             err => {
@@ -187,6 +188,11 @@ const TheService: ServiceSchema = {
         adjustment: invoice.adjustment,
         coupon: invoice.coupon,
       };
+    },
+    async cacheUpdate(invoice, instance) {
+      const invoices = { invoices: [this.invoiceSanitize(invoice)] };
+      this.broker.cacher.set(`invoices.get:${instance.consumer_key}|undefined|undefined|reference_number|undefined`, invoices);
+      this.broker.cacher.set(`invoices.get:${instance.consumer_key}|undefined|undefined|undefined|invoice_number`, invoices);
     },
   },
 };

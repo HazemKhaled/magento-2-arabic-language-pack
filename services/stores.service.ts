@@ -81,7 +81,7 @@ const TheService: ServiceSchema = {
                   customerId: res.internal_data.omsId,
                 }).then(null, this.logger.error)) as { store: Store };
                 // If the DB response not null will return the data
-                return this.sanitizeResponse(res, omsData.store);
+                return this.sanitizeResponse(res, omsData && omsData.store);
               }
               return this.sanitizeResponse(res);
             }
@@ -232,11 +232,6 @@ const TheService: ServiceSchema = {
         // Clear cache
         this.broker.cacher.clean(`stores.sGet:${ctx.params.url}`);
 
-        // FIX: Clear only cache by email
-        this.broker.cacher.clean('stores.list:**');
-        this.broker.cacher.clean('stores.storesList:**');
-        this.broker.cacher.clean('stores.countStores:**');
-
         // Sanitize request params
         const store: Store = this.sanitizeStoreParams(ctx.params, true);
 
@@ -255,6 +250,13 @@ const TheService: ServiceSchema = {
               errors: [{ message: err.code === 11000 ? 'Duplicated entry!' : 'Internal Error!' }],
             };
           });
+
+        if (myStore.url) {
+          this.broker.cacher.clean('stores.list:**');
+          this.broker.cacher.clean('stores.storesList:**');
+          this.broker.cacher.clean('stores.countStores:**');
+          this.cacheUpdate(myStore);
+        }
 
         return myStore || error;
       },
@@ -330,12 +332,11 @@ const TheService: ServiceSchema = {
         // Clean cache if store updated
         this.broker.cacher.clean(`stores.findInstance:${myStore.consumer_key}*`);
         this.broker.cacher.clean(`stores.findInstance:*${myStore.url}*`);
-        this.broker.cacher.clean(`stores.me:${myStore.consumer_key}*`);
-        this.broker.cacher.clean(`stores.sGet:${myStore.url}*`);
         this.broker.cacher.clean('stores.list**');
         this.broker.cacher.clean('stores.storesList:**');
         this.broker.cacher.clean(`products.list:${myStore.consumer_key}*`);
         this.broker.cacher.clean(`products.getInstanceProduct:${myStore.consumer_key}*`);
+        this.cacheUpdate(myStore);
 
         if (myStore.internal_data && myStore.internal_data.omsId) {
           ctx.call('crm.updateStoreById', { id, ...ctx.params }).then(null, (error: unknown) => {
@@ -709,6 +710,16 @@ const TheService: ServiceSchema = {
         ...oldObj,
         ...newObj,
       };
+    },
+
+    async cacheUpdate(myStore) {
+      const store = await this.broker.call('stores.sGet', { id: myStore.url });
+      myStore = {
+        ...store,
+        ...myStore,
+      };
+      this.broker.cacher.set(`stores.sGet:${myStore.url}`, myStore);
+      this.broker.cacher.set(`stores.me:${myStore.consumer_key}`, myStore);
     },
   },
 };
