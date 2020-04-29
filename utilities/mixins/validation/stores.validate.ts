@@ -18,10 +18,14 @@ export const StoresValidation: ServiceSchema = {
         },
       },
     },
-    get: {
+    sGet: {
       params: {
         id: {
           type: 'string',
+        },
+        withBalance: {
+          type: 'string',
+          optional: true,
         },
       },
     },
