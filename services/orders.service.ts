@@ -272,7 +272,7 @@ const TheService: ServiceSchema = {
         const order = result.salesorder;
 
         // Clearing order list action(API) cache
-        await this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
+        await this.broker.cacher.clean(`orders.list:undefined|${ctx.meta.user}**`);
         this.cacheUpdate(order, instance);
 
         const message: {
@@ -534,7 +534,7 @@ const TheService: ServiceSchema = {
             };
           }
           const order = result.salesorder;
-          await this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
+          await this.broker.cacher.clean(`orders.list:undefined|${ctx.meta.user}**`);
           this.cacheUpdate(order, instance);
           message.status = 'success';
           message.data = this.sanitizeResponseOne(order);
@@ -613,7 +613,7 @@ const TheService: ServiceSchema = {
     list: {
       auth: 'Bearer',
       cache: {
-        keys: ['#user', 'limit', 'page', 'sort', 'sortOrder', 'status', 'externalId'],
+        keys: ['externalId', '#user', 'limit', 'page', 'sort', 'sortOrder', 'status'],
         ttl: 60 * 60 * 24,
       },
       async handler(ctx) {
@@ -1098,7 +1098,7 @@ const TheService: ServiceSchema = {
     },
     async cacheUpdate(order, instance) {
       this.broker.cacher.set(`orders.getOrder:${order.id}`, this.sanitizeResponseOne(order));
-      this.broker.cacher.set(`orders.list:${instance.consumer_key}|undefined|undefined|undefined|undefined|undefined|${order.externalId}`, this.sanitizeResponseList([order]));
+      this.broker.cacher.set(`orders.list:${order.externalId}|${instance.consumer_key}|undefined|undefined|undefined|undefined|undefined`, this.sanitizeResponseList([order]));
     },
   },
 };
