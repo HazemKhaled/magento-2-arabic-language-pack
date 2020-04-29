@@ -259,9 +259,6 @@ const TheService: ServiceSchema = {
         // Update CRM last update
         ctx.call('crm.updateStoreById', { id: instance.url, last_order_date: Date.now() });
 
-        // Clearing order list action(API) cache
-        this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
-
         // Update products sales quantity
         ctx.call('products-list.updateQuantityAttributes', {
           products: stock.products.map((product: Product) => ({
@@ -273,6 +270,11 @@ const TheService: ServiceSchema = {
 
         /* Prepare the response message in case of success or warnings */
         const order = result.salesorder;
+
+        // Clearing order list action(API) cache
+        await this.broker.cacher.clean(`orders.list:undefined|${ctx.meta.user}**`);
+        this.cacheUpdate(order, instance);
+
         const message: {
           status?: string;
           data?: OrderOMSResponse['salesorder'] | any; // Remove any after
@@ -280,23 +282,7 @@ const TheService: ServiceSchema = {
           errors?: Array<{}>;
         } = {
           status: 'success',
-          data: {
-            id: order.id,
-            status: this.normalizeResponseStatus(order.status),
-            items: order.items,
-            billing: order.billing,
-            shipping: order.shipping,
-            createDate: order.createDate,
-            notes: order.notes || '',
-            shipping_method: order.shipmentCourier,
-            shipping_charge: order.shippingCharge,
-            discount: order.discount,
-            adjustment: order.adjustment,
-            adjustmentDescription: order.adjustmentDescription,
-            orderNumber: order.orderNumber,
-            total: order.total,
-            taxTotal: order.taxTotal,
-          },
+          data: this.sanitizeResponseOne(order),
         };
 
         if (warnings.length) {
@@ -548,27 +534,10 @@ const TheService: ServiceSchema = {
             };
           }
           const order = result.salesorder;
-          this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
-          this.broker.cacher.clean(`orders.getOrder:${ctx.params.id}**`);
-
+          await this.broker.cacher.clean(`orders.list:undefined|${ctx.meta.user}**`);
+          this.cacheUpdate(order, instance);
           message.status = 'success';
-          message.data = {
-            id: order.id,
-            status: this.normalizeResponseStatus(order.status),
-            items: order.items,
-            billing: order.billing,
-            shipping: order.shipping,
-            createDate: order.createDate,
-            discount: order.discount,
-            notes: order.notes || '',
-            shipping_method: order.shipmentCourier,
-            shipping_charge: order.shippingCharge,
-            adjustment: order.adjustment,
-            adjustmentDescription: order.adjustmentDescription,
-            orderNumber: order.orderNumber,
-            total: order.total,
-            taxTotal: order.taxTotal,
-          };
+          message.data = this.sanitizeResponseOne(order);
           if (warnings.length > 0) message.warnings = warnings;
           this.sendLogs({
             topicId: data.externalId,
@@ -637,54 +606,14 @@ const TheService: ServiceSchema = {
             message: 'There is an error',
           };
         }
-        order = order.salesorder;
-        const orderResponse: { [key: string]: string } = {
-          id: order.id,
-          status: this.normalizeResponseStatus(order.status),
-          items: order.items,
-          billing: order.billing,
-          shipping: order.shipping,
-          total: order.total,
-          coupon: order.coupon,
-          discount: order.discount,
-          externalId: order.externalId,
-          createDate: order.createDate,
-          updateDate: order.updateDate,
-          knawat_order_status: order.status ? this.normalizeResponseStatus(order.status) : '',
-          notes: order.notes,
-          shipping_method: order.shipmentCourier,
-          shipping_charge: order.shippingCharge,
-          adjustment: order.adjustment,
-          adjustmentDescription: order.adjustmentDescription,
-          shipment_tracking_number: order.shipmentTrackingNumber,
-          orderNumber: order.orderNumber,
-          invoice_url: order.externalInvoice,
-          taxTotal: order.taxTotal,
-          taxes: order.taxes,
-        };
-        if (order.meta_data && order.meta_data.length > 0) {
-          order.meta_data.forEach((meta: any) => {
-            if (
-              meta.key === '_shipment_tracking_number' ||
-              meta.key === '_shipment_provider_name' ||
-              meta.key === '_knawat_order_status'
-            ) {
-              orderResponse[meta.key.substring(1)] = meta.value || '';
-              if (meta.key === '_knawat_order_status') {
-                orderResponse[meta.key.substring(1)] =
-                  this.normalizeResponseStatus(meta.value) || '';
-              }
-            }
-          });
-        }
-        if (order.notes) orderResponse.notes = order.notes;
-        return orderResponse;
+
+        return this.sanitizeResponseOne(order.salesorder);
       },
     },
     list: {
       auth: 'Bearer',
       cache: {
-        keys: ['#user', 'limit', 'page', 'sort', 'sortOrder', 'status', 'externalId'],
+        keys: ['externalId', '#user', 'limit', 'page', 'sort', 'sortOrder', 'status'],
         ttl: 60 * 60 * 24,
       },
       async handler(ctx) {
@@ -720,18 +649,7 @@ const TheService: ServiceSchema = {
           customerId: instance.internal_data.omsId,
           ...queryParams,
         });
-        return orders.salesorders.map((order: Order) => ({
-          id: order.id,
-          externalId: order.externalId,
-          status: this.normalizeResponseStatus(order.status),
-          createDate: order.createDate,
-          updateDate: order.updateDate,
-          total: order.total,
-          trackingNumber: order.shipmentTrackingNumber,
-          knawat_order_status: order.status ? this.normalizeResponseStatus(order.status) : '',
-          orderNumber: order.orderNumber,
-          invoice_url: order.externalInvoice,
-        }));
+        return this.sanitizeResponseList(orders.salesorders);
       },
     },
     deleteOrder: {
@@ -1121,6 +1039,66 @@ const TheService: ServiceSchema = {
         msgs: taxesMsg,
         taxTotal,
       };
+    },
+    sanitizeResponseOne(order): Order {
+      const orderResponse: {[key: string]: any} = {
+        id: order.id,
+        status: this.normalizeResponseStatus(order.status),
+        items: order.items,
+        billing: order.billing,
+        shipping: order.shipping,
+        total: order.total,
+        coupon: order.coupon,
+        discount: order.discount,
+        externalId: order.externalId,
+        createDate: order.createDate,
+        updateDate: order.updateDate,
+        knawat_order_status: order.status ? this.normalizeResponseStatus(order.status) : '',
+        notes: order.notes,
+        shipping_method: order.shipmentCourier,
+        shipping_charge: order.shippingCharge,
+        adjustment: order.adjustment,
+        adjustmentDescription: order.adjustmentDescription,
+        shipment_tracking_number: order.shipmentTrackingNumber,
+        orderNumber: order.orderNumber,
+        invoice_url: order.externalInvoice,
+        taxTotal: order.taxTotal,
+        taxes: order.taxes,
+      };
+      if (order.meta_data && order.meta_data.length > 0) {
+        order.meta_data.forEach((meta: any) => {
+          if (
+            meta.key === '_shipment_tracking_number' ||
+            meta.key === '_shipment_provider_name' ||
+            meta.key === '_knawat_order_status'
+          ) {
+            orderResponse[meta.key.substring(1)] = meta.value || '';
+            if (meta.key === '_knawat_order_status') {
+              orderResponse[meta.key.substring(1)] =
+                this.normalizeResponseStatus(meta.value) || '';
+            }
+          }
+        });
+      }
+      return orderResponse as Order;
+    },
+    sanitizeResponseList(orders) {
+      return orders.map((order: Order) => ({
+        id: order.id,
+        externalId: order.externalId,
+        status: this.normalizeResponseStatus(order.status),
+        createDate: order.createDate,
+        updateDate: order.updateDate,
+        total: order.total,
+        trackingNumber: order.shipmentTrackingNumber,
+        knawat_order_status: order.status ? this.normalizeResponseStatus(order.status) : '',
+        orderNumber: order.orderNumber,
+        invoice_url: order.externalInvoice,
+      }));
+    },
+    async cacheUpdate(order, instance) {
+      this.broker.cacher.set(`orders.getOrder:${order.id}`, this.sanitizeResponseOne(order));
+      this.broker.cacher.set(`orders.list:${order.externalId}|${instance.consumer_key}|undefined|undefined|undefined|undefined|undefined`, this.sanitizeResponseList([order]));
     },
   },
 };

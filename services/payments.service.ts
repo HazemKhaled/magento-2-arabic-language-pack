@@ -44,10 +44,9 @@ const TheService: ServiceSchema = {
           .then(
             res => {
               // Store balance
-              this.broker.cacher.clean(`stores.me:${instance.consumer_key}**`);
-              this.broker.cacher.clean(`stores.sGet:${instance.url}**`);
               this.broker.cacher.clean(`payments.get:${instance.consumer_key}**`);
               this.broker.cacher.clean(`invoices.get:${instance.consumer_key}**`);
+              this.cacheUpdate(res.payment, instance);
               return this.sanitizePayment(res.payment);
             },
             err => {
@@ -114,6 +113,12 @@ const TheService: ServiceSchema = {
         reference: payment.referenceNumber,
         date: payment.date,
       });
+    },
+    async cacheUpdate(payment, instance) {
+      const store = await this.broker.call('stores.sGet', { id: instance.url });
+      store.credit = (store.credit || 0) + payment.amount;
+      this.broker.cacher.set(`stores.sGet:${store.url}`, store);
+      this.broker.cacher.set(`stores.me:${store.consumer_key}`, store);
     },
   },
 };
