@@ -110,7 +110,7 @@ const TheService: ServiceSchema = {
             if (res.users) {
               res.subscription = await ctx.call('subscription.get', { id: ctx.params.id });
             }
-            if (res.internal_data && res.internal_data.omsId && ctx.params.withBalance !== '1') {
+            if (res.internal_data && res.internal_data.omsId && !ctx.params.withoutBalance) {
               const omsData = (await ctx.call('oms.getCustomer', {
                 customerId: res.internal_data.omsId,
               }).then(null, this.logger.error)) as { store: Store };
