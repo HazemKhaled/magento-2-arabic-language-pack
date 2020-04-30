@@ -218,6 +218,7 @@ const TheService: ServiceSchema = {
             params,
             status: res.status,
             ok: res.ok,
+            createdAt: new Date(),
             res: parsedRes,
           });
           if (!res.ok) {
