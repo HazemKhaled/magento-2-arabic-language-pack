@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.6.1
+
+### 🚀 Features
+
+- Get store balance optional param
+- Save all oms requests on DB
+- Update store, invoice and order cache on create or update actions
+
+
 ## 1.6.0
 
 ### 🚀 Features

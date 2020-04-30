@@ -1,11 +1,12 @@
 import { Context, Errors, ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
+import DbService from '../utilities/mixins/mongo.mixin';
 import { OmsValidation } from '../utilities/mixins/validation';
 const MoleculerError = Errors.MoleculerError;
 
 const TheService: ServiceSchema = {
   name: 'oms',
-  mixins: [OmsValidation],
+  mixins: [OmsValidation, DbService('omsRequests')],
   settings: {
     auth: Buffer.from(`${process.env.BASIC_USER}:${process.env.BASIC_PASS}`).toString('base64'),
     url: `${process.env.OMS_BASEURL}`,
@@ -209,6 +210,16 @@ const TheService: ServiceSchema = {
       })
         .then(async res => {
           const parsedRes = await res.json();
+          this.adapter.insert({
+            module: path.replace(/([a-z]+)\/.*/, '$1'),
+            path,
+            method,
+            body,
+            params,
+            status: res.status,
+            ok: res.ok,
+            res: parsedRes,
+          });
           if (!res.ok) {
             throw new MoleculerError(
               parsedRes &&
