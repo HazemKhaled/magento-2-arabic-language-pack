@@ -109,7 +109,6 @@ const TheService: ServiceSchema = {
       const searchResponse: SearchResponse<Product> = await this.broker
         .call('elastic-update.search', {
           index: 'products',
-          type: 'Product',
           body: {
             query: {
               range: {
@@ -164,7 +163,6 @@ const TheService: ServiceSchema = {
         const product: Product = hit._source || { archive: true, updated: new Date() };
         const updateData = {
           index: 'products-instances',
-          type: 'product',
           body: {
             query: {
               term: {

@@ -149,7 +149,6 @@ module.exports = {
         return ctx
           .call('products-list.search', {
             index: 'products',
-            type: '_doc',
             size: 1000,
             body: {
               query: {
@@ -186,7 +185,6 @@ module.exports = {
           bulk.push({
             update: {
               _index: 'products',
-              _type: '_doc',
               _id: product._id,
             },
           });
@@ -198,7 +196,6 @@ module.exports = {
         });
         ctx.call('products-list.bulk', {
           index: 'products',
-          type: '_doc',
           body: bulk,
         });
       },
@@ -234,12 +231,11 @@ module.exports = {
       else {
         result = await this.broker.call('products-list.search', {
           index: 'products',
-          type: '_doc',
           size: process.env.SCROLL_LIMIT,
           scroll: '1m',
           body: body,
         });
-        maxScroll = result.hits.total;
+        maxScroll = result.hits.total.value;
         trace = page * limit;
       }
       fullResult =
@@ -272,7 +268,7 @@ module.exports = {
             scrollId ? trace + parseInt(process.env.SCROLL_LIMIT) : trace,
           )
           .map(product => this.productSanitize(product, instance, rate)),
-        total: result.hits.total,
+        total: result.hits.total.value,
       };
     },
     productSanitize(product, instance, rate) {

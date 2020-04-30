@@ -82,7 +82,6 @@ const TheService: ServiceSchema = {
       return this.broker
         .call('categories.search', {
           index: 'categories',
-          type: '_doc',
           body: {
             size: 999,
             query,

@@ -264,7 +264,6 @@ module.exports = {
         return ctx
           .call('products.search', {
             index: 'products',
-            type: '_doc',
             size: skus.length + 1,
             body: {
               query: {
@@ -301,7 +300,6 @@ module.exports = {
               bulk.push({
                 index: {
                   _index: 'products-instances',
-                  _type: '_doc',
                   _id: `${instance.consumer_key}-${product._id}`,
                 },
               });
@@ -322,7 +320,6 @@ module.exports = {
             return ctx
               .call('products.bulk', {
                 index: 'products-instances',
-                type: '_doc',
                 body: bulk,
               })
               .then(response => {
@@ -378,7 +375,6 @@ module.exports = {
         return ctx
           .call('products.update', {
             index: 'products-instances',
-            type: '_doc',
             id: `${ctx.meta.user}-${ctx.params.sku}`,
             body: {
               doc: body,
@@ -433,7 +429,6 @@ module.exports = {
           bulk.push({
             update: {
               _index: 'products-instances',
-              _type: '_doc',
               _id: `${ctx.meta.user}-${pi.sku}`,
             },
           });
@@ -494,7 +489,6 @@ module.exports = {
         const result = await this.broker
           .call('products.search', {
             index: 'products-instances',
-            type: '_doc',
             _source: _source,
             body: {
               query: {
@@ -512,7 +506,6 @@ module.exports = {
             res.hits.total.value > 0
               ? this.broker.call('products.search', {
                 index: 'products',
-                type: '_doc',
                 _source: _source,
                 body: { query: { bool: { filter: { term: { _id: sku } } } } },
               })
@@ -596,7 +589,6 @@ module.exports = {
           api: 'mget',
           params: {
             index: 'products',
-            type: '_doc',
             _source: _source,
             body: {
               ids: instanceProducts,
@@ -711,7 +703,6 @@ module.exports = {
         if (!scrollId) {
           const searchQuery = {
             index: 'products-instances',
-            type: '_doc',
             scroll: '1m',
             size: process.env.SCROLL_LIMIT,
             body: {
@@ -838,7 +829,6 @@ module.exports = {
       return this.broker
         .call('products.update', {
           index: 'products-instances',
-          type: '_doc',
           id: `${id}-${sku}`,
           body: {
             doc: {
