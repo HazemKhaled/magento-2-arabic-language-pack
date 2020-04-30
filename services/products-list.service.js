@@ -152,23 +152,17 @@ module.exports = {
             size: 1000,
             body: {
               query: {
-                bool: {
-                  filter: [
-                    {
-                      nested: {
-                        path: 'variations',
-                        query: {
-                          bool: {
-                            filter: {
-                              terms: {
-                                'variations.sku': ctx.params.skus,
-                              },
-                            },
-                          },
+                nested: {
+                  path: 'variations',
+                  query: {
+                    bool: {
+                      filter: {
+                        terms: {
+                          'variations.sku': ctx.params.skus,
                         },
                       },
                     },
-                  ],
+                  },
                 },
               },
             },
