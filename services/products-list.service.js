@@ -1,17 +1,14 @@
 const ESService = require('moleculer-elasticsearch');
 const { MoleculerClientError } = require('moleculer').Errors;
-const { ProductsListOpenapi } = require('../utilities/mixins/openapi');
-const Transformation = require('../utilities/mixins/product-transformation.mixin');
-const { ProductsListValidation } = require('../utilities/mixins/validation/products-list.validate');
-
+const { ProductTransformation, ProductsListOpenapi, ProductsListValidation } = require('../utilities/mixins');
+const  { I18nService } = require('../utilities/mixins');
 module.exports = {
   name: 'products-list',
-  mixins: [Transformation, ESService, ProductsListValidation, ProductsListOpenapi],
+  mixins: [I18nService, ProductTransformation, ESService, ProductsListValidation, ProductsListOpenapi],
   settings: {
     elasticsearch: {
-      host: `${process.env.ELASTIC_PROTOCOL}://${process.env.ELASTIC_AUTH}@${process.env.ELASTIC_HOST}:${
-        process.env.ELASTIC_PORT
-      }`,
+      host: process.env.ELASTIC_URL,
+      httpAuth: process.env.ELASTIC_AUTH,
       apiVersion: process.env.ELASTIC_VERSION || '6.x',
     },
   },
@@ -151,27 +148,20 @@ module.exports = {
         return ctx
           .call('products-list.search', {
             index: 'products',
-            type: 'Product',
             size: 1000,
             body: {
               query: {
-                bool: {
-                  filter: [
-                    {
-                      nested: {
-                        path: 'variations',
-                        query: {
-                          bool: {
-                            filter: {
-                              terms: {
-                                'variations.sku': ctx.params.skus,
-                              },
-                            },
-                          },
+                nested: {
+                  path: 'variations',
+                  query: {
+                    bool: {
+                      filter: {
+                        terms: {
+                          'variations.sku': ctx.params.skus,
                         },
                       },
                     },
-                  ],
+                  },
                 },
               },
             },
@@ -188,7 +178,6 @@ module.exports = {
           bulk.push({
             update: {
               _index: 'products',
-              _type: 'Product',
               _id: product._id,
             },
           });
@@ -200,7 +189,6 @@ module.exports = {
         });
         ctx.call('products-list.bulk', {
           index: 'products',
-          type: 'Product',
           body: bulk,
         });
       },
@@ -236,12 +224,11 @@ module.exports = {
       else {
         result = await this.broker.call('products-list.search', {
           index: 'products',
-          type: 'Product',
           size: process.env.SCROLL_LIMIT,
           scroll: '1m',
           body: body,
         });
-        maxScroll = result.hits.total;
+        maxScroll = result.hits.total.value;
         trace = page * limit;
       }
       fullResult =
@@ -274,7 +261,7 @@ module.exports = {
             scrollId ? trace + parseInt(process.env.SCROLL_LIMIT) : trace,
           )
           .map(product => this.productSanitize(product, instance, rate)),
-        total: result.hits.total,
+        total: result.hits.total.value,
       };
     },
     productSanitize(product, instance, rate) {
