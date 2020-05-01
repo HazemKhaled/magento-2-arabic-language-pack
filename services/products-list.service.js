@@ -189,6 +189,7 @@ module.exports = {
         });
         ctx.call('products-list.bulk', {
           index: 'products',
+          type: '_doc',
           body: bulk,
         });
       },

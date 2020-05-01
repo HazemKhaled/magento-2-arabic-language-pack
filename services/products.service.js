@@ -374,6 +374,7 @@ module.exports = {
         return ctx
           .call('products.update', {
             index: 'products-instances',
+            type: '_doc',
             id: `${ctx.meta.user}-${ctx.params.sku}`,
             body: {
               doc: body,
@@ -440,6 +441,8 @@ module.exports = {
           ? []
           : this.broker
             .call('products.bulk', {
+              index: 'products-instances',
+              type: '_doc',
               body: bulk,
             })
             .then(res => {
