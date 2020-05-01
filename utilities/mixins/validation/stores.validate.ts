@@ -18,10 +18,14 @@ export const StoresValidation: ServiceSchema = {
         },
       },
     },
-    get: {
+    sGet: {
       params: {
         id: {
           type: 'string',
+        },
+        withoutBalance: {
+          type: 'string',
+          optional: true,
         },
       },
     },
@@ -226,7 +230,7 @@ export const StoresValidation: ServiceSchema = {
               optional: true,
             },
             postcode: {
-              type: 'number',
+              type: 'string',
               optional: true,
             },
             country: {
@@ -416,7 +420,7 @@ export const StoresValidation: ServiceSchema = {
               optional: true,
             },
             postcode: {
-              type: 'number',
+              type: 'string',
               optional: true,
             },
             country: {

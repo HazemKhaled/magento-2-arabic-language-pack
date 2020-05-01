@@ -26,6 +26,7 @@ export interface Store {
   credit: number;
   debit: number;
   internal_data: { [key: string]: any };
+  external_data?: { [key: string]: any };
   subscription?: Subscription;
   address: OrderAddress;
 }

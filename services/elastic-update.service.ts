@@ -38,9 +38,8 @@ const TheService: ServiceSchema = {
    */
   settings: {
     elasticsearch: {
-      host: `http://${process.env.ELASTIC_AUTH}@${process.env.ELASTIC_HOST}:${
-        process.env.ELASTIC_PORT
-      }`,
+      host: process.env.ELASTIC_URL,
+      httpAuth: process.env.ELASTIC_AUTH,
       apiVersion: process.env.ELASTIC_VERSION || '6.x',
     },
     isRunning: false,
@@ -109,7 +108,6 @@ const TheService: ServiceSchema = {
       const searchResponse: SearchResponse<Product> = await this.broker
         .call('elastic-update.search', {
           index: 'products',
-          type: 'Product',
           body: {
             query: {
               range: {
@@ -164,7 +162,6 @@ const TheService: ServiceSchema = {
         const product: Product = hit._source || { archive: true, updated: new Date() };
         const updateData = {
           index: 'products-instances',
-          type: 'product',
           body: {
             query: {
               term: {

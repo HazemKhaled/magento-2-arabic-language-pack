@@ -22,9 +22,8 @@ const TheService: ServiceSchema = {
    */
   settings: {
     elasticsearch: {
-      host: `http://${process.env.ELASTIC_AUTH}@${process.env.ELASTIC_HOST}:${
-        process.env.ELASTIC_PORT
-      }`,
+      host: process.env.ELASTIC_URL,
+      httpAuth: process.env.ELASTIC_AUTH,
       apiVersion: process.env.ELASTIC_VERSION || '6.x',
     },
   },
@@ -82,46 +81,49 @@ const TheService: ServiceSchema = {
       return this.broker
         .call('categories.search', {
           index: 'categories',
-          type: '_doc',
           body: {
             size: 999,
             query,
           },
         })
-        .then((result: SearchResponse<Category>) => {
-          if (result.hits.total === 0) {
-            return {
-              status: 'failed',
-              message: 'There are no categories at the moment.',
+        .then(
+          (result: {
+            hits: { total: { value: number }; hits: Array<{ _id: string; _source: Category }> };
+          }) => {
+            if (result.hits.total.value === 0) {
+              return {
+                status: 'failed',
+                message: 'There are no categories at the moment.',
+              };
+            }
+            const response: any = {
+              count: result.hits.total.value,
+              categories: result.hits.hits
+                .filter(cat => cat._id !== params.parentId)
+                .map((param: { _id: string; _source: Category }) => {
+                  const category: Category = param._source;
+                  return {
+                    id: Number(param._id),
+                    name: this.formatI18nText(category.name),
+                    parentId: category.parentId,
+                    productsCount: category.productsCount,
+                    treeNodeLevel: category.treeNodeLevel,
+                  };
+                }),
             };
-          }
-          const response: any = {
-            count: result.hits.total,
-            categories: result.hits.hits
-              .filter(cat => cat._id !== params.parentId)
-              .map((param: { _id: string; _source: Category }) => {
-                const category: Category = param._source;
-                return {
-                  id: Number(param._id),
-                  name: this.formatI18nText(category.name),
-                  parentId: category.parentId,
-                  productsCount: category.productsCount,
-                  treeNodeLevel: category.treeNodeLevel,
-                };
-              }),
-          };
-          if (params.parentId && params.parentId !== '0') {
-            const parent = result.hits.hits.find(cat => cat._id === params.parentId);
-            response.parent = {
-              id: Number(parent._id),
-              name: this.formatI18nText(parent._source.name),
-              parentId: parent._source.parentId,
-              productsCount: parent._source.productsCount,
-              treeNodeLevel: parent._source.treeNodeLevel,
-            };
-          }
-          return response;
-        })
+            if (params.parentId && params.parentId !== '0') {
+              const parent = result.hits.hits.find(cat => cat._id === params.parentId);
+              response.parent = {
+                id: Number(parent._id),
+                name: this.formatI18nText(parent._source.name),
+                parentId: parent._source.parentId,
+                productsCount: parent._source.productsCount,
+                treeNodeLevel: parent._source.treeNodeLevel,
+              };
+            }
+            return response;
+          },
+        )
         .catch((error: any) => new MoleculerClientError(error));
     },
   },

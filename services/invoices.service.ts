@@ -3,11 +3,12 @@ import { InvoicesOpenapi } from '../utilities/mixins/openapi';
 import { Invoice } from '../utilities/types';
 import { InvoicesValidation } from '../utilities/mixins/validation';
 import { InvoicePage } from '../utilities/mixins/invoicePage';
+import { Oms } from '../utilities/mixins/oms.mixin';
 const MoleculerError = Errors.MoleculerError;
 
 const TheService: ServiceSchema = {
   name: 'invoices',
-  mixins: [InvoicesValidation, InvoicesOpenapi, InvoicePage],
+  mixins: [InvoicesValidation, InvoicesOpenapi, InvoicePage, Oms],
   actions: {
     get: {
       auth: 'Bearer',
@@ -48,7 +49,7 @@ const TheService: ServiceSchema = {
               },
             );
         }
-        throw new MoleculerError('No Record Found For This Store!', 404);
+        return [];
       },
     },
     create: {
@@ -57,8 +58,14 @@ const TheService: ServiceSchema = {
         const instance = await ctx.call('stores.findInstance', {
           id: ctx.params.storeId,
         });
+
         if (instance.errors) {
           throw new MoleculerError('Store not found', 404);
+        }
+
+        // create OMS contact if no oms ID
+        if (!instance.internal_data || !instance.internal_data.omsId) {
+          await this.setOmsId(instance);
         }
 
         const invoiceParams: {[key:string]: string} = {
@@ -75,8 +82,9 @@ const TheService: ServiceSchema = {
         return ctx
           .call('oms.createInvoice', invoiceParams)
           .then(
-            res => {
-              this.broker.cacher.clean(`invoices.get:${instance.consumer_key}*`);
+            async res => {
+              await this.broker.cacher.clean(`invoices.get:${instance.consumer_key}**`);
+              this.cacheUpdate(res.invoice, instance);
               return res;
             },
             err => {
@@ -180,6 +188,11 @@ const TheService: ServiceSchema = {
         adjustment: invoice.adjustment,
         coupon: invoice.coupon,
       };
+    },
+    async cacheUpdate(invoice, instance) {
+      const invoices = { invoices: [this.invoiceSanitize(invoice)] };
+      this.broker.cacher.set(`invoices.get:${instance.consumer_key}|undefined|undefined|${invoice.referenceNumber}|undefined`, invoices);
+      this.broker.cacher.set(`invoices.get:${instance.consumer_key}|undefined|undefined|undefined|${invoice.invoiceNumber}`, invoices);
     },
   },
 };

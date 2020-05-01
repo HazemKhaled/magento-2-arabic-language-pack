@@ -6,13 +6,14 @@ const MoleculerError = Errors.MoleculerError;
 
 import { v1 as uuidv1, v4 as uuidv4 } from 'uuid';
 import { StoresOpenapi } from '../utilities/mixins/openapi';
-import { Log, OmsStore, Store, StoreUser, User } from '../utilities/types';
+import { Oms } from '../utilities/mixins/oms.mixin';
+import { Log, Store, StoreUser } from '../utilities/types';
 import { StoresValidation } from '../utilities/mixins/validation';
 const { MoleculerClientError } = Errors;
 
 const TheService: ServiceSchema = {
   name: 'stores',
-  mixins: [DbService('stores'), StoresValidation, StoresOpenapi],
+  mixins: [DbService('stores'), StoresValidation, StoresOpenapi, Oms],
   settings: {
     /** Secret for JWT */
     JWT_SECRET: process.env.JWT_SECRET || 'jwt-conduit-secret',
@@ -80,8 +81,9 @@ const TheService: ServiceSchema = {
                   customerId: res.internal_data.omsId,
                 }).then(null, this.logger.error)) as { store: Store };
                 // If the DB response not null will return the data
-                return this.sanitizeResponse(res, omsData.store);
+                return this.sanitizeResponse(res, omsData && omsData.store);
               }
+              return this.sanitizeResponse(res);
             }
             // If null return Not Found error
             ctx.meta.$statusMessage = 'Not Found';
@@ -99,7 +101,7 @@ const TheService: ServiceSchema = {
     sGet: {
       auth: 'Basic',
       cache: {
-        keys: ['id'],
+        keys: ['id',  'withoutBalance'],
         ttl: 60 * 60 * 24, // 1 day
       },
       handler(ctx: Context) {
@@ -108,7 +110,7 @@ const TheService: ServiceSchema = {
             if (res.users) {
               res.subscription = await ctx.call('subscription.get', { id: ctx.params.id });
             }
-            if (res.internal_data && res.internal_data.omsId) {
+            if (res.internal_data && res.internal_data.omsId && !ctx.params.withoutBalance) {
               const omsData = (await ctx.call('oms.getCustomer', {
                 customerId: res.internal_data.omsId,
               }).then(null, this.logger.error)) as { store: Store };
@@ -147,7 +149,7 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 * 24, // 1 day
       },
       handler(ctx: Context) {
-        let params: { where?: {}; limit?: {}; order?: string; sort?: {} } = {};
+        let params: { where?: {}; limit?: {}; skip?: {}; order?: string; sort?: {} } = {};
         try {
           params = JSON.parse(ctx.params.filter);
         } catch (err) {
@@ -160,6 +162,7 @@ const TheService: ServiceSchema = {
         const query = {
           query: { ...params.where } || {},
           limit: params.limit || 100,
+          offset: params.skip || 0,
           sort: params.sort,
         };
         if (params.order) {
@@ -229,11 +232,6 @@ const TheService: ServiceSchema = {
         // Clear cache
         this.broker.cacher.clean(`stores.sGet:${ctx.params.url}`);
 
-        // FIX: Clear only cache by email
-        this.broker.cacher.clean('stores.list:**');
-        this.broker.cacher.clean('stores.storesList:**');
-        this.broker.cacher.clean('stores.countStores:**');
-
         // Sanitize request params
         const store: Store = this.sanitizeStoreParams(ctx.params, true);
 
@@ -253,28 +251,12 @@ const TheService: ServiceSchema = {
             };
           });
 
-        // create in OMS
-        this.createOmsStore(ctx.params)
-          .then((response: { store: OmsStore }) => {
-            const internal = myStore.internal_data;
-            if (!response.store) throw response;
-            internal.omsId = response.store && response.store.id;
-            ctx.call('stores.update', {
-              id: ctx.params.url,
-              internal_data: internal,
-            });
-          })
-          .catch((err: unknown) => {
-            this.sendLogs({
-              topic: 'store',
-              topicId: ctx.params.url,
-              message: 'Create in OMS',
-              storeId: ctx.params.url,
-              logLevel: 'error',
-              code: 500,
-              payload: { error: err, params: ctx.params },
-            });
-          });
+        if (myStore.url) {
+          this.broker.cacher.clean('stores.list:**');
+          this.broker.cacher.clean('stores.storesList:**');
+          this.broker.cacher.clean('stores.countStores:**');
+          this.cacheUpdate(myStore);
+        }
 
         return myStore || error;
       },
@@ -292,7 +274,7 @@ const TheService: ServiceSchema = {
         const { id } = ctx.params;
         delete ctx.params.id;
         // storeBefore
-        const storeBefore = this.adapter.findById(id);
+        const storeBefore = await this.adapter.findById(id);
 
         // If the store not found return Not Found error
         if (!storeBefore) {
@@ -313,6 +295,16 @@ const TheService: ServiceSchema = {
 
         // if no new updates
         if (Object.keys(store).length === 0) return storeBefore;
+
+        // Merge internal_data
+        if (ctx.params.internal_data) {
+          store.internal_data = this.merge2Objects(storeBefore.internal_data, ctx.params.internal_data);
+        }
+
+        // Merge external_data
+        if (ctx.params.external_data) {
+          store.external_data = this.merge2Objects(storeBefore.external_data, ctx.params.external_data);
+        }
 
         const myStore: Store = await this.adapter
           .updateById(id, { $set: store })
@@ -340,12 +332,11 @@ const TheService: ServiceSchema = {
         // Clean cache if store updated
         this.broker.cacher.clean(`stores.findInstance:${myStore.consumer_key}*`);
         this.broker.cacher.clean(`stores.findInstance:*${myStore.url}*`);
-        this.broker.cacher.clean(`stores.me:${myStore.consumer_key}*`);
-        this.broker.cacher.clean(`stores.sGet:${myStore.url}*`);
         this.broker.cacher.clean('stores.list**');
         this.broker.cacher.clean('stores.storesList:**');
         this.broker.cacher.clean(`products.list:${myStore.consumer_key}*`);
         this.broker.cacher.clean(`products.getInstanceProduct:${myStore.consumer_key}*`);
+        this.cacheUpdate(myStore);
 
         if (myStore.internal_data && myStore.internal_data.omsId) {
           ctx.call('crm.updateStoreById', { id, ...ctx.params }).then(null, (error: unknown) => {
@@ -667,59 +658,6 @@ const TheService: ServiceSchema = {
       }
       return store;
     },
-    createOmsStore(params) {
-      const body: OmsStore = {};
-
-      params.users.forEach((user: User) => {
-        // Backward compatibility since zoho require contact last
-        if (!user.last_name) user.last_name = params.name;
-      });
-
-      // Sanitized params keys
-      const keys: string[] = [
-        'url',
-        'name',
-        'status',
-        'type',
-        'stock_status',
-        'price_status',
-        'sale_price',
-        'sale_price_operator',
-        'compared_at_price',
-        'compared_at_price_operator',
-        'currency',
-        'users',
-        'languages',
-        'shipping_methods',
-        'address',
-      ];
-      const transformObj: { [key: string]: string } = {
-        type: 'platform',
-        compared_at_price: 'comparedPrice',
-        compared_at_price_operator: 'comparedOperator',
-        stock_status: 'stockStatus',
-        price_status: 'priceStatus',
-        sale_price: 'salePrice',
-        sale_price_operator: 'saleOperator',
-        shipping_methods: 'shippingMethods',
-        address: 'billing',
-      };
-      Object.keys(params).forEach(key => {
-        if (!keys.includes(key)) return;
-        const keyName: string = transformObj[key] || key;
-        body[keyName] = params[key].$date || params[key];
-      });
-      // if no attributes no create
-      if (Object.keys(body).length === 0) return;
-      if (body.shippingMethods) {
-        body.shippingMethods = (body.shippingMethods as Array<{ name: string }>).map(
-          method => method.name,
-        );
-      }
-      body.stockDate = params.stock_date;
-      body.priceDate = params.price_date;
-      return this.broker.call('oms.createCustomer', body);
-    },
     /**
      * Log order errors
      *
@@ -765,6 +703,23 @@ const TheService: ServiceSchema = {
       }
 
       return { channel: user };
+    },
+
+    merge2Objects(oldObj, newObj) {
+      return {
+        ...oldObj,
+        ...newObj,
+      };
+    },
+
+    async cacheUpdate(myStore) {
+      const store = await this.broker.call('stores.sGet', { id: myStore.url });
+      myStore = {
+        ...store,
+        ...myStore,
+      };
+      this.broker.cacher.set(`stores.sGet:${myStore.url}`, myStore);
+      this.broker.cacher.set(`stores.me:${myStore.consumer_key}`, myStore);
     },
   },
 };

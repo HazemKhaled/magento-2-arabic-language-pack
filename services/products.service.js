@@ -12,9 +12,8 @@ module.exports = {
    */
   settings: {
     elasticsearch: {
-      host: `http://${process.env.ELASTIC_AUTH}@${process.env.ELASTIC_HOST}:${
-        process.env.ELASTIC_PORT
-      }`,
+      host: process.env.ELASTIC_URL,
+      httpAuth: process.env.ELASTIC_AUTH,
       apiVersion: process.env.ELASTIC_VERSION || '6.x',
     },
   },
@@ -264,7 +263,6 @@ module.exports = {
         return ctx
           .call('products.search', {
             index: 'products',
-            type: 'Product',
             size: skus.length + 1,
             body: {
               query: {
@@ -301,7 +299,6 @@ module.exports = {
               bulk.push({
                 index: {
                   _index: 'products-instances',
-                  _type: 'product',
                   _id: `${instance.consumer_key}-${product._id}`,
                 },
               });
@@ -322,7 +319,6 @@ module.exports = {
             return ctx
               .call('products.bulk', {
                 index: 'products-instances',
-                type: 'product',
                 body: bulk,
               })
               .then(response => {
@@ -378,7 +374,6 @@ module.exports = {
         return ctx
           .call('products.update', {
             index: 'products-instances',
-            type: 'product',
             id: `${ctx.meta.user}-${ctx.params.sku}`,
             body: {
               doc: body,
@@ -433,7 +428,6 @@ module.exports = {
           bulk.push({
             update: {
               _index: 'products-instances',
-              _type: 'product',
               _id: `${ctx.meta.user}-${pi.sku}`,
             },
           });
@@ -494,7 +488,6 @@ module.exports = {
         const result = await this.broker
           .call('products.search', {
             index: 'products-instances',
-            type: 'product',
             _source: _source,
             body: {
               query: {
@@ -509,16 +502,15 @@ module.exports = {
             },
           })
           .then(res =>
-            res.hits.total > 0
+            res.hits.total.value > 0
               ? this.broker.call('products.search', {
                 index: 'products',
-                type: 'Product',
                 _source: _source,
                 body: { query: { bool: { filter: { term: { _id: sku } } } } },
               })
               : res,
           );
-        if (result.hits.total === 0) {
+        if (result.hits.total.value === 0) {
           return 404;
         }
         const currencyRate = await this.broker.call('currencies.getCurrency', {
@@ -596,7 +588,6 @@ module.exports = {
           api: 'mget',
           params: {
             index: 'products',
-            type: 'Product',
             _source: _source,
             body: {
               ids: instanceProducts,
@@ -711,7 +702,6 @@ module.exports = {
         if (!scrollId) {
           const searchQuery = {
             index: 'products-instances',
-            type: 'product',
             scroll: '1m',
             size: process.env.SCROLL_LIMIT,
             body: {
@@ -781,14 +771,13 @@ module.exports = {
             searchQuery.from = (page - 1) * size;
             searchQuery.size = size;
             delete searchQuery.scroll;
-            this.logger.info(searchQuery);
           } else {
             endTrace = page * size;
           }
 
           search = await this.broker.call('products.search', searchQuery);
 
-          maxScroll = search.hits.total;
+          maxScroll = search.hits.total.value;
         } else {
           search = await this.broker.call('products.call', {
             api: 'scroll',
@@ -820,7 +809,7 @@ module.exports = {
         }
         return {
           page: scrollId ? results.slice(page * size - size, page * size) : results,
-          totalProducts: search.hits.total,
+          totalProducts: search.hits.total.value,
         };
       } catch (err) {
         return new MoleculerClientError(err);
@@ -839,7 +828,6 @@ module.exports = {
       return this.broker
         .call('products.update', {
           index: 'products-instances',
-          type: 'product',
           id: `${id}-${sku}`,
           body: {
             doc: {

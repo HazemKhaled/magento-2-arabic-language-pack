@@ -2,11 +2,12 @@ import { Context, Errors, ServiceSchema } from 'moleculer';
 import { PaymentsOpenapi } from '../utilities/mixins/openapi';
 import { Payment, PaymentInvoice } from '../utilities/types';
 import { PaymentsValidation } from '../utilities/mixins/validation';
+import { Oms } from '../utilities/mixins/oms.mixin';
 const MoleculerError = Errors.MoleculerError;
 
 const TheService: ServiceSchema = {
   name: 'payments',
-  mixins: [PaymentsValidation, PaymentsOpenapi],
+  mixins: [PaymentsValidation, PaymentsOpenapi, Oms],
   actions: {
     add: {
       auth: 'Basic',
@@ -14,42 +15,45 @@ const TheService: ServiceSchema = {
         const instance = await ctx.call('stores.findInstance', {
           id: ctx.params.id,
         });
-        if (instance.internal_data && instance.internal_data.omsId) {
-          const paymentBody: any = {
-            customerId: instance.internal_data.omsId,
-            paymentMode: ctx.params.payment_mode,
-            amount: ctx.params.amount,
-            accountId: ctx.params.account_id,
-          };
-          if (ctx.params.invoices) {
-            paymentBody.invoices = ctx.params.invoices.map((invoice: { [key: string]: string }) => ({
-              invoiceId: invoice.invoice_id,
-              amountApplied: invoice.amount_applied,
-            }));
-          }
-          if (ctx.params.bank_charges) {
-            paymentBody.bankCharges = ctx.params.bank_charges;
-          }
-          if (ctx.params.reference) {
-            paymentBody.referenceNumber = String(ctx.params.reference);
-          }
-          return ctx
-            .call('oms.createPayment', paymentBody)
-            .then(
-              res => {
-                // Store balance
-                this.broker.cacher.clean(`stores.me:${instance.consumer_key}**`);
-                this.broker.cacher.clean(`stores.sGet:${instance.url}**`);
-                this.broker.cacher.clean(`payments.get:${instance.consumer_key}**`);
-                this.broker.cacher.clean(`invoices.get:${instance.consumer_key}**`);
-                return this.sanitizePayment(res.payment);
-              },
-              err => {
-                throw new MoleculerError(err.message, err.code || 500);
-              },
-            );
+
+        // create OMS contact if no oms ID
+        if (!instance.internal_data || !instance.internal_data.omsId) {
+          await this.setOmsId(instance);
         }
-        throw new MoleculerError('No Record Found For This Store!', 404);
+
+        const paymentBody: any = {
+          customerId: instance.internal_data.omsId,
+          paymentMode: ctx.params.payment_mode,
+          amount: ctx.params.amount,
+          accountId: ctx.params.account_id,
+        };
+        if (ctx.params.invoices) {
+          paymentBody.invoices = ctx.params.invoices.map((invoice: { [key: string]: string }) => ({
+            invoiceId: invoice.invoice_id,
+            amountApplied: invoice.amount_applied,
+          }));
+        }
+        if (ctx.params.bank_charges) {
+          paymentBody.bankCharges = ctx.params.bank_charges;
+        }
+        if (ctx.params.reference) {
+          paymentBody.referenceNumber = String(ctx.params.reference);
+        }
+        return ctx
+          .call('oms.createPayment', paymentBody)
+          .then(
+            res => {
+              // Store balance
+              this.broker.cacher.clean(`payments.get:${instance.consumer_key}**`);
+              this.broker.cacher.clean(`invoices.get:${instance.consumer_key}**`);
+              this.cacheUpdate(res.payment, instance);
+              return this.sanitizePayment(res.payment);
+            },
+            err => {
+              throw new MoleculerError(err.message, err.code || 500);
+            },
+          );
+
       },
     },
     get: {
@@ -109,6 +113,12 @@ const TheService: ServiceSchema = {
         reference: payment.referenceNumber,
         date: payment.date,
       });
+    },
+    async cacheUpdate(payment, instance) {
+      const store = await this.broker.call('stores.sGet', { id: instance.url });
+      store.credit = (store.credit || 0) + payment.amount;
+      this.broker.cacher.set(`stores.sGet:${store.url}`, store);
+      this.broker.cacher.set(`stores.me:${store.consumer_key}`, store);
     },
   },
 };

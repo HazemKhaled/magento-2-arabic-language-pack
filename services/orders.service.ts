@@ -3,14 +3,15 @@ import { v1 as uuidv1 } from 'uuid';
 
 import { OrdersOpenapi } from '../utilities/mixins/openapi';
 import { OrdersOperations } from '../utilities/mixins/orders.mixin';
-import { Log, OrderOMSResponse, Order, OrderAddress, OrderItem, Product, Tax, Store } from '../utilities/types';
+import { Log, OrderOMSResponse, Order, OrderAddress, OrderItem, Product, Store } from '../utilities/types';
 import { OrdersValidation } from '../utilities/mixins/validation';
 import TaxCheck = require('../utilities/mixins/tax.mixin');
 import { Mail } from '../utilities/mixins/mail.mixin';
+import { Oms } from '../utilities/mixins/oms.mixin';
 
 const TheService: ServiceSchema = {
   name: 'orders',
-  mixins: [OrdersOperations, OrdersValidation, OrdersOpenapi, TaxCheck, Mail],
+  mixins: [OrdersOperations, OrdersValidation, OrdersOpenapi, TaxCheck, Mail, Oms],
   settings: {
     BASEURL:
       process.env.NODE_ENV === 'production'
@@ -27,6 +28,11 @@ const TheService: ServiceSchema = {
           consumerKey: ctx.meta.user,
         });
 
+        // create OMS contact if no oms ID
+        if (!instance.internal_data || !instance.internal_data.omsId) {
+          await this.setOmsId(instance);
+        }
+
         const data = this.orderData(ctx.params, instance, true);
 
         this.sendLogs({
@@ -42,7 +48,7 @@ const TheService: ServiceSchema = {
         });
         // Check the available products and quantities return object with inStock products info
         const stock: {
-          products: Array<{ _source: Product; _id: string }>;
+          products: Product[];
           inStock: OrderItem[];
           enoughStock: OrderItem[];
           items: OrderItem[];
@@ -253,20 +259,22 @@ const TheService: ServiceSchema = {
         // Update CRM last update
         ctx.call('crm.updateStoreById', { id: instance.url, last_order_date: Date.now() });
 
-        // Clearing order list action(API) cache
-        this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
-
         // Update products sales quantity
         ctx.call('products-list.updateQuantityAttributes', {
-          products: stock.products.map((product: { _source: Product; _id: string }) => ({
-            _id: product._id,
-            qty: product._source.sales_qty || 0,
+          products: stock.products.map((product: Product) => ({
+            _id: product.sku,
+            qty: product.sales_qty || 0,
             attribute: 'sales_qty',
           })),
         });
 
         /* Prepare the response message in case of success or warnings */
         const order = result.salesorder;
+
+        // Clearing order list action(API) cache
+        await this.broker.cacher.clean(`orders.list:undefined|${ctx.meta.user}**`);
+        this.cacheUpdate(order, instance);
+
         const message: {
           status?: string;
           data?: OrderOMSResponse['salesorder'] | any; // Remove any after
@@ -274,23 +282,7 @@ const TheService: ServiceSchema = {
           errors?: Array<{}>;
         } = {
           status: 'success',
-          data: {
-            id: order.id,
-            status: this.normalizeResponseStatus(order.status),
-            items: order.items,
-            billing: order.billing,
-            shipping: order.shipping,
-            createDate: order.createDate,
-            notes: order.notes || '',
-            shipping_method: order.shipmentCourier,
-            shipping_charge: order.shippingCharge,
-            discount: order.discount,
-            adjustment: order.adjustment,
-            adjustmentDescription: order.adjustmentDescription,
-            orderNumber: order.orderNumber,
-            total: order.total,
-            taxTotal: order.taxTotal,
-          },
+          data: this.sanitizeResponseOne(order),
         };
 
         if (warnings.length) {
@@ -542,27 +534,10 @@ const TheService: ServiceSchema = {
             };
           }
           const order = result.salesorder;
-          this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
-          this.broker.cacher.clean(`orders.getOrder:${ctx.params.id}**`);
-
+          await this.broker.cacher.clean(`orders.list:undefined|${ctx.meta.user}**`);
+          this.cacheUpdate(order, instance);
           message.status = 'success';
-          message.data = {
-            id: order.id,
-            status: this.normalizeResponseStatus(order.status),
-            items: order.items,
-            billing: order.billing,
-            shipping: order.shipping,
-            createDate: order.createDate,
-            discount: order.discount,
-            notes: order.notes || '',
-            shipping_method: order.shipmentCourier,
-            shipping_charge: order.shippingCharge,
-            adjustment: order.adjustment,
-            adjustmentDescription: order.adjustmentDescription,
-            orderNumber: order.orderNumber,
-            total: order.total,
-            taxTotal: order.taxTotal,
-          };
+          message.data = this.sanitizeResponseOne(order);
           if (warnings.length > 0) message.warnings = warnings;
           this.sendLogs({
             topicId: data.externalId,
@@ -631,54 +606,14 @@ const TheService: ServiceSchema = {
             message: 'There is an error',
           };
         }
-        order = order.salesorder;
-        const orderResponse: { [key: string]: string } = {
-          id: order.id,
-          status: this.normalizeResponseStatus(order.status),
-          items: order.items,
-          billing: order.billing,
-          shipping: order.shipping,
-          total: order.total,
-          coupon: order.coupon,
-          discount: order.discount,
-          externalId: order.externalId,
-          createDate: order.createDate,
-          updateDate: order.updateDate,
-          knawat_order_status: order.status ? this.normalizeResponseStatus(order.status) : '',
-          notes: order.notes,
-          shipping_method: order.shipmentCourier,
-          shipping_charge: order.shippingCharge,
-          adjustment: order.adjustment,
-          adjustmentDescription: order.adjustmentDescription,
-          shipment_tracking_number: order.shipmentTrackingNumber,
-          orderNumber: order.orderNumber,
-          invoice_url: order.externalInvoice,
-          taxTotal: order.taxTotal,
-          taxes: order.taxes,
-        };
-        if (order.meta_data && order.meta_data.length > 0) {
-          order.meta_data.forEach((meta: any) => {
-            if (
-              meta.key === '_shipment_tracking_number' ||
-              meta.key === '_shipment_provider_name' ||
-              meta.key === '_knawat_order_status'
-            ) {
-              orderResponse[meta.key.substring(1)] = meta.value || '';
-              if (meta.key === '_knawat_order_status') {
-                orderResponse[meta.key.substring(1)] =
-                  this.normalizeResponseStatus(meta.value) || '';
-              }
-            }
-          });
-        }
-        if (order.notes) orderResponse.notes = order.notes;
-        return orderResponse;
+
+        return this.sanitizeResponseOne(order.salesorder);
       },
     },
     list: {
       auth: 'Bearer',
       cache: {
-        keys: ['#user', 'limit', 'page', 'sort', 'sortOrder', 'status', 'externalId'],
+        keys: ['externalId', '#user', 'limit', 'page', 'sort', 'sortOrder', 'status'],
         ttl: 60 * 60 * 24,
       },
       async handler(ctx) {
@@ -686,11 +621,7 @@ const TheService: ServiceSchema = {
           consumerKey: ctx.meta.user,
         });
         if (!(instance.internal_data && instance.internal_data.omsId)) {
-          ctx.meta.$statusCode = 404;
-          ctx.meta.$statusMessage = 'Not Found';
-          return {
-            message: 'There is no orders for this store!',
-          };
+          return [];
         }
         const queryParams: { [key: string]: string } = {};
         if (ctx.params.limit) queryParams.perPage = ctx.params.limit;
@@ -718,18 +649,7 @@ const TheService: ServiceSchema = {
           customerId: instance.internal_data.omsId,
           ...queryParams,
         });
-        return orders.salesorders.map((order: Order) => ({
-          id: order.id,
-          externalId: order.externalId,
-          status: this.normalizeResponseStatus(order.status),
-          createDate: order.createDate,
-          updateDate: order.updateDate,
-          total: order.total,
-          trackingNumber: order.shipmentTrackingNumber,
-          knawat_order_status: order.status ? this.normalizeResponseStatus(order.status) : '',
-          orderNumber: order.orderNumber,
-          invoice_url: order.externalInvoice,
-        }));
+        return this.sanitizeResponseList(orders.salesorders);
       },
     },
     deleteOrder: {
@@ -985,11 +905,6 @@ const TheService: ServiceSchema = {
           });
         }
         if ((!instance.shipping_methods || !instance.shipping_methods[0].name) && !shippingMethod) {
-          warnings.push({
-            message: `There is no default shipping method for your store, It’ll be shipped with ${shipment.courier ||
-              'Standard'}, Contact our customer support for more info`,
-            code: 2102,
-          });
           this.sendLogs({
             topic: 'order',
             topicId: data.externalId,
@@ -1007,13 +922,6 @@ const TheService: ServiceSchema = {
             instance.shipping_methods[0].name &&
             shipment.courier !== instance.shipping_methods[0].name)
         ) {
-          warnings.push({
-            message: `Can’t ship to ${
-              shipping.country
-            } with provided courier, It’ll be shipped with ${shipment.courier ||
-              'Standard'}, Contact our customer support for more info`,
-            code: 2101,
-          });
           this.sendLogs({
             topic: 'order',
             topicId: data.externalId,
@@ -1101,10 +1009,10 @@ const TheService: ServiceSchema = {
       let taxTotal = 0;
       const itemsAfterTaxes = await Promise.all(
         items.map(
-          async (item: OrderItem, index: number) => {
+          async (item: OrderItem) => {
             const taxData = await this.getItemTax(instance, item);
 
-            if (index === 0) {
+            if (!isInclusive) {
               isInclusive = taxData.isInclusive;
             }
 
@@ -1131,6 +1039,66 @@ const TheService: ServiceSchema = {
         msgs: taxesMsg,
         taxTotal,
       };
+    },
+    sanitizeResponseOne(order): Order {
+      const orderResponse: {[key: string]: any} = {
+        id: order.id,
+        status: this.normalizeResponseStatus(order.status),
+        items: order.items,
+        billing: order.billing,
+        shipping: order.shipping,
+        total: order.total,
+        coupon: order.coupon,
+        discount: order.discount,
+        externalId: order.externalId,
+        createDate: order.createDate,
+        updateDate: order.updateDate,
+        knawat_order_status: order.status ? this.normalizeResponseStatus(order.status) : '',
+        notes: order.notes,
+        shipping_method: order.shipmentCourier,
+        shipping_charge: order.shippingCharge,
+        adjustment: order.adjustment,
+        adjustmentDescription: order.adjustmentDescription,
+        shipment_tracking_number: order.shipmentTrackingNumber,
+        orderNumber: order.orderNumber,
+        invoice_url: order.externalInvoice,
+        taxTotal: order.taxTotal,
+        taxes: order.taxes,
+      };
+      if (order.meta_data && order.meta_data.length > 0) {
+        order.meta_data.forEach((meta: any) => {
+          if (
+            meta.key === '_shipment_tracking_number' ||
+            meta.key === '_shipment_provider_name' ||
+            meta.key === '_knawat_order_status'
+          ) {
+            orderResponse[meta.key.substring(1)] = meta.value || '';
+            if (meta.key === '_knawat_order_status') {
+              orderResponse[meta.key.substring(1)] =
+                this.normalizeResponseStatus(meta.value) || '';
+            }
+          }
+        });
+      }
+      return orderResponse as Order;
+    },
+    sanitizeResponseList(orders) {
+      return orders.map((order: Order) => ({
+        id: order.id,
+        externalId: order.externalId,
+        status: this.normalizeResponseStatus(order.status),
+        createDate: order.createDate,
+        updateDate: order.updateDate,
+        total: order.total,
+        trackingNumber: order.shipmentTrackingNumber,
+        knawat_order_status: order.status ? this.normalizeResponseStatus(order.status) : '',
+        orderNumber: order.orderNumber,
+        invoice_url: order.externalInvoice,
+      }));
+    },
+    async cacheUpdate(order, instance) {
+      this.broker.cacher.set(`orders.getOrder:${order.id}`, this.sanitizeResponseOne(order));
+      this.broker.cacher.set(`orders.list:${order.externalId}|${instance.consumer_key}|undefined|undefined|undefined|undefined|undefined`, this.sanitizeResponseList([order]));
     },
   },
 };
