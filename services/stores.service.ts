@@ -409,6 +409,8 @@ const TheService: ServiceSchema = {
           this.broker.cacher.clean(`orders.list:${instance.consumer_key}*`);
           this.broker.cacher.clean(`invoices.get:${instance.consumer_key}*`);
           this.broker.cacher.clean(`subscription.get:${instance.url}*`);
+          this.broker.cacher.clean(`stores.sGet:${instance.url}**`);
+          this.broker.cacher.clean(`stores.me:${instance.consumer_key}**`);
           return ctx.call('stores.update', {
             id: storeId,
             internal_data: instance.internal_data,
