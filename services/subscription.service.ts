@@ -143,7 +143,10 @@ const TheService: ServiceSchema = {
         if (membership.isDefault) {
           throw new MoleculerError('Could not create subscription for default memberships!', 405);
         }
+
+        // Membership cost before tax or discount
         const cost = membership.cost;
+
         let discount = 0;
         if (coupon) {
           switch (coupon.discount.total.type) {
@@ -156,27 +159,35 @@ const TheService: ServiceSchema = {
           }
         }
         discount = Math.max(discount, membership.discount);
+
+        // Get the Store instance
         const instance = await ctx
           .call('stores.sGet', { id: ctx.params.storeId })
           .then(null, err => err);
-        if (isError(instance as { message: string; code: number })) {
-          throw new MoleculerError(instance.message, instance.code || 500);
-        }
+        // Check for instance errors
         if (instance.errors) {
           throw new MoleculerError(instance.errors[0].message, 404);
         }
 
-        const taxData = await this.getTaxWithCalc(instance, { taxClass: 'service', rate: cost });
+        if (isError(instance as { message: string; code: number })) {
+          throw new MoleculerError(instance.message, instance.code || 500);
+        }
+        let total = +(cost - discount).toFixed(2);
 
-        if (instance.credit < +(cost + taxData.value - discount).toFixed(2)) {
-          const total = +(cost + (taxData.value || 0) - discount).toFixed(2);
-          if (instance.credit < total) {
-            await ctx.call('paymentGateway.charge', {
-              storeId: instance.url,
-              amount: total - instance.credit,
-              force: true,
-            });
-          }
+        // Get taxes info
+        const taxData = await this.getTaxWithCalc(instance, { taxClass: 'service', rate: cost });
+        if (taxData.value) {
+          total = +(total + (total * taxData.percentage / 100)).toFixed(2);
+        }
+
+        if (instance.credit < total) {
+          // TODO:: This should be added when payment is online
+          // await ctx.call('paymentGateway.charge', {
+          //   storeId: instance.url,
+          //   amount: total - instance.credit,
+          //   force: true,
+          // });
+          throw new MoleculerError('You don\'t have enough balance', 401);
         }
 
         const invoiceBody: { [key: string]: any } = {

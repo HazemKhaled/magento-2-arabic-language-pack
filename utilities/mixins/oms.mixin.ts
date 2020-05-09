@@ -56,6 +56,16 @@ export const Oms: ServiceSchema = {
       }
       body.stockDate = params.stock_date;
       body.priceDate = params.price_date;
+      console.log(body);
+
+      // Remove the billing if doesn't has the required fields
+      // Billing required fields
+      const billingRequiredFields = ['first_name', 'last_name', 'address_1', 'country'];
+      if(body.billing) {
+        const bodyBillingKeys = Object.keys(body.billing);
+        billingRequiredFields.reduce((a, k, i, arr) => !bodyBillingKeys.includes(k) && !!arr.splice(1), false) && delete body.billing;
+      }
+
       return this.broker.call('oms.createCustomer', body).catch(console.log);
     },
     setOmsId(instance) {
@@ -70,6 +80,7 @@ export const Oms: ServiceSchema = {
           });
         })
         .catch((err: unknown) => {
+          console.log(err);
           throw new MpError('InvoicesError', 'Can\'t create oms contact!', 503, err.toString(), err);
         });
     },
