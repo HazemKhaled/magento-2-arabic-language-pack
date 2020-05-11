@@ -1,4 +1,4 @@
-import { Context, Errors, ServiceSchema } from 'moleculer';
+import { Context, Errors, ServiceSchema, GenericObject } from 'moleculer';
 import { InvoicesOpenapi } from '../utilities/mixins/openapi';
 import { Invoice } from '../utilities/types';
 import { InvoicesValidation } from '../utilities/mixins/validation';
@@ -61,6 +61,19 @@ const TheService: ServiceSchema = {
 
         if (instance.errors) {
           throw new MoleculerError('Store not found', 404);
+        }
+
+        const { items, discount } = ctx.params;
+        // Total items cost
+        const itemsCost = items.reduce((a: number, i: GenericObject) => a+=i.rate, 0);
+        const totalBeforeTax = itemsCost - ((discount && discount.value) || 0);
+        console.log(ctx.params, totalBeforeTax);
+        if (totalBeforeTax === 0) {
+          return {
+            invoice: {
+              invoiceId: '00000',
+            },
+          };
         }
 
         // create OMS contact if no oms ID
