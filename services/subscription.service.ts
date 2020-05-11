@@ -224,14 +224,19 @@ const TheService: ServiceSchema = {
           throw new MoleculerError(invoice.message, invoice.code || 500);
         }
         ctx.meta.user = instance.consumer_key;
-        const applyCreditsResponse = await ctx
-          .call('invoices.applyCredits', {
-            id: invoice.invoice.invoiceId,
-          })
-          .then(null, err => err);
-        if (isError(applyCreditsResponse as { message: string; code: number })) {
-          throw new MoleculerError(applyCreditsResponse.message, applyCreditsResponse.code || 500);
+
+        // Apply credits to invoice if the total not equal to 0
+        if (total !== 0) {
+          const applyCreditsResponse = await ctx
+            .call('invoices.applyCredits', {
+              id: invoice.invoice.invoiceId,
+            })
+            .then(null, err => err);
+          if (isError(applyCreditsResponse as { message: string; code: number })) {
+            throw new MoleculerError(applyCreditsResponse.message, applyCreditsResponse.code || 500);
+          }
         }
+
         const storeOldSubscription = await ctx.call('subscription.sList', {
           storeId: ctx.params.grantTo || ctx.params.storeId,
           expireDate: { operation: 'gte' },
