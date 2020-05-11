@@ -67,7 +67,7 @@ const TheService: ServiceSchema = {
         // Total items cost
         const itemsCost = items.reduce((a: number, i: GenericObject) => a+=i.rate, 0);
         const totalBeforeTax = itemsCost - ((discount && discount.value) || 0);
-        console.log(ctx.params, totalBeforeTax);
+
         if (totalBeforeTax === 0) {
           return {
             invoice: {
