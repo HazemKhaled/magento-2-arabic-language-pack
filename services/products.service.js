@@ -393,7 +393,6 @@ module.exports = {
             };
           })
           .catch(err => {
-            console.error(err);
             if (err.message.includes('document_missing_exception')) {
               ctx.meta.$statusCode = 404;
               ctx.meta.$statusMessage = 'Not Found';
