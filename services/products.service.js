@@ -376,7 +376,7 @@ module.exports = {
             },
           })
           .then(res => {
-            if (res.result === 'updated')
+            if (res.result === 'updated' || res.result === 'noop')
               return {
                 status: 'success',
                 message: 'Updated successfully!',
@@ -393,6 +393,7 @@ module.exports = {
             };
           })
           .catch(err => {
+            console.error(err);
             if (err.message.includes('document_missing_exception')) {
               ctx.meta.$statusCode = 404;
               ctx.meta.$statusMessage = 'Not Found';
