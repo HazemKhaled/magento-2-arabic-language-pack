@@ -156,9 +156,7 @@ module.exports = {
             size: 100,
           },
         })
-          .then(({results}) => {
-            return { products: results };
-          });
+          .then(({results}) => ({ products: results }));
       },
     },
     updateQuantityAttributes: {
