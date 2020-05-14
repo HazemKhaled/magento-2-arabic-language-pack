@@ -47,14 +47,14 @@ export const AppSearch = (engine: string): ServiceSchema => ({
       const fields = [
         'archive',
         'id',
-        'name_i18n',
+        'name',
         'barcode',
         'images',
         'sku',
         'shipping_terms',
         'seller_id',
         'categories',
-        'description_i18n',
+        'description',
         'attributes',
         'brand',
         'source_url',
@@ -62,7 +62,7 @@ export const AppSearch = (engine: string): ServiceSchema => ({
         'updated',
         'description_tr',
         'variations',
-        'short_description_i18n',
+        'short_description',
         'imported',
       ];
       const isRaw = document.sku && document.sku.raw;
