@@ -87,7 +87,7 @@ export const ProductsListValidation: ServiceSchema = {
           items: {
             type: 'object',
             props: {
-              _id: {
+              id: {
                 type: 'string',
                 convert: true,
               },
@@ -98,6 +98,13 @@ export const ProductsListValidation: ServiceSchema = {
               attribute: {
                 type: 'string',
                 convert: true,
+              },
+              imported: {
+                type: 'array',
+                items: {
+                  type: 'string',
+                },
+                optional: true,
               },
             },
           },
