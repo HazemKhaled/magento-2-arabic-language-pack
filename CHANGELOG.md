@@ -1,5 +1,21 @@
 # Changelog
 
+
+## 1.6.2
+
+### 🚀 Features
+
+- Update to ES v7.6
+
+### 🐛 Fixes
+
+- Oms DB fix module field replace regex
+
+### ✨ Enhancements
+
+- Elastic env variables
+- Oms DB Request add createdAt field
+
 ## 1.6.1
 
 ### 🚀 Features

@@ -1,10 +1,9 @@
 const ESService = require('moleculer-elasticsearch');
 const { MoleculerClientError } = require('moleculer').Errors;
-const { ProductTransformation, ProductsListOpenapi, ProductsListValidation } = require('../utilities/mixins');
-const  { I18nService } = require('../utilities/mixins');
+const { ProductTransformation, ProductsListOpenapi, ProductsListValidation, AppSearch, I18nService } = require('../utilities/mixins');
 module.exports = {
   name: 'products-list',
-  mixins: [I18nService, ProductTransformation, ESService, ProductsListValidation, ProductsListOpenapi],
+  mixins: [I18nService, ProductTransformation, ESService, ProductsListValidation, ProductsListOpenapi, AppSearch('catalog')],
   settings: {
     elasticsearch: {
       host: process.env.ELASTIC_URL,
@@ -145,52 +144,32 @@ module.exports = {
         ttl: 60 * 60 * 5,
       },
       handler(ctx) {
-        return ctx
-          .call('products-list.search', {
-            index: 'products',
-            size: 1000,
-            body: {
-              query: {
-                nested: {
-                  path: 'variations',
-                  query: {
-                    bool: {
-                      filter: {
-                        terms: {
-                          'variations.sku': ctx.params.skus,
-                        },
-                      },
-                    },
-                  },
-                },
+        return this.documentsSearch('cat', {
+          filters: {
+            all: [
+              {
+                variations_skus: ctx.params.skus,
               },
-            },
-          })
-          .then(response => {
-            return { products: response.hits.hits.map(({_source}) => _source) };
-          });
+            ],
+          },
+          page: {
+            size: 100,
+          },
+        })
+          .then(({results}) => ({ products: results }));
       },
     },
     updateQuantityAttributes: {
       handler(ctx) {
-        const bulk = [];
-        ctx.params.products.forEach(product => {
-          bulk.push({
-            update: {
-              _index: 'products',
-              _id: product._id,
-            },
-          });
-          bulk.push({
-            doc: {
-              [product.attribute]: parseInt(product.qty) + 1,
-            },
-          });
+        const bulk = ctx.params.products.map(product => {
+          const body = {
+            id: product.id,
+            [product.attribute]: parseInt(product.qty) + 1,
+          };
+          if (product.imported) body.imported = product.imported;
+          return body;
         });
-        ctx.call('products-list.bulk', {
-          index: 'products',
-          body: bulk,
-        });
+        return this.updateDocuments(bulk);
       },
     },
   },

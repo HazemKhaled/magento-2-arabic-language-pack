@@ -1,8 +1,6 @@
 const { MoleculerClientError } = require('moleculer').Errors;
 const ESService = require('moleculer-elasticsearch');
-const { ProductTransformation } = require('../utilities/mixins/product-transformation.mixin');
-const { ProductsOpenapi } = require('../utilities/mixins/openapi');
-const { ProductsValidation } = require('../utilities/mixins/validation');
+const { ProductsOpenapi, ProductsValidation, ProductTransformation, AppSearch } = require('../utilities/mixins');
 
 module.exports = {
   name: 'products',
@@ -20,7 +18,7 @@ module.exports = {
   /**
    * Service Mixins
    */
-  mixins: [ProductTransformation, ESService, ProductsValidation, ProductsOpenapi],
+  mixins: [ProductTransformation, ESService, ProductsValidation, ProductsOpenapi, AppSearch('catalog')],
 
   /**
    * Actions
@@ -99,6 +97,7 @@ module.exports = {
       handler(ctx) {
         return ctx
           .call('products.count', {
+            index: 'products-instances',
             body: {
               query: {
                 bool: {
@@ -260,31 +259,23 @@ module.exports = {
       auth: 'Bearer',
       handler(ctx) {
         const skus = ctx.params.products.map(i => i.sku);
-        return ctx
-          .call('products.search', {
-            index: 'products',
-            size: skus.length + 1,
-            body: {
-              query: {
-                bool: {
-                  filter: [
-                    {
-                      terms: {
-                        _id: skus,
-                      },
-                    },
-                    {
-                      term: {
-                        archive: false,
-                      },
-                    },
-                  ],
-                },
+        return this.documentsSearch('cat', {
+          filters: {
+            all: [
+              {
+                sku: skus,
               },
-            },
-          })
+              {
+                archive: 'false',
+              },
+            ],
+          },
+          page: {
+            size: 100,
+          },
+        })
           .then(async res => {
-            const newSKUs = res.hits.hits.map(product => product._id);
+            const newSKUs = res.results.map(product => product.id);
             const outOfStock = skus.filter(sku => !newSKUs.includes(sku));
             const instance = await this.broker.call('stores.findInstance', {
               consumerKey: ctx.meta.user,
@@ -295,20 +286,20 @@ module.exports = {
               ctx.meta.$statusMessage = 'Not Found!';
               return {message: 'Product not found'};
             }
-            res.hits.hits.forEach(product => {
+            res.results.forEach(product => {
               bulk.push({
                 index: {
                   _index: 'products-instances',
-                  _id: `${instance.consumer_key}-${product._id}`,
+                  _id: `${instance.consumer_key}-${product.id}`,
                 },
               });
               bulk.push({
                 instanceId: instance.consumer_key,
                 createdAt: new Date(),
-                updated: product._source.updated,
+                updated: product.updated,
                 siteUrl: instance.url,
-                sku: product._id,
-                variations: product._source.variations
+                sku: product.id,
+                variations: product.variations
                   .filter(variation => variation.quantity > 0)
                   .map(variation => ({
                     sku: variation.sku,
@@ -328,16 +319,20 @@ module.exports = {
                   const firstImport = response.items
                     .filter(item => item.index._version === 1)
                     .map(item => item.index._id);
-                  const update = res.hits.hits.filter(product =>
-                    firstImport.includes(`${instance.consumer_key}-${product._id}`),
+                  const update = res.results.filter(product =>
+                    firstImport.includes(`${instance.consumer_key}-${product.id}`),
                   );
                   if (update.length > 0) {
                     ctx.call('products-list.updateQuantityAttributes', {
-                      products: update.map(product => ({
-                        _id: product._id,
-                        qty: product._source.import_qty || 0,
-                        attribute: 'import_qty',
-                      })),
+                      products: update.map(product => {
+                        product.imported = (product.imported || []).push(instance.url);
+                        return {
+                          id: product.id,
+                          qty: product.import_qty || 0,
+                          attribute: 'import_qty',
+                          imported: product.imported,
+                        };
+                      }),
                     });
                   }
                 }
@@ -374,6 +369,7 @@ module.exports = {
         return ctx
           .call('products.update', {
             index: 'products-instances',
+            type: '_doc',
             id: `${ctx.meta.user}-${ctx.params.sku}`,
             body: {
               doc: body,
@@ -440,6 +436,8 @@ module.exports = {
           ? []
           : this.broker
             .call('products.bulk', {
+              index: 'products-instances',
+              type: '_doc',
               body: bulk,
             })
             .then(res => {
@@ -503,24 +501,21 @@ module.exports = {
           })
           .then(res =>
             res.hits.total.value > 0
-              ? this.broker.call('products.search', {
-                index: 'products',
-                _source: _source,
-                body: { query: { bool: { filter: { term: { _id: sku } } } } },
-              })
-              : res,
+              ? this.getDocumentsByIds([sku])
+              : res.hits.hits,
           );
-        if (result.hits.total.value === 0) {
+        if (!result.length) {
           return 404;
         }
         const currencyRate = await this.broker.call('currencies.getCurrency', {
           currencyCode: currency || instance.currency,
         });
-        const source = result.hits.hits[0]._source;
+        const source = result[0];
         return {
           sku: source.sku,
           name: this.formatI18nText(source.name),
           description: this.formatI18nText(source.description),
+          updated: source.updated,
           last_check_date: source.last_check_date,
           supplier: source.seller_id,
           images: source.images,
@@ -534,6 +529,7 @@ module.exports = {
           ),
         };
       } catch (err) {
+        console.log(err);
         return 500;
       }
     },
@@ -584,39 +580,28 @@ module.exports = {
       }
 
       try {
-        const search = await this.broker.call('products.call', {
-          api: 'mget',
-          params: {
-            index: 'products',
-            _source: _source,
-            body: {
-              ids: instanceProducts,
-            },
-          },
-        });
-        const results = search.docs;
-
+        const results = await this.getDocumentsByIds(instanceProducts);
         const currencyRate = await this.broker.call('currencies.getCurrency', {
           currencyCode: currency || instance.currency,
         });
         try {
           const products = results.map((product, n) => {
-            if (product.found) {
-              const source = product._source;
+            if (product) {
               const p = {
-                sku: source.sku,
-                name: this.formatI18nText(source.name),
-                description: this.formatI18nText(source.description),
-                supplier: source.seller_id,
-                images: source.images,
-                last_check_date: source.last_check_date,
-                categories: this.formatCategories(source.categories),
-                attributes: this.formatAttributes(source.attributes || []),
+                sku: product.sku,
+                name: this.formatI18nText(product.name),
+                description: this.formatI18nText(product.description),
+                supplier: product.seller_id,
+                images: product.images,
+                updated: product.updated,
+                last_check_date: product.last_check_date,
+                categories: this.formatCategories(product.categories),
+                attributes: this.formatAttributes(product.attributes || []),
                 variations: this.formatVariations(
-                  source.variations,
+                  product.variations,
                   instance,
                   currencyRate.rate,
-                  source.archive,
+                  product.archive,
                   instanceProductsFull.page[n]._source.variations,
                 ),
               };
@@ -632,25 +617,20 @@ module.exports = {
             }
 
             // In case product not found at products instance
-            if (product._id) {
-              const blankProduct = {
-                sku: product._id,
-                images: [],
-                categories: [],
-              };
-              instanceProductsFull.page.forEach(instanceProduct => {
-                const productSource = instanceProduct._source;
-                if (productSource.sku === product._id && productSource.variations) {
-                  blankProduct.variations = productSource.variations.map(variation => {
-                    const variant = variation;
-                    variant.quantity = 0;
-                    return variant;
-                  });
-                }
+            const blankProduct = {
+              sku: instanceProductsFull.page[n]._id,
+              images: [],
+              categories: [],
+            };
+            instanceProductsFull.page.forEach(instanceProduct => {
+              const productSource = instanceProduct._source;
+              blankProduct.variations = productSource.variations.map(variation => {
+                const variant = variation;
+                variant.quantity = 0;
+                return variant;
               });
-              return blankProduct;
-            }
-            return [];
+            });
+            return blankProduct;
           });
 
           return {
@@ -658,6 +638,7 @@ module.exports = {
             total: instanceProductsFull.totalProducts,
           };
         } catch (err) {
+          this.logger.error(err);
           return new MoleculerClientError(err);
         }
       } catch (err) {
@@ -828,6 +809,7 @@ module.exports = {
       return this.broker
         .call('products.update', {
           index: 'products-instances',
+          type: '_doc',
           id: `${id}-${sku}`,
           body: {
             doc: {

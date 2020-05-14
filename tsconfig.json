@@ -16,7 +16,7 @@
       "node"
     ],
     "sourceMap": true,
-    "target": "es2017",
+    "target": "es2019",
     "baseUrl": "./"
   },
   "exclude": [
