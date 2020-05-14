@@ -376,7 +376,7 @@ module.exports = {
             },
           })
           .then(res => {
-            if (res.result === 'updated')
+            if (res.result === 'updated' || res.result === 'noop')
               return {
                 status: 'success',
                 message: 'Updated successfully!',
