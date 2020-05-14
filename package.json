@@ -10,7 +10,7 @@
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc -w",
-    "dev": "env $(cat ./docker/development/.env) ts-node ./node_modules/moleculer/bin/moleculer-runner.js --hot --repl --config moleculer.config.ts services/**/*.service.ts",
+    "dev": "npm run lint && env $(cat ./docker/development/.env) ts-node ./node_modules/moleculer/bin/moleculer-runner.js --hot --repl --config moleculer.config.ts services/**/*.service.ts",
     "cli": "moleculer connect TCP",
     "start": "moleculer-runner services",
     "deps": "npm-check -u",
