@@ -618,7 +618,7 @@ module.exports = {
 
             // In case product not found at products instance
             const blankProduct = {
-              sku: instanceProductsFull.page[n]._id,
+              sku: instanceProductsFull.page[n]._source.sku,
               images: [],
               categories: [],
             };
