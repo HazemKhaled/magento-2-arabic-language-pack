@@ -488,8 +488,7 @@ const ProductsList = {
       required: false,
       description: 'filter with or without externalId',
       schema: {
-        type: 'string',
-        'enum': ['0', '1'],
+        type: 'number',
       },
     },
     {

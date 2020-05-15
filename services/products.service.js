@@ -725,15 +725,15 @@ module.exports = {
           }
 
           // Add filter if the product has external ID or not
-          switch(hasExternalId) {
-          case '1':
+          switch(!!Number(hasExternalId)) {
+          case true:
             searchQuery.body.query.bool.must.push({
               exists: {
                 field: 'externalId',
               },
             });
             break;
-          case '0':
+          case false:
             mustNot.push({
               exists: {
                 field: 'externalId',
