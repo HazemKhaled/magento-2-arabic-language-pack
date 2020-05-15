@@ -483,6 +483,16 @@ const ProductsList = {
       },
     },
     {
+      name: 'hasExternalId',
+      'in': 'query',
+      required: false,
+      description: 'filter with or without externalId',
+      schema: {
+        type: 'string',
+        'enum': ['true', 'false'],
+      },
+    },
+    {
       name: 'hideOutOfStock',
       'in': 'query',
       required: false,
