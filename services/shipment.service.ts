@@ -38,6 +38,8 @@ const Shipment: ServiceSchema = {
             _id: ctx.params.name,
             countries: ctx.params.countries,
             rules: ctx.params.rules,
+            createdAt: new Date(),
+            updatedAt: new Date(),
           })
           .then(() => {
             this.broker.cacher.clean('shipment.**');
@@ -63,6 +65,7 @@ const Shipment: ServiceSchema = {
               $set: {
                 countries: ctx.params.countries,
                 rules: ctx.params.rules,
+                updatedAt: new Date(),
               },
             },
           )

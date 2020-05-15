@@ -13,4 +13,6 @@ export interface Subscription {
     startDate: Date;
     expireDate: Date;
     donor?: string;
+    createdAt: Date;
+    updatedAt: Date;
   }
