@@ -55,7 +55,7 @@ export const ProductsValidation: ServiceSchema = {
         },
         hasExternalId: {
           type: 'enum',
-          values: ['true', 'false'],
+          values: ['0', '1'],
           optional: true,
         },
         currency: {
