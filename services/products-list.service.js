@@ -111,6 +111,7 @@ module.exports = {
         default:
           break;
         }
+
         if (ctx.params.images) {
           filter.push({
             script: {
@@ -120,11 +121,12 @@ module.exports = {
             },
           });
         }
+
         const body = {
           sort: sort,
           query: {
             bool: {
-              filter: filter,
+              filter,
             },
           },
         };

@@ -53,6 +53,12 @@ export const ProductsValidation: ServiceSchema = {
           type: 'string',
           optional: true,
         },
+        hasExternalId: {
+          type: 'number',
+          empty: false,
+          convert: true,
+          optional: true,
+        },
         currency: {
           type: 'string',
           optional: true,
