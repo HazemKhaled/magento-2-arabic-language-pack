@@ -688,7 +688,7 @@ module.exports = {
             body: {
               sort: [
                 {
-                  createdAt: {
+                  updated: {
                     order: 'asc',
                   },
                 },
