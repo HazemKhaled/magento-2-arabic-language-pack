@@ -325,7 +325,7 @@ module.exports = {
                   if (update.length > 0) {
                     ctx.call('products-list.updateQuantityAttributes', {
                       products: update.map(product => {
-                        product.imported = (product.imported || []).push(instance.url);
+                        product.imported = (product.imported || []).concat([instance.url]);
                         return {
                           id: product.id,
                           qty: product.import_qty || 0,
