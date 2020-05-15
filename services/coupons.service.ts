@@ -16,10 +16,6 @@ const TheService: ServiceSchema = {
         // Different coupon types validation
         this.couponTypeCheck(ctx.params);
 
-        // Add created and updated dates of the coupon
-        ctx.params.createdAt = new Date();
-        ctx.params.updatedAt = new Date();
-
         return this.adapter
           .insert(this.createCouponSanitize(ctx.params))
           .then((res: Coupon) => {
@@ -201,6 +197,8 @@ const TheService: ServiceSchema = {
         minAppliedAmount: params.minAppliedAmount || 0,
         appliedMemberships: params.appliedMemberships,
         auto: params.auto, // Auto apply 'boolean'
+        createdAt: new Date(),  // Add created and updated dates of the coupon
+        updatedAt: new Date(),
       };
     },
     /**
