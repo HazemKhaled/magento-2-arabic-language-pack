@@ -14,6 +14,11 @@ const TheService: ServiceSchema = {
       auth: 'Basic',
       async handler(ctx: Context): Promise<Membership> {
         const { params } = ctx;
+
+        // Add created and updated dates of the coupon
+        params.createdAt = new Date();
+        params.updatedAt = new Date();
+
         params._id = `m-${params.id || Date.now()}`;
         delete params.id;
         if (params.isDefault) {
@@ -100,7 +105,7 @@ const TheService: ServiceSchema = {
         const id = params.id;
         delete params.id;
         return this.adapter
-          .updateById(id, { $set: { ...params } })
+          .updateById(id, { $set: { ...params, updatedAt: new Date() } })
           .then((res: Membership) => {
             this.broker.cacher.clean('membership.list:**');
             this.broker.cacher.clean(`membership.get:${id}**`);
