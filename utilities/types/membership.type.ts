@@ -20,4 +20,6 @@ export interface Membership {
   paymentFrequency: number;
   paymentFrequencyType: 'month' | 'year';
   attributes: { [key: string]: any };
+  createdAt: Date;
+  updatedAt: Date;
 }

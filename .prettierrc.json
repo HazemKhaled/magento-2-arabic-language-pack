@@ -3,6 +3,14 @@
   "tabWidth": 2,
   "printWidth": 100,
   "useTabs": false,
-  "arrowParens": "avoid",
-  "quoteProps": "as-needed"
+  "overrides": [
+    {
+      "files": [
+        "*.ts"
+      ],
+      "options": {
+        "parser": "babel-ts"
+      }
+    }
+  ]
 }

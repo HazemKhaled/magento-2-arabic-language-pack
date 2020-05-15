@@ -143,7 +143,10 @@ const TheService: ServiceSchema = {
         if (membership.isDefault) {
           throw new MoleculerError('Could not create subscription for default memberships!', 405);
         }
+
+        // Membership cost before tax or discount
         const cost = membership.cost;
+
         let discount = 0;
         if (coupon) {
           switch (coupon.discount.total.type) {
@@ -156,27 +159,35 @@ const TheService: ServiceSchema = {
           }
         }
         discount = Math.max(discount, membership.discount);
+
+        // Get the Store instance
         const instance = await ctx
           .call('stores.sGet', { id: ctx.params.storeId })
           .then(null, err => err);
-        if (isError(instance as { message: string; code: number })) {
-          throw new MoleculerError(instance.message, instance.code || 500);
-        }
+        // Check for instance errors
         if (instance.errors) {
           throw new MoleculerError(instance.errors[0].message, 404);
         }
 
-        const taxData = await this.getTaxWithCalc(instance, { taxClass: 'service', rate: cost });
+        if (isError(instance as { message: string; code: number })) {
+          throw new MoleculerError(instance.message, instance.code || 500);
+        }
+        let total = +(cost - discount).toFixed(2);
 
-        if (instance.credit < +(cost + taxData.value - discount).toFixed(2)) {
-          const total = +(cost + (taxData.value || 0) - discount).toFixed(2);
-          if (instance.credit < total) {
-            await ctx.call('paymentGateway.charge', {
-              storeId: instance.url,
-              amount: total - instance.credit,
-              force: true,
-            });
-          }
+        // Get taxes info
+        const taxData = await this.getTaxWithCalc(instance, { taxClass: 'service', rate: cost });
+        if (taxData.value) {
+          total = +(total + (total * taxData.percentage / 100)).toFixed(2);
+        }
+
+        if (instance.credit < total) {
+          // TODO:: This should be added when payment is online
+          // await ctx.call('paymentGateway.charge', {
+          //   storeId: instance.url,
+          //   amount: total - instance.credit,
+          //   force: true,
+          // });
+          throw new MoleculerError('You don\'t have enough balance', 401);
         }
 
         const invoiceBody: { [key: string]: any } = {
@@ -213,14 +224,19 @@ const TheService: ServiceSchema = {
           throw new MoleculerError(invoice.message, invoice.code || 500);
         }
         ctx.meta.user = instance.consumer_key;
-        const applyCreditsResponse = await ctx
-          .call('invoices.applyCredits', {
-            id: invoice.invoice.invoiceId,
-          })
-          .then(null, err => err);
-        if (isError(applyCreditsResponse as { message: string; code: number })) {
-          throw new MoleculerError(applyCreditsResponse.message, applyCreditsResponse.code || 500);
+
+        // Apply credits to invoice if the total not equal to 0
+        if (total !== 0) {
+          const applyCreditsResponse = await ctx
+            .call('invoices.applyCredits', {
+              id: invoice.invoice.invoiceId,
+            })
+            .then(null, err => err);
+          if (isError(applyCreditsResponse as { message: string; code: number })) {
+            throw new MoleculerError(applyCreditsResponse.message, applyCreditsResponse.code || 500);
+          }
         }
+
         const storeOldSubscription = await ctx.call('subscription.sList', {
           storeId: ctx.params.grantTo || ctx.params.storeId,
           expireDate: { operation: 'gte' },
@@ -256,6 +272,8 @@ const TheService: ServiceSchema = {
           invoiceId: invoice.invoice.invoiceId,
           startDate,
           expireDate,
+          createdAt: new Date(),
+          updatedAt: new Date(),
         };
 
         if (ctx.params.grantTo) {
@@ -339,7 +357,7 @@ const TheService: ServiceSchema = {
     updateSubscription: {
       auth: 'Basic',
       handler(ctx: Context) {
-        let $set: { [key: string]: string } = {};
+        let $set: { [key: string]: string | Date } = {};
         const { params } = ctx;
         if (ctx.params.retries) {
           $set.retries = ctx.params.retries.map((i: Date) => new Date(i));
@@ -350,7 +368,7 @@ const TheService: ServiceSchema = {
         if (ctx.params.expireDate) {
           params.expireDate = new Date(params.expireDate);
         }
-        $set = { ...params, ...$set };
+        $set = { ...params, ...$set, updatedAt: new Date() };
         delete $set.id;
         return this.adapter
           .updateById(ctx.params.id, { $set })

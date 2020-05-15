@@ -211,7 +211,7 @@ const TheService: ServiceSchema = {
         .then(async res => {
           const parsedRes = await res.json();
           this.adapter.insert({
-            module: path.replace(/([a-z]+)\/.*/, '$1'),
+            module: path.replace(/([a-z]+)[\/|\?].*/, '$1'),
             path,
             method,
             body,

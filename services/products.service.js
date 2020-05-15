@@ -1,8 +1,6 @@
 const { MoleculerClientError } = require('moleculer').Errors;
 const ESService = require('moleculer-elasticsearch');
-const { ProductTransformation } = require('../utilities/mixins/product-transformation.mixin');
-const { ProductsOpenapi } = require('../utilities/mixins/openapi');
-const { ProductsValidation } = require('../utilities/mixins/validation');
+const { ProductsOpenapi, ProductsValidation, ProductTransformation, AppSearch } = require('../utilities/mixins');
 
 module.exports = {
   name: 'products',
@@ -20,7 +18,7 @@ module.exports = {
   /**
    * Service Mixins
    */
-  mixins: [ProductTransformation, ESService, ProductsValidation, ProductsOpenapi],
+  mixins: [ProductTransformation, ESService, ProductsValidation, ProductsOpenapi, AppSearch('catalog')],
 
   /**
    * Actions
@@ -99,6 +97,7 @@ module.exports = {
       handler(ctx) {
         return ctx
           .call('products.count', {
+            index: 'products-instances',
             body: {
               query: {
                 bool: {
@@ -160,6 +159,7 @@ module.exports = {
           'hideOutOfStock',
           'keyword',
           'externalId',
+          'hasExternalId',
           'currency',
           '_source',
         ],
@@ -167,37 +167,20 @@ module.exports = {
         monitor: true,
       },
       async handler(ctx) {
-        const { page, limit, lastupdate = '' } = ctx.params;
-        let { _source } = ctx.params;
-        const fields = [
-          'sku',
-          'name',
-          'description',
-          'last_stock_check',
-          'seller_id',
-          'images',
-          'last_check_date',
-          'categories',
-          'attributes',
-          'variations',
-        ];
-        // _source contains specific to be returned
-        if (Array.isArray(_source)) {
-          _source = _source.map(field => (fields.includes(field) ? field : null));
-        } else {
-          _source = fields.includes(_source) ? _source : null;
-        }
-        const products = await this.findProducts(
+        const { page, limit, lastupdate = '', hideOutOfStock, keyword, externalId, currency, hasExternalId } = ctx.params;
+
+        const products = await this.findProducts({
           page,
-          limit,
-          ctx.meta.user,
-          _source,
+          size: limit,
+          instanceId: ctx.meta.user,
           lastupdate,
-          ctx.params.hideOutOfStock,
-          ctx.params.keyword,
-          ctx.params.externalId,
-          ctx.params.currency,
-        );
+          hideOutOfStock,
+          keyword,
+          externalId,
+          currency,
+          hasExternalId,
+        });
+
         // Emit async Event
         ctx.emit('list.afterRemote', ctx);
         return products;
@@ -260,31 +243,23 @@ module.exports = {
       auth: 'Bearer',
       handler(ctx) {
         const skus = ctx.params.products.map(i => i.sku);
-        return ctx
-          .call('products.search', {
-            index: 'products',
-            size: skus.length + 1,
-            body: {
-              query: {
-                bool: {
-                  filter: [
-                    {
-                      terms: {
-                        _id: skus,
-                      },
-                    },
-                    {
-                      term: {
-                        archive: false,
-                      },
-                    },
-                  ],
-                },
+        return this.documentsSearch('cat', {
+          filters: {
+            all: [
+              {
+                sku: skus,
               },
-            },
-          })
+              {
+                archive: 'false',
+              },
+            ],
+          },
+          page: {
+            size: 100,
+          },
+        })
           .then(async res => {
-            const newSKUs = res.hits.hits.map(product => product._id);
+            const newSKUs = res.results.map(product => product.id);
             const outOfStock = skus.filter(sku => !newSKUs.includes(sku));
             const instance = await this.broker.call('stores.findInstance', {
               consumerKey: ctx.meta.user,
@@ -295,20 +270,20 @@ module.exports = {
               ctx.meta.$statusMessage = 'Not Found!';
               return {message: 'Product not found'};
             }
-            res.hits.hits.forEach(product => {
+            res.results.forEach(product => {
               bulk.push({
                 index: {
                   _index: 'products-instances',
-                  _id: `${instance.consumer_key}-${product._id}`,
+                  _id: `${instance.consumer_key}-${product.id}`,
                 },
               });
               bulk.push({
                 instanceId: instance.consumer_key,
                 createdAt: new Date(),
-                updated: product._source.updated,
+                updated: product.updated,
                 siteUrl: instance.url,
-                sku: product._id,
-                variations: product._source.variations
+                sku: product.id,
+                variations: product.variations
                   .filter(variation => variation.quantity > 0)
                   .map(variation => ({
                     sku: variation.sku,
@@ -328,16 +303,20 @@ module.exports = {
                   const firstImport = response.items
                     .filter(item => item.index._version === 1)
                     .map(item => item.index._id);
-                  const update = res.hits.hits.filter(product =>
-                    firstImport.includes(`${instance.consumer_key}-${product._id}`),
+                  const update = res.results.filter(product =>
+                    firstImport.includes(`${instance.consumer_key}-${product.id}`),
                   );
                   if (update.length > 0) {
                     ctx.call('products-list.updateQuantityAttributes', {
-                      products: update.map(product => ({
-                        _id: product._id,
-                        qty: product._source.import_qty || 0,
-                        attribute: 'import_qty',
-                      })),
+                      products: update.map(product => {
+                        product.imported = (product.imported || []).concat([instance.url]);
+                        return {
+                          id: product.id,
+                          qty: product.import_qty || 0,
+                          attribute: 'import_qty',
+                          imported: product.imported,
+                        };
+                      }),
                     });
                   }
                 }
@@ -374,13 +353,14 @@ module.exports = {
         return ctx
           .call('products.update', {
             index: 'products-instances',
+            type: '_doc',
             id: `${ctx.meta.user}-${ctx.params.sku}`,
             body: {
               doc: body,
             },
           })
           .then(res => {
-            if (res.result === 'updated')
+            if (res.result === 'updated' || res.result === 'noop')
               return {
                 status: 'success',
                 message: 'Updated successfully!',
@@ -440,6 +420,8 @@ module.exports = {
           ? []
           : this.broker
             .call('products.bulk', {
+              index: 'products-instances',
+              type: '_doc',
               body: bulk,
             })
             .then(res => {
@@ -503,24 +485,21 @@ module.exports = {
           })
           .then(res =>
             res.hits.total.value > 0
-              ? this.broker.call('products.search', {
-                index: 'products',
-                _source: _source,
-                body: { query: { bool: { filter: { term: { _id: sku } } } } },
-              })
-              : res,
+              ? this.getDocumentsByIds([sku])
+              : res.hits.hits,
           );
-        if (result.hits.total.value === 0) {
+        if (!result.length) {
           return 404;
         }
         const currencyRate = await this.broker.call('currencies.getCurrency', {
           currencyCode: currency || instance.currency,
         });
-        const source = result.hits.hits[0]._source;
+        const source = result[0];
         return {
           sku: source.sku,
           name: this.formatI18nText(source.name),
           description: this.formatI18nText(source.description),
+          updated: source.updated,
           last_check_date: source.last_check_date,
           supplier: source.seller_id,
           images: source.images,
@@ -534,6 +513,7 @@ module.exports = {
           ),
         };
       } catch (err) {
+        console.log(err);
         return 500;
       }
     },
@@ -550,22 +530,23 @@ module.exports = {
      * @returns {Array} Products
      * @memberof ElasticLib
      */
-    async findProducts(
+    async findProducts({
       page,
       size = 10,
       instanceId,
-      _source,
       lastupdate = '',
       hideOutOfStock,
       keyword,
       externalId,
+      hasExternalId,
       currency,
-    ) {
+    }) {
       const instance = await this.broker.call('stores.findInstance', {
         consumerKey: instanceId,
         lastUpdated: lastupdate,
       });
-      const instanceProductsFull = await this.findIP(
+
+      const instanceProductsFull = await this.findIP({
         page,
         size,
         instanceId,
@@ -573,7 +554,8 @@ module.exports = {
         hideOutOfStock,
         keyword,
         externalId,
-      );
+        hasExternalId,
+      });
 
       const instanceProducts = instanceProductsFull.page.map(product => product._source.sku);
       if (instanceProducts.length === 0) {
@@ -584,82 +566,55 @@ module.exports = {
       }
 
       try {
-        const search = await this.broker.call('products.call', {
-          api: 'mget',
-          params: {
-            index: 'products',
-            _source: _source,
-            body: {
-              ids: instanceProducts,
-            },
-          },
-        });
-        const results = search.docs;
-
+        const results = await this.getDocumentsByIds(instanceProducts);
         const currencyRate = await this.broker.call('currencies.getCurrency', {
           currencyCode: currency || instance.currency,
         });
-        try {
-          const products = results.map((product, n) => {
-            if (product.found) {
-              const source = product._source;
-              const p = {
-                sku: source.sku,
-                name: this.formatI18nText(source.name),
-                description: this.formatI18nText(source.description),
-                supplier: source.seller_id,
-                images: source.images,
-                last_check_date: source.last_check_date,
-                categories: this.formatCategories(source.categories),
-                attributes: this.formatAttributes(source.attributes || []),
-                variations: this.formatVariations(
-                  source.variations,
-                  instance,
-                  currencyRate.rate,
-                  source.archive,
-                  instanceProductsFull.page[n]._source.variations,
-                ),
-              };
-              try {
-                if (typeof instanceProductsFull.page[n]._source.externalId !== 'undefined')
-                  p.externalId = instanceProductsFull.page[n]._source.externalId;
-                if (typeof instanceProductsFull.page[n]._source.externalUrl !== 'undefined')
-                  p.externalUrl = instanceProductsFull.page[n]._source.externalUrl;
-              } catch (err) {
-                this.logger.info(err);
-              }
-              return p;
-            }
 
-            // In case product not found at products instance
-            if (product._id) {
-              const blankProduct = {
-                sku: product._id,
-                images: [],
-                categories: [],
-              };
-              instanceProductsFull.page.forEach(instanceProduct => {
-                const productSource = instanceProduct._source;
-                if (productSource.sku === product._id && productSource.variations) {
-                  blankProduct.variations = productSource.variations.map(variation => {
-                    const variant = variation;
-                    variant.quantity = 0;
-                    return variant;
-                  });
-                }
-              });
-              return blankProduct;
-            }
-            return [];
-          });
+        const products = results.map((product, n) => {
+          if (product) {
+            return {
+              sku: product.sku,
+              name: this.formatI18nText(product.name),
+              description: this.formatI18nText(product.description),
+              supplier: product.seller_id,
+              images: product.images,
+              updated: product.updated,
+              last_check_date: product.last_check_date,
+              categories: this.formatCategories(product.categories),
+              attributes: this.formatAttributes(product.attributes || []),
+              variations: this.formatVariations(
+                product.variations,
+                instance,
+                currencyRate.rate,
+                product.archive,
+                instanceProductsFull.page[n]._source.variations,
+              ),
+              externalId: instanceProductsFull.page[n]._source.externalId,
+              externalUrl: instanceProductsFull.page[n]._source.externalUrl,
+            };
+          }
 
-          return {
-            products: products.filter(product => !!product && product.variations.length !== 0),
-            total: instanceProductsFull.totalProducts,
+          // In case product not found at products instance
+          const blankProduct = {
+            sku: instanceProductsFull.page[n]._source.sku,
+            images: [],
+            categories: [],
+            externalId: instanceProductsFull.page[n]._source.externalId,
+            externalUrl: instanceProductsFull.page[n]._source.externalUrl,
           };
-        } catch (err) {
-          return new MoleculerClientError(err);
-        }
+          blankProduct.variations = instanceProductsFull.page[n]._source.variations.map(variation => {
+            variation.quantity = 0;
+            return variation;
+          });
+          return blankProduct;
+        });
+
+        return {
+          products: products.filter(product => !!product && product.variations.length !== 0),
+          total: instanceProductsFull.totalProducts,
+        };
+
       } catch (err) {
         return new MoleculerClientError(err);
       }
@@ -679,7 +634,7 @@ module.exports = {
      * @param {number} [maxScroll=0] just tracking to total products number to the scroll limit to stop if no more products
      * @returns {array} Instance Products
      */
-    async findIP(
+    async findIP({
       page = 1,
       size = 10,
       instanceId,
@@ -687,17 +642,19 @@ module.exports = {
       hideOutOfStock,
       keyword,
       externalId,
+      hasExternalId,
       fullResult = [],
       endTrace = 0,
       scrollId = false,
       maxScroll = 0,
-    ) {
+    }) {
       page = parseInt(page) || 1;
       let search = [];
       const mustNot =
         parseInt(hideOutOfStock) === 1
           ? [{ term: { deleted: true} }, { term: { archive: true } }]
           : [{term: { deleted: true }}];
+
       try {
         if (!scrollId) {
           const searchQuery = {
@@ -707,7 +664,7 @@ module.exports = {
             body: {
               sort: [
                 {
-                  createdAt: {
+                  updated: {
                     order: 'asc',
                   },
                 },
@@ -766,6 +723,24 @@ module.exports = {
             ];
             searchQuery.body.query.bool.minimum_should_match = 1;
           }
+
+          // Add filter if the product has external ID or not
+          switch(!!Number(hasExternalId)) {
+          case true:
+            searchQuery.body.query.bool.must.push({
+              exists: {
+                field: 'externalId',
+              },
+            });
+            break;
+          case false:
+            mustNot.push({
+              exists: {
+                field: 'externalId',
+              },
+            });
+          }
+
           if (page * size <= 10000) {
             this.logger.info('NO NEED FOR SCROLL YA M3LM');
             searchQuery.from = (page - 1) * size;
@@ -793,7 +768,7 @@ module.exports = {
           maxScroll -= parseInt(process.env.SCROLL_LIMIT);
           endTrace -= parseInt(process.env.SCROLL_LIMIT);
 
-          return this.findIP(
+          return this.findIP({
             page,
             size,
             instanceId,
@@ -801,11 +776,12 @@ module.exports = {
             hideOutOfStock,
             keyword,
             externalId,
-            results,
+            hasExternalId,
+            fullResult: results,
             endTrace,
-            search._scroll_id,
+            scrollId: search._scroll_id,
             maxScroll,
-          );
+          });
         }
         return {
           page: scrollId ? results.slice(page * size - size, page * size) : results,
@@ -828,6 +804,7 @@ module.exports = {
       return this.broker
         .call('products.update', {
           index: 'products-instances',
+          type: '_doc',
           id: `${id}-${sku}`,
           body: {
             doc: {

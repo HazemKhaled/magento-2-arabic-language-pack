@@ -230,7 +230,7 @@ const TheService: ServiceSchema = {
       auth: 'Basic',
       async handler(ctx: Context) {
         // Clear cache
-        this.broker.cacher.clean(`stores.sGet:${ctx.params.url}`);
+        this.broker.cacher.clean(`stores.sGet:${ctx.params.url}**`);
 
         // Sanitize request params
         const store: Store = this.sanitizeStoreParams(ctx.params, true);
@@ -409,6 +409,8 @@ const TheService: ServiceSchema = {
           this.broker.cacher.clean(`orders.list:${instance.consumer_key}*`);
           this.broker.cacher.clean(`invoices.get:${instance.consumer_key}*`);
           this.broker.cacher.clean(`subscription.get:${instance.url}*`);
+          this.broker.cacher.clean(`stores.sGet:${instance.url}**`);
+          this.broker.cacher.clean(`stores.me:${instance.consumer_key}**`);
           return ctx.call('stores.update', {
             id: storeId,
             internal_data: instance.internal_data,
@@ -718,7 +720,11 @@ const TheService: ServiceSchema = {
         ...store,
         ...myStore,
       };
-      this.broker.cacher.set(`stores.sGet:${myStore.url}`, myStore);
+
+      // Set normal with balance
+      this.broker.cacher.set(`stores.sGet:${myStore.url}|undefined`, myStore);
+      // Set withoutBalance
+      this.broker.cacher.set(`stores.sGet:${myStore.url}|1`, myStore);
       this.broker.cacher.set(`stores.me:${myStore.consumer_key}`, myStore);
     },
   },

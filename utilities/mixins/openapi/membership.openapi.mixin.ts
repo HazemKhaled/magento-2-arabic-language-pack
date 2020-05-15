@@ -38,6 +38,7 @@ const MembershipSchema = {
     attributes: { type: 'object', properties: {} },
     totals: {
       type: 'object',
+      readOnly: true,
       properties: {
         cost: { type: 'number' },
         taxData: {
