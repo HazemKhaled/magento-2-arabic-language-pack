@@ -722,20 +722,22 @@ module.exports = {
           }
 
           // Add filter if the product has external ID or not
-          switch(!!Number(hasExternalId)) {
-          case true:
-            searchQuery.body.query.bool.must.push({
-              exists: {
-                field: 'externalId',
-              },
-            });
-            break;
-          case false:
-            mustNot.push({
-              exists: {
-                field: 'externalId',
-              },
-            });
+          if (hasExternalId && hasExternalId !== '') {
+            switch(!!Number(hasExternalId)) {
+            case true:
+              searchQuery.body.query.bool.must.push({
+                exists: {
+                  field: 'externalId',
+                },
+              });
+              break;
+            case false:
+              mustNot.push({
+                exists: {
+                  field: 'externalId',
+                },
+              });
+            }
           }
 
           if (page * size <= 10000) {
