@@ -575,6 +575,7 @@ module.exports = {
               supplier: product.seller_id,
               images: product.images,
               updated: instanceProductsFull.page[n]._source.updated,
+              created: instanceProductsFull.page[n]._source.createdAt,
               last_check_date: product.last_check_date,
               categories: this.formatCategories(product.categories),
               attributes: this.formatAttributes(product.attributes || []),
@@ -656,7 +657,7 @@ module.exports = {
             body: {
               sort: [
                 {
-                  updated: {
+                  createdAt: {
                     order: 'asc',
                   },
                 },
