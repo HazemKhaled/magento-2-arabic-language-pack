@@ -645,10 +645,7 @@ module.exports = {
     }) {
       page = parseInt(page) || 1;
       let search = [];
-      const mustNot =
-        parseInt(hideOutOfStock) === 1
-          ? [{ term: { deleted: true} }, { term: { archive: true } }]
-          : [{term: { deleted: true }}];
+      const mustNot = [{term: { deleted: true }}];
 
       try {
         if (!scrollId) {
@@ -717,6 +714,15 @@ module.exports = {
               },
             ];
             searchQuery.body.query.bool.minimum_should_match = 1;
+          }
+
+          // Hide out of stock
+          if (hideOutOfStock && hideOutOfStock !== '') {
+            searchQuery.body.query.bool.must_not.push({
+              term: {
+                archive: Number(hideOutOfStock) === 1,
+              },
+            });
           }
 
           // Add filter if the product has external ID or not
