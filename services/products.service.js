@@ -554,7 +554,7 @@ module.exports = {
         hasExternalId,
       });
 
-      const instanceProducts = instanceProductsFull.page.map(product => product._source.sku);
+      const instanceProducts = instanceProductsFull.page ? instanceProductsFull.page.map(product => product._source.sku) : [];
       if (instanceProducts.length === 0) {
         return {
           products: [],
@@ -785,6 +785,7 @@ module.exports = {
           totalProducts: search.hits.total.value,
         };
       } catch (err) {
+        console.error(err);
         return new MoleculerClientError(err);
       }
     },
