@@ -280,7 +280,6 @@ module.exports = {
               bulk.push({
                 instanceId: instance.consumer_key,
                 createdAt: new Date(),
-                updated: product.updated,
                 siteUrl: instance.url,
                 sku: product.id,
                 variations: product.variations
@@ -499,7 +498,6 @@ module.exports = {
           sku: source.sku,
           name: this.formatI18nText(source.name),
           description: this.formatI18nText(source.description),
-          updated: source.updated,
           last_check_date: source.last_check_date,
           supplier: source.seller_id,
           images: source.images,
@@ -576,7 +574,7 @@ module.exports = {
               description: this.formatI18nText(product.description),
               supplier: product.seller_id,
               images: product.images,
-              updated: product.updated,
+              updated: instanceProductsFull.page[n]._source.updated,
               last_check_date: product.last_check_date,
               categories: this.formatCategories(product.categories),
               attributes: this.formatAttributes(product.attributes || []),
