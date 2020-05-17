@@ -706,13 +706,6 @@ module.exports = {
                   },
                 },
               },
-              {
-                range: {
-                  createdAt: {
-                    gte: lastUpdatedDate,
-                  },
-                },
-              },
             ];
             searchQuery.body.query.bool.minimum_should_match = 1;
           }
