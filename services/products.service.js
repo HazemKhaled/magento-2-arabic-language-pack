@@ -167,13 +167,13 @@ module.exports = {
         monitor: true,
       },
       async handler(ctx) {
-        const { page, limit, lastupdate = '', hideOutOfStock, keyword, externalId, currency, hasExternalId } = ctx.params;
+        const { page, limit, lastupdate: lastUpdated = 0, hideOutOfStock, keyword, externalId, currency, hasExternalId } = ctx.params;
 
         const products = await this.findProducts({
           page,
           size: limit,
           instanceId: ctx.meta.user,
-          lastupdate,
+          lastUpdated: Number(lastUpdated),
           hideOutOfStock,
           keyword,
           externalId,
@@ -525,7 +525,7 @@ module.exports = {
      * @param {number} size
      * @param {string} instanceId
      * @param {array} _source
-     * @param {string} [lastupdate='']
+     * @param {string} [lastUpdated=0]
      * @param {string} keyword
      * @returns {Array} Products
      * @memberof ElasticLib
@@ -534,23 +534,20 @@ module.exports = {
       page,
       size = 10,
       instanceId,
-      lastupdate = '',
+      lastUpdated = 0,
       hideOutOfStock,
       keyword,
       externalId,
       hasExternalId,
       currency,
     }) {
-      const instance = await this.broker.call('stores.findInstance', {
-        consumerKey: instanceId,
-        lastUpdated: lastupdate,
-      });
+      const instance = await this.broker.call('stores.findInstance', { consumerKey: instanceId });
 
       const instanceProductsFull = await this.findIP({
         page,
         size,
         instanceId,
-        lastupdate,
+        lastUpdated,
         hideOutOfStock,
         keyword,
         externalId,
@@ -626,7 +623,7 @@ module.exports = {
      * @param {number} [page=1]
      * @param {number} [size=10]
      * @param {object} instance
-     * @param {string} [lastUpdated='']
+     * @param {string} [lastUpdated=0]
      * @param {string} keyword
      * @param {array} [fullResult=[]] Array of products last recursive call
      * @param {number} [endTrace=0]  to trace the end product needed and stop scrolling after reaching it
@@ -638,7 +635,7 @@ module.exports = {
       page = 1,
       size = 10,
       instanceId,
-      lastUpdated = '',
+      lastUpdated = 0,
       hideOutOfStock,
       keyword,
       externalId,
@@ -703,8 +700,8 @@ module.exports = {
           }
 
           // Get new an updated products only
-          if (lastUpdated && lastUpdated !== '') {
-            const lastUpdatedDate = new Date(Number(lastUpdated) * 1000).toISOString();
+          if (lastUpdated) {
+            const lastUpdatedDate = new Date(lastUpdated * 1000).toISOString();
             searchQuery.body.query.bool.should = [
               {
                 range: {
