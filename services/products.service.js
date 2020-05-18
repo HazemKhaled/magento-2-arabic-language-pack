@@ -167,13 +167,13 @@ module.exports = {
         monitor: true,
       },
       async handler(ctx) {
-        const { page, limit, lastupdate = '', hideOutOfStock, keyword, externalId, currency, hasExternalId } = ctx.params;
+        const { page, limit, lastupdate: lastUpdated = 0, hideOutOfStock, keyword, externalId, currency, hasExternalId } = ctx.params;
 
         const products = await this.findProducts({
           page,
           size: limit,
           instanceId: ctx.meta.user,
-          lastupdate,
+          lastUpdated: Number(lastUpdated),
           hideOutOfStock,
           keyword,
           externalId,
@@ -280,7 +280,6 @@ module.exports = {
               bulk.push({
                 instanceId: instance.consumer_key,
                 createdAt: new Date(),
-                updated: product.updated,
                 siteUrl: instance.url,
                 sku: product.id,
                 variations: product.variations
@@ -499,7 +498,6 @@ module.exports = {
           sku: source.sku,
           name: this.formatI18nText(source.name),
           description: this.formatI18nText(source.description),
-          updated: source.updated,
           last_check_date: source.last_check_date,
           supplier: source.seller_id,
           images: source.images,
@@ -525,7 +523,7 @@ module.exports = {
      * @param {number} size
      * @param {string} instanceId
      * @param {array} _source
-     * @param {string} [lastupdate='']
+     * @param {string} [lastUpdated=0]
      * @param {string} keyword
      * @returns {Array} Products
      * @memberof ElasticLib
@@ -534,30 +532,27 @@ module.exports = {
       page,
       size = 10,
       instanceId,
-      lastupdate = '',
+      lastUpdated = 0,
       hideOutOfStock,
       keyword,
       externalId,
       hasExternalId,
       currency,
     }) {
-      const instance = await this.broker.call('stores.findInstance', {
-        consumerKey: instanceId,
-        lastUpdated: lastupdate,
-      });
+      const instance = await this.broker.call('stores.findInstance', { consumerKey: instanceId });
 
       const instanceProductsFull = await this.findIP({
         page,
         size,
         instanceId,
-        lastupdate,
+        lastUpdated,
         hideOutOfStock,
         keyword,
         externalId,
         hasExternalId,
       });
 
-      const instanceProducts = instanceProductsFull.page.map(product => product._source.sku);
+      const instanceProducts = instanceProductsFull.page ? instanceProductsFull.page.map(product => product._source.sku) : [];
       if (instanceProducts.length === 0) {
         return {
           products: [],
@@ -579,7 +574,8 @@ module.exports = {
               description: this.formatI18nText(product.description),
               supplier: product.seller_id,
               images: product.images,
-              updated: product.updated,
+              updated: instanceProductsFull.page[n]._source.updated,
+              created: instanceProductsFull.page[n]._source.createdAt,
               last_check_date: product.last_check_date,
               categories: this.formatCategories(product.categories),
               attributes: this.formatAttributes(product.attributes || []),
@@ -626,7 +622,7 @@ module.exports = {
      * @param {number} [page=1]
      * @param {number} [size=10]
      * @param {object} instance
-     * @param {string} [lastUpdated='']
+     * @param {string} [lastUpdated=0]
      * @param {string} keyword
      * @param {array} [fullResult=[]] Array of products last recursive call
      * @param {number} [endTrace=0]  to trace the end product needed and stop scrolling after reaching it
@@ -638,7 +634,7 @@ module.exports = {
       page = 1,
       size = 10,
       instanceId,
-      lastUpdated = '',
+      lastUpdated = 0,
       hideOutOfStock,
       keyword,
       externalId,
@@ -650,10 +646,7 @@ module.exports = {
     }) {
       page = parseInt(page) || 1;
       let search = [];
-      const mustNot =
-        parseInt(hideOutOfStock) === 1
-          ? [{ term: { deleted: true} }, { term: { archive: true } }]
-          : [{term: { deleted: true }}];
+      const mustNot = [{term: { deleted: true }}];
 
       try {
         if (!scrollId) {
@@ -664,7 +657,7 @@ module.exports = {
             body: {
               sort: [
                 {
-                  updated: {
+                  createdAt: {
                     order: 'asc',
                   },
                 },
@@ -684,7 +677,7 @@ module.exports = {
             },
           };
 
-          if (keyword && keyword !== '') {
+          if (keyword) {
             searchQuery.body.query.bool.must.push({
               multi_match: {
                 query: keyword,
@@ -703,8 +696,8 @@ module.exports = {
           }
 
           // Get new an updated products only
-          if (lastUpdated && lastUpdated !== '') {
-            const lastUpdatedDate = new Date(Number(lastUpdated) * 1000).toISOString();
+          if (lastUpdated) {
+            const lastUpdatedDate = new Date(lastUpdated * 1000).toISOString();
             searchQuery.body.query.bool.should = [
               {
                 range: {
@@ -713,32 +706,36 @@ module.exports = {
                   },
                 },
               },
-              {
-                range: {
-                  createdAt: {
-                    gte: lastUpdatedDate,
-                  },
-                },
-              },
             ];
             searchQuery.body.query.bool.minimum_should_match = 1;
           }
 
+          // Hide out of stock
+          if (hideOutOfStock) {
+            searchQuery.body.query.bool.must_not.push({
+              term: {
+                archive: Number(hideOutOfStock) === 1,
+              },
+            });
+          }
+
           // Add filter if the product has external ID or not
-          switch(!!Number(hasExternalId)) {
-          case true:
-            searchQuery.body.query.bool.must.push({
-              exists: {
-                field: 'externalId',
-              },
-            });
-            break;
-          case false:
-            mustNot.push({
-              exists: {
-                field: 'externalId',
-              },
-            });
+          if (hasExternalId) {
+            switch(!!Number(hasExternalId)) {
+            case true:
+              searchQuery.body.query.bool.must.push({
+                exists: {
+                  field: 'externalId',
+                },
+              });
+              break;
+            case false:
+              mustNot.push({
+                exists: {
+                  field: 'externalId',
+                },
+              });
+            }
           }
 
           if (page * size <= 10000) {
@@ -788,6 +785,7 @@ module.exports = {
           totalProducts: search.hits.total.value,
         };
       } catch (err) {
+        console.error(err);
         return new MoleculerClientError(err);
       }
     },

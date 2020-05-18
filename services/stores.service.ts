@@ -414,7 +414,6 @@ const TheService: ServiceSchema = {
           return ctx.call('stores.update', {
             id: storeId,
             internal_data: instance.internal_data,
-            updated: '2010-01-01T00:00:00.000Z',
             stock_date: '2010-01-01T00:00:00.000Z',
             price_date: '2010-01-01T00:00:00.000Z',
             stock_status: 'idle',
