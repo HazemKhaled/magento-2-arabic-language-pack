@@ -677,7 +677,7 @@ module.exports = {
             },
           };
 
-          if (keyword && keyword !== '') {
+          if (keyword) {
             searchQuery.body.query.bool.must.push({
               multi_match: {
                 query: keyword,
@@ -711,7 +711,7 @@ module.exports = {
           }
 
           // Hide out of stock
-          if (hideOutOfStock && hideOutOfStock !== '') {
+          if (hideOutOfStock) {
             searchQuery.body.query.bool.must_not.push({
               term: {
                 archive: Number(hideOutOfStock) === 1,
@@ -720,7 +720,7 @@ module.exports = {
           }
 
           // Add filter if the product has external ID or not
-          if (hasExternalId && hasExternalId !== '') {
+          if (hasExternalId) {
             switch(!!Number(hasExternalId)) {
             case true:
               searchQuery.body.query.bool.must.push({
