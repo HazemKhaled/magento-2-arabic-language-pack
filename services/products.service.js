@@ -1,6 +1,7 @@
 const { MoleculerClientError } = require('moleculer').Errors;
 const ESService = require('moleculer-elasticsearch');
 const { ProductsOpenapi, ProductsValidation, ProductTransformation, AppSearch } = require('../utilities/mixins');
+const { MpError } = require('../utilities/adapters');
 
 module.exports = {
   name: 'products',
@@ -60,26 +61,10 @@ module.exports = {
         }
         const product = await this.fetchProduct(sku, ctx.meta.user, _source, currency);
         if (product === 404) {
-          ctx.meta.$statusCode = 404;
-          ctx.meta.$statusMessage = 'Not Found';
-          return {
-            errors: [
-              {
-                message: 'Product not found!',
-              },
-            ],
-          };
+          throw new MpError('Products Instance', 'Product not found!', 404);
         }
         if (product === 500) {
-          ctx.meta.$statusCode = 500;
-          ctx.meta.$statusMessage = 'Internal Error';
-          return {
-            errors: [
-              {
-                message: 'Internal server error!',
-              },
-            ],
-          };
+          throw new MpError('Products Instance', 'Something went wrong!', 500);
         }
         return {
           product,
@@ -126,15 +111,7 @@ module.exports = {
           })
           .then(res => {
             if (typeof res.count !== 'number') {
-              ctx.meta.$statusCode = 500;
-              ctx.meta.$statusMessage = 'Internal Server Error';
-              return {
-                errors: [
-                  {
-                    message: 'Something went wrong!',
-                  },
-                ],
-              };
+              throw new MpError('Products Instance', 'Something went wrong!', 500);
             }
             return {
               total: res.count,
@@ -201,41 +178,17 @@ module.exports = {
           .then(product => {
             this.broker.cacher.clean(`products.list:${ctx.meta.user}**`);
             if (product === 404) {
-              ctx.meta.$statusCode = 404;
-              ctx.meta.$statusMessage = 'Not Found';
-              return {
-                errors: [
-                  {
-                    message: 'Product not found!',
-                  },
-                ],
-              };
+              throw new MpError('Products Instance', 'Product not found!', 404);
             }
             if (product === 500) {
-              ctx.meta.$statusCode = 500;
-              ctx.meta.$statusMessage = 'Internal Error';
-              return {
-                errors: [
-                  {
-                    message: 'Internal Server Error!',
-                  },
-                ],
-              };
+              throw new MpError('Products Instance', 'Something went wrong!', 500);
             }
             return {
               product,
             };
           })
           .catch(() => {
-            ctx.meta.$statusCode = 500;
-            ctx.meta.$statusMessage = 'Internal Server Error';
-            return {
-              errors: [
-                {
-                  message: 'Something went wrong!',
-                },
-              ],
-            };
+            throw new MpError('Products Instance', 'Something went wrong!', 500);
           });
       },
     },
@@ -266,9 +219,7 @@ module.exports = {
             });
             const bulk = [];
             if(newSKUs.length === 0) {
-              ctx.meta.$statusCode = 404;
-              ctx.meta.$statusMessage = 'Not Found!';
-              return {message: 'Product not found'};
+              throw new MpError('Products Instance', 'Product not found!', 404);
             }
             res.results.forEach(product => {
               bulk.push({
@@ -322,16 +273,7 @@ module.exports = {
 
                 // Responses
                 if (response.errors) {
-                  ctx.meta.$statusCode = 500;
-                  ctx.meta.$statusMessage = 'Internal Server Error';
-                  return {
-                    errors: [
-                      {
-                        message: 'There was an error with importing your products',
-                        skus: skus,
-                      },
-                    ],
-                  };
+                  throw new MpError('Products Instance', 'There was an error with importing your products!', 500);
                 }
                 return {
                   success: newSKUs,
@@ -359,43 +301,21 @@ module.exports = {
             },
           })
           .then(res => {
-            if (res.result === 'updated' || res.result === 'noop')
+            if (res.result === 'updated' || res.result === 'noop') {
+              this.broker.cacher.clean(`products.list:${ctx.meta.user}**`);
               return {
                 status: 'success',
                 message: 'Updated successfully!',
                 sku: ctx.params.sku,
               };
-            ctx.meta.$statusCode = 500;
-            ctx.meta.$statusMessage = 'Internal Server Error';
-            return {
-              errors: [
-                {
-                  message: 'Something went wrong!',
-                },
-              ],
-            };
+            }
+            throw new MpError('Products Instance', 'Something went wrong!', 500);
           })
           .catch(err => {
             if (err.message.includes('document_missing_exception')) {
-              ctx.meta.$statusCode = 404;
-              ctx.meta.$statusMessage = 'Not Found';
-              return {
-                errors: [
-                  {
-                    message: 'Not Found!',
-                  },
-                ],
-              };
+              throw new MpError('Products Instance', 'Not Found!', 404);
             }
-            ctx.meta.$statusCode = 500;
-            ctx.meta.$statusMessage = 'Internal Server Error';
-            return {
-              errors: [
-                {
-                  message: 'Something went wrong!',
-                },
-              ],
-            };
+            throw new MpError('Products Instance', 'Something went wrong!', 500);
           });
       },
     },
@@ -429,26 +349,10 @@ module.exports = {
                   status: 'success',
                 };
               }
-              ctx.meta.$statusCode = 500;
-              ctx.meta.$statusMessage = 'Internal Server Error';
-              return {
-                errors: [
-                  {
-                    message: 'Update Error!',
-                  },
-                ],
-              };
+              throw new MpError('Products Instance', 'Something went wrong!', 500);
             })
             .catch(() => {
-              ctx.meta.$statusCode = 500;
-              ctx.meta.$statusMessage = 'Internal Server Error';
-              return {
-                errors: [
-                  {
-                    message: 'Something went wrong!',
-                  },
-                ],
-              };
+              throw new MpError('Products Instance', 'Something went wrong!', 500);
             });
       },
     },
