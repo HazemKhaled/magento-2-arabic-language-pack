@@ -73,7 +73,7 @@ const TheService: ServiceSchema = {
         if (lastUpdateDate) {
           const products = await this.syncInstanceProducts(lastUpdateDate);
           if (products && products.success === true) {
-            if (products.LastDate && products.LastDate !== '') {
+            if (products.LastDate) {
               const updated = await this.updateLastUpdateDate(products.LastDate, ctx);
               if (updated) {
                 this.logger.info('Last Updated Date Updated', products.LastDate);

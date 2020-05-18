@@ -460,8 +460,7 @@ const ProductsList = {
         'Timestamp(seconds since Jan 01 1970. (UTC)) of last import run DateTime (must be in UTC), API will respond only products which are updated/created after this timestamp.',
       example: '1542794072 for 21-11-2018 @ 9:54am',
       schema: {
-        type: 'string',
-        format: 'date-time',
+        type: 'number',
       },
     },
     {
@@ -480,6 +479,15 @@ const ProductsList = {
       description: 'filter with externalId',
       schema: {
         type: 'string',
+      },
+    },
+    {
+      name: 'hasExternalId',
+      'in': 'query',
+      required: false,
+      description: 'filter with or without externalId',
+      schema: {
+        type: 'number',
       },
     },
     {
