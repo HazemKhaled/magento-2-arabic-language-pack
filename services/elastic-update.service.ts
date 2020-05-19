@@ -3,7 +3,7 @@ import { Context, Errors, ServiceSchema } from 'moleculer';
 import * as Cron from 'moleculer-cron';
 import ESService, { SearchResponse } from 'moleculer-elasticsearch';
 
-import DbService from '../utilities/mixins/db.mixin';
+import { DbMixin, AppSearch } from '../utilities/mixins';
 import { Product } from '../utilities/types';
 
 const { MoleculerClientError } = Errors;
@@ -31,7 +31,7 @@ const TheService: ServiceSchema = {
   /**
    * Service Mixins
    */
-  mixins: [DbService('elastic-update'), Cron, ESService],
+  mixins: [DbMixin('elastic-update'), Cron, ESService, AppSearch('catalog')],
 
   /**
    * Service settings
@@ -104,28 +104,19 @@ const TheService: ServiceSchema = {
       if (!lastUpdateDate && lastUpdateDate === '') {
         return false;
       }
-      const limit = process.env.ELASTIC_UPDATE_LIMIT || 999;
-      const searchResponse: SearchResponse<Product> = await this.broker
-        .call('elastic-update.search', {
-          index: 'products',
-          body: {
-            query: {
-              range: {
-                updated: { gt: new Date(lastUpdateDate) },
-              },
-            },
-            sort: { updated: { order: 'asc' } },
-          },
-          size: limit,
-        })
-        .catch(() => {
-          throw new MoleculerClientError('', 500, '');
-        });
+
+      const searchResponse: { results: Product[] } = await this.documentsSearch('cat', {
+        filters: {
+          updated: { from: new Date(lastUpdateDate) },
+        },
+        sort: { updated: 'asc' },
+        page: {
+          size: +process.env.ELASTIC_UPDATE_LIMIT || 1000,
+        },
+      });
 
       if (
-        searchResponse.hits &&
-        searchResponse.hits.hits &&
-        searchResponse.hits.hits.length === 0
+        searchResponse.results.length === 0
       ) {
         return {
           success: true,
@@ -134,10 +125,10 @@ const TheService: ServiceSchema = {
         };
       }
 
-      if (searchResponse.hits && searchResponse.hits.hits && searchResponse.hits.hits.length > 0) {
+      if (searchResponse.results.length > 0) {
         const LastDate =
-          searchResponse.hits.hits[searchResponse.hits.hits.length - 1]._source.updated || '';
-        const isUpdated = await this.bulkUpdateInstanceProducts(searchResponse);
+          searchResponse.results[searchResponse.results.length - 1].updated || '';
+        const isUpdated = await this.bulkUpdateInstanceProducts(searchResponse.results);
         if (isUpdated) {
           return {
             success: true,
@@ -155,11 +146,11 @@ const TheService: ServiceSchema = {
      * @returns
      * @memberof ElasticLib
      */
-    async bulkUpdateInstanceProducts(search: SearchResponse<Product>) {
+    async bulkUpdateInstanceProducts(products: Product[]) {
       let result = true;
-      await Loop.each(search.hits.hits, async hit => {
+      await Loop.each(products, async hit => {
         // If no product came, mark ar archived
-        const product: Product = hit._source || { archive: true, updated: new Date() };
+        const product: Product = hit || { archive: true, updated: new Date() };
         const updateData = {
           index: 'products-instances',
           body: {
