@@ -196,7 +196,7 @@ module.exports = {
       auth: 'Bearer',
       handler(ctx) {
         const skus = ctx.params.products.map(i => i.sku);
-        return this.documentsSearch('cat', {
+        return this.documentsSearch('', {
           filters: {
             all: [
               {
@@ -212,6 +212,7 @@ module.exports = {
           },
         })
           .then(async res => {
+            console.log(res);
             const newSKUs = res.results.map(product => product.id);
             const outOfStock = skus.filter(sku => !newSKUs.includes(sku));
             const instance = await this.broker.call('stores.findInstance', {
