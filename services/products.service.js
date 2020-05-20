@@ -196,7 +196,7 @@ module.exports = {
       auth: 'Bearer',
       handler(ctx) {
         const skus = ctx.params.products.map(i => i.sku);
-        return this.documentsSearch('cat', {
+        return this.documentsSearch('', {
           filters: {
             all: [
               {
