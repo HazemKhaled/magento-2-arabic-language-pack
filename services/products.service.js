@@ -212,7 +212,6 @@ module.exports = {
           },
         })
           .then(async res => {
-            console.log(res);
             const newSKUs = res.results.map(product => product.id);
             const outOfStock = skus.filter(sku => !newSKUs.includes(sku));
             const instance = await this.broker.call('stores.findInstance', {
