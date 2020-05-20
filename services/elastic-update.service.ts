@@ -105,7 +105,7 @@ const TheService: ServiceSchema = {
         return false;
       }
 
-      const searchResponse: { results: Product[] } = await this.documentsSearch('cat', {
+      const searchResponse: { results: Product[] } = await this.documentsSearch('', {
         filters: {
           updated: { from: new Date(lastUpdateDate) },
         },
