@@ -208,7 +208,7 @@ module.exports = {
             ],
           },
           page: {
-            size: 100,
+            size: 1000,
           },
         })
           .then(async res => {
