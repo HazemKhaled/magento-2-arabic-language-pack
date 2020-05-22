@@ -247,7 +247,6 @@ module.exports = {
                 body: bulk,
               })
               .then(response => {
-                this.broker.cacher.clean(`products.list:${ctx.meta.user}**`);
                 // Update products import quantity
                 if (response.items) {
                   const firstImport = response.items
@@ -257,16 +256,23 @@ module.exports = {
                     firstImport.includes(`${instance.consumer_key}-${product.id}`),
                   );
                   if (update.length > 0) {
-                    ctx.call('products-list.updateQuantityAttributes', {
-                      products: update.map(product => {
-                        product.imported = (product.imported || []).concat([instance.url]);
-                        return {
-                          id: product.id,
-                          qty: product.import_qty || 0,
-                          attribute: 'import_qty',
-                          imported: product.imported,
-                        };
-                      }),
+                    const updateArr = update.map(product => {
+                      product.imported = (product.imported || []).concat([instance.url]);
+                      return {
+                        id: product.id,
+                        qty: product.import_qty || 0,
+                        attribute: 'import_qty',
+                        imported: product.imported,
+                      };
+                    });
+                    new Promise(async (resolve) => {
+                      for (let i = 0; i < updateArr.length; i+=100) {
+                        await ctx.call('products-list.updateQuantityAttributes', {
+                          products: updateArr.slice(i, i+100),
+                        });
+                      }
+                      this.broker.cacher.clean(`products.list:${ctx.meta.user}**`);
+                      return resolve();
                     });
                   }
                 }
