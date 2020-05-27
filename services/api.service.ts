@@ -184,8 +184,8 @@ const TheService: ServiceSchema = {
               logLevel: 'error',
               code: 500,
               payload: { error: err.toString(), params: req.$params },
-            });
-            res.end(
+            }).catch((err: unknown) => this.broker.logger.error(err));
+            log && res.end(
               JSON.stringify({
                 errors: [
                   {
@@ -197,7 +197,7 @@ const TheService: ServiceSchema = {
               }),
             );
           }
-          res.end(JSON.stringify({ errors: [{ message: err.message }] }));
+          res.end(JSON.stringify({ errors: [{ message: err.message || 'Internal Server Error!' }] }));
         },
       },
     ],

@@ -1,4 +1,3 @@
-const { MoleculerClientError } = require('moleculer').Errors;
 const ESService = require('moleculer-elasticsearch');
 const { ProductsOpenapi, ProductsValidation, ProductTransformation, AppSearch } = require('../utilities/mixins');
 const { MpError } = require('../utilities/adapters');
@@ -522,7 +521,7 @@ module.exports = {
         };
 
       } catch (err) {
-        return new MoleculerClientError(err);
+        throw new MpError('Products Service', err && err.message || 'Internal server error!', 500);
       }
     },
 
@@ -695,8 +694,7 @@ module.exports = {
           totalProducts: search.hits.total.value,
         };
       } catch (err) {
-        console.error(err);
-        return new MoleculerClientError(err);
+        return new MpError('Products Service', err, 500);
       }
     },
 
