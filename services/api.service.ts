@@ -184,20 +184,22 @@ const TheService: ServiceSchema = {
               logLevel: 'error',
               code: 500,
               payload: { error: err.toString(), params: req.$params },
-            });
-            res.end(
-              JSON.stringify({
-                errors: [
-                  {
-                    message: `Something went wrong for more details Please check the log under ID: ${
-                      log.id
-                    }`,
-                  },
-                ],
-              }),
-            );
+            }).catch((err: unknown) => this.broker.logger.error(err));
+            if (log) {
+              res.end(
+                JSON.stringify({
+                  errors: [
+                    {
+                      message: `Something went wrong for more details Please check the log under ID: ${
+                        log.id
+                      }`,
+                    },
+                  ],
+                }),
+              );
+            }
           }
-          res.end(JSON.stringify({ errors: [{ message: err.message }] }));
+          res.end(JSON.stringify({ errors: [{ message: err.message || 'Internal Server Error!' }] }));
         },
       },
     ],
