@@ -185,17 +185,19 @@ const TheService: ServiceSchema = {
               code: 500,
               payload: { error: err.toString(), params: req.$params },
             }).catch((err: unknown) => this.broker.logger.error(err));
-            log && res.end(
-              JSON.stringify({
-                errors: [
-                  {
-                    message: `Something went wrong for more details Please check the log under ID: ${
-                      log.id
-                    }`,
-                  },
-                ],
-              }),
-            );
+            if (log) {
+              res.end(
+                JSON.stringify({
+                  errors: [
+                    {
+                      message: `Something went wrong for more details Please check the log under ID: ${
+                        log.id
+                      }`,
+                    },
+                  ],
+                }),
+              );
+            }
           }
           res.end(JSON.stringify({ errors: [{ message: err.message || 'Internal Server Error!' }] }));
         },
