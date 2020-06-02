@@ -483,7 +483,7 @@ const ProductsList = {
     },
     {
       name: 'hasExternalId',
-      'in': 'query',
+      in: 'query',
       required: false,
       description: 'filter with or without externalId',
       schema: {
