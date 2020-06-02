@@ -3,7 +3,7 @@ import { ServiceSchema } from 'moleculer';
 import DbService from 'moleculer-db';
 import path from 'path';
 
-export default (collection: string): ServiceSchema => {
+export const DbMixin = (collection: string): ServiceSchema => {
   // Create data folder
   mkdir(path.resolve('./data'));
 

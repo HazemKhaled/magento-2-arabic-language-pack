@@ -1,4 +1,3 @@
-const { MoleculerClientError } = require('moleculer').Errors;
 const ESService = require('moleculer-elasticsearch');
 const { ProductsOpenapi, ProductsValidation, ProductTransformation, AppSearch } = require('../utilities/mixins');
 const { MpError } = require('../utilities/adapters');
@@ -196,7 +195,7 @@ module.exports = {
       auth: 'Bearer',
       handler(ctx) {
         const skus = ctx.params.products.map(i => i.sku);
-        return this.documentsSearch('cat', {
+        return this.documentsSearch('', {
           filters: {
             all: [
               {
@@ -208,7 +207,7 @@ module.exports = {
             ],
           },
           page: {
-            size: 100,
+            size: 1000,
           },
         })
           .then(async res => {
@@ -247,7 +246,6 @@ module.exports = {
                 body: bulk,
               })
               .then(response => {
-                this.broker.cacher.clean(`products.list:${ctx.meta.user}**`);
                 // Update products import quantity
                 if (response.items) {
                   const firstImport = response.items
@@ -257,16 +255,23 @@ module.exports = {
                     firstImport.includes(`${instance.consumer_key}-${product.id}`),
                   );
                   if (update.length > 0) {
-                    ctx.call('products-list.updateQuantityAttributes', {
-                      products: update.map(product => {
-                        product.imported = (product.imported || []).concat([instance.url]);
-                        return {
-                          id: product.id,
-                          qty: product.import_qty || 0,
-                          attribute: 'import_qty',
-                          imported: product.imported,
-                        };
-                      }),
+                    const updateArr = update.map(product => {
+                      product.imported = (product.imported || []).concat([instance.url]);
+                      return {
+                        id: product.id,
+                        qty: product.import_qty || 0,
+                        attribute: 'import_qty',
+                        imported: product.imported,
+                      };
+                    });
+                    new Promise(async (resolve) => {
+                      for (let i = 0; i < updateArr.length; i+=100) {
+                        await ctx.call('products-list.updateQuantityAttributes', {
+                          products: updateArr.slice(i, i+100),
+                        });
+                      }
+                      this.broker.cacher.clean(`products.list:${ctx.meta.user}**`);
+                      return resolve();
                     });
                   }
                 }
@@ -516,7 +521,7 @@ module.exports = {
         };
 
       } catch (err) {
-        return new MoleculerClientError(err);
+        throw new MpError('Products Service', err && err.message || 'Internal server error!', 500);
       }
     },
 
@@ -689,8 +694,7 @@ module.exports = {
           totalProducts: search.hits.total.value,
         };
       } catch (err) {
-        console.error(err);
-        return new MoleculerClientError(err);
+        return new MpError('Products Service', err, 500);
       }
     },
 
