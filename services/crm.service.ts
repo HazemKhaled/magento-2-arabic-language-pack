@@ -24,7 +24,7 @@ const TheService: ServiceSchema = {
         return this.request({
           method: 'post',
           isAccountsUrl: true,
-          path: 'oauth/v2/token',
+          path: '/oauth/v2/token',
           body: {
             client_id: process.env.ZOHO_CLIENTT_ID,
             client_secret: process.env.ZOHO_CLIENT_SECRET,
@@ -196,8 +196,7 @@ const TheService: ServiceSchema = {
         );
       }
       fetchParams.headers = headers;
-      console.log(url, path, queryString, fetchParams);
-      return fetch(`${url}/${path}${queryString}`, fetchParams)
+      return fetch(`${url}${path}${queryString}`, fetchParams)
         .then(async res => {
           const parsedRes = await res.json();
           if (res.status === 401) {
