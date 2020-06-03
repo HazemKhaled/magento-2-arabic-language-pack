@@ -36,9 +36,6 @@ services:
     env_file: .env
     environment:
       SERVICES: products
-    networks:
-      - elastic
-      - default
 
   products-list:
     build:
@@ -48,9 +45,6 @@ services:
     env_file: .env
     environment:
       SERVICES: categories, products-list
-    networks:
-      - elastic
-      - default
 
   currencies:
     build:
@@ -127,9 +121,6 @@ services:
       SERVICES: elastic-update
     volumes:
       - ~/data/mp-nedb:/app/data
-    networks:
-      - elastic
-      - default
 
   logs:
     build:
@@ -139,9 +130,6 @@ services:
     env_file: .env
     environment:
       SERVICES: logs
-    networks:
-      - elastic
-      - default
 
   redis:
     image: redis:alpine
@@ -167,8 +155,3 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./traefik.toml:/traefik.toml
       - ./acme.json:/acme.json
-
-networks:
-  elastic:
-    external:
-      name: dockerelk_elk
