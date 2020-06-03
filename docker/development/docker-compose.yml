@@ -136,16 +136,6 @@ services:
   redis:
     image: redis:alpine
 
-  mongodb:
-    image: mongo:4
-    restart: always
-    env_file: .env
-    volumes:
-      - ~/data/db/mp-dev:/data/db
-      - ../docker-mongodb-init/:/docker-entrypoint-initdb.d/
-    ports:
-      - '21985:27017'
-
   traefik:
     image: traefik
     restart: always
