@@ -55,7 +55,7 @@ const PaymentsAddOpenapi = {
   parameters: [
     {
       name: 'storeId',
-      'in': 'path',
+      in: 'path',
       required: true,
       schema: {
         type: 'string',
@@ -139,7 +139,7 @@ const PaymentsGetOpenapi = {
   parameters: [
     {
       name: 'page',
-      'in': 'query',
+      in: 'query',
       required: false,
       schema: {
         type: 'number',
@@ -147,7 +147,7 @@ const PaymentsGetOpenapi = {
     },
     {
       name: 'limit',
-      'in': 'query',
+      in: 'query',
       required: false,
       schema: {
         type: 'number',
@@ -155,7 +155,7 @@ const PaymentsGetOpenapi = {
     },
     {
       name: 'reference_number',
-      'in': 'query',
+      in: 'query',
       required: false,
       schema: {
         type: 'string',
@@ -163,7 +163,7 @@ const PaymentsGetOpenapi = {
     },
     {
       name: 'payment_mode',
-      'in': 'query',
+      in: 'query',
       required: false,
       schema: {
         type: 'string',

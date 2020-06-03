@@ -42,7 +42,7 @@ const SubscriptionListOpenapi = {
   parameters: [
     {
       name: 'storeId',
-      'in': 'query',
+      in: 'query',
       required: false,
       schema: {
         type: 'string',
@@ -50,7 +50,7 @@ const SubscriptionListOpenapi = {
     },
     {
       name: 'membershipId',
-      'in': 'query',
+      in: 'query',
       required: false,
       schema: {
         type: 'string',
@@ -58,7 +58,7 @@ const SubscriptionListOpenapi = {
     },
     {
       name: 'expireDate',
-      'in': 'query',
+      in: 'query',
       schema: {
         type: 'array',
         max: 2,
@@ -74,7 +74,7 @@ const SubscriptionListOpenapi = {
     },
     {
       name: 'startDate',
-      'in': 'query',
+      in: 'query',
       schema: {
         type: 'array',
         max: 2,
@@ -82,7 +82,7 @@ const SubscriptionListOpenapi = {
         items: {
           type: 'object',
           properties: {
-            operation: { type: 'string', 'enum': ['lte', 'gte', 'gt', 'lt'] },
+            operation: { type: 'string', enum: ['lte', 'gte', 'gt', 'lt'] },
             date: { type: 'date' },
           },
         },
@@ -90,7 +90,7 @@ const SubscriptionListOpenapi = {
     },
     {
       name: 'page',
-      'in': 'query',
+      in: 'query',
       required: false,
       schema: {
         type: 'number',
@@ -98,7 +98,7 @@ const SubscriptionListOpenapi = {
     },
     {
       name: 'perPage',
-      'in': 'query',
+      in: 'query',
       required: false,
       schema: {
         type: 'number',
@@ -106,12 +106,12 @@ const SubscriptionListOpenapi = {
     },
     {
       name: 'sort',
-      'in': 'query',
+      in: 'query',
       schema: {
         type: 'object',
         properties: {
           field: { type: 'string' },
-          order: { type: 'number', 'enum': [1, -1] },
+          order: { type: 'number', enum: [1, -1] },
         },
       },
     },
@@ -236,7 +236,7 @@ const SubscriptionUpdateOpenapi = {
   parameters: [
     {
       name: 'id',
-      'in': 'path',
+      in: 'path',
       required: true,
       schema: {
         type: 'string',

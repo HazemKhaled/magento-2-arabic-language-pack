@@ -20,11 +20,11 @@ const TheService: ServiceSchema = {
   actions: {
     refreshToken: {
       cache: false,
-      handler() {
+      handler(): Promise<object> {
         return this.request({
           method: 'post',
           isAccountsUrl: true,
-          path: 'oauth/v2/token',
+          path: '/oauth/v2/token',
           body: {
             client_id: process.env.ZOHO_CLIENTT_ID,
             client_secret: process.env.ZOHO_CLIENT_SECRET,
@@ -34,7 +34,7 @@ const TheService: ServiceSchema = {
           bodyType: 'formData',
         }).then((res: { access_token: string; error: string }) => {
           if (res.error) {
-            throw new MoleculerError(res.error, 401);
+            throw this.errorFactory(res.error, 401);
           }
           this.settings.accessToken = res.access_token;
         });
@@ -45,41 +45,95 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 * 24,
         keys: ['id'],
       },
-      handler(ctx: Context) {
-        return this.request({
-          path: 'crm/v2/accounts/search',
-          params: {
-            criteria: `((Account_Name:equals:${ctx.params.id}))`,
-          },
-        }).then((res: any) => {
-          if (!res.data[0]) {
-            throw new MoleculerError('Store Not Found', 404);
-          }
-          return res.data[0];
+      async handler(ctx: Context): Promise<object> {
+        const res = await ctx.call('crm.findRecords', {
+          module: 'accounts',
+          criteria: `((Account_Name:equals:${ctx.params.id}))`,
         });
+
+        if (!res.data[0]) {
+          throw this.errorFactory('Store not found!', 404);
+        }
+        return res.data[0];
       },
     },
     updateStoreById: {
-      async handler(ctx: Context) {
-        const crmStore = await ctx.call('crm.findStoreByUrl', { id: ctx.params.id });
-        ctx.params.id = crmStore.id;
-        return this.request({
-          method: 'put',
-          path: 'crm/v2/accounts',
-          bodyType: 'json',
-          body: { data: [this.transformStoreParams(ctx.params)] },
+      async handler(ctx: Context): Promise<object> {
+        const { id: crmStoreId } = await ctx.call('crm.findStoreByUrl', { id: ctx.params.id });
+
+        return ctx.call('crm.updateRecord', {
+          module: 'accounts',
+          id: crmStoreId,
+          data: [this.transformStoreParams(ctx.params)],
         });
       },
     },
     addTagsByUrl: {
-      async handler(ctx: Context) {
-        const crmStore = await ctx.call('crm.findStoreByUrl', { id: ctx.params.id });
+      async handler(ctx: Context): Promise<object> {
+        const { id, tag } = ctx.params;
+        const { id: crmStoreId } = await ctx.call('crm.findStoreByUrl', { id });
+
+        return ctx.call('crm.addTagsToRecord', {
+          module: 'accounts',
+          id: crmStoreId,
+          tag,
+        });
+      },
+    },
+    createRecord: {
+      handler(ctx: Context): Promise<object> {
+        const { module, data } = ctx.params;
+
         return this.request({
           method: 'post',
-          path: `crm/v2/accounts/${crmStore.id}/actions/add_tags`,
-          params: {
-            tag_names: ctx.params.tag,
-          },
+          path: `/crm/v2/${module}`,
+          bodyType: 'json',
+          body: { data },
+        });
+      },
+    },
+    updateRecord: {
+      handler(ctx: Context): Promise<object> {
+        const { module, id, data } = ctx.params;
+
+        return this.request({
+          method: 'put',
+          path: `/crm/v2/${module}/${id}`,
+          bodyType: 'json',
+          body: { data },
+        });
+      },
+    },
+    findRecords: {
+      handler(ctx: Context): Promise<object> {
+        const { module, criteria, email, phone, word } = ctx.params;
+
+        return this.request({
+          method: 'get',
+          path: `/crm/v2/${module}/search`,
+          params: { criteria, email, phone, word },
+        });
+      },
+    },
+    addTagsToRecord: {
+      handler(ctx: Context): Promise<object> {
+        const { module, id, tag } = ctx.params;
+
+        return this.request({
+          method: 'post',
+          path: `/crm/v2/${module}/${id}/actions/add_tags`,
+          params: { tag_names: tag },
+        });
+      },
+    },
+    removeTagsFromRecord: {
+      handler(ctx: Context): Promise<object> {
+        const { module, id, tag } = ctx.params;
+
+        return this.request({
+          method: 'post',
+          path: `/crm/v2/${module}/${id}/actions/remove_tags`,
+          params: { tag_names: tag },
         });
       },
     },
@@ -113,7 +167,7 @@ const TheService: ServiceSchema = {
       body: { [key: string]: unknown };
       bodyType: 'json' | 'formData';
       params: { [key: string]: string };
-    }) {
+    }): Promise<object> {
       let url = process.env.ZOHO_CRM_URL;
       let queryString = '';
       const headers: { [key: string]: string } = {
@@ -137,12 +191,12 @@ const TheService: ServiceSchema = {
       }
       if (params) {
         queryString = Object.keys(params).reduce(
-          (accumulator, key) => `${accumulator ? '&' : '?'}${key}=${params[key]}`,
+          (accumulator, key) => params[key] ?`${accumulator}${accumulator ? '&' : '?'}${key}=${params[key]}` : accumulator,
           '',
         );
       }
       fetchParams.headers = headers;
-      return fetch(`${url}/${path}${queryString}`, fetchParams)
+      return fetch(`${url}${path}${queryString}`, fetchParams)
         .then(async res => {
           const parsedRes = await res.json();
           if (res.status === 401) {
@@ -150,16 +204,16 @@ const TheService: ServiceSchema = {
             return this.request({ method, path, isAccountsUrl, body, bodyType, params });
           }
           if (!res.ok && res.status !== 401) {
-            throw new MoleculerError(parsedRes, res.status);
+            throw this.errorFactory(parsedRes, res.status);
           }
           return parsedRes;
         })
         .catch(err => {
-          throw new MoleculerError(err.message, err.code);
+          throw this.errorFactory(err.message, err.code);
         });
     },
-    transformStoreParams(params: CrmData) {
-      const newObj: any = {
+    transformStoreParams(params: CrmData): object {
+      const newObj: { [key: string]: string } = {
         id: params.id,
       };
       const crmParams: { [key: string]: string } = {
@@ -190,19 +244,20 @@ const TheService: ServiceSchema = {
       };
       Object.keys(params).forEach((key: keyof CrmData) => {
         if (typeof params[key] === 'string') {
-          newObj[crmParams[key] as keyof CrmStore] = params[key];
+          newObj[crmParams[key] as keyof CrmStore] = params[key] as string;
         }
         if (key === 'last_order_date' || key === 'subscription_expiration') {
           const date = new Date(params[key]);
           const year = date.getFullYear();
-          const month = `${date.getMonth() > 8 ? '' : '0'}${date.getMonth()+1}`;
+          const month = `${date.getMonth() > 8 ? '' : '0'}${date.getMonth() + 1}`;
           const day = `${date.getDate() > 9 ? '' : '0'}${date.getDate()}`;
-          const time = `${date.toTimeString().slice(0,8)}`;
-          const timeZoneOffset = -date.getTimezoneOffset()/60;
-          const timeZone = `${timeZoneOffset < 0 ? '-' : '+'}${Math.abs(timeZoneOffset) > 9 ? '' : '0'}${Math.abs(timeZoneOffset)}:00`;
-          console.log(`${year}-${month}-${day}T${time}${timeZone}`);
+          const time = `${date.toTimeString().slice(0, 8)}`;
+          const timeZoneOffset = -date.getTimezoneOffset() / 60;
+          const timeZone = `${timeZoneOffset < 0 ? '-' : '+'}${
+            Math.abs(timeZoneOffset) > 9 ? '' : '0'
+          }${Math.abs(timeZoneOffset)}:00`;
+
           newObj[crmParams[key] as keyof CrmStore] = `${year}-${month}-${day}T${time}${timeZone}`;
-          console.log(newObj[crmParams[key]]);
         }
         if (key === 'address') {
           Object.keys(params[key]).forEach(attr => {
@@ -228,6 +283,11 @@ const TheService: ServiceSchema = {
         newObj.Billing_Name = `${params.address.first_name} ${params.address.last_name}`;
       }
       return newObj;
+    },
+    errorFactory(msg, code) {
+      const error = new MoleculerError(msg, code);
+      error.name = 'CRM Service';
+      return error;
     },
   },
 };

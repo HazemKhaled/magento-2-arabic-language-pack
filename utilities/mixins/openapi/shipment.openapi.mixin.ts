@@ -46,7 +46,7 @@ const ShipmentPolicySchema = {
           },
           type: {
             type: 'string',
-            'enum': ['weight', 'price'],
+            enum: ['weight', 'price'],
           },
           cost: {
             type: 'number',
@@ -73,7 +73,7 @@ const ShipmentGetOpenapi = {
   parameters: [
     {
       name: 'id',
-      'in': 'path',
+      in: 'path',
       required: false,
       schema: {
         type: 'string',
@@ -141,7 +141,7 @@ const ShipmentUpdateOpenapi = {
   parameters: [
     {
       name: 'id',
-      'in': 'path',
+      in: 'path',
       required: true,
       schema: {
         type: 'string',
@@ -182,7 +182,7 @@ const ShipmentRuleByCountryOpenapi = {
   parameters: [
     {
       name: 'country',
-      'in': 'query',
+      in: 'query',
       required: true,
       schema: {
         type: 'string',
@@ -192,7 +192,7 @@ const ShipmentRuleByCountryOpenapi = {
     },
     {
       name: 'weight',
-      'in': 'query',
+      in: 'query',
       required: true,
       schema: {
         type: 'number',
@@ -200,7 +200,7 @@ const ShipmentRuleByCountryOpenapi = {
     },
     {
       name: 'price',
-      'in': 'query',
+      in: 'query',
       required: true,
       schema: {
         type: 'number',
@@ -248,7 +248,7 @@ const ShipmentGetCurriersOpenapi = {
   parameters: [
     {
       name: 'country',
-      'in': 'query',
+      in: 'query',
       required: false,
       schema: {
         type: 'string',

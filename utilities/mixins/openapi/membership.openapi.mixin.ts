@@ -30,11 +30,11 @@ const MembershipSchema = {
     },
     sort: { type: 'number' },
     active: { type: 'boolean' },
-    'public': { type: 'boolean' },
+    public: { type: 'boolean' },
     cost: { type: 'number' },
     discount: { type: 'number' },
     paymentFrequency: { type: 'number' },
-    paymentFrequencyType: { type: 'string', 'enum': ['month', 'year'] },
+    paymentFrequencyType: { type: 'string', enum: ['month', 'year'] },
     attributes: { type: 'object', properties: {} },
     totals: {
       type: 'object',
@@ -47,7 +47,7 @@ const MembershipSchema = {
             id: { type: 'string' },
             name: { type: 'string' },
             country: { type: 'string' },
-            'class': { type: 'array', items: { type: 'string' } },
+            class: { type: 'array', items: { type: 'string' } },
             percentage: { type: 'number' },
             isInclusive: { type: 'boolean' },
             omsId: { type: 'string' },
@@ -91,11 +91,11 @@ const MembershipResponse = {
           },
           sort: { type: 'number' },
           active: { type: 'boolean' },
-          'public': { type: 'boolean' },
+          public: { type: 'boolean' },
           cost: { type: 'number' },
           discount: { type: 'number' },
           paymentFrequency: { type: 'number' },
-          paymentFrequencyType: { type: 'string', 'enum': ['month', 'year'] },
+          paymentFrequencyType: { type: 'string', enum: ['month', 'year'] },
           attributes: { type: 'object', properties: {} },
         },
       },
@@ -169,7 +169,7 @@ const MembershipUpdateOpenapi = {
   parameters: [
     {
       name: 'id',
-      'in': 'path',
+      in: 'path',
       required: true,
       schema: {
         type: 'string',
@@ -177,7 +177,7 @@ const MembershipUpdateOpenapi = {
     },
     {
       name: 'country',
-      'in': 'query',
+      in: 'query',
       required: false,
       schema: {
         type: 'string',
@@ -240,7 +240,7 @@ const MembershipGetOpenapi = {
   parameters: [
     {
       name: 'id',
-      'in': 'path',
+      in: 'path',
       required: true,
       schema: {
         type: 'string',
@@ -248,7 +248,7 @@ const MembershipGetOpenapi = {
     },
     {
       name: 'country',
-      'in': 'query',
+      in: 'query',
       required: false,
       schema: {
         type: 'string',
@@ -308,7 +308,7 @@ const MembershipListOpenapi = {
   parameters: [
     {
       name: 'country',
-      'in': 'query',
+      in: 'query',
       required: false,
       schema: {
         type: 'string',

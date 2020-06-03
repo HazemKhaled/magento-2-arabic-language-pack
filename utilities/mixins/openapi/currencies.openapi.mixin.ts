@@ -26,7 +26,7 @@ const CurrenciesGetCurrencyOpenapi = {
   parameters: [
     {
       name: 'currencyCode',
-      'in': 'query',
+      in: 'query',
       required: false,
       schema: {
         type: 'string',
@@ -36,7 +36,7 @@ const CurrenciesGetCurrencyOpenapi = {
     },
     {
       name: 'currencyCode',
-      'in': 'path',
+      in: 'path',
       required: true,
       schema: {
         type: 'string',

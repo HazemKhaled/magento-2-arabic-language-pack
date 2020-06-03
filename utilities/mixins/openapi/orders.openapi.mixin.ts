@@ -10,7 +10,7 @@ const Order = {
     },
     status: {
       type: 'string',
-      'enum': ['pending', 'processing', 'cancelled'],
+      enum: ['pending', 'processing', 'cancelled'],
     },
     items: {
       type: 'array',
@@ -125,7 +125,7 @@ const OrderResponse = {
   properties: {
     status: {
       type: 'string',
-      'enum': ['success', 'fail'],
+      enum: ['success', 'fail'],
     },
     order: {
       type: 'object',
@@ -137,7 +137,7 @@ const OrderResponse = {
         },
         status: {
           type: 'string',
-          'enum': ['pending', 'processing', 'cancelled'],
+          enum: ['pending', 'processing', 'cancelled'],
         },
         items: {
           type: 'array',
@@ -257,7 +257,7 @@ const OrderResponse = {
         properties: {
           status: {
             type: 'string',
-            'enum': ['fail'],
+            enum: ['fail'],
           },
           message: {
             type: 'string',
@@ -403,7 +403,7 @@ const OrdersCreateOpenapi = {
                   properties: {
                     status: {
                       type: 'string',
-                      'enum': ['fail'],
+                      enum: ['fail'],
                     },
                     message: {
                       type: 'string',
@@ -474,7 +474,7 @@ const OrdersUpdateOpenapi = {
   parameters: [
     {
       name: 'order_id',
-      'in': 'path',
+      in: 'path',
       required: true,
       schema: {
         type: 'string',
@@ -575,7 +575,7 @@ const OrdersGetOpenapi = {
   parameters: [
     {
       name: 'order_id',
-      'in': 'path',
+      in: 'path',
       required: true,
       schema: {
         type: 'string',
@@ -650,33 +650,33 @@ const OrdersListOpenapi = {
   parameters: [
     {
       name: 'limit',
-      'in': 'query',
+      in: 'query',
       required: false,
       description: 'Size of the page to retrieve.',
       schema: {
         type: 'number',
         minimum: 1,
         maximum: 50,
-        'default': 10,
+        default: 10,
       },
     },
     {
       name: 'page',
-      'in': 'query',
+      in: 'query',
       required: false,
       schema: {
         type: 'number',
         minimum: 1,
-        'default': 1,
+        default: 1,
       },
     },
     {
       name: 'sort',
-      'in': 'query',
+      in: 'query',
       required: false,
       schema: {
         type: 'string',
-        'enum': [
+        enum: [
           'created_time',
           'customer_name',
           'salesorder_number',
@@ -685,30 +685,30 @@ const OrdersListOpenapi = {
           'date',
         ],
       },
-      'default': 'created_time',
+      default: 'created_time',
     },
     {
       name: 'sortOrder',
-      'in': 'query',
+      in: 'query',
       required: false,
       schema: {
         type: 'string',
-        'enum': ['A', 'D'],
+        enum: ['A', 'D'],
       },
-      'default': 'D',
+      default: 'D',
     },
     {
       name: 'status',
-      'in': 'query',
+      in: 'query',
       required: false,
       schema: {
         type: 'string',
-        'enum': ['draft', 'open', 'invoiced', 'partially_invoiced', 'void', 'overdue'],
+        enum: ['draft', 'open', 'invoiced', 'partially_invoiced', 'void', 'overdue'],
       },
     },
     {
       name: 'externalId',
-      'in': 'query',
+      in: 'query',
       required: false,
       schema: {
         type: 'string',
@@ -742,7 +742,7 @@ const OrdersDeleteOpenapi = {
   parameters: [
     {
       name: 'order_id',
-      'in': 'path',
+      in: 'path',
       required: true,
       schema: {
         type: 'string',

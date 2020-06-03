@@ -69,7 +69,7 @@ export const MembershipValidation: ServiceSchema = {
         active: {
           type: 'boolean',
         },
-        'public': {
+        public: {
           type: 'boolean',
         },
         cost: [{ type: 'number', positive: true }, { type: 'enum', values: [0] }],
@@ -170,7 +170,7 @@ export const MembershipValidation: ServiceSchema = {
           type: 'boolean',
           optional: true,
         },
-        'public': {
+        public: {
           type: 'boolean',
           optional: true,
         },

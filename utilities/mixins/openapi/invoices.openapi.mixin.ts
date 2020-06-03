@@ -67,7 +67,7 @@ const InvoiceSchema = {
       type: 'object',
       properties: {
         value: { type: 'number', positive: true, required: true },
-        type: { type: 'string', 'enum': ['entity_level'], required: true },
+        type: { type: 'string', enum: ['entity_level'], required: true },
       },
     },
     coupon: { type: 'string', required: false },
@@ -105,7 +105,7 @@ const InvoicesGetOpenapi = {
   parameters: [
     {
       name: 'page',
-      'in': 'query',
+      in: 'query',
       required: false,
       schema: {
         type: 'number',
@@ -113,7 +113,7 @@ const InvoicesGetOpenapi = {
     },
     {
       name: 'limit',
-      'in': 'query',
+      in: 'query',
       required: false,
       schema: {
         type: 'number',
@@ -121,7 +121,7 @@ const InvoicesGetOpenapi = {
     },
     {
       name: 'reference_number',
-      'in': 'query',
+      in: 'query',
       required: false,
       schema: {
         type: 'string',
@@ -129,7 +129,7 @@ const InvoicesGetOpenapi = {
     },
     {
       name: 'invoice_number',
-      'in': 'query',
+      in: 'query',
       required: false,
       schema: {
         type: 'string',
@@ -232,7 +232,7 @@ const InvoicesApplyCreditsOpenapi = {
   parameters: [
     {
       name: 'id',
-      'in': 'path',
+      in: 'path',
       required: true,
       schema: {
         type: 'string',
