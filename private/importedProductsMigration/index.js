@@ -38,7 +38,7 @@ async function run() {
   const laps = Math.floor(totalInstancesToMigrate / 100);
   let i = 0;
 
-  updateProducts(instances);
+  await updateProducts(instances);
 
   progressUpdate(startDate, i, laps);
 
@@ -52,7 +52,7 @@ async function run() {
       scroll: '1m',
     });
 
-    updateProducts(productsInstances);
+    await updateProducts(productsInstances);
 
     progressUpdate(startDate, i, laps);
 
