@@ -52,10 +52,9 @@
     "**/deployDev.sh": true,
     "services/*.js": false,
     "services/*.js.map": true,
-    "utilities/*/*.js": true,
-    "utilities/*/*.js.map": true,
-    "utilities/*/*/*.js": true,
-    "utilities/*/*/*.js.map": true,
+    "utilities/mixins/**/*.js": true,
+    "utilities/adapters/**/*.js": true,
+    "utilities/**/*.js.map": true,
     "**/currency.db": true,
     "test": true
   },
