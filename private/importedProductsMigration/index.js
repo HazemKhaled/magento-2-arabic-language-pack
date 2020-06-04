@@ -11,7 +11,7 @@ let config = {
 const appSearchClient = new AppSearchClient(
   undefined,
   process.env.APP_SEARCH_KEY,
-  () => process.env.APP_SEARCH_BASEURL,
+  () => `${process.env.APP_SEARCH_BASEURL}/api/as/v1/`,
 );
 const ESClient = new Elasticsearch({
   node: process.env.ELASTIC_URL,
