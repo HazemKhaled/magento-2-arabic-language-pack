@@ -171,14 +171,6 @@ const TaxesService: ServiceSchema = {
         return taxDeleteData;
       },
     },
-    taxStatus: {
-      handler(): { sales: boolean; subscription: boolean } {
-        return {
-          sales: !!Number(process.env.IS_SALES_TAX_INCLUSIVE),
-          subscription: !!Number(process.env.IS_SUB_TAX_INCLUSIVE),
-        };
-      },
-    },
     tCount: {
       cache: {
         keys: ['query'],
