@@ -9,12 +9,12 @@
 
 ### 🐛 Fixes
 
-- Oms DB fix module field replace regex
+- Oms Requests Collection fix module field replace regex
 
 ### ✨ Enhancements
 
 - Elastic env variables
-- Oms DB Request add createdAt field
+- Oms Requests Collection add createdAt field
 
 ## 1.6.1
 
