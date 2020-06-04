@@ -1,5 +1,40 @@
 # Changelog
 
+## 1.7.0
+
+### 🚀 Features
+
+- Get products from AppSearch
+- Update products instances using AppSearch
+- Add imported stores list to the products within AppSearch
+- CRM end-points
+- Products instances filter by hasExternalId
+
+### 🐛 Fixes
+
+- Remove mongodb from development environment
+- Remove elastic network from docker-compose
+- Fix vulnerabilities
+- Update linter
+- Product instance error msg
+- Openapi membership
+- Import and list products instance logic
+- Sync store logic
+- Lint environments file not used variables
+- Lint Taxes service not used method
+
+### ✨ Enhancements
+
+- Order update stock qty
+- Api logs issue
+- Api response status code in case add log action fail
+- Products instance cache flush
+- Get products instances gte last updated date filter
+
+### ⚙ Scripts
+
+- Imported products instance migration script
+
 
 ## 1.6.2
 
