@@ -25,9 +25,22 @@
   "rules": {
     "indent": ["error", 2],
     "linebreak-style": ["error", "unix"],
-    "quotes": ["error", "single"],
+    "quotes": "off",
     "semi": ["error", "always"],
     "comma-dangle": ["warn", "always-multiline"],
-    "quote-props": ["error", "as-needed", { "keywords": true }]
+    "quote-props": ["error", "as-needed"],
+    "@typescript-eslint/quotes": [
+      "error",
+      "single",
+      {
+        "avoidEscape": true
+      }
+    ],
+    "@typescript-eslint/camelcase": [
+      "error",
+      {
+        "properties": "never"
+      }
+    ]
   }
 }

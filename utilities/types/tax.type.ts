@@ -11,6 +11,8 @@ export interface Tax {
   name: string;
   omsId: string;
   isInclusive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 /**

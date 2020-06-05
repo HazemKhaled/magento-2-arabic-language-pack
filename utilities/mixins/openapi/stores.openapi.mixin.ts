@@ -19,12 +19,12 @@ const StoreSchema = {
     },
     status: {
       type: 'string',
-      'enum': ['confirmed', 'unconfirmed', 'uninstalled', 'archived', 'error'],
+      enum: ['confirmed', 'unconfirmed', 'uninstalled', 'archived', 'error'],
     },
     type: {
       type: 'string',
       description: 'Lowercase only allowed',
-      'enum': [
+      enum: [
         'woocommerce',
         'magento2',
         'expandcart',
@@ -50,8 +50,8 @@ const StoreSchema = {
     },
     stock_status: {
       type: 'string',
-      'default': 'idle',
-      'enum': ['idle', 'in-progress'],
+      default: 'idle',
+      enum: ['idle', 'in-progress'],
     },
     price_date: {
       type: 'string',
@@ -59,17 +59,17 @@ const StoreSchema = {
     },
     price_status: {
       type: 'string',
-      'default': 'idle',
-      'enum': ['idle', 'in-progress'],
+      default: 'idle',
+      enum: ['idle', 'in-progress'],
     },
     sale_price: {
       type: 'number',
-      'default': 1.7,
+      default: 1.7,
       example: '1 = Same as Knawat price',
     },
     compared_at_price: {
       type: 'number',
-      'default': 2,
+      default: 2,
       example: '2 = Same as sale price',
     },
     currency: {
@@ -81,11 +81,11 @@ const StoreSchema = {
     },
     consumer_key: {
       type: 'string',
-      'default': 'Auto generated',
+      default: 'Auto generated',
     },
     consumer_secret: {
       type: 'string',
-      'default': 'Auto generated',
+      default: 'Auto generated',
     },
     external_data: {
       type: 'object',
@@ -109,7 +109,7 @@ const StoreSchema = {
             type: 'array',
             items: {
               type: 'string',
-              'enum': ['owner', 'accounting', 'products', 'orders'],
+              enum: ['owner', 'accounting', 'products', 'orders'],
             },
             minItems: 1,
             maxItems: 4,
@@ -257,7 +257,7 @@ const StoresGetOpenapi = {
   parameters: [
     {
       name: 'url',
-      'in': 'path',
+      in: 'path',
       required: true,
       schema: {
         type: 'string',
@@ -316,7 +316,7 @@ const StoresListOpenapi = {
   parameters: [
     {
       name: 'filter',
-      'in': 'query',
+      in: 'query',
       required: false,
       schema: {
         type: 'string',
@@ -378,7 +378,7 @@ const StoresSListOpenapi = {
   parameters: [
     {
       name: 'id',
-      'in': 'query',
+      in: 'query',
       required: false,
       schema: {
         type: 'string',
@@ -386,7 +386,7 @@ const StoresSListOpenapi = {
     },
     {
       name: 'page',
-      'in': 'query',
+      in: 'query',
       required: false,
       schema: {
         type: 'number',
@@ -394,7 +394,7 @@ const StoresSListOpenapi = {
     },
     {
       name: 'perPage',
-      'in': 'query',
+      in: 'query',
       required: false,
       schema: {
         type: 'number',
@@ -514,7 +514,7 @@ const StoresUpdateOpenapi = {
   parameters: [
     {
       name: 'url',
-      'in': 'path',
+      in: 'path',
       required: true,
       schema: {
         type: 'string',

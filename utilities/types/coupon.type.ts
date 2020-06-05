@@ -6,6 +6,7 @@
  */
 export interface Coupon {
     _id?: string;
+    id?: string;
     code: string;
 	discount: {
         total?: Discount,
@@ -18,6 +19,8 @@ export interface Coupon {
     appliedMemberships: string[];
     useCount: number;
     auto: boolean;
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 interface Discount {

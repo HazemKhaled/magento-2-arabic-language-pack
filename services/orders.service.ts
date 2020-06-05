@@ -262,7 +262,7 @@ const TheService: ServiceSchema = {
         // Update products sales quantity
         ctx.call('products-list.updateQuantityAttributes', {
           products: stock.products.map((product: Product) => ({
-            _id: product.sku,
+            id: product.sku,
             qty: product.sales_qty || 0,
             attribute: 'sales_qty',
           })),

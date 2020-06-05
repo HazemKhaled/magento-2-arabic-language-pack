@@ -27,8 +27,6 @@ services:
     env_file: .env
     environment:
       SERVICES: stores
-    depends_on:
-      - mongodb
 
   catalog:
     build:
@@ -38,9 +36,6 @@ services:
     env_file: .env
     environment:
       SERVICES: products
-    networks:
-      - elastic
-      - default
 
   products-list:
     build:
@@ -50,9 +45,6 @@ services:
     env_file: .env
     environment:
       SERVICES: categories, products-list
-    networks:
-      - elastic
-      - default
 
   currencies:
     build:
@@ -116,8 +108,6 @@ services:
     env_file: .env
     environment:
       SERVICES: shipment
-    depends_on:
-      - mongodb
 
   elastic-update:
     build:
@@ -129,9 +119,6 @@ services:
       SERVICES: elastic-update
     volumes:
       - ~/data/mp-nedb:/app/data
-    networks:
-      - elastic
-      - default
 
   logs:
     build:
@@ -141,22 +128,9 @@ services:
     env_file: .env
     environment:
       SERVICES: logs
-    networks:
-      - elastic
-      - default
 
   redis:
     image: redis:alpine
-
-  mongodb:
-    image: mongo:4
-    restart: always
-    env_file: .env
-    volumes:
-      - ~/data/db/mp-dev:/data/db
-      - ../docker-mongodb-init/:/docker-entrypoint-initdb.d/
-    ports:
-      - '21985:27017'
 
   traefik:
     image: traefik
@@ -169,8 +143,3 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./traefik.toml:/traefik.toml
       - ./acme.json:/acme.json
-
-networks:
-  elastic:
-    external:
-      name: elk-dev_default

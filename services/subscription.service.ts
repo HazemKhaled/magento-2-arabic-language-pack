@@ -272,6 +272,8 @@ const TheService: ServiceSchema = {
           invoiceId: invoice.invoice.invoiceId,
           startDate,
           expireDate,
+          createdAt: new Date(),
+          updatedAt: new Date(),
         };
 
         if (ctx.params.grantTo) {
@@ -355,7 +357,7 @@ const TheService: ServiceSchema = {
     updateSubscription: {
       auth: 'Basic',
       handler(ctx: Context) {
-        let $set: { [key: string]: string } = {};
+        let $set: { [key: string]: string | Date } = {};
         const { params } = ctx;
         if (ctx.params.retries) {
           $set.retries = ctx.params.retries.map((i: Date) => new Date(i));
@@ -366,7 +368,7 @@ const TheService: ServiceSchema = {
         if (ctx.params.expireDate) {
           params.expireDate = new Date(params.expireDate);
         }
-        $set = { ...params, ...$set };
+        $set = { ...params, ...$set, updatedAt: new Date() };
         delete $set.id;
         return this.adapter
           .updateById(ctx.params.id, { $set })

@@ -12,3 +12,4 @@ deployDev.sh
 *.js.map
 currency.db
 openapi.json
+!private/importedProductsMigration/*.js

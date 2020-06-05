@@ -18,6 +18,8 @@ const TaxesService: ServiceSchema = {
           name: taxBody.name,
           percentage: taxBody.percentage,
           type: 'tax',
+          createdAt: new Date(),
+          updatedAt: new Date(),
         });
         taxBody.omsId = omsTax.tax.id;
         return this.adapter
@@ -37,6 +39,8 @@ const TaxesService: ServiceSchema = {
       async handler(ctx: Context): Promise<RTax> {
         const { id } = ctx.params;
         const $set = ctx.params;
+        $set.updatedAt = new Date();
+
         if ($set.country) {
           $set.country = $set.country.toUpperCase();
         }
@@ -165,14 +169,6 @@ const TaxesService: ServiceSchema = {
         }
 
         return taxDeleteData;
-      },
-    },
-    taxStatus: {
-      handler(): { sales: boolean; subscription: boolean } {
-        return {
-          sales: !!Number(process.env.IS_SALES_TAX_INCLUSIVE),
-          subscription: !!Number(process.env.IS_SUB_TAX_INCLUSIVE),
-        };
       },
     },
     tCount: {

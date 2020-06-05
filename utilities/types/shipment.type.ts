@@ -9,6 +9,8 @@ export interface ShipmentPolicy {
   name?: string;
   countries: string[];
   rules: Rule[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 /**

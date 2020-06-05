@@ -6,7 +6,7 @@ const TaxSchema = {
     id: { type: 'string' },
     name: { type: 'string' },
     country: { type: 'string' },
-    'class': { type: 'array', items: { type: 'string' } },
+    class: { type: 'array', items: { type: 'string' } },
     percentage: { type: 'number' },
     omsId: { type: 'string' },
     isInclusive: { type: 'boolean' },
@@ -21,7 +21,7 @@ const TaxCreateReq = {
         properties: {
           name: { type: 'string', required: true },
           country: { type: 'string', required: true },
-          'class': { type: 'array', items: { type: 'string' }, required: true },
+          class: { type: 'array', items: { type: 'string' }, required: true },
           percentage: { type: 'number', required: true },
           isInclusive: { type: 'boolean', required: true },
         },
@@ -38,7 +38,7 @@ const TaxUpdateReq = {
         properties: {
           name: { type: 'string' },
           country: { type: 'string' },
-          'class': { type: 'array', items: { type: 'string' } },
+          class: { type: 'array', items: { type: 'string' } },
           percentage: { type: 'number' },
           isInclusive: { type: 'boolean' },
         },
@@ -108,7 +108,7 @@ const TaxUpdate = {
   parameters: [
     {
       name: 'id',
-      'in': 'path',
+      in: 'path',
       required: true,
       schema: {
         type: 'string',
@@ -172,7 +172,7 @@ const TaxGet = {
   parameters: [
     {
       name: 'id',
-      'in': 'path',
+      in: 'path',
       schema: {
         type: 'string',
       },
@@ -233,28 +233,28 @@ const TaxList = {
   parameters: [
     {
       name: 'page',
-      'in': 'query',
+      in: 'query',
       schema: {
         type: 'number',
       },
     },
     {
       name: 'perPage',
-      'in': 'query',
+      in: 'query',
       schema: {
         type: 'number',
       },
     },
     {
       name: 'country',
-      'in': 'query',
+      in: 'query',
       schema: {
         type: 'string',
       },
     },
     {
       name: 'class',
-      'in': 'query',
+      in: 'query',
       schema: {
         type: 'array',
         items: {
@@ -321,7 +321,7 @@ const TaxDelete = {
   parameters: [
     {
       name: 'id',
-      'in': 'path',
+      in: 'path',
       required: true,
       schema: {
         type: 'string',

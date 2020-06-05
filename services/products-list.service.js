@@ -1,17 +1,13 @@
 const ESService = require('moleculer-elasticsearch');
 const { MoleculerClientError } = require('moleculer').Errors;
-const { ProductsListOpenapi } = require('../utilities/mixins/openapi');
-const Transformation = require('../utilities/mixins/product-transformation.mixin');
-const { ProductsListValidation } = require('../utilities/mixins/validation/products-list.validate');
-
+const { ProductTransformation, ProductsListOpenapi, ProductsListValidation, AppSearch, I18nService } = require('../utilities/mixins');
 module.exports = {
   name: 'products-list',
-  mixins: [Transformation, ESService, ProductsListValidation, ProductsListOpenapi],
+  mixins: [I18nService, ProductTransformation, ESService, ProductsListValidation, ProductsListOpenapi, AppSearch('catalog')],
   settings: {
     elasticsearch: {
-      host: `${process.env.ELASTIC_PROTOCOL}://${process.env.ELASTIC_AUTH}@${process.env.ELASTIC_HOST}:${
-        process.env.ELASTIC_PORT
-      }`,
+      host: process.env.ELASTIC_URL,
+      httpAuth: process.env.ELASTIC_AUTH,
       apiVersion: process.env.ELASTIC_VERSION || '6.x',
     },
   },
@@ -115,6 +111,7 @@ module.exports = {
         default:
           break;
         }
+
         if (ctx.params.images) {
           filter.push({
             script: {
@@ -124,11 +121,12 @@ module.exports = {
             },
           });
         }
+
         const body = {
           sort: sort,
           query: {
             bool: {
-              filter: filter,
+              filter,
             },
           },
         };
@@ -148,61 +146,32 @@ module.exports = {
         ttl: 60 * 60 * 5,
       },
       handler(ctx) {
-        return ctx
-          .call('products-list.search', {
-            index: 'products',
-            type: 'Product',
-            size: 1000,
-            body: {
-              query: {
-                bool: {
-                  filter: [
-                    {
-                      nested: {
-                        path: 'variations',
-                        query: {
-                          bool: {
-                            filter: {
-                              terms: {
-                                'variations.sku': ctx.params.skus,
-                              },
-                            },
-                          },
-                        },
-                      },
-                    },
-                  ],
-                },
+        return this.documentsSearch('cat', {
+          filters: {
+            all: [
+              {
+                variations_skus: ctx.params.skus,
               },
-            },
-          })
-          .then(response => {
-            return { products: response.hits.hits.map(({_source}) => _source) };
-          });
+            ],
+          },
+          page: {
+            size: 100,
+          },
+        })
+          .then(({results}) => ({ products: results }));
       },
     },
     updateQuantityAttributes: {
       handler(ctx) {
-        const bulk = [];
-        ctx.params.products.forEach(product => {
-          bulk.push({
-            update: {
-              _index: 'products',
-              _type: 'Product',
-              _id: product._id,
-            },
-          });
-          bulk.push({
-            doc: {
-              [product.attribute]: parseInt(product.qty) + 1,
-            },
-          });
+        const bulk = ctx.params.products.map(product => {
+          const body = {
+            id: product.id,
+            [product.attribute]: parseInt(product.qty) + 1,
+          };
+          if (product.imported) body.imported = product.imported;
+          return body;
         });
-        ctx.call('products-list.bulk', {
-          index: 'products',
-          type: 'Product',
-          body: bulk,
-        });
+        return this.updateDocuments(bulk);
       },
     },
   },
@@ -236,12 +205,11 @@ module.exports = {
       else {
         result = await this.broker.call('products-list.search', {
           index: 'products',
-          type: 'Product',
           size: process.env.SCROLL_LIMIT,
           scroll: '1m',
           body: body,
         });
-        maxScroll = result.hits.total;
+        maxScroll = result.hits.total.value;
         trace = page * limit;
       }
       fullResult =
@@ -274,7 +242,7 @@ module.exports = {
             scrollId ? trace + parseInt(process.env.SCROLL_LIMIT) : trace,
           )
           .map(product => this.productSanitize(product, instance, rate)),
-        total: result.hits.total,
+        total: result.hits.total.value,
       };
     },
     productSanitize(product, instance, rate) {

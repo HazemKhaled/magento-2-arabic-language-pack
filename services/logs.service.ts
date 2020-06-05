@@ -12,9 +12,8 @@ const TheService: ServiceSchema = {
    */
   settings: {
     elasticsearch: {
-      host: `${process.env.ELASTIC_PROTOCOL}://${process.env.ELASTIC_AUTH}@${process.env.ELASTIC_HOST}:${
-        process.env.ELASTIC_PORT
-      }`,
+      host: process.env.ELASTIC_URL,
+      httpAuth: process.env.ELASTIC_AUTH,
       apiVersion: process.env.ELASTIC_VERSION || '6.x',
     },
   },
@@ -100,9 +99,9 @@ const TheService: ServiceSchema = {
             body,
           })
           .then(res => {
-            if (res.hits.total > 0)
+            if (res.hits.total.value > 0)
               return res.hits.hits.map((item: { _source: Log }) => item._source);
-            if (res.hits.total === 0) {
+            if (res.hits.total.value === 0) {
               ctx.meta.$statusCode = 404;
               ctx.meta.$statusMessage = 'Not Found';
               return {

@@ -52,10 +52,8 @@
     "**/deployDev.sh": true,
     "services/*.js": false,
     "services/*.js.map": true,
-    "utilities/*/*.js": true,
-    "utilities/*/*.js.map": true,
-    "utilities/*/*/*.js": true,
-    "utilities/*/*/*.js.map": true,
+    "utilities/**/*.js": true,
+    "utilities/**/*.js.map": true,
     "**/currency.db": true,
     "test": true
   },
@@ -67,5 +65,6 @@
 ],
 "editor.codeActionsOnSave": {
   "source.fixAll.eslint": true
-}
+},
+"typescript.tsdk": "node_modules/typescript/lib"
 }

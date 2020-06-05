@@ -9,7 +9,7 @@ export const TaxesValidation: ServiceSchema = {
         name: {
           type: 'string',
         },
-        'class': {
+        class: {
           type: 'array',
           items: {
             type: 'string',
@@ -36,7 +36,7 @@ export const TaxesValidation: ServiceSchema = {
           type: 'string',
           optional: true,
         },
-        'class': {
+        class: {
           type: 'array',
           items: {
             type: 'string',
@@ -82,7 +82,7 @@ export const TaxesValidation: ServiceSchema = {
           pattern: '^[a-zA-Z]{2}$',
           optional: true,
         },
-        'class': [{
+        class: [{
           type: 'string',
           optional: true,
         },

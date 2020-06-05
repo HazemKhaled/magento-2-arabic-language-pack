@@ -11,26 +11,26 @@ const CreateCoupon = {
           type: 'object',
           properties: {
             value: { type: 'number' },
-            type: { type: 'string', 'enum': ['%', '$']},
+            type: { type: 'string', enum: ['%', '$']},
           },
         },
         shipping: {
           type: 'object',
           properties: {
             value: { type: 'number' },
-            type: { type: 'string', 'enum': ['%', '$']},
+            type: { type: 'string', enum: ['%', '$']},
           },
         },
         tax: {
           type: 'object',
           properties: {
             value: { type: 'number' },
-            type: { type: 'string', 'enum': ['%', '$']},
+            type: { type: 'string', enum: ['%', '$']},
           },
         },
       },
     },
-    type: { type: 'string', 'enum': ['salesorder', 'subscription'] },
+    type: { type: 'string', enum: ['salesorder', 'subscription'] },
     startDate: { type: 'string', format: 'date-time' },
     endDate: { type: 'string', format: 'date-time' },
     maxUses: { type: 'number' },
@@ -55,7 +55,7 @@ const CouponsGetOpenapi = {
   parameters: [
     {
       name: 'CODE',
-      'in': 'path',
+      in: 'path',
       required: true,
       schema: {
         type: 'string',
@@ -63,7 +63,7 @@ const CouponsGetOpenapi = {
     },
     {
       name: 'membership',
-      'in': 'query',
+      in: 'query',
       required: false,
       schema: {
         type: 'string',
@@ -71,7 +71,7 @@ const CouponsGetOpenapi = {
     },
     {
       name: 'type',
-      'in': 'query',
+      in: 'query',
       required: false,
       schema: {
         type: 'string',
@@ -130,7 +130,7 @@ const CouponsListOpenapi = {
   parameters: [
     {
       name: 'code',
-      'in': 'query',
+      in: 'query',
       required: false,
       schema: {
         type: 'string',
@@ -138,7 +138,7 @@ const CouponsListOpenapi = {
     },
     {
       name: 'membership',
-      'in': 'query',
+      in: 'query',
       required: false,
       schema: {
         type: 'string',
@@ -146,11 +146,11 @@ const CouponsListOpenapi = {
     },
     {
       name: 'type',
-      'in': 'query',
+      in: 'query',
       required: true,
       schema: {
         type: 'string',
-        'enum': ['salesorder', 'subscription'],
+        enum: ['salesorder', 'subscription'],
       },
     },
   ],

@@ -118,35 +118,43 @@ const TheService: ServiceSchema = {
           'POST customer/redact': 'gdpr.customerRedact',
           'POST store/redact': 'gdpr.storeRedact',
           'POST customer/data_request': 'gdpr.customerDataRequest',
+
+          // CRM
+          'GET crm/:module': 'crm.findRecords',
+          'POST crm/:module': 'crm.createRecord',
+          'PUT crm/:module/:id': 'crm.updateRecord',
+          'POST crm/:module/:id/tags/add': 'crm.addTagsToRecord',
+          'DELETE crm/:module/:id/tags/remove': 'crm.removeTagsFromRecord',
         },
 
         // Disable to call not-mapped actions
         mappingPolicy: 'restrict',
 
         // Set CORS headers
-        cors: process.env.NODE_ENV === 'production' ? false : {
-          // Configures the Access-Control-Allow-Origin CORS header.
-          origin: [
-            'http://localhost*',
-          ],
-          // Configures the Access-Control-Allow-Methods CORS header.
-          methods: ['POST', 'GET', 'PUT', 'DELETE', 'OPTION'],
-          // Configures the Access-Control-Allow-Headers CORS header.
-          allowedHeaders: [
-            '*',
-            'Origin',
-            'X-Requested-With',
-            'Content-Type',
-            'Accept',
-            'Authorization',
-          ],
-          // Configures the Access-Control-Expose-Headers CORS header.
-          exposedHeaders: [],
-          // Configures the Access-Control-Allow-Credentials CORS header.
-          credentials: true,
-          // Configures the Access-Control-Max-Age CORS header.
-          maxAge: 3600,
-        },
+        cors:
+          process.env.NODE_ENV === 'production'
+            ? false
+            : {
+              // Configures the Access-Control-Allow-Origin CORS header.
+              origin: ['http://localhost*'],
+              // Configures the Access-Control-Allow-Methods CORS header.
+              methods: ['POST', 'GET', 'PUT', 'DELETE', 'OPTION'],
+              // Configures the Access-Control-Allow-Headers CORS header.
+              allowedHeaders: [
+                '*',
+                'Origin',
+                'X-Requested-With',
+                'Content-Type',
+                'Accept',
+                'Authorization',
+              ],
+              // Configures the Access-Control-Expose-Headers CORS header.
+              exposedHeaders: [],
+              // Configures the Access-Control-Allow-Credentials CORS header.
+              credentials: true,
+              // Configures the Access-Control-Max-Age CORS header.
+              maxAge: 3600,
+            },
 
         // Parse body content
         bodyParsers: {
@@ -184,20 +192,23 @@ const TheService: ServiceSchema = {
               logLevel: 'error',
               code: 500,
               payload: { error: err.toString(), params: req.$params },
-            });
-            res.end(
-              JSON.stringify({
-                errors: [
-                  {
-                    message: `Something went wrong for more details Please check the log under ID: ${
-                      log.id
-                    }`,
-                  },
-                ],
-              }),
-            );
+            }).catch((err: unknown) => this.broker.logger.error(err));
+
+            if (log) {
+              res.end(
+                JSON.stringify({
+                  errors: [
+                    {
+                      message: `Something went wrong for more details Please check the log under ID: ${
+                        log.id
+                      }`,
+                    },
+                  ],
+                }),
+              );
+            }
           }
-          res.end(JSON.stringify({ errors: [{ message: err.message }] }));
+          res.end(JSON.stringify({ errors: [{ message: err.message || 'Internal Server Error!' }] }));
         },
       },
     ],

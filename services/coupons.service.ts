@@ -12,7 +12,10 @@ const TheService: ServiceSchema = {
     create: {
       auth: 'Basic',
       handler(ctx: Context): Promise<Coupon> {
+
+        // Different coupon types validation
         this.couponTypeCheck(ctx.params);
+
         return this.adapter
           .insert(this.createCouponSanitize(ctx.params))
           .then((res: Coupon) => {
@@ -112,8 +115,9 @@ const TheService: ServiceSchema = {
       auth: 'Basic',
       async handler(ctx: Context): Promise<Coupon> {
         this.couponTypeCheck(ctx.params);
+
         const id = ctx.params.id.toUpperCase();
-        const updateBody = { ...ctx.params };
+        const updateBody: Partial<Coupon> = { ...ctx.params, updatedAt: new Date() };
         if (updateBody.startDate) {
           updateBody.startDate = new Date(updateBody.startDate);
         }
@@ -193,6 +197,8 @@ const TheService: ServiceSchema = {
         minAppliedAmount: params.minAppliedAmount || 0,
         appliedMemberships: params.appliedMemberships,
         auto: params.auto, // Auto apply 'boolean'
+        createdAt: new Date(),  // Add created and updated dates of the coupon
+        updatedAt: new Date(),
       };
     },
     /**
