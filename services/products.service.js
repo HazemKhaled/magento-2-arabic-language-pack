@@ -191,7 +191,7 @@ module.exports = {
           });
       },
     },
-    'import': {
+    import: {
       auth: 'Bearer',
       handler(ctx) {
         const skus = ctx.params.products.map(i => i.sku);
@@ -403,6 +403,10 @@ module.exports = {
           currencyCode: currency || instance.currency,
         });
         const source = result[0];
+        if (!source) {
+          console.error(source);
+          return 500;
+        }
         return {
           sku: source.sku,
           name: this.formatI18nText(source.name),
@@ -420,7 +424,7 @@ module.exports = {
           ),
         };
       } catch (err) {
-        console.log(err);
+        console.error(err);
         return 500;
       }
     },
