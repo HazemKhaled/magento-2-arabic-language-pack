@@ -63,7 +63,7 @@ export const OrdersOperations: ServiceSchema = {
               image: product.images[0],
               weight: item.weight,
               archive: product.archive || item.archive,
-              barcode: product.barcode || undefined,
+              barcode: String(product.barcode),
               taxClass: product.tax_class,
               description: `${item.attributes.reduce(
                 (accumulator, attribute, n) =>
