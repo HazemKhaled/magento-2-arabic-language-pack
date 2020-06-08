@@ -200,8 +200,7 @@ const TheService: ServiceSchema = {
       const query = {
         query: { _id: 'last_update_date' },
       };
-      return this.Promise.resolve()
-        .then(() => this.adapter.find(query))
+      return this.adapter.find(query)
         .then(([date]: [{ date: any }]) =>
           date && date.date ? date.date : new Date('1970-01-01T12:00:00.000Z'),
         )
