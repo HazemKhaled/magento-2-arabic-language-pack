@@ -114,6 +114,18 @@ const StoreSchema = {
             minItems: 1,
             maxItems: 4,
           },
+          first_name: {
+            type: 'string',
+            minLength: 3,
+            pattern: '^[A-Za-z ]{3,}$',
+            required: false,
+          },
+          last_name: {
+            type: 'string',
+            minLength: 3,
+            pattern: '^[A-Za-z ]{3,}$',
+            required: false,
+          },
         },
       },
     },

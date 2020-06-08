@@ -168,10 +168,12 @@ export const StoresValidation: ServiceSchema = {
             props: {
               first_name: {
                 type: 'string',
+                min: 3,
                 optional: true,
               },
               last_name: {
                 type: 'string',
+                min: 3,
                 optional: true,
               },
               email: {
@@ -359,10 +361,12 @@ export const StoresValidation: ServiceSchema = {
             props: {
               first_name: {
                 type: 'string',
+                min: 3,
                 optional: true,
               },
               last_name: {
                 type: 'string',
+                min: 3,
                 optional: true,
               },
               email: {
@@ -396,9 +400,11 @@ export const StoresValidation: ServiceSchema = {
           props: {
             first_name: {
               type: 'string',
+              min: 3,
             },
             last_name: {
               type: 'string',
+              min: 3,
             },
             company: {
               type: 'string',
