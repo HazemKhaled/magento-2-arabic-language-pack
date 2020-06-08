@@ -1,3 +1,4 @@
+import { MpError } from '../utilities/adapters';
 import { Context, Errors, ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
 import jwt from 'jsonwebtoken';
@@ -235,20 +236,14 @@ const TheService: ServiceSchema = {
         // Sanitize request params
         const store: Store = this.sanitizeStoreParams(ctx.params, true);
 
-        // Initial response variable
-        let error: {} = {};
         const myStore = await this.adapter
           .insert(store)
           .then((res: Store) => this.sanitizeResponse(res))
           .catch((err: { code: number }) => {
             this.logger.error('Create store', err);
-            // Errors Handling
-            ctx.meta.$statusMessage = 'Internal Server Error';
-            ctx.meta.$statusCode = 500;
-
-            error = {
-              errors: [{ message: err.code === 11000 ? 'Duplicated entry!' : 'Internal Error!' }],
-            };
+            const msg = err.code === 11000 ? 'Duplicated entry!' : 'Internal Error!';
+            const code = err.code === 11000 ? 422 : 500;
+            throw new MpError('Stores Service', msg, code);
           });
 
         if (myStore.url) {
@@ -258,7 +253,7 @@ const TheService: ServiceSchema = {
           this.cacheUpdate(myStore);
         }
 
-        return myStore || error;
+        return myStore;
       },
     },
     /**
