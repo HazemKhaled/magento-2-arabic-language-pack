@@ -146,7 +146,7 @@ module.exports = {
         ttl: 60 * 60 * 5,
       },
       handler(ctx) {
-        return this.documentsSearch('cat', {
+        return this.documentsSearch('', {
           filters: {
             all: [
               {
