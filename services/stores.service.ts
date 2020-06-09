@@ -338,22 +338,12 @@ const TheService: ServiceSchema = {
             this.sendLogs({
               topic: 'store',
               topicId: id,
-              message: 'Update in OMS',
+              message: 'Update in CRM',
               storeId: id,
               logLevel: 'error',
               code: 500,
-              payload: { error, params: ctx.params },
+              payload: { error: error.toString(), params: ctx.params },
             });
-          });
-        } else {
-          this.sendLogs({
-            topic: 'store',
-            topicId: id,
-            message: 'Update in OMS, omsId not found',
-            storeId: id,
-            logLevel: 'error',
-            code: 500,
-            payload: { params: ctx.params },
           });
         }
 
