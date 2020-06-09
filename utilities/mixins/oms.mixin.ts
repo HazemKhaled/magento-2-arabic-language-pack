@@ -10,7 +10,7 @@ export const Oms: ServiceSchema = {
 
       params.users.forEach((user: User) => {
         // Backward compatibility since zoho require contact last
-        if (!user.last_name) user.last_name = String(params.name).padEnd(3, 'ZZ');
+        if (!user.last_name) user.last_name = String(params.name).padEnd(3, '_');
       });
 
       // Sanitized params keys
