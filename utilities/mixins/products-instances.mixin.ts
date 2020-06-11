@@ -13,7 +13,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
      *
      * @param {Object} instance
      * @returns {Object} Product
-     * @memberof ElasticLib
+     * @memberof Products-instances Mixin
      */
     async fetchProduct(ctx) {
       const { sku, currency, _source } = ctx.params;
@@ -78,7 +78,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
      * @param {string} [lastUpdated=0]
      * @param {string} keyword
      * @returns {Array} Products
-     * @memberof ElasticLib
+     * @memberof Products-instances Mixin
      */
     async findProducts(ctx) {
       const {
@@ -343,7 +343,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
      * @param SKU
      * @param id Instance ID
      * @returns {Object} Status of delete product
-     * @memberof ElasticLib
+     * @memberof Products-instances Mixin
      */
     deleteProduct(sku, id) {
       return this.broker
