@@ -55,14 +55,8 @@
     "**/currency.db": true,
     "test": true
   },
-  "eslint.autoFixOnSave": true,
-  "eslint.validate": [{
-    "autoFix": true,
-    "language": "typescript"
-  }
-],
-"editor.codeActionsOnSave": {
-  "source.fixAll.eslint": true
-},
-"typescript.tsdk": "node_modules/typescript/lib"
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "typescript.tsdk": "node_modules/typescript/lib"
 }
