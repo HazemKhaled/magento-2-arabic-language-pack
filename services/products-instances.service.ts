@@ -110,7 +110,6 @@ module.exports = {
           'externalId',
           'hasExternalId',
           'currency',
-          '_source',
         ],
         ttl: 60 * 60,
         monitor: true,
