@@ -51,11 +51,6 @@ const Product = {
         },
       },
     },
-    last_stock_check: {
-      type: 'string',
-      format: 'date-time',
-      example: '2016-02-28T16:41:41.090Z',
-    },
     images: {
       type: 'array',
       description: 'List of images links from Knawat CDN servers',
@@ -120,7 +115,6 @@ const Product = {
     ],
     attributes: [
       {
-        id: 1,
         name: {
           tr: 'Beden',
           en: 'Size',
@@ -140,7 +134,6 @@ const Product = {
         ],
       },
       {
-        id: 2,
         name: {
           tr: 'Renk',
           en: 'Color',
@@ -155,7 +148,6 @@ const Product = {
         ],
       },
       {
-        id: 3,
         name: 'Material',
         options: ['15% Cotton', '25% Polyester'],
       },
@@ -169,7 +161,6 @@ const Product = {
         quantity: 10,
         attributes: [
           {
-            id: 1,
             name: {
               tr: 'Beden',
               en: 'Size',
@@ -192,7 +183,6 @@ const Product = {
         barcode: 45234526,
         attributes: [
           {
-            id: 1,
             name: {
               tr: 'Beden',
               en: 'Size',
@@ -915,7 +905,7 @@ const BulkProductInstance = {
 };
 
 export const ProductsInstancesOpenapi: ServiceSchema = {
-  name: 'products',
+  name: 'products-instances',
   settings: {
     openapi: {
       components: {
@@ -931,23 +921,23 @@ export const ProductsInstancesOpenapi: ServiceSchema = {
     getInstanceProduct: {
       openapi: GetInstanceProduct,
     },
-    // total: {
-    //   openapi: ProductsTotal,
-    // },
-    // list: {
-    //   openapi: ProductsList,
-    // },
-    // deleteInstanceProduct: {
-    //   openapi: DeleteInstanceProduct,
-    // },
-    // import: {
-    //   openapi: ProductsImport,
-    // },
-    // instanceUpdate: {
-    //   openapi: InstanceUpdate,
-    // },
-    // bulkProductInstance: {
-    //   openapi: BulkProductInstance,
-    // },
+    total: {
+      openapi: ProductsTotal,
+    },
+    list: {
+      openapi: ProductsList,
+    },
+    deleteInstanceProduct: {
+      openapi: DeleteInstanceProduct,
+    },
+    import: {
+      openapi: ProductsImport,
+    },
+    instanceUpdate: {
+      openapi: InstanceUpdate,
+    },
+    bulkProductInstance: {
+      openapi: BulkProductInstance,
+    },
   },
 };
