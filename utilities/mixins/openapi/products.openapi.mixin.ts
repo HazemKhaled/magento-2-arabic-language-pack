@@ -36,6 +36,13 @@ const ProductsListGetOpenapi = {
   responses: {
     200: {
       description: 'Status 200',
+      content: {
+        'application/json': {
+          schema: {
+            $ref: '#/components/schemas/Product',
+          },
+        },
+      },
     },
     401: {
       $ref: '#/components/responses/UnauthorizedErrorBasic',
@@ -81,16 +88,16 @@ const ProductsByVariationOpenapi = {
 };
 
 export const ProductsOpenapi: ServiceSchema = {
-  name: 'products-list',
+  name: 'products',
   actions: {
-    // list: {
-    //   openapi: ProductsListListOpenapi,
-    // },
-    // get: {
-    //   openapi: ProductsListGetOpenapi,
-    // },
-    // getProductsByVariationSku: {
-    //   openapi: ProductsByVariationOpenapi,
-    // },
+    list: {
+      openapi: ProductsListListOpenapi,
+    },
+    getBySku: {
+      openapi: ProductsListGetOpenapi,
+    },
+    getProductsByVariationSku: {
+      openapi: ProductsByVariationOpenapi,
+    },
   },
 };

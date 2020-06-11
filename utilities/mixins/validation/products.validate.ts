@@ -4,6 +4,11 @@ import { ServiceSchema } from 'moleculer';
 export const ProductsValidation: ServiceSchema = {
   name: 'products-list',
   actions: {
+    getBySku: {
+      params: {
+        sku: 'string',
+      },
+    },
     list: {
       params: {
         limit: {
