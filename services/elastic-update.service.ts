@@ -46,11 +46,6 @@ const TheService: ServiceSchema = {
   },
 
   /**
-   * Service metadata
-   */
-  metadata: {},
-
-  /**
    * Actions
    */
   actions: {
