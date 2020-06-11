@@ -196,19 +196,30 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 * 5,
       },
       handler(ctx) {
-        return this.documentsSearch('', {
-          filters: {
-            all: [
-              {
-                variations_skus: ctx.params.skus,
+        return ctx
+          .call('products-list.search', {
+            index: 'products',
+            size: 1000,
+            body: {
+              query: {
+                nested: {
+                  path: 'variations',
+                  query: {
+                    bool: {
+                      filter: {
+                        terms: {
+                          'variations.sku': ctx.params.skus,
+                        },
+                      },
+                    },
+                  },
+                },
               },
-            ],
-          },
-          page: {
-            size: 100,
-          },
-        })
-          .then(({ results }: { results: Product[] }) => ({ products: results }));
+            },
+          })
+          .then(response => {
+            return { products: response.hits.hits.map(({_source} : {_source: Product}) => _source) };
+          });
       },
     },
     updateQuantityAttributes: {
