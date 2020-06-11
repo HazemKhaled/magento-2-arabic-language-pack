@@ -54,7 +54,7 @@ const TheService: ServiceSchema = {
           // All Products
           'GET products': 'products.list',
           'GET products/variation': 'products.getProductsByVariationSku',
-          'GET products/:sku': 'products.get',
+          'GET products/:sku': 'products.getBySku',
 
           // Categories
           'GET catalog/categories': 'categories.list',
