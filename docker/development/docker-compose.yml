@@ -28,23 +28,23 @@ services:
     environment:
       SERVICES: stores
 
-  catalog:
+  products-instances:
     build:
       context: ../../
     image: microes
     restart: always
     env_file: .env
     environment:
-      SERVICES: products
+      SERVICES: products-instances
 
-  products-list:
+  products:
     build:
       context: ../../
     image: microes
     restart: always
     env_file: .env
     environment:
-      SERVICES: categories, products-list
+      SERVICES: categories, products
 
   currencies:
     build:
