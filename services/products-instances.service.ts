@@ -212,7 +212,7 @@ module.exports = {
                   });
                   new Promise(async (resolve) => {
                     for (let i = 0; i < updateArr.length; i+=100) {
-                      await ctx.call('products-list.updateQuantityAttributes', {
+                      await ctx.call('products.updateQuantityAttributes', {
                         products: updateArr.slice(i, i+100),
                       });
                     }

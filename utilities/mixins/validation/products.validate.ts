@@ -2,7 +2,7 @@ import { ServiceSchema } from 'moleculer';
 
 
 export const ProductsValidation: ServiceSchema = {
-  name: 'products-list',
+  name: 'products',
   actions: {
     getBySku: {
       params: {

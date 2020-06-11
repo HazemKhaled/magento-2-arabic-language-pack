@@ -201,7 +201,7 @@ const TheService: ServiceSchema = {
       },
       handler(ctx) {
         return ctx
-          .call('products-list.search', {
+          .call('products.search', {
             index: 'products',
             size: 1000,
             body: {
@@ -264,7 +264,7 @@ const TheService: ServiceSchema = {
       page = page ? parseInt(page) : 1;
       let result = [];
       if (scrollId)
-        result = await this.broker.call('products-list.call', {
+        result = await this.broker.call('products.call', {
           api: 'scroll',
           params: {
             scroll: '30s',
@@ -272,7 +272,7 @@ const TheService: ServiceSchema = {
           },
         });
       else {
-        result = await this.broker.call('products-list.search', {
+        result = await this.broker.call('products.search', {
           index: 'products',
           size: process.env.SCROLL_LIMIT,
           scroll: '1m',
