@@ -119,7 +119,8 @@ export const ProductsInstancesMixin: ServiceSchema = {
           currencyCode: currency || instance.currency,
         });
 
-        const products = results.map((product: Product, n: number) => {
+        const products = instanceProductsFull.page.map((pi: {_source: Partial<Product>}) => {
+          const product = results.find((p: Product) => p.sku === pi._source.sku);
           if (product) {
             return {
               sku: product.sku,
@@ -127,8 +128,8 @@ export const ProductsInstancesMixin: ServiceSchema = {
               description: this.formatI18nText(product.description),
               supplier: product.seller_id,
               images: product.images,
-              updated: instanceProductsFull.page[n]._source.updated,
-              created: instanceProductsFull.page[n]._source.createdAt,
+              updated: pi._source.updated,
+              created: pi._source.createdAt,
               categories: this.formatCategories(product.categories),
               attributes: this.formatAttributes(product.attributes || []),
               variations: this.formatVariations(
@@ -136,22 +137,22 @@ export const ProductsInstancesMixin: ServiceSchema = {
                 instance,
                 currencyRate.rate,
                 product.archive,
-                instanceProductsFull.page[n]._source.variations,
+                pi._source.variations,
               ),
-              externalId: instanceProductsFull.page[n]._source.externalId,
-              externalUrl: instanceProductsFull.page[n]._source.externalUrl,
+              externalId: pi._source.externalId,
+              externalUrl: pi._source.externalUrl,
             };
           }
 
           // In case product not found at products instance
           const blankProduct: Partial<Product> = {
-            sku: instanceProductsFull.page[n]._source.sku,
+            sku: pi._source.sku,
             images: [],
             categories: [],
-            externalId: instanceProductsFull.page[n]._source.externalId,
-            externalUrl: instanceProductsFull.page[n]._source.externalUrl,
+            externalId: pi._source.externalId,
+            externalUrl: pi._source.externalUrl,
           };
-          blankProduct.variations = instanceProductsFull.page[n]._source.variations.map((variation: Variation) => {
+          blankProduct.variations = pi._source.variations.map((variation: Variation) => {
             variation.quantity = 0;
             return variation;
           });

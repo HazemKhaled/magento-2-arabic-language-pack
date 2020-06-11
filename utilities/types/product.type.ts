@@ -24,6 +24,7 @@ export interface Product {
   externalId?: string;
   externalUrl?: string;
   imported: string[];
+  createdAt?: Date;
   import_qty: number;
 }
 
