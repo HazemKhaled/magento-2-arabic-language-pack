@@ -3,7 +3,7 @@ import { Context, Errors, ServiceSchema } from 'moleculer';
 import * as Cron from 'moleculer-cron';
 import ESService, { SearchResponse } from 'moleculer-elasticsearch';
 
-import { DbMixin, AppSearch } from '../utilities/mixins';
+import { DbMixin } from '../utilities/mixins';
 import { Product } from '../utilities/types';
 
 const { MoleculerClientError } = Errors;
@@ -31,7 +31,7 @@ const TheService: ServiceSchema = {
   /**
    * Service Mixins
    */
-  mixins: [DbMixin('elastic-update'), Cron, ESService, AppSearch('catalog')],
+  mixins: [DbMixin('elastic-update'), Cron, ESService],
 
   /**
    * Service settings
@@ -73,7 +73,7 @@ const TheService: ServiceSchema = {
         if (lastUpdateDate) {
           const products = await this.syncInstanceProducts(lastUpdateDate);
           if (products && products.success === true) {
-            if (products.LastDate) {
+            if (products.LastDate && products.LastDate !== '') {
               const updated = await this.updateLastUpdateDate(products.LastDate, ctx);
               if (updated) {
                 this.logger.info('Last Updated Date Updated', products.LastDate);
@@ -104,19 +104,28 @@ const TheService: ServiceSchema = {
       if (!lastUpdateDate && lastUpdateDate === '') {
         return false;
       }
-
-      const searchResponse: { results: Product[] } = await this.documentsSearch('', {
-        filters: {
-          updated: { from: new Date(lastUpdateDate) },
-        },
-        sort: { updated: 'asc' },
-        page: {
-          size: +process.env.ELASTIC_UPDATE_LIMIT || 1000,
-        },
-      });
+      const limit = process.env.ELASTIC_UPDATE_LIMIT || 999;
+      const searchResponse: SearchResponse<Product> = await this.broker
+        .call('elastic-update.search', {
+          index: 'products',
+          body: {
+            query: {
+              range: {
+                updated: { gt: new Date(lastUpdateDate) },
+              },
+            },
+            sort: { updated: { order: 'asc' } },
+          },
+          size: limit,
+        })
+        .catch(() => {
+          throw new MoleculerClientError('', 500, '');
+        });
 
       if (
-        searchResponse.results.length === 0
+        searchResponse.hits &&
+        searchResponse.hits.hits &&
+        searchResponse.hits.hits.length === 0
       ) {
         return {
           success: true,
@@ -125,10 +134,10 @@ const TheService: ServiceSchema = {
         };
       }
 
-      if (searchResponse.results.length > 0) {
+      if (searchResponse.hits && searchResponse.hits.hits && searchResponse.hits.hits.length > 0) {
         const LastDate =
-          searchResponse.results[searchResponse.results.length - 1].updated || '';
-        const isUpdated = await this.bulkUpdateInstanceProducts(searchResponse.results);
+          searchResponse.hits.hits[searchResponse.hits.hits.length - 1]._source.updated || '';
+        const isUpdated = await this.bulkUpdateInstanceProducts(searchResponse);
         if (isUpdated) {
           return {
             success: true,
@@ -146,11 +155,11 @@ const TheService: ServiceSchema = {
      * @returns
      * @memberof ElasticLib
      */
-    async bulkUpdateInstanceProducts(products: Product[]) {
+    async bulkUpdateInstanceProducts(search: SearchResponse<Product>) {
       let result = true;
-      await Loop.each(products, async hit => {
+      await Loop.each(search.hits.hits, async hit => {
         // If no product came, mark ar archived
-        const product: Product = hit || { archive: true, updated: new Date() };
+        const product: Partial<Product> = hit._source || { archive: true, updated: new Date() };
         const updateData = {
           index: 'products-instances',
           body: {
