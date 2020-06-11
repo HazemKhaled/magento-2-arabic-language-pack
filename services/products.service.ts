@@ -164,6 +164,10 @@ const TheService: ServiceSchema = {
     },
     getProductsBySku: {
       auth: 'Basic',
+      cache: {
+        keys: ['skus'],
+        ttl: 60 * 60 * 5,
+      },
       handler(ctx) {
         return ctx.call('products.search', {
           index: 'products',
