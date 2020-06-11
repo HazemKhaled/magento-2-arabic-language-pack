@@ -1040,6 +1040,7 @@ const TheService: ServiceSchema = {
         invoice_url: order.externalInvoice,
         taxTotal: order.taxTotal,
         taxes: order.taxes,
+        warnings: order.warnings,
       };
       if (order.meta_data && order.meta_data.length > 0) {
         order.meta_data.forEach((meta: any) => {
