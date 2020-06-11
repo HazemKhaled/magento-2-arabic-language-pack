@@ -32,7 +32,7 @@ module.exports = {
       auth: 'Bearer',
       cache: {
         keys: ['#user', 'sku', 'currency'],
-        ttl: 60,
+        ttl: 60 * 60,
       },
       handler(ctx: Context) {
         return this.fetchProduct(ctx);
@@ -46,6 +46,10 @@ module.exports = {
      */
     total: {
       auth: 'Bearer',
+      cache: {
+        keys: ['#user'],
+        ttl: 60 * 60,
+      },
       handler(ctx: Context) {
         return ctx
           .call('products.count', {
@@ -108,7 +112,7 @@ module.exports = {
           'currency',
           '_source',
         ],
-        ttl: 30 * 60, // 10 mins
+        ttl: 60 * 60,
         monitor: true,
       },
       async handler(ctx: Context) {
@@ -132,7 +136,7 @@ module.exports = {
 
         return this.deleteProduct(sku, ctx.meta.user)
           .then((product: Product) => {
-            this.broker.cacher.clean(`products.list:${ctx.meta.user}**`);
+            this.broker.cacher.clean(`products-instances.list:${ctx.meta.user}**`);
 
             return { product };
           })
@@ -213,7 +217,8 @@ module.exports = {
                         products: updateArr.slice(i, i+100),
                       });
                     }
-                    this.broker.cacher.clean(`products.list:${ctx.meta.user}**`);
+                    this.broker.cacher.clean(`products-instances.list:${ctx.meta.user}**`);
+                    this.broker.cacher.clean(`products-instances.total:${ctx.meta.user}**`);
                     return resolve();
                   });
                 }
@@ -256,7 +261,7 @@ module.exports = {
           })
           .then(res => {
             if (res.result === 'updated' || res.result === 'noop') {
-              this.broker.cacher.clean(`products.list:${ctx.meta.user}**`);
+              this.broker.cacher.clean(`products-instances.list:${ctx.meta.user}**`);
               return {
                 status: 'success',
                 message: 'Updated successfully!',
