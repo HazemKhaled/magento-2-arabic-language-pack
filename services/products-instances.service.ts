@@ -15,7 +15,7 @@ module.exports = {
     elasticsearch: {
       host: process.env.ELASTIC_URL,
       httpAuth: process.env.ELASTIC_AUTH,
-      apiVersion: process.env.ELASTIC_VERSION || '6.x',
+      apiVersion: process.env.ELASTIC_VERSION || '7.x',
     },
   },
   /**
