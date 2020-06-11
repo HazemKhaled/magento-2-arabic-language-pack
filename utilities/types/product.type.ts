@@ -11,13 +11,20 @@ export interface Product {
   name?: I18nText;
   updated: Date;
   archive: boolean;
-  variations?: Variation[];
+  description: I18nText;
+  attributes: Attribute;
+  variations: Variation[];
   sales_qty?: number;
   seller_id?: number;
   source_url?: string;
-  images?: string[];
+  images: string[];
   barcode?: string;
   tax_class?: string;
+  categories: string[];
+  externalId?: string;
+  externalUrl?: string;
+  imported: string[];
+  import_qty: number;
 }
 
 /**
@@ -48,7 +55,6 @@ export interface Variation {
  * @interface Attribute
  */
 export interface Attribute {
-  id: string;
   name: { [key: string]: string };
   option: { [key: string]: string };
 }

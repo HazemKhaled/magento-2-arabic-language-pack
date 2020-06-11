@@ -2,21 +2,8 @@ import { ServiceSchema } from 'moleculer';
 
 
 export const ProductsValidation: ServiceSchema = {
-  name: 'products',
+  name: 'products-list',
   actions: {
-    getInstanceProduct: {
-      params: {
-        sku: {
-          type: 'string',
-        },
-        currency: {
-          type: 'string',
-          optional: true,
-          min: 3,
-          max: 3,
-        },
-      },
-    },
     list: {
       params: {
         limit: {
@@ -34,159 +21,90 @@ export const ProductsValidation: ServiceSchema = {
           min: 1,
           optional: true,
         },
-        lastupdate: {
-          type: 'string',
+        price_to: {
+          type: 'number',
+          convert: true,
+          integer: true,
           empty: false,
           optional: true,
         },
-        hideOutOfStock: {
+        price_from: {
           type: 'number',
-          empty: false,
           convert: true,
+          integer: true,
+          empty: false,
           optional: true,
+        },
+        keywordLang: {
+          type: 'array',
+          optional: true,
+          items: {
+            type: 'string',
+            min: 2,
+            max: 2,
+          },
         },
         keyword: {
           type: 'string',
           optional: true,
         },
-        externalId: {
+        category_id: {
+          type: 'number',
+          convert: true,
+          integer: true,
+          min: -1,
+          optional: true,
+        },
+        sortBy: {
           type: 'string',
           optional: true,
         },
-        hasExternalId: {
+        images: {
           type: 'number',
+          optional: true,
+          integer: true,
+          max: 15,
+          min: 0,
           empty: false,
           convert: true,
-          optional: true,
-        },
-        currency: {
-          type: 'string',
-          optional: true,
-          min: 3,
-          max: 3,
         },
       },
     },
-    deleteInstanceProduct: {
+    getProductsByVariationSku: {
       params: {
-        sku: {
-          type: 'string',
+        skus: {
+          type: 'array',
+          items: {
+            type: 'string',
+          },
         },
       },
     },
-    import: {
+    updateQuantityAttributes: {
       params: {
         products: {
           type: 'array',
           items: {
             type: 'object',
             props: {
-              sku: {
+              id: {
                 type: 'string',
                 convert: true,
               },
-            },
-          },
-          max: 1000,
-          min: 1,
-        },
-      },
-    },
-    instanceUpdate: {
-      params: {
-        sku: {
-          type: 'string',
-          convert: true,
-        },
-        externalUrl: {
-          type: 'string',
-          optional: true,
-        },
-        externalId: {
-          type: 'number',
-          convert: true,
-          optional: true,
-        },
-        errors: {
-          type: 'array',
-          optional: true,
-          items: {
-            type: 'string',
-          },
-        },
-        variations: {
-          type: 'array',
-          optional: true,
-          items: {
-            type: 'object',
-            props: {
-              sku: {
-                type: 'string',
-                convert: true,
-                optional: true,
-              },
-              externalId: {
+              qty: {
                 type: 'number',
-                optional: true,
                 convert: true,
               },
-              errors: {
+              attribute: {
+                type: 'string',
+                convert: true,
+              },
+              imported: {
                 type: 'array',
-                optional: true,
                 items: {
                   type: 'string',
                 },
-              },
-            },
-          },
-        },
-      },
-    },
-    bulkProductInstance: {
-      params: {
-        productInstances: {
-          type: 'array',
-          items: {
-            type: 'object',
-            props: {
-              sku: {
-                type: 'string',
-                convert: true,
-              },
-              externalUrl: {
-                type: 'string',
                 optional: true,
-              },
-              externalId: {
-                type: 'string',
-                convert: true,
-                optional: true,
-              },
-              error: {
-                type: 'array',
-                optional: true,
-                items: {
-                  type: 'string',
-                },
-              },
-              variations: {
-                type: 'array',
-                optional: true,
-                items: {
-                  type: 'object',
-                  props: {
-                    sku: {
-                      type: 'string',
-                      convert: true,
-                      optional: true,
-                    },
-                    externalId: {
-                      type: 'string',
-                      optional: true,
-                      convert: true,
-                    },
-                  },
-                },
               },
             },
           },

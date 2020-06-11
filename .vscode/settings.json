@@ -50,7 +50,7 @@
     "**/acme.json": true,
     "**/.env": false,
     "**/deployDev.sh": true,
-    "services/*.js": false,
+    "services/*.js": true,
     "services/*.js.map": true,
     "utilities/**/*.js": true,
     "utilities/**/*.js.map": true,
