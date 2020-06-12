@@ -7,7 +7,7 @@ export const CouponsValidation: ServiceSchema = {
       params: {
         code: {
           type: 'string',
-          pattern: '[A-Z0-9]+',
+          pattern: '^[A-Z0-9]+$',
         },
         type: {
           type: 'enum',
