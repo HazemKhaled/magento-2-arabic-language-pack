@@ -17,6 +17,6 @@ export const AppSearch = (engine: string): ServiceSchema => ({
     updateDocuments(documents) {
       return this.settings.client
         .updateDocuments(engine, documents);
-    },
+    }
   },
 });

@@ -155,7 +155,7 @@ export const OrdersOperations: ServiceSchema = {
     ): Promise<Rule> {
       const shipmentWeight =
         items.reduce(
-          (accumulator, item) => (accumulator = accumulator + item.weight * item.quantity),
+          (accumulator, item) => (accumulator + item.weight * item.quantity),
           0,
         ) * 1000;
       const shipmentRules: Rule[] = await this.broker

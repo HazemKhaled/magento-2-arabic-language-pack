@@ -40,7 +40,7 @@ const TaxCheck: ServiceSchema = {
       }
 
       // Check if the item tax class attr. is available
-      if (!this.checkItemTaxClass(item)) {
+      if (!this.checkItemHasTaxClass(item)) {
         // Send Email with item sku informing that it doesn't have tax class
         this.sendMail({
           to: process.env.TAX_MISSING_MAIL,
@@ -111,7 +111,7 @@ const TaxCheck: ServiceSchema = {
      * @param {Product} item
      * @returns {boolean}
      */
-    checkItemTaxClass(item: OrderItem): boolean {
+    checkItemHasTaxClass(item: OrderItem): boolean {
       return !!(item && item.taxClass);
     },
     /**
