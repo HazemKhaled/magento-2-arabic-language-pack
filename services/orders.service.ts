@@ -187,8 +187,7 @@ const TheService: ServiceSchema = {
         warnings = warnings.concat(taxesMsg);
 
         if (warnings.length) {
-          data.warnings = `${warnings.reduce(
-            (accumulator, item) => `${accumulator}${accumulator && ',\n'}${item.message}`, '')}${data.warnings ? `,\n${data.warnings}` : ''}`;
+          data.warnings = JSON.stringify(warnings);
         }
 
         this.logger.info(JSON.stringify(data));
@@ -470,8 +469,11 @@ const TheService: ServiceSchema = {
             warnings = warnings.concat(taxesMsg);
 
             if (warnings.length) {
-              data.warnings = `${warnings.reduce(
-                (accumulator, item) => `${accumulator}${accumulator && ',\n'}${item.message}`, '')}${orderBeforeUpdate.warnings ? `,\n${orderBeforeUpdate.warnings}` : ''}`;
+              let parsedOldWarnings = [];
+              try {
+                parsedOldWarnings = JSON.parse(orderBeforeUpdate.warnings);
+              } catch(e) {}
+              data.warnings = JSON.stringify(warnings.concat(parsedOldWarnings));
             }
           }
           // Convert status
