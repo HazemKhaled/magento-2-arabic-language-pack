@@ -3,7 +3,10 @@ import { ServiceSchema } from 'moleculer';
 const CreateCoupon = {
   type: 'object',
   properties: {
-    code: { type: 'string' },
+    code: {
+      type: 'string',
+      pattern: '[A-Z]',
+    },
     discount: {
       type: 'object',
       properties: {
@@ -59,6 +62,7 @@ const CouponsGetOpenapi = {
       required: true,
       schema: {
         type: 'string',
+        pattern: '[A-Z]',
       },
     },
     {
@@ -134,6 +138,7 @@ const CouponsListOpenapi = {
       required: false,
       schema: {
         type: 'string',
+        pattern: '[A-Z]',
       },
     },
     {
