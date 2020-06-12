@@ -6,5 +6,6 @@ export * from './openapi.mixin';
 export * from './orders.mixin';
 export * from './product-transformation.mixin';
 export * from './app-search.mixin';
+export * from './oms.mixin';
 export * from './openapi';
 export * from './validation';
