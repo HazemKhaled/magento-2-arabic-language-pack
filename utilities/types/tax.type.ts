@@ -11,8 +11,6 @@ export interface Tax {
   name: string;
   omsId: string;
   isInclusive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 /**
@@ -24,6 +22,8 @@ export interface Tax {
  */
 export interface DbTax extends Tax {
   _id: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 /**

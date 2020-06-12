@@ -107,7 +107,7 @@ const TheService: ServiceSchema = {
             },
           });
 
-          new MpError('Orders Service', 'Sorry the order is not created as there is no shipment method to your country!', 400);
+          throw new MpError('Orders Service', 'Sorry the order is not created as there is no shipment method to your country!', 400);
         }
 
         data.shipmentCourier = shipment.courier;
