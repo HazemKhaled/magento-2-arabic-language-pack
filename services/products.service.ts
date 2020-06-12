@@ -2,14 +2,14 @@ import { MpError } from './../utilities/adapters/mpError';
 import { Product } from './../utilities/types/product.type';
 import { ServiceSchema } from 'moleculer';
 const ESService = require('moleculer-elasticsearch');
-const { ProductTransformation, I18nService, ProductsOpenapi, ProductsValidation } = require('../utilities/mixins');
+const { ProductTransformation, I18nService, ProductsOpenapi, ProductsValidation, AppSearch } = require('../utilities/mixins');
 
 const TheService: ServiceSchema = {
   name: 'products',
   retryPolicy: {
     retries: 1,
   },
-  mixins: [I18nService, ProductTransformation, ESService, ProductsOpenapi, ProductsValidation],
+  mixins: [I18nService, ProductTransformation, ESService, ProductsOpenapi, ProductsValidation, AppSearch],
   settings: {
     elasticsearch: {
       host: process.env.ELASTIC_URL,
