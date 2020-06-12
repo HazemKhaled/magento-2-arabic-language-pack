@@ -5,7 +5,7 @@ const CreateCoupon = {
   properties: {
     code: {
       type: 'string',
-      pattern: '[A-Z]+',
+      pattern: '[A-Z0-9]+',
     },
     discount: {
       type: 'object',
@@ -62,7 +62,7 @@ const CouponsGetOpenapi = {
       required: true,
       schema: {
         type: 'string',
-        pattern: '[A-Z]+',
+        pattern: '[A-Z0-9]+',
       },
     },
     {
@@ -138,7 +138,7 @@ const CouponsListOpenapi = {
       required: false,
       schema: {
         type: 'string',
-        pattern: '[A-Z]+',
+        pattern: '[A-Z0-9]+',
       },
     },
     {
