@@ -234,7 +234,7 @@ const TheService: ServiceSchema = {
         ctx.call('crm.updateStoreById', { id: instance.url, last_order_date: Date.now() });
 
         // Update products sales quantity
-        ctx.call('products-list.updateQuantityAttributes', {
+        ctx.call('products.updateQuantityAttributes', {
           products: stock.products.map((product: Product) => ({
             id: product.sku,
             qty: product.sales_qty || 0,

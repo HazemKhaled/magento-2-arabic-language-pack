@@ -1,23 +1,23 @@
+import { MpError } from './../utilities/adapters/mpError';
+import { Product } from './../utilities/types/product.type';
+import { ServiceSchema } from 'moleculer';
 const ESService = require('moleculer-elasticsearch');
-const { MoleculerClientError } = require('moleculer').Errors;
-const { ProductTransformation, ProductsListOpenapi, ProductsListValidation, AppSearch, I18nService } = require('../utilities/mixins');
-module.exports = {
-  name: 'products-list',
-  mixins: [I18nService, ProductTransformation, ESService, ProductsListValidation, ProductsListOpenapi, AppSearch('catalog')],
+const { ProductTransformation, I18nService, ProductsOpenapi, ProductsValidation, AppSearch } = require('../utilities/mixins');
+
+const TheService: ServiceSchema = {
+  name: 'products',
+  retryPolicy: {
+    retries: 1,
+  },
+  mixins: [I18nService, ProductTransformation, ESService, ProductsOpenapi, ProductsValidation, AppSearch],
   settings: {
     elasticsearch: {
       host: process.env.ELASTIC_URL,
       httpAuth: process.env.ELASTIC_AUTH,
-      apiVersion: process.env.ELASTIC_VERSION || '6.x',
+      apiVersion: process.env.ELASTIC_VERSION || '7.x',
     },
   },
   actions: {
-    getAttributes: {
-      auth: 'Basic',
-      handler(ctx) {
-        ctx.call('products-list.search', {});
-      },
-    },
     list: {
       auth: 'Basic',
       cache: {
@@ -63,10 +63,10 @@ module.exports = {
               query: ctx.params.keyword,
               fields: [
                 ...(ctx.params.keywordLang ? ctx.params.keywordLang : ['tr', 'en', 'ar', 'fr']).map(
-                  l => `name.${l}.text`,
+                  (l: string) => `name.${l}.text`,
                 ),
                 ...(ctx.params.keywordLang ? ctx.params.keywordLang : ['tr', 'en', 'ar', 'fr']).map(
-                  l => `description.${l}.text`,
+                  (l: string) => `description.${l}.text`,
                 ),
                 'sku',
                 'variations.sku',
@@ -82,7 +82,7 @@ module.exports = {
               'categories.id': parseInt(ctx.params.category_id),
             },
           });
-        const sort = {};
+        const sort: { [key: string]: any } = {};
         switch (ctx.params.sortBy) {
         case 'salesDesc':
           sort.sales_qty = { order: 'desc' };
@@ -133,10 +133,64 @@ module.exports = {
         return this.searchCall(ctx.meta.user, body, ctx.params.limit, ctx.params.page);
       },
     },
-    get: {
+    getBySku: {
       auth: 'Basic',
-      handler() {
-        throw new MoleculerClientError('Not Implemented Yet!!');
+      cache: {
+        keys: ['skus'],
+        ttl: 60 * 60 * 5,
+      },
+      handler(ctx) {
+        return ctx.call('products.search', {
+          index: 'products',
+          type: '_doc',
+          body: {
+            query: {
+              bool: {
+                filter: {
+                  term: {
+                    _id: ctx.params.sku,
+                  },
+                },
+              },
+            },
+          },
+        }).then(({ hits: { hits: [product] } }) => {
+          if (!product) {
+            throw new MpError('Products Service', 'Product Not Found!', 404);
+          }
+          return this.productSanitize(product);
+        });
+      },
+    },
+    getProductsBySku: {
+      auth: 'Basic',
+      cache: {
+        keys: ['skus'],
+        ttl: 60 * 60 * 5,
+      },
+      handler(ctx) {
+        return ctx.call('products.search', {
+          index: 'products',
+          type: '_doc',
+          body: {
+            query: {
+              bool: {
+                filter: [
+                  {
+                    terms: {
+                      sku: ctx.params.skus,
+                    },
+                  },
+                  {
+                    term: {
+                      archive: false,
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        }).then(({ hits: { hits: products } }) => products.map((product: Product) => this.productSanitize(product)));
       },
     },
     getProductsByVariationSku: {
@@ -146,27 +200,42 @@ module.exports = {
         ttl: 60 * 60 * 5,
       },
       handler(ctx) {
-        return this.documentsSearch('', {
-          filters: {
-            all: [
-              {
-                variations_skus: ctx.params.skus,
+        return ctx
+          .call('products.search', {
+            index: 'products',
+            size: 1000,
+            body: {
+              query: {
+                nested: {
+                  path: 'variations',
+                  query: {
+                    bool: {
+                      filter: {
+                        terms: {
+                          'variations.sku': ctx.params.skus,
+                        },
+                      },
+                    },
+                  },
+                },
               },
-            ],
-          },
-          page: {
-            size: 100,
-          },
-        })
-          .then(({results}) => ({ products: results }));
+            },
+          })
+          .then(response => {
+            return { products: response.hits.hits.map(({_source} : {_source: Product}) => _source) };
+          });
       },
     },
     updateQuantityAttributes: {
       handler(ctx) {
-        const bulk = ctx.params.products.map(product => {
-          const body = {
+        const bulk = ctx.params.products.map((product: { id: string; qty: number; attribute: string; imported: string[]; }) => {
+          const body: {
+            id: string;
+            imported?: string[];
+            [x: string]: string | number | string[];
+          } = {
             id: product.id,
-            [product.attribute]: parseInt(product.qty) + 1,
+            [product.attribute]: product.qty + 1,
           };
           if (product.imported) body.imported = product.imported;
           return body;
@@ -178,9 +247,9 @@ module.exports = {
   methods: {
     /* SearchByFilters methods */
     /**
-     * @param {String} user
-     * @param {Object} body
-     */
+       * @param {String} user
+       * @param {Object} body
+       */
     async searchCall(
       user,
       body,
@@ -195,7 +264,7 @@ module.exports = {
       page = page ? parseInt(page) : 1;
       let result = [];
       if (scrollId)
-        result = await this.broker.call('products-list.call', {
+        result = await this.broker.call('products.call', {
           api: 'scroll',
           params: {
             scroll: '30s',
@@ -203,7 +272,7 @@ module.exports = {
           },
         });
       else {
-        result = await this.broker.call('products-list.search', {
+        result = await this.broker.call('products.search', {
           index: 'products',
           size: process.env.SCROLL_LIMIT,
           scroll: '1m',
@@ -241,27 +310,25 @@ module.exports = {
             scrollId ? -limit + trace + parseInt(process.env.SCROLL_LIMIT) : -limit + trace,
             scrollId ? trace + parseInt(process.env.SCROLL_LIMIT) : trace,
           )
-          .map(product => this.productSanitize(product, instance, rate)),
+          .map((product: Product) => this.productSanitize(product)),
         total: result.hits.total.value,
       };
     },
-    productSanitize(product, instance, rate) {
+    productSanitize(product) {
       return {
         sku: product._source.sku,
         name: this.formatI18nText(product._source.name),
+        archive: product._source.archive,
         description: this.formatI18nText(product._source.description),
         supplier: product._source.seller_id,
         images: product._source.images,
-        last_check_date: product._source.last_check_date,
+        tax_class: product._source.tax_class,
         categories: this.formatCategories(product._source.categories),
-        attributes: this.formatAttributes(product._source.attributes),
-        variations: this.formatVariations(
-          product._source.variations,
-          instance,
-          rate.exchange_rate,
-          product._source.archive,
-        ),
+        attributes: product._source.attributes,
+        variations: product._source.variations,
       };
     },
   },
 };
+
+export = TheService;

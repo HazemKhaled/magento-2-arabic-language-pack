@@ -37,7 +37,7 @@ export const OrdersOperations: ServiceSchema = {
 
       // get the products from DB
       const { products }: { products: Product[] } = await this.broker.call(
-        'products-list.getProductsByVariationSku',
+        'products.getProductsByVariationSku',
         {
           skus: orderItems,
         },

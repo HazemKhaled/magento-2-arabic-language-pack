@@ -81,7 +81,6 @@ export const ProductTransformation: ServiceSchema = {
       return attributes.map(attribute => {
         if (attribute && typeof attribute.name === 'string') {
           return {
-            id: attribute.id,
             name: {
               en: attribute.name,
             },
