@@ -188,7 +188,7 @@ const TheService: ServiceSchema = {
 
         if (warnings.length) {
           data.warnings = `${warnings.reduce(
-            (accumulator, item) => `${accumulator}${item.message}\n`, '----*System Warnings*----\n')}${data.warnings ? `-----*Customer Note*-----\n${data.warnings}` : ''}`;
+            (accumulator, item) => `${accumulator}${accumulator && ',\n'}${item.message}`, '')}${data.warnings ? `,\n${data.warnings}` : ''}`;
         }
 
         this.logger.info(JSON.stringify(data));
@@ -471,7 +471,7 @@ const TheService: ServiceSchema = {
 
             if (warnings.length) {
               data.warnings = `${warnings.reduce(
-                (accumulator, item) => `${accumulator}${item.message}\n`, '----*System Warnings*----\n')}${orderBeforeUpdate.warnings ? orderBeforeUpdate.warnings : ''}`;
+                (accumulator, item) => `${accumulator}${accumulator && ',\n'}${item.message}`, '')}${orderBeforeUpdate.warnings ? `,\n${orderBeforeUpdate.warnings}` : ''}`;
             }
           }
           // Convert status
