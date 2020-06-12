@@ -322,6 +322,7 @@ const TheService: ServiceSchema = {
         description: this.formatI18nText(product._source.description),
         supplier: product._source.seller_id,
         images: product._source.images,
+        tax_class: product._source.tax_class,
         categories: this.formatCategories(product._source.categories),
         attributes: product._source.attributes,
         variations: product._source.variations,
