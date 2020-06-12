@@ -13,13 +13,15 @@ const TaxesService: ServiceSchema = {
     tCreate: {
       auth: 'Basic',
       async handler(ctx: Context): Promise<RTax> {
-        const taxBody = ctx.params;
+        const taxBody: Partial<DbTax> = {
+          ...ctx.params,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
         const omsTax = await ctx.call('oms.createTax', {
           name: taxBody.name,
           percentage: taxBody.percentage,
           type: 'tax',
-          createdAt: new Date(),
-          updatedAt: new Date(),
         });
         taxBody.omsId = omsTax.tax.id;
         return this.adapter
