@@ -190,7 +190,6 @@ const TheService: ServiceSchema = {
           data.warnings = JSON.stringify(warnings);
         }
 
-        this.logger.info(JSON.stringify(data));
         const result: OrderOMSResponse = await ctx.call('oms.createNewOrder', data);
         if (!result.salesorder) {
           this.sendLogs({
@@ -487,7 +486,6 @@ const TheService: ServiceSchema = {
             ...data,
           });
 
-          this.logger.debug(JSON.stringify(result), '>>>>>>>>');
           if (!result.salesorder) {
             this.sendLogs({
               topicId: orderBeforeUpdate.externalId,
