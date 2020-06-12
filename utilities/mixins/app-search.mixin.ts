@@ -57,6 +57,7 @@ export const AppSearch = (engine: string): ServiceSchema => ({
         'description',
         'attributes',
         'brand',
+        'tax_class',
         'source_url',
         'ship_to',
         'updated',
