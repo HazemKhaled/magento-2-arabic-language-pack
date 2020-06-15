@@ -136,7 +136,7 @@ const TheService: ServiceSchema = {
     getBySku: {
       auth: 'Basic',
       cache: {
-        keys: ['skus'],
+        keys: ['sku'],
         ttl: 60 * 60 * 5,
       },
       handler(ctx) {
