@@ -9,7 +9,7 @@ const TheService: ServiceSchema = {
   retryPolicy: {
     retries: 1,
   },
-  mixins: [I18nService, ProductTransformation, ESService, ProductsOpenapi, ProductsValidation, AppSearch],
+  mixins: [I18nService, ProductTransformation, ESService, ProductsOpenapi, ProductsValidation, AppSearch('catalog')],
   settings: {
     elasticsearch: {
       host: process.env.ELASTIC_URL,
