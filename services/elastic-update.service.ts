@@ -103,6 +103,7 @@ const TheService: ServiceSchema = {
       const searchResponse: SearchResponse<Product> = await this.broker
         .call('elastic-update.search', {
           index: 'products',
+          type: '_doc',
           body: {
             query: {
               range: {
@@ -157,6 +158,7 @@ const TheService: ServiceSchema = {
         const product: Partial<Product> = hit._source || { archive: true, updated: new Date() };
         const updateData = {
           index: 'products-instances',
+          type: '_doc',
           body: {
             query: {
               term: {
