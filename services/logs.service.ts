@@ -26,7 +26,7 @@ const TheService: ServiceSchema = {
         return ctx
           .call('logs.create', {
             index: `logsmp-${date.getFullYear()}-${date.getMonth() < 9 ? 0 : ''}${date.getMonth() +
-              1}-${date.getDate() < 10 ? 0 : ''}${date.getDate()}`,
+              1}`,
             type: '_doc',
             id: uuidv1(),
             body: {
