@@ -1,13 +1,10 @@
 import { Context, ServiceSchema } from 'moleculer';
 import { v1 as uuidv1 } from 'uuid';
 
-import { OrdersOpenapi } from '../utilities/mixins/openapi';
-import { OrdersOperations } from '../utilities/mixins/orders.mixin';
 import { Log, OrderOMSResponse, Order, OrderAddress, OrderItem, Product, Store } from '../utilities/types';
-import { OrdersValidation } from '../utilities/mixins/validation';
 import TaxCheck = require('../utilities/mixins/tax.mixin');
-import { Mail } from '../utilities/mixins/mail.mixin';
-import { Oms } from '../utilities/mixins/oms.mixin';
+import { Mail, Oms, OrdersOperations, OrdersOpenapi, OrdersValidation } from '../utilities/mixins';
+import { MpError } from '../utilities/adapters';
 
 const TheService: ServiceSchema = {
   name: 'orders',
@@ -75,18 +72,7 @@ const TheService: ServiceSchema = {
             },
           });
 
-          ctx.meta.$statusCode = 404;
-          ctx.meta.$statusMessage = 'Not Found';
-          return {
-            errors: [
-              {
-                status: 'fail',
-                message:
-                  'The products you ordered are not Knawat products, The order has not been created!',
-                code: 1101,
-              },
-            ],
-          };
+          throw new MpError('Orders Service', 'The products you ordered are not Knawat products, The order has not been created!', 404);
         }
 
         // Taxes
@@ -120,18 +106,8 @@ const TheService: ServiceSchema = {
               params: ctx.params,
             },
           });
-          ctx.meta.$statusCode = 400;
-          ctx.meta.$statusMessage = 'Not Found';
-          return {
-            errors: [
-              {
-                status: 'fail',
-                message:
-                  'Sorry the order is not created as there is no shipment method to your country!',
-                code: 1107,
-              },
-            ],
-          };
+
+          throw new MpError('Orders Service', 'Sorry the order is not created as there is no shipment method to your country!', 400);
         }
 
         data.shipmentCourier = shipment.courier;
@@ -211,11 +187,9 @@ const TheService: ServiceSchema = {
         warnings = warnings.concat(taxesMsg);
 
         if (warnings.length) {
-          data.notes = `${warnings.reduce(
-            (accumulator, item) => `${accumulator}${item.message}\n`, '----*System Warnings*----\n')}${data.notes ? `-----*Customer Note*-----\n${data.notes}` : ''}`;
+          data.warnings = JSON.stringify(warnings);
         }
 
-        this.logger.info(JSON.stringify(data));
         const result: OrderOMSResponse = await ctx.call('oms.createNewOrder', data);
         if (!result.salesorder) {
           this.sendLogs({
@@ -260,7 +234,7 @@ const TheService: ServiceSchema = {
         ctx.call('crm.updateStoreById', { id: instance.url, last_order_date: Date.now() });
 
         // Update products sales quantity
-        ctx.call('products-list.updateQuantityAttributes', {
+        ctx.call('products.updateQuantityAttributes', {
           products: stock.products.map((product: Product) => ({
             id: product.sku,
             qty: product.sales_qty || 0,
@@ -494,8 +468,11 @@ const TheService: ServiceSchema = {
             warnings = warnings.concat(taxesMsg);
 
             if (warnings.length) {
-              data.notes = `${warnings.reduce(
-                (accumulator, item) => `${accumulator}${item.message}\n`, '----*System Warnings*----\n')}${orderBeforeUpdate.notes ? orderBeforeUpdate.notes : ''}`;
+              let parsedOldWarnings = [];
+              try {
+                parsedOldWarnings = JSON.parse(orderBeforeUpdate.warnings);
+              } catch(e) {}
+              data.warnings = JSON.stringify(warnings.concat(parsedOldWarnings));
             }
           }
           // Convert status
@@ -509,7 +486,6 @@ const TheService: ServiceSchema = {
             ...data,
           });
 
-          this.logger.debug(JSON.stringify(result), '>>>>>>>>');
           if (!result.salesorder) {
             this.sendLogs({
               topicId: orderBeforeUpdate.externalId,
@@ -1064,6 +1040,7 @@ const TheService: ServiceSchema = {
         invoice_url: order.externalInvoice,
         taxTotal: order.taxTotal,
         taxes: order.taxes,
+        warnings: order.warnings,
       };
       if (order.meta_data && order.meta_data.length > 0) {
         order.meta_data.forEach((meta: any) => {

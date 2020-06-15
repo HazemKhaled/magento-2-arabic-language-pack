@@ -23,17 +23,17 @@ const TheService: ServiceSchema = {
           'POST token': 'stores.login',
 
           // Product
-          'GET catalog/products': 'products.list',
-          'POST catalog/products': 'products.import',
-          'GET catalog/products/count': 'products.total',
-          'GET catalog/products/:sku': 'products.getInstanceProduct',
-          'PUT catalog/products/:sku': 'products.instanceUpdate',
-          'DELETE catalog/products/:sku': 'products.deleteInstanceProduct',
-          'PATCH catalog/products': 'products.bulkProductInstance',
+          'GET catalog/products': 'products-instances.list',
+          'POST catalog/products': 'products-instances.import',
+          'GET catalog/products/count': 'products-instances.total',
+          'GET catalog/products/:sku': 'products-instances.getInstanceProduct',
+          'PUT catalog/products/:sku': 'products-instances.instanceUpdate',
+          'DELETE catalog/products/:sku': 'products-instances.deleteInstanceProduct',
+          'PATCH catalog/products': 'products-instances.bulkProductInstance',
 
           // Old routes, should be deprecated
-          'PUT catalog/update/:sku': 'products.instanceUpdate',
-          'POST catalog/add': 'products.import',
+          'PUT catalog/update/:sku': 'products-instances.instanceUpdate',
+          'POST catalog/add': 'products-instances.import',
 
           // Orders
           'GET orders': 'orders.list',
@@ -52,10 +52,9 @@ const TheService: ServiceSchema = {
           'GET admin/stores': 'stores.storesList',
 
           // All Products
-          'GET products': 'products-list.list',
-          'GET products/variation': 'products-list.getProductsByVariationSku',
-          'GET products/:sku': 'products-list.get',
-          'GET attributes': 'products.getAttributes',
+          'GET products': 'products.list',
+          'GET products/variation': 'products.getProductsByVariationSku',
+          'GET products/:sku': 'products.getBySku',
 
           // Categories
           'GET catalog/categories': 'categories.list',
@@ -265,6 +264,7 @@ const TheService: ServiceSchema = {
                 ctx.meta.user = user.consumer_key;
                 ctx.meta.token = token;
                 ctx.meta.storeId = user.id;
+                ctx.meta.store = user;
               }
               return user;
             });

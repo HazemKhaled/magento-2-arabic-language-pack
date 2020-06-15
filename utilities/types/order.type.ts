@@ -29,6 +29,7 @@ export interface Order {
   shipping_charge?: number;
   adjustment?: number;
   storeLogo?: string;
+  warnings?: string;
 }
 
 /**
@@ -65,6 +66,7 @@ export interface OrderItem {
   quantityRequired?: number;
   taxId?: string;
   taxClass?: string;
+  warnings?: string;
 }
 
 /**

@@ -372,12 +372,13 @@ const TheService: ServiceSchema = {
         delete $set.id;
         return this.adapter
           .updateById(ctx.params.id, { $set })
-          .then((instance: Store) => {
-            this.broker.cacher.clean(`subscription.get:${instance.url}*`);
-            this.broker.cacher.clean(`subscription.sList:${instance.url}*`);
-            this.broker.cacher.clean(`stores.sGet:${instance.url}*`);
-            this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
-            return instance;
+          .then(async (subscription: Subscription) => {
+            const store = await ctx.call('stores.findInstance', { id: subscription.storeId });
+            this.broker.cacher.clean(`subscription.get:${store.url}**`);
+            this.broker.cacher.clean(`subscription.sList:${store.url}**`);
+            this.broker.cacher.clean(`stores.sGet:${store.url}**`);
+            this.broker.cacher.clean(`stores.me:${store.consumer_key}**`);
+            return subscription;
           })
           .catch((err: any) => {
             throw new MoleculerError(err, 500);

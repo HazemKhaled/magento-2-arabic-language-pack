@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.7.1
+
+### 🚀 Features
+
+- Add order warning filed and send warning into it instead of using notes field
+
+### 🐛 Fixes
+
+- Fix taxes not calculated for sales orders
+- Fix create tax action
+- Update subscription cache clear
+
+### ✨ Enhancements
+
+- Remove appSearch & connect back direct to ES
+- Convert products & products instances services to TS
+- Linting (Taxes & Orders)
+- Update create coupon openapi & validation
+- Update products instances openapi
+- products instances cache
+
+
 ## 1.7.0
 
 ### 🚀 Features
