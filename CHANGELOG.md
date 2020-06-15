@@ -19,7 +19,8 @@
 - Linting (Taxes & Orders)
 - Update create coupon openapi & validation
 - Update products instances openapi
-- products instances cache
+- Products instances cache
+- Create logs index every month instead of every day
 
 
 ## 1.7.0
