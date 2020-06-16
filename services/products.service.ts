@@ -173,6 +173,7 @@ const TheService: ServiceSchema = {
           index: 'products',
           type: '_doc',
           body: {
+            size: 1000,
             query: {
               bool: {
                 filter: [
