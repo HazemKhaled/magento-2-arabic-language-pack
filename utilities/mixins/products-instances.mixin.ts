@@ -58,7 +58,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
         currencyCode: currency || instance.currency,
       });
 
-      return {
+      const iProduct = {
         ...product,
         variations: this.formatVariations(
           product.variations,
@@ -67,6 +67,8 @@ export const ProductsInstancesMixin: ServiceSchema = {
           product.archive,
         ),
       };
+
+      return { product: iProduct };
     },
     /**
      * Get products by instance
