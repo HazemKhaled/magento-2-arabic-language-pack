@@ -4,6 +4,7 @@ import { Invoice } from '../utilities/types';
 import { InvoicesValidation } from '../utilities/mixins/validation';
 import { InvoicePage } from '../utilities/mixins/invoicePage';
 import { Oms } from '../utilities/mixins/oms.mixin';
+import { MpError } from '../utilities/adapters';
 const MoleculerError = Errors.MoleculerError;
 
 const TheService: ServiceSchema = {
@@ -110,15 +111,19 @@ const TheService: ServiceSchema = {
       auth: 'Bearer',
       async handler(ctx: Context) {
         const instance = await ctx.call('stores.me');
+        if (instance.errors) {
+          throw new MpError('Invoices Service', 'Store not found', 404);
+        }
         const {params} = ctx;
         if(params.useSavedPaymentMethods && instance.credit < params.paymentAmount) {
           await ctx.call('paymentGateway.charge', {
             storeId: instance.url,
             amount: params.paymentAmount - instance.credit,
+          }).then(null, err => {
+            if (err.type === 'SERVICE_NOT_FOUND')
+              throw new MpError('Invoices Service', 'Not enough balance!', 401);
+            throw err;
           });
-        }
-        if (instance.errors) {
-          throw new MoleculerError('Store not found', 404);
         }
         return ctx
           .call('oms.applyInvoiceCredits', {
@@ -133,7 +138,7 @@ const TheService: ServiceSchema = {
               return res;
             },
             err => {
-              throw new MoleculerError(err.message, err.code || 500);
+              throw new MpError('invoices Service', err.message, err.code || 500);
             },
           );
       },
