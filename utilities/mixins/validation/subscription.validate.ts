@@ -4,7 +4,7 @@ import { ServiceSchema } from 'moleculer';
 export const SubscriptionValidation: ServiceSchema = {
   name: 'subscription',
   actions: {
-    get: {
+    sGet: {
       params: {
         id: {
           type: 'string',
