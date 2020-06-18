@@ -284,15 +284,20 @@ const TheService: ServiceSchema = {
         return this.adapter
           .insert(subscriptionBody)
           .then(
-            (res: Subscription): {} => {
-              this.broker.cacher.clean(`subscription.sGet:${instance.url}*`);
-              this.broker.cacher.clean(`subscription.sList:${instance.url}*`);
-              this.broker.cacher.clean(`stores.sGet:${instance.url}*`);
+            async (res: Subscription): Promise<{}> => {
+              this.broker.cacher.clean(`subscription.sGet:${ctx.params.grantTo || instance.url}*`);
+              this.broker.cacher.clean(`subscription.sList:${ctx.params.grantTo || instance.url}*`);
+              this.broker.cacher.clean(`stores.sGet:${ctx.params.grantTo || instance.url}*`);
               this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
+              if (ctx.params.grantTo) {
+                const grantToInstance = await ctx.call('stores.findInstance', { id: ctx.params.grantTo });
+                this.broker.cacher.clean(`stores.sGet:${instance.url}*`);
+                this.broker.cacher.clean(`stores.me:${grantToInstance.consumer_key}*`);
+              }
               ctx.call('subscription.checkCurrentSubGradingStatus', {
-                id: ctx.params.storeId,
+                id: ctx.params.grantTo || ctx.params.storeId,
               });
-              ctx.call('crm.updateStoreById', { id: ctx.params.storeId, membership_id: membership.id, subscription_expiration: expireDate.getTime() });
+              ctx.call('crm.updateStoreById', { id: ctx.params.grantTo || ctx.params.storeId, membership_id: membership.id, subscription_expiration: expireDate.getTime() });
               return { ...res, id: res._id, _id: undefined };
             },
           );
