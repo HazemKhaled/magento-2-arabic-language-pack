@@ -18,7 +18,7 @@ const TheService: ServiceSchema = {
      * @param {string} url
      * @returns {Promise<Subscription | false>}
      */
-    get: {
+    sGet: {
       cache: {
         keys: ['id'],
         ttl: 60 * 60 * 24, // 1 day
@@ -285,7 +285,7 @@ const TheService: ServiceSchema = {
           .insert(subscriptionBody)
           .then(
             (res: Subscription): {} => {
-              this.broker.cacher.clean(`subscription.get:${instance.url}*`);
+              this.broker.cacher.clean(`subscription.sGet:${instance.url}*`);
               this.broker.cacher.clean(`subscription.sList:${instance.url}*`);
               this.broker.cacher.clean(`stores.sGet:${instance.url}*`);
               this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
@@ -325,7 +325,7 @@ const TheService: ServiceSchema = {
           return null;
         }
         expiredSubscription._id = expiredSubscription._id.toString();
-        const currentSubscription = await ctx.call('subscription.get', {
+        const currentSubscription = await ctx.call('subscription.sGet', {
           id: expiredSubscription.storeId,
         });
         if (currentSubscription.id !== -1) {
@@ -374,7 +374,7 @@ const TheService: ServiceSchema = {
           .updateById(ctx.params.id, { $set })
           .then(async (subscription: Subscription) => {
             const store = await ctx.call('stores.findInstance', { id: subscription.storeId });
-            this.broker.cacher.clean(`subscription.get:${store.url}**`);
+            this.broker.cacher.clean(`subscription.sGet:${store.url}**`);
             this.broker.cacher.clean(`subscription.sList:${store.url}**`);
             this.broker.cacher.clean(`stores.sGet:${store.url}**`);
             this.broker.cacher.clean(`stores.me:${store.consumer_key}**`);

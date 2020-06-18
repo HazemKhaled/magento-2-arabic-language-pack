@@ -121,7 +121,7 @@ const TheService: ServiceSchema = {
           ) + (data.isInclusiveTax ? 0 : taxTotal);
 
         // Getting the current user subscription
-        const subscription = await ctx.call('subscription.get', { id: instance.url });
+        const subscription = await ctx.call('subscription.sGet', { id: instance.url });
         switch (subscription.attributes.orderProcessingType) {
         case '$':
           data.adjustment = Number(subscription.attributes.orderProcessingFees);
@@ -427,7 +427,7 @@ const TheService: ServiceSchema = {
               ) + (data.isInclusiveTax ? 0 : taxTotal);
 
             // Getting the current user subscription
-            const subscription = await ctx.call('subscription.get', { id: instance.url });
+            const subscription = await ctx.call('subscription.sGet', { id: instance.url });
             if (subscription.attributes.orderProcessingType === '%') {
               subscription.adjustment = (subscription.attributes.orderProcessingFees / 100) * total;
               subscription.adjustmentDescription = `Processing Fees ${
