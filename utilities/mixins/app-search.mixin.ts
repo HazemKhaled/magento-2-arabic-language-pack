@@ -8,6 +8,17 @@ export const AppSearch = (engine: string): ServiceSchema => ({
   },
   methods: {
     /**
+     * Search by ids
+     *
+     * @param {Array} documentIds
+     *
+     * @returns Array
+     */
+    getDocumentsByIds(documentIds) {
+      return this.settings.client
+        .getDocuments(engine, documentIds);
+    },
+    /**
      * Update by id
      *
      * @param {Array} documents
