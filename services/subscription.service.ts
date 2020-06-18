@@ -2,9 +2,10 @@ import { Context, Errors, ServiceSchema } from 'moleculer';
 import { isError } from 'util';
 import DbService from '../utilities/mixins/mongo.mixin';
 import { SubscriptionOpenapi } from '../utilities/mixins/openapi';
-import { Coupon, Membership, Store, Subscription } from '../utilities/types';
+import { Coupon, Membership, Subscription } from '../utilities/types';
 import { SubscriptionValidation } from '../utilities/mixins/validation';
 import TaxCheck from '../utilities/mixins/tax.mixin';
+import { MpError } from '../utilities/adapters';
 const MoleculerError = Errors.MoleculerError;
 
 const TheService: ServiceSchema = {
@@ -181,13 +182,15 @@ const TheService: ServiceSchema = {
         }
 
         if (instance.credit < total) {
-          // TODO:: This should be added when payment is online
-          // await ctx.call('paymentGateway.charge', {
-          //   storeId: instance.url,
-          //   amount: total - instance.credit,
-          //   force: true,
-          // });
-          throw new MoleculerError('You don\'t have enough balance', 401);
+          await ctx.call('paymentGateway.charge', {
+            storeId: instance.url,
+            amount: total - instance.credit,
+            force: true,
+          }).then(null, err => {
+            if (err. type === 'SERVICE_NOT_FOUND')
+              throw new MpError('Subscription Service', 'You don\'t have enough balance', 401);
+            throw err;
+          });
         }
 
         const invoiceBody: { [key: string]: any } = {
