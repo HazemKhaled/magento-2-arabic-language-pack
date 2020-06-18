@@ -162,6 +162,14 @@ export const SubscriptionValidation: ServiceSchema = {
           type: 'url',
           optional: true,
         },
+        autoRenew: {
+          type: 'boolean',
+          optional: true,
+        },
+        renewed: {
+          type: 'boolean',
+          optional: true,
+        },
         $$strict: true,
       },
     },
