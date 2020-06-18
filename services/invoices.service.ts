@@ -120,7 +120,7 @@ const TheService: ServiceSchema = {
             storeId: instance.url,
             amount: params.paymentAmount - instance.credit,
           }).then(null, err => {
-            if (err. type === 'SERVICE_NOT_FOUND')
+            if (err.type === 'SERVICE_NOT_FOUND')
               throw new MpError('Invoices Service', 'Not enough balance!', 401);
             throw err;
           });

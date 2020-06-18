@@ -187,7 +187,7 @@ const TheService: ServiceSchema = {
             amount: total - instance.credit,
             force: true,
           }).then(null, err => {
-            if (err. type === 'SERVICE_NOT_FOUND')
+            if (err.type === 'SERVICE_NOT_FOUND')
               throw new MpError('Subscription Service', 'You don\'t have enough balance', 401);
             throw err;
           });
