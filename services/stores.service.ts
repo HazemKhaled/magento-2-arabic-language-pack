@@ -75,7 +75,7 @@ const TheService: ServiceSchema = {
             let omsData: boolean | { store: Store } = false;
             if (res) {
               if (res.users) {
-                res.subscription = await ctx.call('subscription.get', { id: res._id });
+                res.subscription = await ctx.call('subscription.sGet', { id: res._id });
               }
               if (res.internal_data && res.internal_data.omsId) {
                 omsData = (await ctx.call('oms.getCustomer', {
@@ -109,7 +109,7 @@ const TheService: ServiceSchema = {
         return this.adapter.findById(ctx.params.id).then(async (res: Store | null) => {
           if (res) {
             if (res.users) {
-              res.subscription = await ctx.call('subscription.get', { id: ctx.params.id });
+              res.subscription = await ctx.call('subscription.sGet', { id: ctx.params.id });
             }
             if (res.internal_data && res.internal_data.omsId && !ctx.params.withoutBalance) {
               const omsData = (await ctx.call('oms.getCustomer', {
@@ -393,7 +393,7 @@ const TheService: ServiceSchema = {
           this.broker.cacher.clean(`orders.getOrder:${instance.consumer_key}*`);
           this.broker.cacher.clean(`orders.list:${instance.consumer_key}*`);
           this.broker.cacher.clean(`invoices.get:${instance.consumer_key}*`);
-          this.broker.cacher.clean(`subscription.get:${instance.url}*`);
+          this.broker.cacher.clean(`subscription.sGet:${instance.url}*`);
           this.broker.cacher.clean(`stores.sGet:${instance.url}**`);
           this.broker.cacher.clean(`stores.me:${instance.consumer_key}**`);
           return ctx.call('stores.update', {
