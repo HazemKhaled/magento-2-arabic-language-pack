@@ -83,7 +83,6 @@ const TheService: ServiceSchema = {
 
           // paymentGateway
           'POST paymentGateway/:type/transaction': 'paymentGateway.transaction',
-          'GET paymentGateway/callback': 'paymentGateway.callback',
 
           // Payments mp
           'POST payments/:id': 'payments.add',
