@@ -209,7 +209,7 @@ export const MembershipValidation: ServiceSchema = {
         $$strict: true,
       },
     },
-    get: {
+    mGet: {
       params: {
         id: [
           {
@@ -222,6 +222,10 @@ export const MembershipValidation: ServiceSchema = {
         country: {
           type: 'string',
           pattern: '^[A-Z]{2}$',
+          optional: true,
+        },
+        active: {
+          type: 'boolean',
           optional: true,
         },
       },
