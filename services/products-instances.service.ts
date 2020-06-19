@@ -19,7 +19,7 @@ module.exports = {
   /**
    * Service Mixins
    */
-  mixins: [ESService, ProductTransformation, ProductsInstancesMixin, ProductsInstancesOpenapi, ProductsInstancesValidation, AppSearch('catalog')],
+  mixins: [ESService, ProductTransformation, ProductsInstancesMixin, ProductsInstancesOpenapi, ProductsInstancesValidation, AppSearch(process.env.APP_SEARCH_ENGINE)],
   actions: {
     /**
      * Get product by SKU
