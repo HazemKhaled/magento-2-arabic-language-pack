@@ -270,7 +270,6 @@ const TheService: ServiceSchema = {
           membershipId: membership.id,
           storeId: ctx.params.storeId,
           invoiceId: invoice.invoice.invoiceId,
-          autoRenew: ctx.params.autoRenew,
           startDate,
           expireDate,
           createdAt: new Date(),
@@ -280,6 +279,10 @@ const TheService: ServiceSchema = {
         if (ctx.params.grantTo) {
           subscriptionBody.storeId = ctx.params.grantTo;
           subscriptionBody.donor = ctx.params.storeId;
+        }
+
+        if (ctx.params.autoRenew) {
+          subscriptionBody.autoRenew = ctx.params.autoRenew;
         }
 
         return this.adapter
