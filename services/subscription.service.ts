@@ -270,7 +270,6 @@ const TheService: ServiceSchema = {
           membershipId: membership.id,
           storeId: ctx.params.storeId,
           invoiceId: invoice.invoice.invoiceId,
-          renewed: ctx.params.renewed,
           autoRenew: ctx.params.autoRenew,
           startDate,
           expireDate,
