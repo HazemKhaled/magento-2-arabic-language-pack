@@ -166,10 +166,6 @@ export const SubscriptionValidation: ServiceSchema = {
           type: 'boolean',
           optional: true,
         },
-        renewed: {
-          type: 'boolean',
-          optional: true,
-        },
         $$strict: true,
       },
     },
