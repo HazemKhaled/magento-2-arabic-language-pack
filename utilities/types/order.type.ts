@@ -21,6 +21,7 @@ export interface Order {
   invoice_url?: string;
   shipmentCourier?: string;
   shipmentTrackingNumber?: string;
+  shipmentDate?: Date,
   shipping_method?: string;
   discount?: number;
   store?: {};
