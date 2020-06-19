@@ -284,6 +284,10 @@ const TheService: ServiceSchema = {
           subscriptionBody.donor = ctx.params.storeId;
         }
 
+        if (ctx.params.autoRenew) {
+          subscriptionBody.autoRenew = ctx.params.autoRenew;
+        }
+
         return this.adapter
           .insert(subscriptionBody)
           .then(
@@ -365,7 +369,7 @@ const TheService: ServiceSchema = {
     updateSubscription: {
       auth: 'Basic',
       handler(ctx: Context) {
-        let $set: { [key: string]: string | Date } = {};
+        let $set: Partial<Subscription> = {};
         const { params } = ctx;
         if (ctx.params.retries) {
           $set.retries = ctx.params.retries.map((i: Date) => new Date(i));

@@ -222,7 +222,6 @@ const SubscriptionCreateOpenapi = {
             coupon: { type: 'string' },
             grantTo: { type: 'string', format: 'url', description: 'This field is used to donor the subscription to another store' },
             autoRenew: { type: 'boolean' },
-            renewed: { type: 'boolean' },
           },
         },
       },
