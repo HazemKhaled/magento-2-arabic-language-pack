@@ -31,8 +31,9 @@ const TheService: ServiceSchema = {
             expireDate: { $gte: new Date() },
             startDate: { $lte: new Date() },
           })) || {};
-        const membership = await ctx.call('membership.get', {
+        const membership = await ctx.call('membership.mGet', {
           id: subscription.membershipId || 'free',
+          active: true,
         });
         return {
           id: (subscription._id && subscription._id.toString()) || -1,
@@ -133,7 +134,7 @@ const TheService: ServiceSchema = {
           }
         }
         const membership = await ctx
-          .call('membership.get', { id: ctx.params.membership })
+          .call('membership.mGet', { id: ctx.params.membership, active: true })
           .then(null, err => err);
         if (isError(membership as { message: string; code: number })) {
           throw new MoleculerError(membership.message, membership.code || 500);

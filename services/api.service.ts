@@ -91,7 +91,7 @@ const TheService: ServiceSchema = {
           // Membership
           'POST membership': 'membership.create',
           'GET membership': 'membership.list',
-          'GET membership/:id': 'membership.get',
+          'GET membership/:id': 'membership.mGet',
           'PUT membership/:id': 'membership.update',
 
           // Coupons
