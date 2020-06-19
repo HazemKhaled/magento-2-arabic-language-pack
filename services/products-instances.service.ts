@@ -216,13 +216,19 @@ module.exports = {
                 const updateArr: any[] = [];
                 appSearchProducts.forEach((product: Product) => {
                   if (product) {
-                    product.imported = (product.imported || []).concat([instance.url]);
-                    updateArr.push({
-                      id: product.sku,
-                      qty: product.imported.length,
-                      attribute: 'import_qty',
-                      imported: product.imported,
-                    });
+                    let index = -1;
+                    if (product.imported) {
+                      index = product.imported.indexOf(instance.url);
+                    }
+                    if (index === -1) {
+                      product.imported = (product.imported || []).concat([instance.url]);
+                      updateArr.push({
+                        id: product.sku,
+                        qty: product.imported.length,
+                        attribute: 'import_qty',
+                        imported: product.imported,
+                      });
+                    }
                   }
                 });
                 new Promise(async (resolve) => {
