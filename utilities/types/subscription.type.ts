@@ -13,6 +13,9 @@ export interface Subscription {
     startDate: Date;
     expireDate: Date;
     donor?: string;
+    renewed?: string;
+    autoRenew?: string;
+    retries?: number;
     createdAt: Date;
     updatedAt: Date;
   }

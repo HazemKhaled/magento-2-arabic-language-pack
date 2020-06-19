@@ -270,6 +270,8 @@ const TheService: ServiceSchema = {
           membershipId: membership.id,
           storeId: ctx.params.storeId,
           invoiceId: invoice.invoice.invoiceId,
+          renewed: ctx.params.renewed,
+          autoRenew: ctx.params.autoRenew,
           startDate,
           expireDate,
           createdAt: new Date(),
@@ -362,7 +364,7 @@ const TheService: ServiceSchema = {
     updateSubscription: {
       auth: 'Basic',
       handler(ctx: Context) {
-        let $set: { [key: string]: string | Date } = {};
+        let $set: Partial<Subscription> = {};
         const { params } = ctx;
         if (ctx.params.retries) {
           $set.retries = ctx.params.retries.map((i: Date) => new Date(i));
