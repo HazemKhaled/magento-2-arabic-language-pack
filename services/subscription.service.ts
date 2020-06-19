@@ -33,7 +33,6 @@ const TheService: ServiceSchema = {
           })) || {};
         const membership = await ctx.call('membership.mGet', {
           id: subscription.membershipId || 'free',
-          active: true,
         });
         return {
           id: (subscription._id && subscription._id.toString()) || -1,
