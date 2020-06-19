@@ -2,9 +2,10 @@ import { Context, Errors, ServiceSchema } from 'moleculer';
 import { isError } from 'util';
 import DbService from '../utilities/mixins/mongo.mixin';
 import { SubscriptionOpenapi } from '../utilities/mixins/openapi';
-import { Coupon, Membership, Store, Subscription } from '../utilities/types';
+import { Coupon, Membership, Subscription } from '../utilities/types';
 import { SubscriptionValidation } from '../utilities/mixins/validation';
 import TaxCheck from '../utilities/mixins/tax.mixin';
+import { MpError } from '../utilities/adapters';
 const MoleculerError = Errors.MoleculerError;
 
 const TheService: ServiceSchema = {
@@ -18,7 +19,7 @@ const TheService: ServiceSchema = {
      * @param {string} url
      * @returns {Promise<Subscription | false>}
      */
-    get: {
+    sGet: {
       cache: {
         keys: ['id'],
         ttl: 60 * 60 * 24, // 1 day
@@ -30,7 +31,7 @@ const TheService: ServiceSchema = {
             expireDate: { $gte: new Date() },
             startDate: { $lte: new Date() },
           })) || {};
-        const membership = await ctx.call('membership.get', {
+        const membership = await ctx.call('membership.mGet', {
           id: subscription.membershipId || 'free',
         });
         return {
@@ -132,7 +133,7 @@ const TheService: ServiceSchema = {
           }
         }
         const membership = await ctx
-          .call('membership.get', { id: ctx.params.membership })
+          .call('membership.mGet', { id: ctx.params.membership, active: true })
           .then(null, err => err);
         if (isError(membership as { message: string; code: number })) {
           throw new MoleculerError(membership.message, membership.code || 500);
@@ -181,13 +182,15 @@ const TheService: ServiceSchema = {
         }
 
         if (instance.credit < total) {
-          // TODO:: This should be added when payment is online
-          // await ctx.call('paymentGateway.charge', {
-          //   storeId: instance.url,
-          //   amount: total - instance.credit,
-          //   force: true,
-          // });
-          throw new MoleculerError('You don\'t have enough balance', 401);
+          await ctx.call('paymentGateway.charge', {
+            storeId: instance.url,
+            amount: total - instance.credit,
+            force: true,
+          }).then(null, err => {
+            if (err.type === 'SERVICE_NOT_FOUND')
+              throw new MpError('Subscription Service', 'You don\'t have enough balance', 401);
+            throw err;
+          });
         }
 
         const invoiceBody: { [key: string]: any } = {
@@ -281,18 +284,27 @@ const TheService: ServiceSchema = {
           subscriptionBody.donor = ctx.params.storeId;
         }
 
+        if (ctx.params.autoRenew) {
+          subscriptionBody.autoRenew = ctx.params.autoRenew;
+        }
+
         return this.adapter
           .insert(subscriptionBody)
           .then(
-            (res: Subscription): {} => {
-              this.broker.cacher.clean(`subscription.get:${instance.url}*`);
-              this.broker.cacher.clean(`subscription.sList:${instance.url}*`);
-              this.broker.cacher.clean(`stores.sGet:${instance.url}*`);
+            async (res: Subscription): Promise<{}> => {
+              this.broker.cacher.clean(`subscription.sGet:${ctx.params.grantTo || instance.url}*`);
+              this.broker.cacher.clean(`subscription.sList:${ctx.params.grantTo || instance.url}*`);
+              this.broker.cacher.clean(`stores.sGet:${ctx.params.grantTo || instance.url}*`);
               this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
+              if (ctx.params.grantTo) {
+                const grantToInstance = await ctx.call('stores.findInstance', { id: ctx.params.grantTo });
+                this.broker.cacher.clean(`stores.sGet:${instance.url}*`);
+                this.broker.cacher.clean(`stores.me:${grantToInstance.consumer_key}*`);
+              }
               ctx.call('subscription.checkCurrentSubGradingStatus', {
-                id: ctx.params.storeId,
+                id: ctx.params.grantTo || ctx.params.storeId,
               });
-              ctx.call('crm.updateStoreById', { id: ctx.params.storeId, membership_id: membership.id, subscription_expiration: expireDate.getTime() });
+              ctx.call('crm.updateStoreById', { id: ctx.params.grantTo || ctx.params.storeId, membership_id: membership.id, subscription_expiration: expireDate.getTime() });
               return { ...res, id: res._id, _id: undefined };
             },
           );
@@ -325,7 +337,7 @@ const TheService: ServiceSchema = {
           return null;
         }
         expiredSubscription._id = expiredSubscription._id.toString();
-        const currentSubscription = await ctx.call('subscription.get', {
+        const currentSubscription = await ctx.call('subscription.sGet', {
           id: expiredSubscription.storeId,
         });
         if (currentSubscription.id !== -1) {
@@ -357,7 +369,7 @@ const TheService: ServiceSchema = {
     updateSubscription: {
       auth: 'Basic',
       handler(ctx: Context) {
-        let $set: { [key: string]: string | Date } = {};
+        let $set: Partial<Subscription> = {};
         const { params } = ctx;
         if (ctx.params.retries) {
           $set.retries = ctx.params.retries.map((i: Date) => new Date(i));
@@ -374,7 +386,7 @@ const TheService: ServiceSchema = {
           .updateById(ctx.params.id, { $set })
           .then(async (subscription: Subscription) => {
             const store = await ctx.call('stores.findInstance', { id: subscription.storeId });
-            this.broker.cacher.clean(`subscription.get:${store.url}**`);
+            this.broker.cacher.clean(`subscription.sGet:${store.url}**`);
             this.broker.cacher.clean(`subscription.sList:${store.url}**`);
             this.broker.cacher.clean(`stores.sGet:${store.url}**`);
             this.broker.cacher.clean(`stores.me:${store.consumer_key}**`);

@@ -1,4 +1,4 @@
-import { Context, Errors, ServiceSchema } from 'moleculer';
+import { Context, Errors, ServiceSchema, GenericObject } from 'moleculer';
 import DbService from '../utilities/mixins/mongo.mixin';
 import { MembershipOpenapi } from '../utilities/mixins/openapi';
 import { Membership } from '../utilities/types';
@@ -41,22 +41,28 @@ const TheService: ServiceSchema = {
           });
       },
     },
-    get: {
+    mGet: {
       auth: 'Basic',
       cache: {
-        keys: ['id', 'country'],
+        keys: ['id', 'country', 'active'],
         ttl: 60 * 60 * 24, // 1 day
       },
       handler(ctx: Context): Promise<Membership> {
+        const { active, id, country } = ctx.params;
+        const query: GenericObject = { _id: id };
+        if (active !== undefined) {
+          query.active = active;
+        }
+
         return this.adapter
-          .findOne({ _id: ctx.params.id, active: true })
+          .findOne(query)
           .then((res: Membership) => {
             if (!res) {
               return this.adapter
                 .findOne({ isDefault: true })
                 .then((def: Membership) => this.normalize(def));
             }
-            return this.normalize(res, ctx.params.country);
+            return this.normalize(res, country);
           })
           .catch((err: any) => {
             if (err.name === 'MoleculerError') {
@@ -108,7 +114,7 @@ const TheService: ServiceSchema = {
           .updateById(id, { $set: { ...params, updatedAt: new Date() } })
           .then((res: Membership) => {
             this.broker.cacher.clean('membership.list:**');
-            this.broker.cacher.clean(`membership.get:${id}**`);
+            this.broker.cacher.clean(`membership.mGet:${id}**`);
             if (!res) {
               throw new MoleculerError('Membership not found', 404);
             }

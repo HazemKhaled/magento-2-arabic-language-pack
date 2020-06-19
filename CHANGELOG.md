@@ -1,5 +1,31 @@
 # Changelog
 
+## 1.7.2
+
+### 🚀 Features
+
+- Add back create subscription paymentGateway action
+- Add autoRenew param to create subscription
+- Membership get any & add active as param
+- Old subscription work even if the membership is not active
+
+### 🐛 Fixes
+
+- Products import & sales quantity
+- Products instances cache issue
+- Products instances get product response schema
+- AppSearch update imported
+- Subscription get validation
+- Subscription grantTo cache issue
+- ApplyCredits cache
+
+### ✨ Enhancements
+
+- AppSearch engine in environment variable
+- Stop retry on actions
+- ApplyCredits error handling
+
+
 ## 1.7.1
 
 ### 🚀 Features

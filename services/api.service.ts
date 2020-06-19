@@ -83,7 +83,6 @@ const TheService: ServiceSchema = {
 
           // paymentGateway
           'POST paymentGateway/:type/transaction': 'paymentGateway.transaction',
-          'GET paymentGateway/callback': 'paymentGateway.callback',
 
           // Payments mp
           'POST payments/:id': 'payments.add',
@@ -92,7 +91,7 @@ const TheService: ServiceSchema = {
           // Membership
           'POST membership': 'membership.create',
           'GET membership': 'membership.list',
-          'GET membership/:id': 'membership.get',
+          'GET membership/:id': 'membership.mGet',
           'PUT membership/:id': 'membership.update',
 
           // Coupons

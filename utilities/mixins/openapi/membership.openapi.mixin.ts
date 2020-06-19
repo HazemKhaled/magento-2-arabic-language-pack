@@ -384,7 +384,7 @@ export const MembershipOpenapi: ServiceSchema = {
     update: {
       openapi: MembershipUpdateOpenapi,
     },
-    get: {
+    mGet: {
       openapi: MembershipGetOpenapi,
     },
     list: {
