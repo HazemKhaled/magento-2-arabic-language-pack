@@ -236,7 +236,7 @@ const TheService: ServiceSchema = {
             [x: string]: string | number | string[];
           } = {
             id: product.id,
-            [product.attribute]: product.qty + 1,
+            [product.attribute]: product.qty,
           };
           if (product.imported) body.imported = product.imported;
           return body;

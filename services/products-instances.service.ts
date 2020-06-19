@@ -1,10 +1,8 @@
 import { Product } from './../utilities/types/product.type';
 import { Context } from 'moleculer';
-import { ProductsInstancesMixin } from '../utilities/mixins';
-
-const ESService = require('moleculer-elasticsearch');
-const { ProductsInstancesOpenapi, ProductsInstancesValidation, ProductTransformation } = require('../utilities/mixins');
-const { MpError } = require('../utilities/adapters');
+import ESService from 'moleculer-elasticsearch';
+import { ProductsInstancesOpenapi, ProductsInstancesValidation, ProductTransformation, ProductsInstancesMixin, AppSearch } from '../utilities/mixins';
+import { MpError } from '../utilities/adapters';
 
 module.exports = {
   name: 'products-instances',
@@ -21,7 +19,7 @@ module.exports = {
   /**
    * Service Mixins
    */
-  mixins: [ESService, ProductTransformation, ProductsInstancesMixin, ProductsInstancesOpenapi, ProductsInstancesValidation],
+  mixins: [ESService, ProductTransformation, ProductsInstancesMixin, ProductsInstancesOpenapi, ProductsInstancesValidation, AppSearch(process.env.APP_SEARCH_ENGINE)],
   actions: {
     /**
      * Get product by SKU
@@ -134,9 +132,23 @@ module.exports = {
         const { sku } = ctx.params;
 
         return this.deleteProduct(sku, ctx.meta.user)
-          .then((product: Product) => {
+          .then(async (product: Product) => {
             this.broker.cacher.clean(`products-instances.list:${ctx.meta.user}**`);
-
+            const [appSearchProduct] = await this.getDocumentsByIds([sku]);
+            if (appSearchProduct) {
+              const index = appSearchProduct.imported.indexOf(ctx.meta.store.url);
+              if (index >= 0) {
+                appSearchProduct.imported.splice( index, 1 );
+                await ctx.call('products.updateQuantityAttributes', {
+                  products: [{
+                    id: product.sku,
+                    qty: appSearchProduct.imported.length,
+                    attribute: 'import_qty',
+                    imported: appSearchProduct.imported,
+                  }],
+                });
+              }
+            }
             return { product };
           })
           .catch(() => {
@@ -191,7 +203,7 @@ module.exports = {
               index: 'products-instances',
               body: bulk,
             })
-            .then(response => {
+            .then(async (response) => {
               // Update products import quantity
               if (response.items) {
                 const firstImport = response.items
@@ -200,27 +212,29 @@ module.exports = {
                 const update = res.filter((product: Product) =>
                   firstImport.includes(`${instance.consumer_key}-${product.sku}`),
                 );
-                if (update.length > 0) {
-                  const updateArr = update.map((product: Product) => {
+                const appSearchProducts = await this.getDocumentsByIds(skus);
+                const updateArr: any[] = [];
+                appSearchProducts.forEach((product: Product) => {
+                  if (product) {
                     product.imported = (product.imported || []).concat([instance.url]);
-                    return {
+                    updateArr.push({
                       id: product.sku,
-                      qty: product.import_qty || 0,
+                      qty: product.imported.length,
                       attribute: 'import_qty',
                       imported: product.imported,
-                    };
-                  });
-                  new Promise(async (resolve) => {
-                    for (let i = 0; i < updateArr.length; i+=100) {
-                      await ctx.call('products.updateQuantityAttributes', {
-                        products: updateArr.slice(i, i+100),
-                      });
-                    }
-                    this.broker.cacher.clean(`products-instances.list:${ctx.meta.user}**`);
-                    this.broker.cacher.clean(`products-instances.total:${ctx.meta.user}**`);
-                    return resolve();
-                  });
-                }
+                    });
+                  }
+                });
+                new Promise(async (resolve) => {
+                  for (let i = 0; i < updateArr.length; i+=100) {
+                    await ctx.call('products.updateQuantityAttributes', {
+                      products: updateArr.slice(i, i+100),
+                    });
+                  }
+                  this.broker.cacher.clean(`products-instances.list:${ctx.meta.user}**`);
+                  this.broker.cacher.clean(`products-instances.total:${ctx.meta.user}**`);
+                  return resolve();
+                });
               }
 
               // Responses
