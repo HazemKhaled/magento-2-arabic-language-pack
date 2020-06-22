@@ -3,7 +3,7 @@ import { PaymentsOpenapi } from '../utilities/mixins/openapi';
 import { Payment, PaymentInvoice } from '../utilities/types';
 import { PaymentsValidation } from '../utilities/mixins/validation';
 import { Oms } from '../utilities/mixins/oms.mixin';
-const MoleculerError = Errors.MoleculerError;
+import { MpError } from './../utilities/adapters';
 
 const TheService: ServiceSchema = {
   name: 'payments',
@@ -39,6 +39,9 @@ const TheService: ServiceSchema = {
         if (ctx.params.reference) {
           paymentBody.referenceNumber = String(ctx.params.reference);
         }
+        if (ctx.params.description) {
+          paymentBody.description = ctx.params.description;
+        }
         return ctx
           .call('oms.createPayment', paymentBody)
           .then(
@@ -50,7 +53,7 @@ const TheService: ServiceSchema = {
               return this.sanitizePayment(res.payment);
             },
             err => {
-              throw new MoleculerError(err.message, err.code || 500);
+              throw new MpError('Payments Service', err.message, err.code || 500);
             },
           );
 
@@ -85,11 +88,11 @@ const TheService: ServiceSchema = {
             .then(
               res => ({ payments: res.payments.map(this.sanitizePayment) }),
               err => {
-                throw new MoleculerError(err.message, err.code || 500);
+                throw new MpError('Payments Service', err.message, err.code || 500);
               },
             );
         }
-        throw new MoleculerError('No Record Found For This Store!', 404);
+        throw new MpError('Payments Service', 'No Record Found For This Store!', 404);
       },
     },
   },
@@ -111,6 +114,7 @@ const TheService: ServiceSchema = {
         payment_id: payment.paymentId,
         unused_amount: payment.unusedAmount,
         reference: payment.referenceNumber,
+        description: payment.description,
         date: payment.date,
       });
     },
