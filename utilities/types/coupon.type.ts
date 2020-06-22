@@ -7,7 +7,8 @@
 export interface Coupon {
     _id?: string;
     id?: string;
-    code: string;
+    code?: string;
+    type: string;
 	discount: {
         total?: Discount,
         shipping?: Discount,
@@ -21,6 +22,8 @@ export interface Coupon {
     auto: boolean;
     createdAt: Date;
     updatedAt: Date;
+    camppaignName?: string;
+    minAppliedAmount: number;
 }
 
 interface Discount {

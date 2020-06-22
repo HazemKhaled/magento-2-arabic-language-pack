@@ -72,6 +72,10 @@ export const CouponsValidation: ServiceSchema = {
         auto: {
           type: 'boolean',
         },
+        camppaignName: {
+          type: 'string',
+          optional: true,
+        },
         $$strict: true,
       },
     },
@@ -215,6 +219,10 @@ export const CouponsValidation: ServiceSchema = {
         },
         auto: {
           type: 'boolean',
+          optional: true,
+        },
+        camppaignName: {
+          type: 'string',
           optional: true,
         },
         $$strict: true,

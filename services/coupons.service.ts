@@ -186,7 +186,7 @@ const TheService: ServiceSchema = {
      * @returns Coupon
      */
     createCouponSanitize(params) {
-      return {
+      const coupon: Coupon =  {
         _id: params.code,
         type: params.type, // Coupon type 'salesorder | subscription'
         useCount: 0,
@@ -200,6 +200,10 @@ const TheService: ServiceSchema = {
         createdAt: new Date(),  // Add created and updated dates of the coupon
         updatedAt: new Date(),
       };
+      if (params.camppaignName) {
+        coupon.camppaignName = params.camppaignName;
+      }
+      return coupon;
     },
     /**
      * Validate different coupons type
