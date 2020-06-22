@@ -282,7 +282,11 @@ const TheService: ServiceSchema = {
                   }),
                 )
                 .then(
-                  () => this.broker.cacher.clean(`invoices.get:${instanceCopy.consumer_key}*`),
+                  () => {
+                    order.status = 'invoiced';
+                    this.cacheUpdate(order, instance);
+                    this.broker.cacher.clean(`invoices.get:${instanceCopy.consumer_key}*`);
+                  },
                   this.logger.error,
                 );
             },
