@@ -47,6 +47,9 @@ const Payment = {
     account_name: {
       type: 'string',
     },
+    description: {
+      type: 'string',
+    },
   },
 };
 
@@ -124,6 +127,9 @@ const PaymentsAddOpenapi = {
             reference: {
               type: 'string',
               description: 'Payment gateway reference id',
+            },
+            description: {
+              type: 'string',
             },
           },
         },
