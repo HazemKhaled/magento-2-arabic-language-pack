@@ -231,16 +231,13 @@ module.exports = {
                     }
                   }
                 });
-                new Promise(async (resolve) => {
-                  for (let i = 0; i < updateArr.length; i+=100) {
-                    await ctx.call('products.updateQuantityAttributes', {
-                      products: updateArr.slice(i, i+100),
-                    });
-                  }
-                  this.broker.cacher.clean(`products-instances.list:${ctx.meta.user}**`);
-                  this.broker.cacher.clean(`products-instances.total:${ctx.meta.user}**`);
-                  return resolve();
-                });
+                for (let i = 0; i < updateArr.length; i+=100) {
+                  await ctx.call('products.updateQuantityAttributes', {
+                    products: updateArr.slice(i, i+100),
+                  });
+                }
+                this.broker.cacher.clean(`products-instances.list:${ctx.meta.user}**`);
+                this.broker.cacher.clean(`products-instances.total:${ctx.meta.user}**`);;
               }
 
               // Responses
