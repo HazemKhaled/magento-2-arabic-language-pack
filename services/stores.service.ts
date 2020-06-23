@@ -391,7 +391,7 @@ const TheService: ServiceSchema = {
             omsId: omsStore.id || (omsStore.store && omsStore.store.id),
           };
           this.broker.cacher.clean(`orders.getOrder:${instance.consumer_key}*`);
-          this.broker.cacher.clean(`orders.list:${instance.consumer_key}*`);
+          this.broker.cacher.clean(`orders.list:undefined|${instance.consumer_key}*`);
           this.broker.cacher.clean(`invoices.get:${instance.consumer_key}*`);
           this.broker.cacher.clean(`subscription.sGet:${instance.url}*`);
           this.broker.cacher.clean(`stores.sGet:${instance.url}**`);
