@@ -248,6 +248,10 @@ export const OmsValidation: ServiceSchema = {
           integer: true,
           optional: true,
         }],
+        description: {
+          type: 'string',
+          optional: true,
+        },
       },
     },
     listPayments: {

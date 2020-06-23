@@ -16,6 +16,7 @@ export interface Payment {
   unusedAmount: number;
   referenceNumber?: string;
   date: Date;
+  description?: string;
 }
 
 /**
@@ -36,6 +37,7 @@ export interface PaymentResponse {
   unused_amount: number;
   reference?: string;
   date: Date;
+  description?: string;
 }
 
 /**
