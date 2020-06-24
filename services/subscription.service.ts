@@ -182,15 +182,19 @@ const TheService: ServiceSchema = {
         }
 
         if (instance.credit < total) {
-          await ctx.call('paymentGateway.charge', {
-            storeId: instance.url,
-            amount: total - instance.credit,
-            force: true,
-          }).then(null, err => {
-            if (err.type === 'SERVICE_NOT_FOUND')
-              throw new MpError('Subscription Service', 'You don\'t have enough balance', 401);
-            throw err;
-          });
+          if (process.env.SUBSCRIPTION_PAYMENT_CHARGE) {
+            await ctx.call('paymentGateway.charge', {
+              storeId: instance.url,
+              amount: total - instance.credit,
+              force: true,
+            }).then(null, err => {
+              if (err.type === 'SERVICE_NOT_FOUND')
+                throw new MpError('Subscription Service', 'You don\'t have enough balance', 402);
+              throw err;
+            });
+          } else {
+            throw new MpError('Subscription Service', 'You don\'t have enough balance', 402);
+          }
         }
 
         const invoiceBody: { [key: string]: any } = {
