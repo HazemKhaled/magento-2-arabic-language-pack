@@ -122,7 +122,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
         });
 
         const products = instanceProductsFull.page.map((pi: {_source: Partial<Product>}) => {
-          const product = results.find((p: Product) => p.sku === pi._source.sku);
+          const product = results.find((p: Product) => String(p.sku) === String(pi._source.sku));
           if (product) {
             return {
               sku: product.sku,
