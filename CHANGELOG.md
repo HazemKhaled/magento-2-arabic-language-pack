@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.7.3
+
+### 🚀 Features
+
+- Add order shipmentDate field
+- Add coupon camppaignName field
+- Add payments description field
+- List orders timestamp param
+
+### 🐛 Fixes
+
+- Fix order cache flush on create
+
+### ✨ Enhancements
+
+- Optimize coupon error response
+- Invoices cache 1min
+- Import products wait until appSearch update finished
+
 ## 1.7.2
 
 ### 🚀 Features
@@ -25,7 +44,6 @@
 - Stop retry on actions
 - ApplyCredits error handling
 
-
 ## 1.7.1
 
 ### 🚀 Features
@@ -47,7 +65,6 @@
 - Update products instances openapi
 - Products instances cache
 - Create logs index every month instead of every day
-
 
 ## 1.7.0
 
@@ -84,7 +101,6 @@
 
 - Imported products instance migration script
 
-
 ## 1.6.2
 
 ### 🚀 Features
@@ -107,7 +123,6 @@
 - Get store balance optional param
 - Save all oms requests on DB
 - Update store, invoice and order cache on create or update actions
-
 
 ## 1.6.0
 
@@ -136,7 +151,6 @@
 - Order & invoice list response if no records
 - Remove shipment method changed warning from response
 - openapi
-
 
 ## 1.5.1
 
@@ -176,9 +190,9 @@
 ### 🚀 Features
 
 - Coupons new schema with discount for
-    - Total
-    - Shipping
-    - Taxes
+  - Total
+  - Shipping
+  - Taxes
 - Minimum amount to apply the coupon
 - Coupon validation to update
 - Sales order coupons
@@ -187,6 +201,7 @@
 - Add create & update to coupon openapi
 
 ### 🐛 Fixes
+
 - Coupon validation actual field name
 - Coupon update (string hex bytes issue)
 - Open api response in get orders
@@ -200,8 +215,6 @@
 - Update caching ttl
 - Make payment reference is required
 - Taxes limited to given countries through env variable
-
-
 
 ## 1.4.0
 
