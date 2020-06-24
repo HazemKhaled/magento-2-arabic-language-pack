@@ -8,10 +8,12 @@
 - Add coupon camppaignName field
 - Add payments description field
 - List orders timestamp param
+- Add paymentGateway environnement variables to allow or disallow calling the charge method
 
 ### 🐛 Fixes
 
 - Fix order cache flush on create
+- Fix products instances list 0 stock products with number sku issue
 
 ### ✨ Enhancements
 
