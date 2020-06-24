@@ -116,7 +116,7 @@ const TheService: ServiceSchema = {
         }
         const {params} = ctx;
         if(params.useSavedPaymentMethods && instance.credit < params.paymentAmount) {
-          if (process.env.PAYMENT_APPLY_CREDITS) {
+          if (process.env.PAYMENT_AUTO_CHARGE_CC_INVOICE) {
             await ctx.call('paymentGateway.charge', {
               storeId: instance.url,
               amount: params.paymentAmount - instance.credit,

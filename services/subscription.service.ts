@@ -182,7 +182,7 @@ const TheService: ServiceSchema = {
         }
 
         if (instance.credit < total) {
-          if (process.env.SUBSCRIPTION_PAYMENT_CHARGE) {
+          if (process.env.PAYMENT_AUTO_CHARGE_CC_SUBSCRIPTION) {
             await ctx.call('paymentGateway.charge', {
               storeId: instance.url,
               amount: total - instance.credit,
