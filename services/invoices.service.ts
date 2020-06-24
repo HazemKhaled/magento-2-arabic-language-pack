@@ -15,7 +15,7 @@ const TheService: ServiceSchema = {
       auth: 'Bearer',
       cache: {
         keys: ['#user', 'page', 'limit', 'reference_number', 'invoice_number'],
-        ttl: 60 * 60 * 24,
+        ttl: 60,
       },
       async handler(ctx: Context) {
         const instance = await ctx.call('stores.findInstance', {
@@ -116,14 +116,18 @@ const TheService: ServiceSchema = {
         }
         const {params} = ctx;
         if(params.useSavedPaymentMethods && instance.credit < params.paymentAmount) {
-          await ctx.call('paymentGateway.charge', {
-            storeId: instance.url,
-            amount: params.paymentAmount - instance.credit,
-          }).then(null, err => {
-            if (err.type === 'SERVICE_NOT_FOUND')
-              throw new MpError('Invoices Service', 'Not enough balance!', 401);
-            throw err;
-          });
+          if (process.env.PAYMENT_AUTO_CHARGE_CC_INVOICE) {
+            await ctx.call('paymentGateway.charge', {
+              storeId: instance.url,
+              amount: params.paymentAmount - instance.credit,
+            }).then(null, err => {
+              if (err.type === 'SERVICE_NOT_FOUND')
+                throw new MpError('Invoices Service', 'Not enough balance!', 402);
+              throw err;
+            });
+          } else {
+            throw new MpError('Invoices Service', 'Not enough balance!', 402);
+          }
         }
         return ctx
           .call('oms.applyInvoiceCredits', {

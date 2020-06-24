@@ -242,7 +242,7 @@ export const OrdersOperations: ServiceSchema = {
           }
           return totalDis;
         }, 0);
-        return {discount, coupon: coupon.code};
+        return {discount, coupon: coupon.camppaignName || coupon.code};
       }
     },
   },

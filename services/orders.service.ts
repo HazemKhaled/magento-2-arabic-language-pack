@@ -282,7 +282,11 @@ const TheService: ServiceSchema = {
                   }),
                 )
                 .then(
-                  () => this.broker.cacher.clean(`invoices.get:${instanceCopy.consumer_key}*`),
+                  () => {
+                    order.status = 'invoiced';
+                    this.cacheUpdate(order, instance);
+                    this.broker.cacher.clean(`invoices.get:${instanceCopy.consumer_key}*`);
+                  },
                   this.logger.error,
                 );
             },
@@ -344,7 +348,7 @@ const TheService: ServiceSchema = {
         // Change
         if (data.status === 'cancelled' || data.status === 'void') {
           return ctx.call('orders.delete', { id: data.id }).then(res => {
-            this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
+            this.broker.cacher.clean(`orders.list:undefined|${ctx.meta.user}**`);
             this.broker.cacher.clean(`orders.getOrder:${ctx.params.id}**`);
             return res;
           });
@@ -589,7 +593,7 @@ const TheService: ServiceSchema = {
     list: {
       auth: 'Bearer',
       cache: {
-        keys: ['externalId', '#user', 'limit', 'page', 'sort', 'sortOrder', 'status'],
+        keys: ['externalId', '#user', 'limit', 'page', 'sort', 'sortOrder', 'status', 'timestamp'],
         ttl: 60 * 60 * 24,
       },
       async handler(ctx) {
@@ -668,7 +672,7 @@ const TheService: ServiceSchema = {
           })
           .then(
             async result => {
-              this.broker.cacher.clean(`orders.list:${ctx.meta.user}**`);
+              this.broker.cacher.clean(`orders.list:undefined|${ctx.meta.user}**`);
               this.broker.cacher.clean(`orders.getOrder:${ctx.params.id}**`);
               if (result.salesorder) {
                 return {
@@ -1033,6 +1037,7 @@ const TheService: ServiceSchema = {
         notes: order.notes,
         shipping_method: order.shipmentCourier,
         shipping_charge: order.shippingCharge,
+        shipment_date: order.shipmentDate,
         adjustment: order.adjustment,
         adjustmentDescription: order.adjustmentDescription,
         shipment_tracking_number: order.shipmentTrackingNumber,
@@ -1068,6 +1073,7 @@ const TheService: ServiceSchema = {
         updateDate: order.updateDate,
         total: order.total,
         trackingNumber: order.shipmentTrackingNumber,
+        shipment_date: order.shipmentDate,
         knawat_order_status: order.status ? this.normalizeResponseStatus(order.status) : '',
         orderNumber: order.orderNumber,
         invoice_url: order.externalInvoice,

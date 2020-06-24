@@ -50,8 +50,11 @@ export const PaymentsValidation: ServiceSchema = {
         {
           type: 'number',
           integer: true,
+        }],
+        description: {
+          type: 'string',
+          optional: true,
         },
-        ],
       },
     },
     get: {

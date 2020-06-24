@@ -210,6 +210,9 @@ const OrderResponse = {
         shipping_method: {
           type: 'string',
         },
+        shipment_date: {
+          type: 'string',
+        },
         orderNumber: {
           type: 'string',
         },
@@ -300,6 +303,7 @@ const OrderResponse = {
       },
       invoice_url: 'http://example.com/invoice.pdf',
       notes: 'My Orders',
+      shipment_date: '2020-06-30T00:00:00.000Z',
       total: 11,
       discount: 1.3,
     },
@@ -335,6 +339,9 @@ const OrderList  = {
         type: 'string',
       },
       knawat_order_status: {
+        type: 'string',
+      },
+      shipment_date: {
         type: 'string',
       },
       orderNumber: {

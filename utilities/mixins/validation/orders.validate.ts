@@ -321,6 +321,10 @@ export const OrdersValidation: ServiceSchema = {
           convert: true,
           optional: true,
         },
+        timestamp: {
+          type: 'string',
+          optional: true,
+        },
       },
     },
     deleteOrder: {

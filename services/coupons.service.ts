@@ -1,8 +1,8 @@
+import { MpError } from './../utilities/adapters';
 import { Context, Errors, ServiceSchema } from 'moleculer';
 import DbService from '../utilities/mixins/mongo.mixin';
-import { CouponsOpenapi } from '../utilities/mixins/openapi';
 import { Coupon } from '../utilities/types';
-import { CouponsValidation } from '../utilities/mixins/validation';
+import { CouponsValidation, CouponsOpenapi } from '../utilities/mixins';
 const MoleculerError = Errors.MoleculerError;
 
 const TheService: ServiceSchema = {
@@ -24,9 +24,12 @@ const TheService: ServiceSchema = {
           })
           .catch((err: any) => {
             if (err.name === 'MoleculerError') {
-              throw new MoleculerError(err.message, err.code);
+              throw new MpError('Coupon Service', err.message, err.code);
             }
-            throw new MoleculerError(err, 500);
+            if (err.name === 'MongoError' && err.code === 11000) {
+              throw new MpError('Coupon Service', 'Duplicate coupon code!', 422);
+            }
+            throw new MpError('Coupon Service', err, 500);
           });
       },
     },
@@ -186,7 +189,7 @@ const TheService: ServiceSchema = {
      * @returns Coupon
      */
     createCouponSanitize(params) {
-      return {
+      const coupon: Coupon =  {
         _id: params.code,
         type: params.type, // Coupon type 'salesorder | subscription'
         useCount: 0,
@@ -200,6 +203,10 @@ const TheService: ServiceSchema = {
         createdAt: new Date(),  // Add created and updated dates of the coupon
         updatedAt: new Date(),
       };
+      if (params.camppaignName) {
+        coupon.camppaignName = params.camppaignName;
+      }
+      return coupon;
     },
     /**
      * Validate different coupons type
