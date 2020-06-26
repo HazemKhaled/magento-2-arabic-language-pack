@@ -51,7 +51,7 @@ const TheService: ServiceSchema = {
           criteria: `((Account_Name:equals:${ctx.params.id}))`,
         });
 
-        if (!res || !res.data[0]) {
+        if (!res.data || !res.data[0]) {
           throw this.errorFactory('Store not found!', 404);
         }
         return res.data[0];
