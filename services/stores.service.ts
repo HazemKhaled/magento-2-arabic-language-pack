@@ -50,9 +50,7 @@ const TheService: ServiceSchema = {
             // If the DB response not null will return the data
             if (res !== null) return this.sanitizeResponse(res);
             // If null return Not Found error
-            ctx.meta.$statusMessage = 'Not Found';
-            ctx.meta.$statusCode = 404;
-            return { errors: [{ message: 'Store Not Found' }] };
+            throw new MpError('Stores Service', 'Store Not Found', 404);
           });
       },
     },
@@ -87,9 +85,7 @@ const TheService: ServiceSchema = {
               return this.sanitizeResponse(res);
             }
             // If null return Not Found error
-            ctx.meta.$statusMessage = 'Not Found';
-            ctx.meta.$statusCode = 404;
-            return { errors: [{ message: 'Store Not Found' }] };
+            throw new MpError('Stores Service', 'Store Not Found', 404);
           });
       },
     },
@@ -131,9 +127,7 @@ const TheService: ServiceSchema = {
           }
 
           // If null return Not Found error
-          ctx.meta.$statusMessage = 'Not Found';
-          ctx.meta.$statusCode = 404;
-          return { errors: [{ message: 'Store Not Found' }] };
+          throw new MpError('Stores Service', 'Store Not Found', 404);
         });
       },
     },
@@ -176,9 +170,7 @@ const TheService: ServiceSchema = {
           // If the DB response not null will return the data
           if (res !== null) return res.map(store => this.sanitizeResponse(store));
           // If null return Not Found error
-          ctx.meta.$statusMessage = 'Not Found';
-          ctx.meta.$statusCode = 404;
-          return { errors: [{ message: 'Store Not Found' }] };
+          throw new MpError('Stores Service', 'Store Not Found', 404);
         });
       },
     },
@@ -240,7 +232,9 @@ const TheService: ServiceSchema = {
           .insert(store)
           .then((res: Store) => this.sanitizeResponse(res))
           .catch((err: { code: number }) => {
-            this.logger.error('Create store', err);
+            if(err.code !== 11000) {
+              this.logger.error('Create store', err);
+            }
             const msg = err.code === 11000 ? 'Duplicated entry!' : 'Internal Error!';
             const code = err.code === 11000 ? 422 : 500;
             throw new MpError('Stores Service', msg, code);
@@ -273,11 +267,7 @@ const TheService: ServiceSchema = {
 
         // If the store not found return Not Found error
         if (!storeBefore) {
-          ctx.meta.$statusMessage = 'Not Found';
-          ctx.meta.$statusCode = 404;
-          return {
-            errors: [{ message: 'Store Not Found' }],
-          };
+          throw new MpError('Stores Service', 'Store Not Found', 404);
         }
 
         // Sanitize request params
@@ -314,7 +304,7 @@ const TheService: ServiceSchema = {
               storeId: id,
               logLevel: 'error',
               code: 500,
-              payload: { error, params: ctx.params },
+              payload: { error: error.toString(), params: ctx.params },
             });
             ctx.meta.$statusMessage = 'Internal Server Error';
             ctx.meta.$statusCode = 500;
@@ -361,17 +351,6 @@ const TheService: ServiceSchema = {
         const instance = await ctx.call('stores.findInstance', {
           id: storeId,
         });
-        if (!instance.url) {
-          ctx.meta.$statusCode = 404;
-          ctx.meta.$statusMessage = 'Not Found!';
-          return {
-            errors: [
-              {
-                message: 'Store not found!',
-              },
-            ],
-          };
-        }
         try {
           const omsStore = await ctx.call('oms.getCustomerByUrl', { storeId }).then(
             response => response.store,
@@ -433,9 +412,7 @@ const TheService: ServiceSchema = {
       handler(ctx: Context) {
         const { consumerKey, consumerSecret } = ctx.params;
 
-        return this.Promise.resolve(
-          this.broker.call('stores.findInstance', { consumerKey, consumerSecret }),
-        )
+        return this.broker.call('stores.findInstance', { consumerKey, consumerSecret })
           .then((instance: Store) => {
             if (
               consumerKey === instance.consumer_key &&
