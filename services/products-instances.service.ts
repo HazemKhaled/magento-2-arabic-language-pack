@@ -176,7 +176,7 @@ module.exports = {
           });
           const bulk: any[] = [];
           if(newSKUs.length === 0) {
-            throw new MpError('Products Instance', 'Product not found!', 404);
+            throw new MpError('Products Instance Service', `Product not found ${outOfStock.join(',')} (Import)!`, 404);
           }
           res.forEach((product: Product) => {
             bulk.push({

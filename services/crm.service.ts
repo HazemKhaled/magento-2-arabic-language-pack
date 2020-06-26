@@ -51,7 +51,7 @@ const TheService: ServiceSchema = {
           criteria: `((Account_Name:equals:${ctx.params.id}))`,
         });
 
-        if (!res.data[0]) {
+        if (!res || !res.data[0]) {
           throw this.errorFactory('Store not found!', 404);
         }
         return res.data[0];
@@ -191,14 +191,14 @@ const TheService: ServiceSchema = {
       }
       if (params) {
         queryString = Object.keys(params).reduce(
-          (accumulator, key) => params[key] ?`${accumulator}${accumulator ? '&' : '?'}${key}=${params[key]}` : accumulator,
+          (accumulator, key) => params[key] ?`${accumulator}${accumulator ? '&' : '?'}${key}=${encodeURIComponent(params[key])}` : accumulator,
           '',
         );
       }
       fetchParams.headers = headers;
       return fetch(`${url}${path}${queryString}`, fetchParams)
         .then(async res => {
-          const parsedRes = await res.json();
+          const parsedRes = res.status !== 204 ? await res.json() : {};
           if (res.status === 401) {
             await this.broker.call('crm.refreshToken');
             return this.request({ method, path, isAccountsUrl, body, bodyType, params });

@@ -156,7 +156,7 @@ const TheService: ServiceSchema = {
           },
         }).then(({ hits: { hits: [product] } }) => {
           if (!product) {
-            throw new MpError('Products Service', 'Product Not Found!', 404);
+            throw new MpError('Products Service', `Product Not Found ${ctx.params.sku} (fetchBySku)!`, 404);
           }
           return this.productSanitize(product);
         });

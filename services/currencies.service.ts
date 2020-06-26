@@ -1,8 +1,8 @@
 import { Context, ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
-import { CurrenciesOpenapi } from '../utilities/mixins/openapi';
 import { Currency } from './../types/currency.d';
-import { CurrenciesValidation } from '../utilities/mixins/validation';
+import { CurrenciesValidation, CurrenciesOpenapi } from '../utilities/mixins';
+import { MpError } from '../utilities/adapters';
 
 const TheService: ServiceSchema = {
   name: 'currencies',
@@ -26,8 +26,7 @@ const TheService: ServiceSchema = {
             (currencyObj: Currency) => currencyObj.currencyCode === ctx.params.currencyCode,
           );
           if (currency === undefined) {
-            ctx.meta.$statusCode = 404;
-            return { warning: 'Currency code could not be found!' };
+            throw new MpError('Currencies Service', 'Currency code could not be found!', 404);
           }
           return currency;
         });

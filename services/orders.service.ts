@@ -165,7 +165,7 @@ const TheService: ServiceSchema = {
           storeId: instance.url,
           logLevel: 'info',
           code: 2103,
-          payload: { subscription, params: ctx.params },
+          payload: { subscriptionId: subscription.id.toString(), params: ctx.params },
         });
 
         data.status = ['pending', 'processing', 'cancelled'].includes(data.status)

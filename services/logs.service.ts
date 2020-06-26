@@ -23,22 +23,24 @@ const TheService: ServiceSchema = {
       auth: 'Basic',
       handler(ctx: Context) {
         const date = new Date();
+        const { topic, topicId, logLevel, storeId, message, payload, code } = ctx.params;
+        if (payload && (payload.errors || payload.error)) {
+          let error = payload.error || payload.errors;
+          try {
+            error = JSON.stringify(error);
+          } catch (e) {
+            error = error.toString();
+          }
+          delete payload.errors;
+          payload.error = error;
+        }
         return ctx
           .call('logs.create', {
             index: `logsmp-${date.getFullYear()}-${date.getMonth() < 9 ? 0 : ''}${date.getMonth() +
               1}`,
             type: '_doc',
             id: uuidv1(),
-            body: {
-              topic: ctx.params.topic,
-              topicId: ctx.params.topicId,
-              '@timestamp': date,
-              logLevel: ctx.params.logLevel,
-              storeId: ctx.params.storeId,
-              message: ctx.params.message,
-              payload: ctx.params.payload,
-              code: ctx.params.code,
-            },
+            body: { topic, topicId, '@timestamp': date, logLevel, storeId, message, payload, code },
           })
           .then(res => {
             if (res.result === 'created'){
