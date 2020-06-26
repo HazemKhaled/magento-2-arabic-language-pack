@@ -228,7 +228,7 @@ const TheService: ServiceSchema = {
       },
     },
     updateQuantityAttributes: {
-      handler(ctx) {
+      async handler(ctx) {
         const bulk = ctx.params.products.map((product: { id: string; qty: number; attribute: string; imported: string[]; }) => {
           const body: {
             id: string;
@@ -240,6 +240,15 @@ const TheService: ServiceSchema = {
           };
           if (product.imported) body.imported = product.imported;
           return body;
+        });
+        await ctx.call('products.bulk', {
+          index: 'products',
+          type: '_doc',
+          body: ctx.params.products.reduce((a: any[], product: { id: string; attribute: string; qty: number }) => {
+            a.push({ update : { _id : product.id, _index : 'products' } });
+            a.push({ doc: { [product.attribute]: product.qty } });
+            return a;
+          }, []),
         });
         return this.updateDocuments(bulk);
       },

@@ -237,7 +237,7 @@ const TheService: ServiceSchema = {
         ctx.call('products.updateQuantityAttributes', {
           products: stock.products.map((product: Product) => ({
             id: product.sku,
-            qty: product.sales_qty || 0,
+            qty: product.sales_qty + 1 || 1,
             attribute: 'sales_qty',
           })),
         });
