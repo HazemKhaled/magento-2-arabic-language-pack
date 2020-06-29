@@ -5,6 +5,7 @@
  * @interface Log
  */
 export interface Log {
+  id: string;
   topic: string;
   topicId: string;
   '@timestamp': Date;
