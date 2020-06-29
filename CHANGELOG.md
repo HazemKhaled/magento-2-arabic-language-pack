@@ -5,7 +5,7 @@
 ### 🚀 Features
 
 - Add order shipmentDate field
-- Add coupon camppaignName field
+- Add coupon campaignName field
 - Add payments description field
 - List orders timestamp param
 - Add paymentGateway environnement variables to allow or disallow calling the charge method

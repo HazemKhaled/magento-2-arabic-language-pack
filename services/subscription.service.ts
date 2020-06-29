@@ -223,7 +223,7 @@ const TheService: ServiceSchema = {
         }
 
         if (coupon) {
-          invoiceBody.coupon = coupon.camppaignName || coupon.code;
+          invoiceBody.coupon = coupon.campaignName ? `${coupon.code}-${coupon.campaignName}` : coupon.code;
         }
 
         const invoice = await ctx.call('invoices.create', invoiceBody).then(null, err => err);

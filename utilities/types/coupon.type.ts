@@ -22,7 +22,7 @@ export interface Coupon {
     auto: boolean;
     createdAt: Date;
     updatedAt: Date;
-    camppaignName?: string;
+    campaignName?: string;
     minAppliedAmount: number;
 }
 
