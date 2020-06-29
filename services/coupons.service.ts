@@ -203,8 +203,8 @@ const TheService: ServiceSchema = {
         createdAt: new Date(),  // Add created and updated dates of the coupon
         updatedAt: new Date(),
       };
-      if (params.camppaignName) {
-        coupon.camppaignName = params.camppaignName;
+      if (params.campaignName) {
+        coupon.campaignName = params.campaignName;
       }
       return coupon;
     },
