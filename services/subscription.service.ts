@@ -186,6 +186,7 @@ const TheService: ServiceSchema = {
             await ctx.call('paymentGateway.charge', {
               storeId: instance.url,
               amount: total - instance.credit,
+              description: `${membership.name?.en} subscription ${membership.paymentFrequencyType}ly renewal ${ctx.params.grantTo || ctx.params.storeId}`,
               force: true,
             }).then(null, err => {
               if (err.type === 'SERVICE_NOT_FOUND')
