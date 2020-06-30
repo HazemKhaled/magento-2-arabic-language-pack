@@ -26,7 +26,7 @@ const TheService: ServiceSchema = {
       cache: false,
       async handler(ctx: Context) {
         const subscription = await ctx.call('subscription.getSubscriptionByExpireDate', {
-          afterDays: 7,
+          afterDays: 6 * 30,
           beforeDays: 1,
         }).then(null, err => {
           if(err.code === 422) {
