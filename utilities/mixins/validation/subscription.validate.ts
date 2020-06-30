@@ -171,7 +171,8 @@ export const SubscriptionValidation: ServiceSchema = {
     },
     getSubscriptionByExpireDate: {
       params: {
-        days: 'number',
+        afterDays: { type: 'number', optional: true },
+        beforeDays: { type: 'number', optional: true },
       },
     },
     updateSubscription: {
