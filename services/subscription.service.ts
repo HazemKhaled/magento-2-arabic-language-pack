@@ -318,13 +318,15 @@ const TheService: ServiceSchema = {
       cache: false,
       async handler(ctx: Context) {
         const minDate = new Date();
-        minDate.setDate(minDate.getDate() - ctx.params.days);
+        minDate.setDate(minDate.getDate() - (ctx.params.afterDays || 0));
+        const maxDate = new Date();
+        maxDate.setDate(maxDate.getDate() + (ctx.params.beforeDays || 0));
         const lastRetryDay = new Date();
         lastRetryDay.setUTCHours(0, 0, 0, 0);
         const query = {
           expireDate: {
             $gte: minDate,
-            $lte: new Date(),
+            $lte: maxDate,
           },
           retries: {
             $ne: lastRetryDay,
@@ -353,7 +355,7 @@ const TheService: ServiceSchema = {
             id: expiredSubscription.storeId,
             tag: 'subscription-renew',
           });
-          return ctx.call('subscription.getSubscriptionByExpireDate', { days: ctx.params.days });
+          return ctx.call('subscription.getSubscriptionByExpireDate', { afterDays: ctx.params.afterDays, beforeDays: ctx.params.beforeDays });
         }
         const date = new Date();
         date.setUTCHours(0, 0, 0, 0);
