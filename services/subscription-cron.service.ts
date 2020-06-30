@@ -38,6 +38,12 @@ const TheService: ServiceSchema = {
           return null;
         }
 
+        const store = await ctx.call('stores.findInstance', { id: subscription.storeId });
+
+        if (store.status !== 'confirmed') {
+          return null;
+        }
+
         try {
           const createSubResponse = await ctx.call('subscription.create', {
             storeId: subscription.storeId,
