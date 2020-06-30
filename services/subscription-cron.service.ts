@@ -26,7 +26,8 @@ const TheService: ServiceSchema = {
       cache: false,
       async handler(ctx: Context) {
         const subscription = await ctx.call('subscription.getSubscriptionByExpireDate', {
-          days: 7,
+          afterDays: 6 * 30,
+          beforeDays: 1,
         }).then(null, err => {
           if(err.code === 422) {
             this.logger.info('No Store To Renew It\'s Subscription');
@@ -35,6 +36,12 @@ const TheService: ServiceSchema = {
           throw err;
         });
         if (!subscription) {
+          return null;
+        }
+
+        const store = await ctx.call('stores.findInstance', { id: subscription.storeId });
+
+        if (store?.status !== 'confirmed') {
           return null;
         }
 
