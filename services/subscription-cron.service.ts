@@ -40,7 +40,7 @@ const TheService: ServiceSchema = {
 
         const store = await ctx.call('stores.findInstance', { id: subscription.storeId });
 
-        if (store.status !== 'confirmed') {
+        if (store?.status !== 'confirmed') {
           return null;
         }
 
