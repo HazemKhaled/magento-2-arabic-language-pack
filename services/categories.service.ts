@@ -1,20 +1,15 @@
 import { Errors, ServiceSchema } from 'moleculer';
-import ESService, { SearchResponse } from 'moleculer-elasticsearch';
+import ESService from 'moleculer-elasticsearch';
 
-import { I18nService } from '../utilities/mixins/i18n.mixin';
-import { CategoriesOpenapi } from '../utilities/mixins/openapi';
+import { MpError } from '../utilities/adapters';
+import { I18nService, CategoriesOpenapi, CategoriesValidation } from '../utilities/mixins';
 import { Category } from '../utilities/types';
-import { CategoriesValidation } from '../utilities/mixins/validation';
 
 const { MoleculerClientError } = Errors;
 
 const TheService: ServiceSchema = {
   name: 'categories',
 
-  /**
-   * Service metadata
-   */
-  metadata: {},
   mixins: [ESService, I18nService, CategoriesValidation, CategoriesOpenapi],
 
   /**
@@ -46,8 +41,7 @@ const TheService: ServiceSchema = {
       async handler(ctx): Promise<Category[]> {
         const categories = await this.fetchCategories(ctx.params);
         if (categories.status === 'failed') {
-          ctx.meta.$statusCode = 404;
-          ctx.meta.$statusMessage = 'Not Found';
+          throw new MpError('Categories Service', 'Not Found', 404);
         }
         return categories;
       },

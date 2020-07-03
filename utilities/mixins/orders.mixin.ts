@@ -63,6 +63,7 @@ export const OrdersOperations: ServiceSchema = {
               image: product.images[0],
               weight: item.weight,
               archive: product.archive || item.archive,
+              sales_qty: product.sales_qty,
               barcode: String(product.barcode),
               taxClass: product.tax_class,
               description: `${item.attributes.reduce(
@@ -242,7 +243,7 @@ export const OrdersOperations: ServiceSchema = {
           }
           return totalDis;
         }, 0);
-        return {discount, coupon: coupon.camppaignName || coupon.code};
+        return {discount, coupon: coupon.campaignName ? `${coupon.code}-${coupon.campaignName}` : coupon.code};
       }
     },
   },

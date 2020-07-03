@@ -40,7 +40,7 @@ const CreateCoupon = {
     minAppliedAmount: { type: 'number' },
     appliedMemberships: { type: 'array', items: { type: 'string' } },
     auto: { type: 'boolean' },
-    camppaignName: { type: 'string' },
+    campaignName: { type: 'string' },
   },
 };
 

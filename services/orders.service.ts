@@ -165,7 +165,7 @@ const TheService: ServiceSchema = {
           storeId: instance.url,
           logLevel: 'info',
           code: 2103,
-          payload: { subscription, params: ctx.params },
+          payload: { subscriptionId: subscription.id.toString(), params: ctx.params },
         });
 
         data.status = ['pending', 'processing', 'cancelled'].includes(data.status)
@@ -237,7 +237,7 @@ const TheService: ServiceSchema = {
         ctx.call('products.updateQuantityAttributes', {
           products: stock.products.map((product: Product) => ({
             id: product.sku,
-            qty: product.sales_qty || 0,
+            qty: product.sales_qty + 1 || 1,
             attribute: 'sales_qty',
           })),
         });

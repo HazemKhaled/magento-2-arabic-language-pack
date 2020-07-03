@@ -23,7 +23,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
 
 
       if (!hasProductInstance) {
-        throw new MpError('Products Instance Service', 'Product not found!', 404);
+        throw new MpError('Products Instance Service', `Product not found ${sku} (fetchBySku)!`, 404);
       }
 
       const product = await this.broker.call('products.getBySku', { sku });
@@ -300,11 +300,11 @@ export const ProductsInstancesMixin: ServiceSchema = {
           endTrace = page * size;
         }
 
-        search = await this.broker.call('products.search', searchQuery);
+        search = await this.broker.call('products-instances.search', searchQuery);
 
         maxScroll = search.hits.total.value;
       } else {
-        search = await this.broker.call('products.call', {
+        search = await this.broker.call('products-instances.call', {
           api: 'scroll',
           params: {
             scroll: '30s',
@@ -367,7 +367,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
               message: 'Product has been deleted.',
               sku: sku,
             };
-          throw new MpError('Products Instance', 'Product not found!', 404);
+          throw new MpError('Products Instance', `Product not found ${sku} store ${id} (Delete Product)!`, 404);
         })
         .catch((err: unknown) => {
           throw new MpError('Products Instance', err.toString(), 500);

@@ -1,11 +1,29 @@
 # Changelog
 
+## 1.7.4
+
+### 🚀 Features
+
+- Update both AppSearch and ES with sales & import qty
+- CampaignName along with the coupon code to OMS
+
+### 🐛 Fixes
+
+- AppSearch with imported
+- CRM empty text response
+- CampaignName typo
+
+### ✨ Enhancements
+
+- Logs errors transformation
+- Errors handling
+
 ## 1.7.3
 
 ### 🚀 Features
 
 - Add order shipmentDate field
-- Add coupon camppaignName field
+- Add coupon campaignName field
 - Add payments description field
 - List orders timestamp param
 - Add paymentGateway environnement variables to allow or disallow calling the charge method

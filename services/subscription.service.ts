@@ -224,7 +224,7 @@ const TheService: ServiceSchema = {
         }
 
         if (coupon) {
-          invoiceBody.coupon = coupon.camppaignName || coupon.code;
+          invoiceBody.coupon = coupon.campaignName ? `${coupon.code}-${coupon.campaignName}` : coupon.code;
         }
 
         const invoice = await ctx.call('invoices.create', invoiceBody).then(null, err => err);
@@ -324,7 +324,7 @@ const TheService: ServiceSchema = {
         maxDate.setDate(maxDate.getDate() + (ctx.params.beforeDays || 0));
         const lastRetryDay = new Date();
         lastRetryDay.setUTCHours(0, 0, 0, 0);
-        const query = {
+        const query: any = {
           expireDate: {
             $gte: minDate,
             $lte: maxDate,
@@ -339,10 +339,12 @@ const TheService: ServiceSchema = {
             $ne: false,
           },
         };
-        const expiredSubscription = await this.adapter.findOne(query).catch();
+        let expiredSubscription = await this.adapter.findOne(query).catch();
         if (!expiredSubscription) {
           return null;
         }
+        query.storeId = expiredSubscription.storeId;
+        [expiredSubscription] = await this.adapter.find({query, sort: { expireDate: -1 }});
         expiredSubscription._id = expiredSubscription._id.toString();
         const currentSubscription = await ctx.call('subscription.sGet', {
           id: expiredSubscription.storeId,
