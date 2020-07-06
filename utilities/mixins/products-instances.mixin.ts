@@ -23,7 +23,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
 
 
       if (!hasProductInstance) {
-        throw new MpError('Products Instance Service', `Product not found ${sku} (fetchBySku)!`, 404);
+        throw new MpError('Products Instance Service', `Product not found ${sku}, "store: ${instance.url}" (fetchBySku)!`, 404);
       }
 
       const product = await this.broker.call('products.getBySku', { sku });
