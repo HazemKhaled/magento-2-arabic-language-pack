@@ -1107,7 +1107,7 @@ const TheService: ServiceSchema = {
     },
     async cacheUpdate(order, instance) {
       this.broker.cacher.set(`orders.getOrder:${order.id}`, this.sanitizeResponseOne(order));
-      this.broker.cacher.set(`orders.list:${order.externalId}|${instance.consumer_key}|undefined|undefined|undefined|undefined|undefined`, this.sanitizeResponseList([order]));
+      this.broker.cacher.set(`orders.list:${order.externalId}|${instance.consumer_key}|undefined|undefined|undefined|undefined|undefined|undefined`, this.sanitizeResponseList([order]));
     },
   },
 };
