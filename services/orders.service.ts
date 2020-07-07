@@ -53,7 +53,7 @@ const TheService: ServiceSchema = {
               data: orders?.[0],
             };
           }
-          this.broker.cacher.set(`createOrder_${instance.consumer_key}|${ctx.params.id}`, 1);
+          this.broker.cacher.set(`createOrder_${instance.consumer_key}|${ctx.params.id}`, 1, 60 * 60 * 24);
         }
 
         const data = this.orderData(ctx.params, instance, true);
