@@ -32,7 +32,6 @@ const TheService: ServiceSchema = {
 
         if (ctx.params.id) {
           const isCreated = await this.broker.cacher.get(`createOrder:${ctx.params.id}|${instance.url}`);
-          console.log(isCreated);
           if (isCreated) {
             this.sendLogs({
               topic: 'order',
