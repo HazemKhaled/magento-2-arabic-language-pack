@@ -30,6 +30,26 @@ const TheService: ServiceSchema = {
           await this.setOmsId(instance);
         }
 
+        if (ctx.params.id) {
+          const isCreated = await this.broker.cacher.get(`createOrder:${ctx.params.id}|${instance.url}`);
+          console.log(isCreated);
+          if (isCreated) {
+            this.sendLogs({
+              topic: 'order',
+              topicId: ctx.params.id,
+              message: 'We already received this order before!',
+              storeId: instance.url,
+              logLevel: 'warn',
+              code: 409,
+              payload: {
+                params: ctx.params,
+              },
+            });
+            throw new MpError('Orders Service', `We already received this order before ID(${ctx.params.id}) "Store: ${instance.url}"!`, 409);
+          }
+          this.broker.cacher.set(`createOrder:${ctx.params.id}|${instance.url}`, 1, { ttl: 60 * 60 * 24 });
+        }
+
         const data = this.orderData(ctx.params, instance, true);
 
         this.sendLogs({
