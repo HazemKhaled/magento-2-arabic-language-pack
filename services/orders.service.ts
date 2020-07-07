@@ -30,6 +30,32 @@ const TheService: ServiceSchema = {
           await this.setOmsId(instance);
         }
 
+        if (ctx.params.id) {
+          const isCreated = await this.broker.cacher.get(`createOrder:${instance.url}|${ctx.params.id}`);
+          if (isCreated) {
+            this.sendLogs({
+              topic: 'order',
+              topicId: ctx.params.id,
+              message: 'We already received this order before!',
+              storeId: instance.url,
+              logLevel: 'warn',
+              code: 409,
+              payload: {
+                params: ctx.params,
+              },
+            });
+            const orders = await ctx.call('orders.list', {
+              externalId: ctx.params.id,
+            });
+            return {
+              status: 'success',
+              message: 'We already received this order before!',
+              data: orders?.[0],
+            };
+          }
+          this.broker.cacher.set(`createOrder:${instance.url}|${ctx.params.id}`, 1, { ttl: 60 * 60 * 24 });
+        }
+
         const data = this.orderData(ctx.params, instance, true);
 
         this.sendLogs({
@@ -1081,7 +1107,7 @@ const TheService: ServiceSchema = {
     },
     async cacheUpdate(order, instance) {
       this.broker.cacher.set(`orders.getOrder:${order.id}`, this.sanitizeResponseOne(order));
-      this.broker.cacher.set(`orders.list:${order.externalId}|${instance.consumer_key}|undefined|undefined|undefined|undefined|undefined`, this.sanitizeResponseList([order]));
+      this.broker.cacher.set(`orders.list:${order.externalId}|${instance.consumer_key}|undefined|undefined|undefined|undefined|undefined|undefined`, this.sanitizeResponseList([order]));
     },
   },
 };
