@@ -31,7 +31,7 @@ const TheService: ServiceSchema = {
         }
 
         if (ctx.params.id) {
-          const isCreated = await this.broker.cacher.get(`createOrder:${ctx.params.id}|${instance.url}`);
+          const isCreated = await this.broker.cacher.get(`createOrder:${instance.url}|${ctx.params.id}`);
           if (isCreated) {
             this.sendLogs({
               topic: 'order',
@@ -44,9 +44,16 @@ const TheService: ServiceSchema = {
                 params: ctx.params,
               },
             });
-            throw new MpError('Orders Service', `We already received this order before ID(${ctx.params.id}) "Store: ${instance.url}"!`, 409);
+            const orders = await ctx.call('orders.list', {
+              externalId: ctx.params.id,
+            });
+            return {
+              status: 'success',
+              message: 'We already received this order before!',
+              data: orders?.[0],
+            };
           }
-          this.broker.cacher.set(`createOrder:${ctx.params.id}|${instance.url}`, 1, { ttl: 60 * 60 * 24 });
+          this.broker.cacher.set(`createOrder:${instance.url}|${ctx.params.id}`, 1, { ttl: 60 * 60 * 24 });
         }
 
         const data = this.orderData(ctx.params, instance, true);
