@@ -31,7 +31,7 @@ const TheService: ServiceSchema = {
         }
 
         if (ctx.params.id) {
-          const isCreated = await this.broker.cacher.get(`createOrder:${instance.consumer_key}|${ctx.params.id}`);
+          const isCreated = await this.broker.cacher.get(`createOrder_${instance.consumer_key}|${ctx.params.id}`);
           if (isCreated) {
             this.sendLogs({
               topic: 'order',
@@ -53,7 +53,7 @@ const TheService: ServiceSchema = {
               data: orders?.[0],
             };
           }
-          this.broker.cacher.set(`createOrder:${instance.consumer_key}|${ctx.params.id}`, 1, { ttl: 60 * 60 * 24 });
+          this.broker.cacher.set(`createOrder_${instance.consumer_key}|${ctx.params.id}`, 1);
         }
 
         const data = this.orderData(ctx.params, instance, true);
