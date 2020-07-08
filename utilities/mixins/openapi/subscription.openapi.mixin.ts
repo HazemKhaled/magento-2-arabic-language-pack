@@ -219,6 +219,7 @@ const SubscriptionCreateOpenapi = {
           properties: {
             storeId: { type: 'string', format: 'url', required: true },
             membership: { type: 'string', required: true },
+            reference: { type: 'string', description: 'External reference ID could be used for payments integration' },
             coupon: { type: 'string' },
             grantTo: { type: 'string', format: 'url', description: 'This field is used to donor the subscription to another store' },
             autoRenew: { type: 'boolean' },

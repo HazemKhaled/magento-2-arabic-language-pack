@@ -12,6 +12,7 @@ export interface Subscription {
     invoiceId: string;
     startDate: Date;
     expireDate: Date;
+    reference?: string;
     donor?: string;
     renewed?: string;
     autoRenew?: string;

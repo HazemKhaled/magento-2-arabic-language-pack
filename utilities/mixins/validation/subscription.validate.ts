@@ -154,6 +154,10 @@ export const SubscriptionValidation: ServiceSchema = {
         membership: {
           type: 'string',
         },
+        reference: {
+          type: 'string',
+          optional: true,
+        },
         coupon: {
           type: 'string',
           optional: true,

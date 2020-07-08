@@ -293,6 +293,10 @@ const TheService: ServiceSchema = {
           subscriptionBody.autoRenew = ctx.params.autoRenew;
         }
 
+        if (ctx.params.reference) {
+          subscriptionBody.reference = ctx.params.reference;
+        }
+
         return this.adapter
           .insert(subscriptionBody)
           .then(
