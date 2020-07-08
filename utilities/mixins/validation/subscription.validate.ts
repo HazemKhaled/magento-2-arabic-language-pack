@@ -115,6 +115,11 @@ export const SubscriptionValidation: ServiceSchema = {
           },
         },
         ],
+        status: {
+          type: 'enum',
+          values: ['active', 'confirmed', 'pending', 'cancelled'],
+          optional: true,
+        },
         page: {
           type: 'number',
           positive: true,

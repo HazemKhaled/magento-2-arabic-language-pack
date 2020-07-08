@@ -28,6 +28,7 @@ const TheService: ServiceSchema = {
         const subscription =
           (await this.adapter.findOne({
             storeId: ctx.params.id,
+            status: { $ne: 'cancelled' },
             expireDate: { $gte: new Date() },
             startDate: { $lte: new Date() },
           })) || {};
@@ -54,7 +55,7 @@ const TheService: ServiceSchema = {
     sList: {
       auth: 'Basic',
       cache: {
-        keys: ['storeId', 'membershipId', 'expireDate', 'startDate', 'page', 'perPage', 'sort'],
+        keys: ['storeId', 'membershipId', 'expireDate', 'startDate', 'status', 'page', 'perPage', 'sort'],
         ttl: 60 * 60 * 24, // 1 day
       },
       async handler(ctx: Context): Promise<Subscription | false> {
@@ -64,6 +65,9 @@ const TheService: ServiceSchema = {
         }
         if (ctx.params.membershipId) {
           query.membershipId = ctx.params.membershipId;
+        }
+        if (ctx.params.status) {
+          query.status = ctx.params.status === 'active' ? { $ne: 'cancelled' } : ctx.params.status;
         }
         if (ctx.params.expireDate) {
           const expireDate = Array.isArray(ctx.params.expireDate)
@@ -255,6 +259,7 @@ const TheService: ServiceSchema = {
           const storeOldSubscription = await ctx.call('subscription.sList', {
             storeId: ctx.params.grantTo || ctx.params.storeId,
             expireDate: { operation: 'gte' },
+            status: 'active',
           });
           startDate.setUTCHours(0, 0, 0, 0);
           if (storeOldSubscription.length > 0) {
@@ -428,6 +433,7 @@ const TheService: ServiceSchema = {
         const allSubBefore = await ctx.call('subscription.sList', {
           storeId: ctx.params.id,
           expireDate: { operation: 'gte', date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7) },
+          status: 'active',
           sort: { field: 'expireDate', order: -1 },
           perPage: 2,
         });

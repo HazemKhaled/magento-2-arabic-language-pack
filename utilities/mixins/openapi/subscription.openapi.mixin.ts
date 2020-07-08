@@ -89,6 +89,16 @@ const SubscriptionListOpenapi = {
       },
     },
     {
+      name: 'status',
+      in: 'query',
+      required: false,
+      schema: {
+        type: 'string',
+        enum: ['active', 'confirmed', 'pending', 'cancelled'],
+        description: 'Filter by subscription statuses',
+      },
+    },
+    {
       name: 'page',
       in: 'query',
       required: false,
