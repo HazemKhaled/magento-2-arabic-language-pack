@@ -12,6 +12,7 @@ export interface Subscription {
     invoiceId: string;
     startDate: Date;
     expireDate: Date;
+    status: 'confirmed' | 'pending' | 'cancelled';
     reference?: string;
     donor?: string;
     renewed?: string;

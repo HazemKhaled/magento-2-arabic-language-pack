@@ -158,6 +158,11 @@ export const SubscriptionValidation: ServiceSchema = {
           type: 'string',
           optional: true,
         },
+        postpaid: {
+          type: 'enum',
+          values: [1],
+          optional: true,
+        },
         coupon: {
           type: 'string',
           optional: true,

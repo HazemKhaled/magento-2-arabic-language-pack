@@ -181,7 +181,7 @@ const TheService: ServiceSchema = {
           total = +(total + (total * taxData.percentage / 100)).toFixed(2);
         }
 
-        if (instance.credit < total) {
+        if (instance.credit < total && !ctx.params.postpaid) {
           if (process.env.PAYMENT_AUTO_CHARGE_CC_SUBSCRIPTION) {
             await ctx.call('paymentGateway.charge', {
               storeId: instance.url,
@@ -234,7 +234,7 @@ const TheService: ServiceSchema = {
         ctx.meta.user = instance.consumer_key;
 
         // Apply credits to invoice if the total not equal to 0
-        if (total !== 0) {
+        if (total !== 0 && !ctx.params.postpaid) {
           const applyCreditsResponse = await ctx
             .call('invoices.applyCredits', {
               id: invoice.invoice.invoiceId,
@@ -278,6 +278,7 @@ const TheService: ServiceSchema = {
           membershipId: membership.id,
           storeId: ctx.params.storeId,
           invoiceId: invoice.invoice.invoiceId,
+          status: 'confirmed',
           startDate,
           expireDate,
           createdAt: new Date(),
@@ -295,6 +296,10 @@ const TheService: ServiceSchema = {
 
         if (ctx.params.reference) {
           subscriptionBody.reference = ctx.params.reference;
+        }
+
+        if (ctx.params.postpaid) {
+          subscriptionBody.status = 'pending';
         }
 
         return this.adapter
