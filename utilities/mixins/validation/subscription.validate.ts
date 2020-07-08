@@ -120,6 +120,10 @@ export const SubscriptionValidation: ServiceSchema = {
           values: ['active', 'confirmed', 'pending', 'cancelled'],
           optional: true,
         },
+        reference: {
+          type: 'string',
+          optional: true,
+        },
         page: {
           type: 'number',
           positive: true,

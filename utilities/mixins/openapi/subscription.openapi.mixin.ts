@@ -99,6 +99,15 @@ const SubscriptionListOpenapi = {
       },
     },
     {
+      name: 'reference',
+      in: 'query',
+      required: false,
+      schema: {
+        type: 'string',
+        description: 'Filter by external reference ID',
+      },
+    },
+    {
       name: 'page',
       in: 'query',
       required: false,
