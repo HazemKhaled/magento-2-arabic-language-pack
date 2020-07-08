@@ -360,6 +360,7 @@ const TheService: ServiceSchema = {
           autoRenew: {
             $ne: false,
           },
+          status: { $ne: 'cancelled' },
         };
         let expiredSubscription = await this.adapter.findOne(query).catch();
         if (!expiredSubscription) {
