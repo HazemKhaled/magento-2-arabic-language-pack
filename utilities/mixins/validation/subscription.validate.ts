@@ -255,5 +255,10 @@ export const SubscriptionValidation: ServiceSchema = {
         },
       },
     },
+    cancel: {
+      params: {
+        id: 'string',
+      },
+    },
   },
 };

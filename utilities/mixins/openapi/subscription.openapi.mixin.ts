@@ -183,6 +183,66 @@ const SubscriptionListOpenapi = {
   ],
 };
 
+const SubscriptionCancelOpenapi = {
+  $path: 'delete /subscription/{id}',
+  summary: 'Cancel subscription',
+  tags: ['Subscription'],
+  parameters: [
+    {
+      name: 'id',
+      in: 'path',
+      required: false,
+      schema: {
+        type: 'string',
+        description: 'Subscription ID',
+      },
+    },
+  ],
+  responses: {
+    200: {
+      description: 'Status 200',
+      content: {
+        'application/json': {
+          schema: {
+            $ref: '#/components/schemas/Subscription',
+          },
+        },
+      },
+    },
+    401: {
+      $ref: '#/components/responses/UnauthorizedErrorBasic',
+    },
+    404: {
+      description: 'Status 404',
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: {
+              errors: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    message: {
+                      type: 'string',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+  security: [
+    {
+      basicAuth: [] as [],
+    },
+  ],
+};
+
 const SubscriptionCreateOpenapi = {
   $path: 'post /subscription',
   summary: 'Create new Subscription',
@@ -344,6 +404,9 @@ export const SubscriptionOpenapi: ServiceSchema = {
     },
     updateSubscription: {
       openapi: SubscriptionUpdateOpenapi,
+    },
+    cancel: {
+      openapi: SubscriptionCancelOpenapi,
     },
   },
 };

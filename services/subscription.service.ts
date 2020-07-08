@@ -465,6 +465,26 @@ const TheService: ServiceSchema = {
         }
       },
     },
+    cancel: {
+      auth: 'Basic',
+      handler(ctx) {
+        return this.adapter.updateById(ctx.params.id, { $set: { status: 'cancelled' } }).then(async (res: any) => {
+          if (!res) {
+            throw new MpError('Subscription Service', 'Subscription not found!', 404);
+          }
+          ctx.call('crm.addTagsByUrl', {
+            id: res.storeId,
+            tag: 'subscription-cancel',
+          });
+          const instance = await ctx.call('stores.findInstance', { id: res.storeId });
+          this.broker.cacher.clean(`subscription.sGet:${res.storeId}*`);
+          this.broker.cacher.clean(`subscription.sList:${res.storeId}*`);
+          this.broker.cacher.clean(`stores.sGet:${res.storeId}*`);
+          this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
+          return { ...res, id: res._id, _id: undefined };
+        });
+      },
+    },
   },
 };
 
