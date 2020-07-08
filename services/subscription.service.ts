@@ -245,22 +245,30 @@ const TheService: ServiceSchema = {
           }
         }
 
-        const storeOldSubscription = await ctx.call('subscription.sList', {
-          storeId: ctx.params.grantTo || ctx.params.storeId,
-          expireDate: { operation: 'gte' },
-        });
         let startDate = new Date();
-        startDate.setUTCHours(0, 0, 0, 0);
-        if (storeOldSubscription.length > 0) {
-          storeOldSubscription.forEach((subscription: Subscription) => {
-            startDate =
-              new Date(subscription.expireDate) > startDate
-                ? new Date(new Date(subscription.expireDate).setMilliseconds(1000))
-                : startDate;
+        let expireDate = new Date();
+
+        if (ctx.params.date) {
+          startDate = new Date(ctx.params.date.start);
+          expireDate = new Date(ctx.params.date.expire);
+        } else {
+          const storeOldSubscription = await ctx.call('subscription.sList', {
+            storeId: ctx.params.grantTo || ctx.params.storeId,
+            expireDate: { operation: 'gte' },
           });
+          startDate.setUTCHours(0, 0, 0, 0);
+          if (storeOldSubscription.length > 0) {
+            storeOldSubscription.forEach((subscription: Subscription) => {
+              startDate =
+                new Date(subscription.expireDate) > startDate
+                  ? new Date(new Date(subscription.expireDate).setMilliseconds(1000))
+                  : startDate;
+            });
+          }
+          expireDate = new Date(startDate);
+          expireDate.setMilliseconds(-1);
         }
-        const expireDate = new Date(startDate);
-        expireDate.setMilliseconds(-1);
+
         switch (membership.paymentFrequencyType) {
         case 'month':
           expireDate.setMonth(expireDate.getMonth() + membership.paymentFrequency);

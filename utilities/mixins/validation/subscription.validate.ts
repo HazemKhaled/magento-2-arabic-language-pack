@@ -163,6 +163,15 @@ export const SubscriptionValidation: ServiceSchema = {
           values: [1],
           optional: true,
         },
+        date: {
+          type: 'object',
+          props: {
+            start: { type: 'string' },
+            expire: { type: 'string' },
+            $$strict: true,
+          },
+          optional: true,
+        },
         coupon: {
           type: 'string',
           optional: true,
