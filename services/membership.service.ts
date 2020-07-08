@@ -110,15 +110,15 @@ const TheService: ServiceSchema = {
         const { params } = ctx;
         const id = params.id;
         delete params.id;
-        return this.adapter
-          .updateById(id, { $set: { ...params, updatedAt: new Date() } })
+        return this.adapter.collection
+          .updateOne({_id: id}, { $set: { ...params, updatedAt: new Date() } })
           .then((res: Membership) => {
             this.broker.cacher.clean('membership.list:**');
             this.broker.cacher.clean(`membership.mGet:${id}**`);
             if (!res) {
               throw new MoleculerError('Membership not found', 404);
             }
-            return this.normalize(res);
+            return ctx.call('membership.mGet', { id });
           })
           .catch((err: any) => {
             if (err.name === 'MoleculerError') {
