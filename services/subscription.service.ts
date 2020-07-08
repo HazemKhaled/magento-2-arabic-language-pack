@@ -272,16 +272,16 @@ const TheService: ServiceSchema = {
           }
           expireDate = new Date(startDate);
           expireDate.setMilliseconds(-1);
+          switch (membership.paymentFrequencyType) {
+          case 'month':
+            expireDate.setMonth(expireDate.getMonth() + membership.paymentFrequency);
+            break;
+          case 'year':
+            expireDate.setFullYear(expireDate.getFullYear() + membership.paymentFrequency);
+            break;
+          }
         }
 
-        switch (membership.paymentFrequencyType) {
-        case 'month':
-          expireDate.setMonth(expireDate.getMonth() + membership.paymentFrequency);
-          break;
-        case 'year':
-          expireDate.setFullYear(expireDate.getFullYear() + membership.paymentFrequency);
-          break;
-        }
         if (ctx.params.coupon) {
           ctx.call('coupons.updateCount', {
             id: ctx.params.coupon,

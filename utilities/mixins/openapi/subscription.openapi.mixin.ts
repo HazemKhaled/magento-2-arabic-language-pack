@@ -234,8 +234,8 @@ const SubscriptionCreateOpenapi = {
             date: {
               type: 'object',
               properties: {
-                start: { type: 'string', format: 'date' },
-                expire: { type: 'string', format: 'date' },
+                start: { type: 'string', format: 'date', description: 'Pattern yyyy-mm-dd' },
+                expire: { type: 'string', format: 'date', description: 'Pattern yyyy-mm-dd' },
               },
               description: 'Subscription Start and Expire date',
             },
