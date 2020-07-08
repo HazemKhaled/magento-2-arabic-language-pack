@@ -55,7 +55,7 @@ const TheService: ServiceSchema = {
     sList: {
       auth: 'Basic',
       cache: {
-        keys: ['storeId', 'membershipId', 'expireDate', 'startDate', 'status', 'page', 'perPage', 'sort'],
+        keys: ['storeId', 'membershipId', 'reference', 'expireDate', 'startDate', 'status', 'page', 'perPage', 'sort'],
         ttl: 60 * 60 * 24, // 1 day
       },
       async handler(ctx: Context): Promise<Subscription | false> {
@@ -68,6 +68,9 @@ const TheService: ServiceSchema = {
         }
         if (ctx.params.status) {
           query.status = ctx.params.status === 'active' ? { $ne: 'cancelled' } : ctx.params.status;
+        }
+        if (ctx.params.reference) {
+          query.reference = ctx.params.reference;
         }
         if (ctx.params.expireDate) {
           const expireDate = Array.isArray(ctx.params.expireDate)
