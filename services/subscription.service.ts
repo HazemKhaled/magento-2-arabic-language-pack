@@ -139,8 +139,13 @@ const TheService: ServiceSchema = {
             throw new MoleculerError(coupon.message, Number(coupon.code));
           }
         }
+
+        const membershipRequestBody: { id: string, active: true, coupon?: string } = { id: ctx.params.membership, active: true };
+        if (ctx.params.coupon) {
+          membershipRequestBody.coupon = ctx.params.coupon;
+        }
         const membership = await ctx
-          .call('membership.mGet', { id: ctx.params.membership, active: true })
+          .call('membership.mGet', membershipRequestBody)
           .then(null, err => err);
         if (isError(membership as { message: string; code: number })) {
           throw new MoleculerError(membership.message, membership.code || 500);
@@ -155,18 +160,7 @@ const TheService: ServiceSchema = {
         // Membership cost before tax or discount
         const cost = membership.cost;
 
-        let discount = 0;
-        if (coupon) {
-          switch (coupon.discount.total.type) {
-          case '$':
-            discount = Math.min(coupon.discount.total.value, cost);
-            break;
-          case '%':
-            discount = +((cost / 100) * coupon.discount.total.value).toFixed(2);
-            break;
-          }
-        }
-        discount = Math.max(discount, membership.discount);
+        const discount = membership.discount;
 
         // Get the Store instance
         const instance = await ctx
