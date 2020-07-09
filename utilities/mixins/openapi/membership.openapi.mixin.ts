@@ -254,6 +254,15 @@ const MembershipGetOpenapi = {
         type: 'string',
       },
     },
+    {
+      name: 'coupon',
+      in: 'query',
+      required: false,
+      schema: {
+        type: 'string',
+        description: 'Coupon code to be applied to the membership discount',
+      },
+    },
   ],
   responses: {
     200: {

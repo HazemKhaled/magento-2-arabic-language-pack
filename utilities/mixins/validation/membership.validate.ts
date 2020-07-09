@@ -224,6 +224,10 @@ export const MembershipValidation: ServiceSchema = {
           pattern: '^[A-Z]{2}$',
           optional: true,
         },
+        coupon: {
+          type: 'string',
+          optional: true,
+        },
         active: {
           type: 'boolean',
           optional: true,

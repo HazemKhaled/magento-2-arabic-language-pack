@@ -1,7 +1,7 @@
 import { Context, Errors, ServiceSchema, GenericObject } from 'moleculer';
 import DbService from '../utilities/mixins/mongo.mixin';
 import { MembershipOpenapi } from '../utilities/mixins/openapi';
-import { Membership } from '../utilities/types';
+import { Membership, Coupon } from '../utilities/types';
 import { MembershipValidation } from '../utilities/mixins/validation';
 import TaxCheck from '../utilities/mixins/tax.mixin';
 const MoleculerError = Errors.MoleculerError;
@@ -44,7 +44,7 @@ const TheService: ServiceSchema = {
     mGet: {
       auth: 'Basic',
       cache: {
-        keys: ['id', 'country', 'active'],
+        keys: ['id', 'country', 'coupon', 'active'],
         ttl: 60 * 60 * 24, // 1 day
       },
       handler(ctx: Context): Promise<Membership> {
@@ -56,12 +56,17 @@ const TheService: ServiceSchema = {
 
         return this.adapter
           .findOne(query)
-          .then((res: Membership) => {
+          .then(async (res: Membership) => {
             if (!res) {
               return this.adapter
                 .findOne({ isDefault: true })
                 .then((def: Membership) => this.normalize(def));
             }
+
+            if (ctx.params.coupon) {
+              await this.applyCouponDiscount(ctx.params.coupon, res);
+            }
+
             return this.normalize(res, country);
           })
           .catch((err: any) => {
@@ -173,6 +178,30 @@ const TheService: ServiceSchema = {
         delete newObj._id;
         return newObj;
       });
+    },
+    async applyCouponDiscount(couponCode, membership) {
+      const coupon: Coupon = await this.broker
+        .call('coupons.get', {
+          id: couponCode,
+          membership: membership.id,
+          type: 'subscription',
+        })
+        .then(null, (err: any) => err);
+      if (coupon instanceof Error) {
+        throw new MoleculerError(coupon.message, Number(coupon.code));
+      }
+      let discount = 0;
+      if (coupon) {
+        switch (coupon.discount.total.type) {
+        case '$':
+          discount = Math.min(coupon.discount.total.value, membership.cost);
+          break;
+        case '%':
+          discount = +((membership.cost / 100) * coupon.discount.total.value).toFixed(2);
+          break;
+        }
+      }
+      membership.discount = Math.max(discount, membership.discount);
     },
   },
 };
