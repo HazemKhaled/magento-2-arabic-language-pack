@@ -466,10 +466,6 @@ const TheService: ServiceSchema = {
           if (!res) {
             throw new MpError('Subscription Service', 'Subscription not found!', 404);
           }
-          ctx.call('crm.addTagsByUrl', {
-            id: res.storeId,
-            tag: 'subscription-cancel',
-          });
           const instance = await ctx.call('stores.findInstance', { id: res.storeId });
           this.broker.cacher.clean(`subscription.sGet:${res.storeId}*`);
           this.broker.cacher.clean(`subscription.sList:${res.storeId}*`);
