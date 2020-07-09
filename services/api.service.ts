@@ -104,6 +104,7 @@ const TheService: ServiceSchema = {
           'POST subscription': 'subscription.create',
           'GET subscription': 'subscription.sList',
           'PUT subscription/:id': 'subscription.updateSubscription',
+          'DELETE subscription/:id': 'subscription.cancel',
 
           // Taxes
           'POST tax': 'taxes.tCreate',
