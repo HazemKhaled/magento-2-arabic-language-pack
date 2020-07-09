@@ -162,7 +162,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
         });
 
         return {
-          products: products.filter((product: Product) => !!product && product.variations.length !== 0),
+          products: products.filter((product: Product) => product),
           total: instanceProductsFull.totalProducts,
         };
 
