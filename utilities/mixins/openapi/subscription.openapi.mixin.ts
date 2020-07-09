@@ -7,6 +7,8 @@ const SubscriptionSchema = {
     membershipId: { type: 'string' },
     storeId: { type: 'string' },
     invoiceId: { type: 'string' },
+    reference: { type: 'string', description: 'External reference ID for third party applications' },
+    status: { type: 'string', enum: ['confirmed', 'pending', 'cancelled'], description: 'Subscription status' },
     startDate: { type: 'string', format: 'date-time' },
     expireDate: { type: 'string', format: 'date-time' },
     autoRenew: { type: 'boolean' },
@@ -15,7 +17,7 @@ const SubscriptionSchema = {
   },
 };
 
-const SubscriptionResponse = {
+const SubscriptionRequest = {
   content: {
     'application/json': {
       schema: {
@@ -390,7 +392,7 @@ export const SubscriptionOpenapi: ServiceSchema = {
           Subscription: SubscriptionSchema,
         },
         requestBodies: {
-          Subscription: SubscriptionResponse,
+          Subscription: SubscriptionRequest,
         },
       },
     },
