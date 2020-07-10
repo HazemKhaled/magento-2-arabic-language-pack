@@ -201,6 +201,8 @@ const TheService: ServiceSchema = {
           break;
         }
       }
+      membership.coupon = coupon;
+      membership.originalDiscount = membership.discount;
       membership.discount = Math.max(discount, membership.discount);
     },
   },
