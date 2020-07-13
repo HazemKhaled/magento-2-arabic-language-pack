@@ -61,7 +61,7 @@ export const OrdersOperations: ServiceSchema = {
               purchaseRate: item.cost,
               vendorId: product.seller_id,
               image: product.images[0],
-              weight: item.weight,
+              weight: item.weight || 0.5,
               archive: product.archive || item.archive,
               sales_qty: product.sales_qty,
               barcode: String(product.barcode),
