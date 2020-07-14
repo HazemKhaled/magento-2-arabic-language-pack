@@ -175,8 +175,8 @@ export const SubscriptionValidation: ServiceSchema = {
         date: {
           type: 'object',
           props: {
-            start: { type: 'string', pattern: /^(20[2-9][0-9])-(((0|1|2)[0-9])|3(0|1))-((0[0-9])|(1(0|1|2)))$/ },
-            expire: { type: 'string', pattern: /^(20[2-9][0-9])-(((0|1|2)[0-9])|3(0|1))-((0[0-9])|(1(0|1|2)))$/ },
+            start: { type: 'string', pattern: /^(20[1-9][0-9])-((0[1-9])|(1(0|1|2)))-(((0[1-9])|(1|2)[0-9])|3(0|1))$/ },
+            expire: { type: 'string', pattern: /^(20[1-9][0-9])-((0[1-9])|(1(0|1|2)))-(((0[1-9])|(1|2)[0-9])|3(0|1))$/ },
             $$strict: true,
           },
           optional: true,
