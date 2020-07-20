@@ -214,6 +214,7 @@ const TheService: ServiceSchema = {
 
         if (warnings.length) {
           data.warnings = JSON.stringify(warnings);
+          data.warningsSnippet = warnings.reduce((a: string, warn: {message: string}) => `${a}${a && '\n'}${warn.message}`,'');
         }
 
         const result: OrderOMSResponse = await ctx.call('oms.createNewOrder', data);
@@ -1072,6 +1073,7 @@ const TheService: ServiceSchema = {
         taxTotal: order.taxTotal,
         taxes: order.taxes,
         warnings: order.warnings,
+        warningsSnippet: order.warningsSnippet,
       };
       if (order.meta_data && order.meta_data.length > 0) {
         order.meta_data.forEach((meta: any) => {
@@ -1103,6 +1105,7 @@ const TheService: ServiceSchema = {
         knawat_order_status: order.status ? this.normalizeResponseStatus(order.status) : '',
         orderNumber: order.orderNumber,
         invoice_url: order.externalInvoice,
+        warningsSnippet: order.warningsSnippet,
       }));
     },
     async cacheUpdate(order, instance) {
