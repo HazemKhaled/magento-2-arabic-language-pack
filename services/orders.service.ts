@@ -1103,7 +1103,6 @@ const TheService: ServiceSchema = {
         knawat_order_status: order.status ? this.normalizeResponseStatus(order.status) : '',
         orderNumber: order.orderNumber,
         invoice_url: order.externalInvoice,
-        warnings: order.warnings,
       }));
     },
     async cacheUpdate(order, instance) {
