@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.7.5
+
+### 🚀 Features
+
+- Subscription create add reference field
+- Subscription create add postpaid field
+- Subscription create add start & expire date params
+- Subscription cancel end-point
+- Subscription status
+- Get membership coupon calculation
+- Orders warnings & warnings snippet
+
+### ✨ Enhancements
+
+- Add default items weight for orders
+
 ## 1.7.4
 
 ### 🚀 Features
