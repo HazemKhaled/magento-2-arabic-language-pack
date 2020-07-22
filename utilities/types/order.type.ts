@@ -32,6 +32,7 @@ export interface Order {
   storeLogo?: string;
   warnings?: string;
   warningsSnippet?: string;
+  financialStatus?: string,
 }
 
 /**
