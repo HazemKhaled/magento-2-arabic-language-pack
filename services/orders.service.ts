@@ -294,35 +294,6 @@ const TheService: ServiceSchema = {
           });
         }
 
-        if (order.id && order.status === 'open' && !warnings.length) {
-          setTimeout(
-            (instanceCopy, orderCopy) => {
-              ctx
-                .call('invoices.createOrderInvoice', {
-                  storeId: instanceCopy.url,
-                  orderId: orderCopy.id,
-                })
-                .then(res =>
-                  ctx.call('invoices.markInvoiceSent', {
-                    omsId: instanceCopy.internal_data.omsId,
-                    invoiceId: res.invoice.invoiceId,
-                  }),
-                )
-                .then(
-                  () => {
-                    order.status = 'invoiced';
-                    this.cacheUpdate(order, instance);
-                    this.broker.cacher.clean(`invoices.get:${instanceCopy.consumer_key}*`);
-                  },
-                  this.logger.error,
-                );
-            },
-            5000,
-            instance,
-            order,
-          );
-        }
-
         if (warnings.length > 0) message.warnings = warnings;
         this.sendLogs({
           topicId: data.externalId,
@@ -755,6 +726,49 @@ const TheService: ServiceSchema = {
               };
             },
           );
+      },
+    },
+    payOrder: {
+      auth: 'Bearer',
+      async handler(ctx: Context) {
+        const store = await ctx.call('stores.sGet', { id: ctx.meta.store.url });
+
+        const order = await ctx.call('orders.getOrder', { order_id: ctx.params.id });
+
+        if (order.financialStatus === 'paid') {
+          return {
+            message: 'This order is already paid!',
+          };
+        }
+
+        if (order.total > store.credit) {
+          throw new MpError('Orders Service', 'You don\'t have enough balance', 402);
+        }
+
+        if (order?.id && !order?.warnings?.length) {
+          let invoiceId = '';
+          if (order.status === 'invoiced') {
+            ({ invoices: [{invoice_id: invoiceId}] } = await ctx.call('invoices.get', { reference_number: order.orderNumber }));
+          } else {
+            ({invoice: { invoiceId }} = await ctx.call('invoices.createOrderInvoice', { storeId: store.url, orderId: order.id }));
+          }
+
+          await ctx.call('invoices.markInvoiceSent', {
+            omsId: ctx.meta.store.internal_data.omsId,
+            invoiceId: invoiceId,
+          });
+
+          const applyCreditRes = await ctx.call('invoices.applyCredits', {
+            id: invoiceId,
+          });
+
+          await this.broker.cacher.clean(`orders.list:undefined|${ctx.meta.user}**`);
+          order.status = 'paid';
+          order.financialStatus = 'paid';
+          this.cacheUpdate(order, store);
+
+          return applyCreditRes;
+        }
       },
     },
   },
