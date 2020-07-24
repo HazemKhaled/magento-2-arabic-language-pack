@@ -28,6 +28,7 @@ const TheService: ServiceSchema = {
         const subscription =
           (await this.adapter.findOne({
             storeId: ctx.params.id,
+            status: { $ne: 'cancelled' },
             expireDate: { $gte: new Date() },
             startDate: { $lte: new Date() },
           })) || {};
@@ -54,7 +55,7 @@ const TheService: ServiceSchema = {
     sList: {
       auth: 'Basic',
       cache: {
-        keys: ['storeId', 'membershipId', 'expireDate', 'startDate', 'page', 'perPage', 'sort'],
+        keys: ['storeId', 'membershipId', 'reference', 'expireDate', 'startDate', 'status', 'page', 'perPage', 'sort'],
         ttl: 60 * 60 * 24, // 1 day
       },
       async handler(ctx: Context): Promise<Subscription | false> {
@@ -64,6 +65,12 @@ const TheService: ServiceSchema = {
         }
         if (ctx.params.membershipId) {
           query.membershipId = ctx.params.membershipId;
+        }
+        if (ctx.params.status) {
+          query.status = ctx.params.status === 'active' ? { $ne: 'cancelled' } : ctx.params.status;
+        }
+        if (ctx.params.reference) {
+          query.reference = ctx.params.reference;
         }
         if (ctx.params.expireDate) {
           const expireDate = Array.isArray(ctx.params.expireDate)
@@ -132,8 +139,13 @@ const TheService: ServiceSchema = {
             throw new MoleculerError(coupon.message, Number(coupon.code));
           }
         }
+
+        const membershipRequestBody: { id: string, active: true, coupon?: string } = { id: ctx.params.membership, active: true };
+        if (ctx.params.coupon) {
+          membershipRequestBody.coupon = ctx.params.coupon;
+        }
         const membership = await ctx
-          .call('membership.mGet', { id: ctx.params.membership, active: true })
+          .call('membership.mGet', membershipRequestBody)
           .then(null, err => err);
         if (isError(membership as { message: string; code: number })) {
           throw new MoleculerError(membership.message, membership.code || 500);
@@ -148,18 +160,7 @@ const TheService: ServiceSchema = {
         // Membership cost before tax or discount
         const cost = membership.cost;
 
-        let discount = 0;
-        if (coupon) {
-          switch (coupon.discount.total.type) {
-          case '$':
-            discount = Math.min(coupon.discount.total.value, cost);
-            break;
-          case '%':
-            discount = +((cost / 100) * coupon.discount.total.value).toFixed(2);
-            break;
-          }
-        }
-        discount = Math.max(discount, membership.discount);
+        const discount = membership.discount;
 
         // Get the Store instance
         const instance = await ctx
@@ -181,7 +182,7 @@ const TheService: ServiceSchema = {
           total = +(total + (total * taxData.percentage / 100)).toFixed(2);
         }
 
-        if (instance.credit < total) {
+        if (instance.credit < total && !ctx.params.postpaid) {
           if (process.env.PAYMENT_AUTO_CHARGE_CC_SUBSCRIPTION) {
             await ctx.call('paymentGateway.charge', {
               storeId: instance.url,
@@ -234,7 +235,7 @@ const TheService: ServiceSchema = {
         ctx.meta.user = instance.consumer_key;
 
         // Apply credits to invoice if the total not equal to 0
-        if (total !== 0) {
+        if (total !== 0 && !ctx.params.postpaid) {
           const applyCreditsResponse = await ctx
             .call('invoices.applyCredits', {
               id: invoice.invoice.invoiceId,
@@ -245,30 +246,39 @@ const TheService: ServiceSchema = {
           }
         }
 
-        const storeOldSubscription = await ctx.call('subscription.sList', {
-          storeId: ctx.params.grantTo || ctx.params.storeId,
-          expireDate: { operation: 'gte' },
-        });
         let startDate = new Date();
-        startDate.setUTCHours(0, 0, 0, 0);
-        if (storeOldSubscription.length > 0) {
-          storeOldSubscription.forEach((subscription: Subscription) => {
-            startDate =
-              new Date(subscription.expireDate) > startDate
-                ? new Date(new Date(subscription.expireDate).setMilliseconds(1000))
-                : startDate;
+        let expireDate = new Date();
+
+        if (ctx.params.date) {
+          startDate = new Date(ctx.params.date.start);
+          expireDate = new Date(ctx.params.date.expire);
+        } else {
+          const storeOldSubscription = await ctx.call('subscription.sList', {
+            storeId: ctx.params.grantTo || ctx.params.storeId,
+            expireDate: { operation: 'gte' },
+            status: 'active',
           });
+          startDate.setUTCHours(0, 0, 0, 0);
+          if (storeOldSubscription.length > 0) {
+            storeOldSubscription.forEach((subscription: Subscription) => {
+              startDate =
+                new Date(subscription.expireDate) > startDate
+                  ? new Date(new Date(subscription.expireDate).setMilliseconds(1000))
+                  : startDate;
+            });
+          }
+          expireDate = new Date(startDate);
+          expireDate.setMilliseconds(-1);
+          switch (membership.paymentFrequencyType) {
+          case 'month':
+            expireDate.setMonth(expireDate.getMonth() + membership.paymentFrequency);
+            break;
+          case 'year':
+            expireDate.setFullYear(expireDate.getFullYear() + membership.paymentFrequency);
+            break;
+          }
         }
-        const expireDate = new Date(startDate);
-        expireDate.setMilliseconds(-1);
-        switch (membership.paymentFrequencyType) {
-        case 'month':
-          expireDate.setMonth(expireDate.getMonth() + membership.paymentFrequency);
-          break;
-        case 'year':
-          expireDate.setFullYear(expireDate.getFullYear() + membership.paymentFrequency);
-          break;
-        }
+
         if (ctx.params.coupon) {
           ctx.call('coupons.updateCount', {
             id: ctx.params.coupon,
@@ -278,6 +288,7 @@ const TheService: ServiceSchema = {
           membershipId: membership.id,
           storeId: ctx.params.storeId,
           invoiceId: invoice.invoice.invoiceId,
+          status: 'confirmed',
           startDate,
           expireDate,
           createdAt: new Date(),
@@ -291,6 +302,14 @@ const TheService: ServiceSchema = {
 
         if (ctx.params.autoRenew) {
           subscriptionBody.autoRenew = ctx.params.autoRenew;
+        }
+
+        if (ctx.params.reference) {
+          subscriptionBody.reference = ctx.params.reference;
+        }
+
+        if (ctx.params.postpaid) {
+          subscriptionBody.status = 'pending';
         }
 
         return this.adapter
@@ -338,6 +357,7 @@ const TheService: ServiceSchema = {
           autoRenew: {
             $ne: false,
           },
+          status: { $ne: 'cancelled' },
         };
         let expiredSubscription = await this.adapter.findOne(query).catch();
         if (!expiredSubscription) {
@@ -411,6 +431,7 @@ const TheService: ServiceSchema = {
         const allSubBefore = await ctx.call('subscription.sList', {
           storeId: ctx.params.id,
           expireDate: { operation: 'gte', date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7) },
+          status: 'active',
           sort: { field: 'expireDate', order: -1 },
           perPage: 2,
         });
@@ -436,6 +457,22 @@ const TheService: ServiceSchema = {
             tag: 'subscription-downgrade',
           });
         }
+      },
+    },
+    cancel: {
+      auth: 'Basic',
+      handler(ctx) {
+        return this.adapter.updateById(ctx.params.id, { $set: { status: 'cancelled' } }).then(async (res: any) => {
+          if (!res) {
+            throw new MpError('Subscription Service', 'Subscription not found!', 404);
+          }
+          const instance = await ctx.call('stores.findInstance', { id: res.storeId });
+          this.broker.cacher.clean(`subscription.sGet:${res.storeId}*`);
+          this.broker.cacher.clean(`subscription.sList:${res.storeId}*`);
+          this.broker.cacher.clean(`stores.sGet:${res.storeId}*`);
+          this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
+          return { ...res, id: res._id, _id: undefined };
+        });
       },
     },
   },

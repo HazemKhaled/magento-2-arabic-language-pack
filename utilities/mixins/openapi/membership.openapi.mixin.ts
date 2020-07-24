@@ -36,6 +36,8 @@ const MembershipSchema = {
     paymentFrequency: { type: 'number' },
     paymentFrequencyType: { type: 'string', enum: ['month', 'year'] },
     attributes: { type: 'object', properties: {} },
+    coupon: { $ref: '#/components/schemas/Coupon', readOnly: true, description: 'This field is returned with the response added when a coupon is applied to the membership' },
+    originalDiscount: { type: 'number', readOnly: true, description: 'This field is only returned with the response when a coupon is applied to the membership'  },
     totals: {
       type: 'object',
       readOnly: true,
@@ -252,6 +254,15 @@ const MembershipGetOpenapi = {
       required: false,
       schema: {
         type: 'string',
+      },
+    },
+    {
+      name: 'coupon',
+      in: 'query',
+      required: false,
+      schema: {
+        type: 'string',
+        description: 'Coupon code to be applied to the membership discount',
       },
     },
   ],

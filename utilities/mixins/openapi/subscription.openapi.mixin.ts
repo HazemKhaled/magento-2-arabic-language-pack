@@ -7,6 +7,8 @@ const SubscriptionSchema = {
     membershipId: { type: 'string' },
     storeId: { type: 'string' },
     invoiceId: { type: 'string' },
+    reference: { type: 'string', description: 'External reference ID for third party applications' },
+    status: { type: 'string', enum: ['confirmed', 'pending', 'cancelled'], description: 'Subscription status' },
     startDate: { type: 'string', format: 'date-time' },
     expireDate: { type: 'string', format: 'date-time' },
     autoRenew: { type: 'boolean' },
@@ -15,7 +17,7 @@ const SubscriptionSchema = {
   },
 };
 
-const SubscriptionResponse = {
+const SubscriptionRequest = {
   content: {
     'application/json': {
       schema: {
@@ -89,6 +91,25 @@ const SubscriptionListOpenapi = {
       },
     },
     {
+      name: 'status',
+      in: 'query',
+      required: false,
+      schema: {
+        type: 'string',
+        enum: ['active', 'confirmed', 'pending', 'cancelled'],
+        description: 'Filter by subscription statuses',
+      },
+    },
+    {
+      name: 'reference',
+      in: 'query',
+      required: false,
+      schema: {
+        type: 'string',
+        description: 'Filter by external reference ID',
+      },
+    },
+    {
       name: 'page',
       in: 'query',
       required: false,
@@ -126,6 +147,66 @@ const SubscriptionListOpenapi = {
             items: {
               $ref: '#/components/schemas/Subscription',
             },
+          },
+        },
+      },
+    },
+    401: {
+      $ref: '#/components/responses/UnauthorizedErrorBasic',
+    },
+    404: {
+      description: 'Status 404',
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: {
+              errors: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    message: {
+                      type: 'string',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+  security: [
+    {
+      basicAuth: [] as [],
+    },
+  ],
+};
+
+const SubscriptionCancelOpenapi = {
+  $path: 'delete /subscription/{id}',
+  summary: 'Cancel subscription',
+  tags: ['Subscription'],
+  parameters: [
+    {
+      name: 'id',
+      in: 'path',
+      required: false,
+      schema: {
+        type: 'string',
+        description: 'Subscription ID',
+      },
+    },
+  ],
+  responses: {
+    200: {
+      description: 'Status 200',
+      content: {
+        'application/json': {
+          schema: {
+            $ref: '#/components/schemas/Subscription',
           },
         },
       },
@@ -219,6 +300,16 @@ const SubscriptionCreateOpenapi = {
           properties: {
             storeId: { type: 'string', format: 'url', required: true },
             membership: { type: 'string', required: true },
+            reference: { type: 'string', description: 'External reference ID could be used for payments integration' },
+            postpaid: { type: 'number', enum: [1], description: 'Used when the subscription is paid through a third party' },
+            date: {
+              type: 'object',
+              properties: {
+                start: { type: 'string', format: 'date', description: 'Pattern yyyy-mm-dd' },
+                expire: { type: 'string', format: 'date', description: 'Pattern yyyy-mm-dd' },
+              },
+              description: 'Subscription Start and Expire date',
+            },
             coupon: { type: 'string' },
             grantTo: { type: 'string', format: 'url', description: 'This field is used to donor the subscription to another store' },
             autoRenew: { type: 'boolean' },
@@ -301,7 +392,7 @@ export const SubscriptionOpenapi: ServiceSchema = {
           Subscription: SubscriptionSchema,
         },
         requestBodies: {
-          Subscription: SubscriptionResponse,
+          Subscription: SubscriptionRequest,
         },
       },
     },
@@ -315,6 +406,9 @@ export const SubscriptionOpenapi: ServiceSchema = {
     },
     updateSubscription: {
       openapi: SubscriptionUpdateOpenapi,
+    },
+    cancel: {
+      openapi: SubscriptionCancelOpenapi,
     },
   },
 };

@@ -228,6 +228,16 @@ const OrderResponse = {
         discount: {
           type: 'number',
         },
+        warnings: {
+          type: 'string',
+          readOnly: true,
+          required: false,
+        },
+        warningsSnippet: {
+          type: 'string',
+          readOnly: true,
+          required: false,
+        },
       },
     },
     warning: {
@@ -349,6 +359,11 @@ const OrderList  = {
       },
       invoice_url: {
         type: 'string',
+      },
+      warningsSnippet: {
+        type: 'string',
+        readOnly: true,
+        required: false,
       },
     },
   },

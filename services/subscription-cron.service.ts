@@ -14,7 +14,7 @@ const TheService: ServiceSchema = {
       async onTick() {
         const job = this.getJob('renewSubscriptions');
         job.stop();
-        await this.call('subscription-cron.run');
+        await this.call('subscription-cron.run').catch(this.logger.error);
         job.start();
       },
     },

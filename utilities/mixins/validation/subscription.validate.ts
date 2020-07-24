@@ -115,6 +115,15 @@ export const SubscriptionValidation: ServiceSchema = {
           },
         },
         ],
+        status: {
+          type: 'enum',
+          values: ['active', 'confirmed', 'pending', 'cancelled'],
+          optional: true,
+        },
+        reference: {
+          type: 'string',
+          optional: true,
+        },
         page: {
           type: 'number',
           positive: true,
@@ -153,6 +162,24 @@ export const SubscriptionValidation: ServiceSchema = {
         },
         membership: {
           type: 'string',
+        },
+        reference: {
+          type: 'string',
+          optional: true,
+        },
+        postpaid: {
+          type: 'enum',
+          values: [1],
+          optional: true,
+        },
+        date: {
+          type: 'object',
+          props: {
+            start: { type: 'string', pattern: /^(20[1-9][0-9])-((0[1-9])|(1(0|1|2)))-(((0[1-9])|(1|2)[0-9])|3(0|1))$/ },
+            expire: { type: 'string', pattern: /^(20[1-9][0-9])-((0[1-9])|(1(0|1|2)))-(((0[1-9])|(1|2)[0-9])|3(0|1))$/ },
+            $$strict: true,
+          },
+          optional: true,
         },
         coupon: {
           type: 'string',
@@ -226,6 +253,11 @@ export const SubscriptionValidation: ServiceSchema = {
         id: {
           type: 'string',
         },
+      },
+    },
+    cancel: {
+      params: {
+        id: 'string',
       },
     },
   },

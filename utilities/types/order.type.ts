@@ -31,6 +31,7 @@ export interface Order {
   adjustment?: number;
   storeLogo?: string;
   warnings?: string;
+  warningsSnippet?: string;
 }
 
 /**
