@@ -1074,6 +1074,7 @@ const TheService: ServiceSchema = {
         taxes: order.taxes,
         warnings: order.warnings,
         warningsSnippet: order.warningsSnippet,
+        financialStatus: order.financialStatus,
       };
       if (order.meta_data && order.meta_data.length > 0) {
         order.meta_data.forEach((meta: any) => {
@@ -1106,6 +1107,7 @@ const TheService: ServiceSchema = {
         orderNumber: order.orderNumber,
         invoice_url: order.externalInvoice,
         warningsSnippet: order.warningsSnippet,
+        financialStatus: order.financialStatus,
       }));
     },
     async cacheUpdate(order, instance) {
