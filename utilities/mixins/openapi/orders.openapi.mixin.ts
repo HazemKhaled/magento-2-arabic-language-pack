@@ -824,6 +824,81 @@ const OrdersDeleteOpenapi = {
   ],
 };
 
+const OrdersPayOpenapi = {
+  $path: 'get /orders/pay/{order_id}',
+  summary: 'Pay order by id',
+  tags: ['Orders'],
+  parameters: [
+    {
+      name: 'order_id',
+      in: 'path',
+      required: true,
+      schema: {
+        type: 'string',
+      },
+    },
+  ],
+  responses: {
+    200: {
+      description: 'Status 200',
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: {
+              invoicePayments: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    invoicePaymentId: { type: 'string' },
+                    paymentId: { type: 'string' },
+                    invoiceId: { type: 'string' },
+                    amountUsed: { type: 'number' },
+                  },
+                },
+              },
+              code: { type: 'number' },
+              message: { type: 'string' },
+            },
+          },
+        },
+      },
+    },
+    401: {
+      $ref: '#/components/responses/UnauthorizedErrorBasic',
+    },
+    500: {
+      description: 'Status 500',
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: {
+              errors: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    message: {
+                      type: 'string',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+  security: [
+    {
+      bearerAuth: [] as [],
+    },
+  ],
+};
+
 export const OrdersOpenapi: ServiceSchema = {
   name: 'orders',
   settings: {
@@ -852,6 +927,9 @@ export const OrdersOpenapi: ServiceSchema = {
     },
     deleteOrder: {
       openapi: OrdersDeleteOpenapi,
+    },
+    payOrder: {
+      openapi: OrdersPayOpenapi,
     },
   },
 };

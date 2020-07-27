@@ -745,7 +745,7 @@ const TheService: ServiceSchema = {
           throw new MpError('Orders Service', 'You don\'t have enough balance', 402);
         }
 
-        if (order?.id && !order?.warnings?.length) {
+        if (order?.id) {
           let invoiceId = '';
           if (order.status === 'invoiced') {
             ({ invoices: [{invoice_id: invoiceId}] } = await ctx.call('invoices.get', { reference_number: order.orderNumber }));
