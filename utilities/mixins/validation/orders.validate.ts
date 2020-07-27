@@ -335,5 +335,8 @@ export const OrdersValidation: ServiceSchema = {
         },
       },
     },
+    payOrder: {
+      id: 'string',
+    },
   },
 };
