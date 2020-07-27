@@ -305,7 +305,7 @@ const TheService: ServiceSchema = {
           subscriptionBody.donor = ctx.params.storeId;
         }
 
-        if (ctx.params.autoRenew) {
+        if (ctx.params.autoRenew !== undefined) {
           subscriptionBody.autoRenew = ctx.params.autoRenew;
         }
 
