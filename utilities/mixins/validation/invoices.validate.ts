@@ -116,6 +116,19 @@ export const InvoicesValidation: ServiceSchema = {
           type: 'string',
           optional: true,
         },
+        dueDate: {
+          type: 'string',
+          pattern: /^(20[1-9][0-9])-((0[1-9])|(1(0|1|2)))-(((0[1-9])|(1|2)[0-9])|3(0|1))$/,
+          optional: true,
+        },
+        $$strict: true,
+      },
+    },
+    updateInvoiceStatus: {
+      params: {
+        omsId: 'string',
+        invoiceId: 'string',
+        status: 'string',
         $$strict: true,
       },
     },

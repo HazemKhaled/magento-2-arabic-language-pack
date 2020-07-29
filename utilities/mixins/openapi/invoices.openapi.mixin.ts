@@ -95,6 +95,7 @@ const InvoiceSchema = {
         },
       },
     },
+    dueDate: { type: 'string', required: false, format: 'date', example: 'yyyy-mm-dd' },
   },
 };
 
