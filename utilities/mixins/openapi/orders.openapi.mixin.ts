@@ -238,6 +238,16 @@ const OrderResponse = {
           readOnly: true,
           required: false,
         },
+        financialStatus: {
+          type: 'string',
+          readOnly: true,
+          required: false,
+        },
+        fulfillmentStatus: {
+          type: 'string',
+          readOnly: true,
+          required: false,
+        },
       },
     },
     warning: {
