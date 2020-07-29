@@ -238,6 +238,16 @@ const OrderResponse = {
           readOnly: true,
           required: false,
         },
+        financialStatus: {
+          type: 'string',
+          readOnly: true,
+          required: false,
+        },
+        fulfillmentStatus: {
+          type: 'string',
+          readOnly: true,
+          required: false,
+        },
       },
     },
     warning: {
@@ -825,7 +835,7 @@ const OrdersDeleteOpenapi = {
 };
 
 const OrdersPayOpenapi = {
-  $path: 'get /orders/pay/{order_id}',
+  $path: 'put /orders/pay/{order_id}',
   summary: 'Pay order by id',
   tags: ['Orders'],
   parameters: [

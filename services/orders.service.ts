@@ -1089,6 +1089,7 @@ const TheService: ServiceSchema = {
         warnings: order.warnings,
         warningsSnippet: order.warningsSnippet,
         financialStatus: order.financialStatus,
+        fulfillmentStatus: order.fulfillmentStatus,
       };
       if (order.meta_data && order.meta_data.length > 0) {
         order.meta_data.forEach((meta: any) => {
@@ -1122,6 +1123,7 @@ const TheService: ServiceSchema = {
         invoice_url: order.externalInvoice,
         warningsSnippet: order.warningsSnippet,
         financialStatus: order.financialStatus,
+        fulfillmentStatus: order.fulfillmentStatus,
       }));
     },
     async cacheUpdate(order, instance) {
