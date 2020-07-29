@@ -46,6 +46,14 @@ export const OmsValidation: ServiceSchema = {
         },
       },
     },
+    updateInvoiceStatus: {
+      params: {
+        omsId: 'string',
+        invoiceId: 'string',
+        status: 'string',
+        $$strict: true,
+      },
+    },
     applyInvoiceCredits: {
       params: { customerId: { type: 'string' }, invoiceId: { type: 'string' } },
     },

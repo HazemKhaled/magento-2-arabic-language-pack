@@ -93,6 +93,10 @@ const TheService: ServiceSchema = {
           invoiceParams.coupon = ctx.params.coupon;
         }
 
+        if (ctx.params.dueDate) {
+          invoiceParams.dueDate = ctx.params.dueDate;
+        }
+
         return ctx
           .call('oms.createInvoice', invoiceParams)
           .then(
@@ -105,6 +109,11 @@ const TheService: ServiceSchema = {
               throw new MoleculerError(err.message, err.code || 500);
             },
           );
+      },
+    },
+    updateInvoiceStatus: {
+      handler(ctx: Context) {
+        return ctx.call('oms.updateInvoiceStatus', ctx.params);
       },
     },
     applyCredits: {
