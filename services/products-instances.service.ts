@@ -212,7 +212,10 @@ module.exports = {
                 const update = res.filter((product: Product) =>
                   firstImport.includes(`${instance.consumer_key}-${product.sku}`),
                 );
-                const appSearchProducts = await this.getDocumentsByIds(skus);
+
+                const appSearchProducts = [];
+                for (let i = 0; i < skus.length-100; i+=100) appSearchProducts.push(...(await this.getDocumentsByIds(skus.slice(i, 100))));
+
                 const updateArr: any[] = [];
                 appSearchProducts.forEach((product: Product) => {
                   if (product) {
