@@ -1,6 +1,7 @@
 import { ServiceSchema } from 'moleculer';
 
 const Product = {
+  description: 'An object that represents a Product.',
   type: 'object',
   required: [
     'attributes',
@@ -14,185 +15,177 @@ const Product = {
   ],
   properties: {
     sku: {
-      type: 'string',
       description: 'Product ID',
+      type: 'string',
+    },
+    name: { $ref: '#/components/schemas/I18nString' },
+    description: { $ref: '#/components/schemas/I18nString' },
+    archive: {
+      description: 'true if the product out of stock',
+      type: 'boolean',
+    },
+    externalUrl: {
+      description: "Product URL in the customer store, it's only there if the product already pushed",
+      type: 'string',
+    },
+    externalId: {
+      description: "Product ID in the customer store, it's only there if the product already pushed",
+      type: 'string',
     },
     supplier: {
-      type: 'number',
       description: 'Supplier ref',
-    },
-    name: {
-      required: ['tr'],
-      type: 'object',
-      properties: {
-        tr: {
-          type: 'string',
-        },
-        ar: {
-          type: 'string',
-        },
-        en: {
-          type: 'string',
-        },
-      },
-    },
-    description: {
-      required: ['tr'],
-      type: 'object',
-      properties: {
-        tr: {
-          type: 'string',
-        },
-        en: {
-          type: 'string',
-        },
-        ar: {
-          type: 'string',
-        },
-      },
+      type: 'string',
     },
     images: {
-      type: 'array',
       description: 'List of images links from Knawat CDN servers',
-      items: {
-        type: 'string',
-      },
+      type: 'array',
+      items: { type: 'string' },
+    },
+    tax_class: {
+      description: 'The name of the tax class, it maybe come as number.',
+      type: 'string',
     },
     categories: {
+      description: 'Knawat Categories',
       type: 'array',
-      description: 'Array of categories',
-      items: {
-        $ref: '#/components/schemas/Category',
-      },
+      items: { $ref: '#/components/schemas/Category' },
     },
     attributes: {
-      type: 'array',
       description: 'Any other information about this product, materials, gender … etc',
-      items: {
-        $ref: '#/components/schemas/Attribute',
-      },
+      type: 'array',
+      items: { $ref: '#/components/schemas/ProductAttribute' },
     },
     variations: {
-      type: 'array',
       description: 'Product variations',
-      items: {
-        $ref: '#/components/schemas/ProductVariation',
-      },
+      type: 'array',
+      items: { $ref: '#/components/schemas/ProductVariation' },
     },
   },
-  description: 'An object that represents a Product.',
   example: {
-    sku: '4646030019238',
+    sku: 'BD3830BGD19_036',
     name: {
-      tr: 'DAR KALIP PEMBE GÖMLEK',
-      ar: 'قميص وردي قصير',
-      en: 'Slimline Pink Shirt',
+      en: "Women's Patterned Black Viscose Shirt",
+      tr: '3830 DESENLİ VİSKON GÖMLEK',
     },
+    archive: false,
     description: {
-      tr:
-        '%100 Pamuk<br>*Cep Detay <br>*Uzun Katlanabilir Kol<br>*Önden Düğmeli<br>*Yanları Düğmeli <br>*Dar Kalıp <br>*Boy Uzunluğu:63 cm<br>Numune Bedeni: 36/S/1<br>Modelin Ölçüleri: Boy:1,76, Göğüs:86, Bel:60, Kalça: 91',
-      en:
-        '<ul><li>100% Cotton</li><li>*Pocket Detailed</li><li>*Long Layered Sleeves</li><li>*Front Buttons</li><li>*Buttons on Sides</li><li>*Narrow Cut</li><li>*Length:63 cm</li><li>Sample Size: 36/S/1</li><li>Model\'s Measurements: Height:1,76, Chest:86, Waist:60, Hip: 91</li></ul>',
-      ar:
-        '<ul><li>%100 قطن</li><li>مزين بجيب</li><li>بكم طويل قابل للازالة</li><li>بأزرار من الامام</li><li>بأزرار من الجوانب</li><li>سليم فت</li><li>الطول:63 سم</li><li>مقاس الجسم: 36/S/1</li><li>قياسات العارض: الطول:1,76, الصدر:86, الوسط:60, الخصر: 91</li></ul>',
+      en: 'Description here is optional, and maybe contain HTML code',
+      tr: 'Description here is optional, and maybe contain HTML code',
     },
-    last_stock_check: '2018-03-15T06:53:06.949Z',
-    supplier: 1615,
+    supplier: '1775488000003029449',
+    images: [
+      'https://storage.googleapis.com/knawat-suppliers-img/bigdart/3830BGD19_036/3830-desenli-viskon-gomlek-59776_1594724834627.jpg',
+      'https://storage.googleapis.com/knawat-suppliers-img/bigdart/3830BGD19_036/3830-desenli-viskon-gomlek-59777_1594724834628.jpg',
+    ],
+    tax_class: 8,
     categories: [
       {
-        id: 4856,
+        id: 11450,
         name: {
-          tr: 'Outdoors / Kadın',
-          en: 'Outdoors / Women',
-          ar: 'أوت دور / نسائي',
+          en: 'Clothing, Shoes & Accessories',
+          tr: 'Giyim, Ayakkabı & Aksesuarlar',
         },
+        treeNodeLevel: 1,
       },
-    ],
-    images: [
-      'https://cdnp4.knawat.com/buyuk/788f8a17-d5d8-4ccb-b218-9e428b199228.jpg',
-      'https://cdnp4.knawat.com/buyuk/d8f20963-1772-45af-849d-da84e66d9a95.jpg',
-      'https://cdnp4.knawat.com/buyuk/fa36c9d4-51c4-434f-9ffd-94fb343ce0d8.jpg',
+      {
+        id: 15724,
+        name: {
+          en: "Women's Clothing",
+          tr: 'Kadın Giyim',
+        },
+        parentId: 260010,
+        treeNodeLevel: 3,
+      },
+      {
+        id: 53159,
+        name: { en: 'Tops', tr: 'Tops' },
+        parentId: 15724,
+        treeNodeLevel: 4,
+      },
+      {
+        id: 260010,
+        name: { en: 'Women', tr: 'Kadin' },
+        parentId: 11450,
+        treeNodeLevel: 2,
+      },
     ],
     attributes: [
       {
-        name: {
-          tr: 'Beden',
-          en: 'Size',
-          ar: 'مقاس',
-        },
+        name: { en: 'Color', tr: 'Renk' },
+        options: [{ en: 'Mink', tr: 'VİZON' }],
+      },
+      {
+        name: { en: 'Size', tr: 'Beden' },
         options: [
-          {
-            tr: 'M',
-            en: 'M',
-            ar: 'M',
-          },
-          {
-            tr: 'XXL',
-            en: 'XXL',
-            ar: 'XXL',
-          },
+          { en: '36', tr: '36' },
+          { en: '38', tr: '38' },
         ],
       },
       {
         name: {
-          tr: 'Renk',
-          en: 'Color',
-          ar: 'لون',
+          en: 'Product Length',
+          tr: 'Ürün Boyu',
         },
-        options: [
-          {
-            tr: 'Kırmızı',
-            en: 'Red',
-            ar: 'احمر',
-          },
-        ],
+        options: [{ en: '68 cm', tr: '68 cm' }],
       },
       {
-        name: 'Material',
-        options: ['15% Cotton', '25% Polyester'],
+        name: {
+          en: 'Sleeve Length',
+          tr: 'Kol Boyu',
+        },
+        options: [{ en: '48 CM', tr: '48 cm' }],
+      },
+      {
+        name: { en: 'Height', tr: 'Boy' },
+        options: [{ en: '176', tr: '176' }],
+      },
+      {
+        name: { en: 'Chest', tr: 'Gögüs' },
+        options: [{ en: '90', tr: '90' }],
+      },
+      {
+        name: { en: 'Waist', tr: 'Bel' },
+        options: [{ en: '63', tr: '63' }],
+      },
+      {
+        name: { en: 'Hip', tr: 'Basen' },
+        options: [{ en: '94', tr: '94' }],
       },
     ],
     variations: [
       {
-        sku: '4646030019238-36',
-        price: 9.74,
-        market_price: 11.99,
-        weight: 0.5,
-        quantity: 10,
+        sku: 'BD3830BGD19_03603636',
+        cost_price: 71.49,
+        sale_price: 142.99,
+        market_price: 142.99,
+        weight: 0.25,
+        quantity: 11,
         attributes: [
           {
-            name: {
-              tr: 'Beden',
-              en: 'Size',
-              ar: 'مقاس',
-            },
-            option: {
-              tr: 'M',
-              en: 'M',
-              ar: 'M',
-            },
+            name: { en: 'Color', tr: 'Renk' },
+            option: { en: 'Mink', tr: 'VİZON' },
+          },
+          {
+            name: { en: 'Size', tr: 'Beden' },
+            option: { en: '36', tr: '36' },
           },
         ],
       },
       {
-        sku: '4646030019238-38',
-        price: 9.74,
-        market_price: 11.99,
-        weight: 0.5,
-        quantity: 10,
-        barcode: 45234526,
+        sku: 'BD3830BGD19_03603638',
+        cost_price: 71.49,
+        sale_price: 142.99,
+        market_price: 142.99,
+        weight: 0.25,
+        quantity: 14,
         attributes: [
           {
-            name: {
-              tr: 'Beden',
-              en: 'Size',
-              ar: 'مقاس',
-            },
-            option: {
-              tr: 'XXL',
-              en: 'XXL',
-              ar: 'XXL',
-            },
+            name: { en: 'Color', tr: 'Renk' },
+            option: { en: 'Mink', tr: 'VİZON' },
+          },
+          {
+            name: { en: 'Size', tr: 'Beden' },
+            option: { en: '38', tr: '38' },
           },
         ],
       },
@@ -200,29 +193,44 @@ const Product = {
   },
 };
 
-const ProductVariation = {
+const ProductAttribute = {
+  required: ['name', 'options'],
   type: 'object',
+  properties: {
+    name: { $ref: '#/components/schemas/I18nString' },
+    options: {
+      type: 'array',
+      items: { $ref: '#/components/schemas/I18nString' },
+    },
+  },
+};
+const ProductVariation = {
   required: ['cost_price', 'quantity', 'sale_price', 'sku', 'weight'],
+  type: 'object',
   properties: {
     sku: {
-      type: 'string',
       description: 'Variation id',
+      type: 'string',
+    },
+    externalId: {
+      description: "Product variation ID in the customer store, it's only there if the product already pushed",
+      type: 'string',
     },
     cost_price: {
-      type: 'number',
       description: 'Your cost, Knawat sale product with this price',
+      type: 'number',
     },
     sale_price: {
-      type: 'number',
       description: 'This is the listed price on your store',
+      type: 'number',
     },
     market_price: {
+      description: 'Price before the discount, som times known as Compare at or Strike Through price',
       type: 'number',
-      description: 'Price before the discount',
     },
     weight: {
+      description: 'Product weight in KG',
       type: 'number',
-      description: 'Product weight',
     },
     quantity: {
       type: 'number',
@@ -230,68 +238,30 @@ const ProductVariation = {
     attributes: {
       type: 'array',
       items: {
-        $ref: '#/components/schemas/Attribute',
+        $ref: '#/components/schemas/ProductVariationAttribute',
       },
     },
   },
-  example:
-    {
-      sku: '4646030019238-36',
-      cost_price: 5.22,
-      sale_price: 9.74,
-      market_price: 11.99,
-      weight: 0.5,
-      quantity: 10,
-      attributes: [
-        {
-          id: 1,
-          name: { tr: 'Beden', en: 'Size', ar: 'مقاس' },
-          option: { tr: 'M', en: 'M', ar: 'M' },
-        },
-      ],
-    },
 };
 
-const Attribute = {
+const ProductVariationAttribute = {
+  required: ['name', 'option'],
   type: 'object',
-  required: ['id', 'name', 'option'],
   properties: {
-    id: {
-      type: 'number',
-    },
-    name: {
-      required: ['tr'],
-      type: 'object',
-      properties: {
-        tr: {
-          type: 'string',
-        },
-        en: {
-          type: 'string',
-        },
-        ar: {
-          type: 'string',
-        },
-      },
-    },
-    option: {
-      required: ['tr'],
-      type: 'object',
-      properties: {
-        tr: {
-          type: 'string',
-        },
-        en: {
-          type: 'string',
-        },
-        ar: {
-          type: 'string',
-        },
-      },
-    },
+    name: { $ref: '#/components/schemas/I18nString' },
+    option: { $ref: '#/components/schemas/I18nString' },
   },
-  example:
-    '{\n  "id": 1,\n  "name": {\n    "tr": "Beden",\n    "en": "Size",\n    "ar": "مقاس"\n  },\n  "option": { "tr": "M", "en": "M", "ar": "M" }\n}\n',
+};
+
+const I18nString = {
+  description: 'Key and value depend on available language(s) and selected language from store settings',
+  type: 'object',
+  properties: {
+    ar: { type: 'string' },
+    en: { type: 'string' },
+    fr: { type: 'string' },
+    tr: { type: 'string' },
+  },
 };
 
 const GetInstanceProduct = {
@@ -912,7 +882,9 @@ export const ProductsInstancesOpenapi: ServiceSchema = {
         schemas: {
           Product,
           ProductVariation,
-          Attribute,
+          ProductAttribute,
+          ProductVariationAttribute,
+          I18nString,
         },
       },
     },
