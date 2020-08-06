@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.7.7
+
+### 🚀 Features
+
+- Stores new types zid.sa & youcan
+
+### ✨ Enhancements
+
+- PayOrder update get order by ID Fulfillment status
+- Remove magento1 from stores types
+
 ## 1.7.6
 
 ### 🚀 Features
