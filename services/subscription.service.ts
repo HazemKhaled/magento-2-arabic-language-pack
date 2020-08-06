@@ -2,7 +2,7 @@ import { Context, Errors, ServiceSchema } from 'moleculer';
 import { isError } from 'util';
 import DbService from '../utilities/mixins/mongo.mixin';
 import { SubscriptionOpenapi } from '../utilities/mixins/openapi';
-import { Coupon, Membership, Subscription } from '../utilities/types';
+import { Coupon, Membership, Subscription, Store } from '../utilities/types';
 import { SubscriptionValidation } from '../utilities/mixins/validation';
 import TaxCheck from '../utilities/mixins/tax.mixin';
 import { MpError } from '../utilities/adapters';
@@ -166,6 +166,11 @@ const TheService: ServiceSchema = {
         const instance = await ctx
           .call('stores.sGet', { id: ctx.params.storeId })
           .then(null, err => err);
+        let grantToInstance: Store | null = null;
+        if (ctx.params.grantTo) {
+          grantToInstance = await ctx.call('stores.findInstance', { id: ctx.params.grantTo });
+        }
+
         // Check for instance errors
         if (instance.errors) {
           throw new MoleculerError(instance.errors[0].message, 404);
@@ -228,10 +233,22 @@ const TheService: ServiceSchema = {
           invoiceBody.coupon = coupon.campaignName ? `${coupon.code}-${coupon.campaignName}` : coupon.code;
         }
 
+        if (ctx.params.dueDate) {
+          invoiceBody.dueDate = ctx.params.dueDate;
+        }
+
         const invoice = await ctx.call('invoices.create', invoiceBody).then(null, err => err);
         if (isError(invoice as { message: string; code: number })) {
           throw new MoleculerError(invoice.message, invoice.code || 500);
         }
+
+        if (ctx.params.postpaid) {
+          await ctx.call('invoices.markInvoiceSent', {
+            omsId: instance.internal_data?.omsId,
+            invoiceId: invoice.invoice.invoiceId,
+          });
+        }
+
         ctx.meta.user = instance.consumer_key;
 
         // Apply credits to invoice if the total not equal to 0
@@ -300,7 +317,7 @@ const TheService: ServiceSchema = {
           subscriptionBody.donor = ctx.params.storeId;
         }
 
-        if (ctx.params.autoRenew) {
+        if (ctx.params.autoRenew !== undefined) {
           subscriptionBody.autoRenew = ctx.params.autoRenew;
         }
 
@@ -321,9 +338,8 @@ const TheService: ServiceSchema = {
               this.broker.cacher.clean(`stores.sGet:${ctx.params.grantTo || instance.url}*`);
               this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
               if (ctx.params.grantTo) {
-                const grantToInstance = await ctx.call('stores.findInstance', { id: ctx.params.grantTo });
                 this.broker.cacher.clean(`stores.sGet:${instance.url}*`);
-                this.broker.cacher.clean(`stores.me:${grantToInstance.consumer_key}*`);
+                this.broker.cacher.clean(`stores.me:${grantToInstance?.consumer_key}*`);
               }
               ctx.call('subscription.checkCurrentSubGradingStatus', {
                 id: ctx.params.grantTo || ctx.params.storeId,
@@ -463,10 +479,15 @@ const TheService: ServiceSchema = {
       auth: 'Basic',
       handler(ctx) {
         return this.adapter.updateById(ctx.params.id, { $set: { status: 'cancelled' } }).then(async (res: any) => {
+          const instance = await ctx.call('stores.findInstance', { id: res.storeId });
+          ctx.call('invoices.updateInvoiceStatus', {
+            omsId: instance?.internal_data?.omsId,
+            invoiceId: res.invoiceId,
+            status: 'void',
+          });
           if (!res) {
             throw new MpError('Subscription Service', 'Subscription not found!', 404);
           }
-          const instance = await ctx.call('stores.findInstance', { id: res.storeId });
           this.broker.cacher.clean(`subscription.sGet:${res.storeId}*`);
           this.broker.cacher.clean(`subscription.sList:${res.storeId}*`);
           this.broker.cacher.clean(`stores.sGet:${res.storeId}*`);

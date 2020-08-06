@@ -40,6 +40,7 @@ const TheService: ServiceSchema = {
           'POST orders': 'orders.createOrder',
           'GET orders/:order_id': 'orders.getOrder',
           'PUT orders/:id': 'orders.updateOrder',
+          'PUT orders/pay/:id': 'orders.payOrder',
           'DELETE orders/:id': 'orders.deleteOrder',
 
           // Stores

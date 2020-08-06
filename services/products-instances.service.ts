@@ -278,9 +278,9 @@ module.exports = {
               doc: body,
             },
           })
-          .then(res => {
+          .then(async res => {
             if (res.result === 'updated' || res.result === 'noop') {
-              this.broker.cacher.clean(`products-instances.list:${ctx.meta.user}**`);
+              await this.broker.cacher.clean(`products-instances.list:${ctx.meta.user}**`);
               return {
                 status: 'success',
                 message: 'Updated successfully!',

@@ -32,6 +32,8 @@ export interface Order {
   storeLogo?: string;
   warnings?: string;
   warningsSnippet?: string;
+  financialStatus?: 'unpaid' | 'paid' | 'partially_paid' | 'voided' | 'wallet_refunded' | 'wallet_partially_refunded' | 'refunded' | 'partially_refunded';
+  fulfillmentStatus?: 'pending' | 'processing' | 'packed' | 'shipped' | 'delivered' | 'voided';
 }
 
 /**

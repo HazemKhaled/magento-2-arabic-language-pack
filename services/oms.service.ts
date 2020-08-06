@@ -32,6 +32,15 @@ const TheService: ServiceSchema = {
         });
       },
     },
+    updateInvoiceStatus: {
+      handler(ctx: Context) {
+        const {omsId, invoiceId, status} = ctx.params;
+        return this.request({
+          path: `invoices/${omsId}/${invoiceId}/status/${status}`,
+          method: 'post',
+        });
+      },
+    },
     applyInvoiceCredits: {
       handler(ctx: Context) {
         return this.request({

@@ -1,5 +1,34 @@
 # Changelog
 
+## 1.7.7
+
+### 🚀 Features
+
+- Stores new types zid.sa & youcan
+
+### ✨ Enhancements
+
+- PayOrder update get order by ID Fulfillment status
+- Remove magento1 from stores types
+
+## 1.7.6
+
+### 🚀 Features
+
+- Order financial status
+- Order fulfillment status
+- PayOrder end-point
+- Cancel invoice for cancelled subscriptions
+
+### 🐛 Fixes
+
+- Subscription grantTo not found store
+- Subscription autoRenew param on create
+
+### ✨ Enhancements
+
+- Post paid subscription mark invoice as sent
+
 ## 1.7.5
 
 ### 🚀 Features
