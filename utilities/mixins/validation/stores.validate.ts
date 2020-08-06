@@ -89,7 +89,6 @@ export const StoresValidation: ServiceSchema = {
           type: 'enum',
           values: [
             'woocommerce',
-            'magento1',
             'magento2',
             'salla',
             'expandcart',
@@ -283,7 +282,6 @@ export const StoresValidation: ServiceSchema = {
           type: 'enum',
           values: [
             'woocommerce',
-            'magento1',
             'magento2',
             'salla',
             'expandcart',

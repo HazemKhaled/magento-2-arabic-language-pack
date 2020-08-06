@@ -26,7 +26,6 @@ const StoreSchema = {
       description: 'Lowercase only allowed',
       enum: [
         'woocommerce',
-        'magento1',
         'magento2',
         'salla',
         'expandcart',
