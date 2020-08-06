@@ -762,9 +762,13 @@ const TheService: ServiceSchema = {
             id: invoiceId,
           });
 
-          await this.broker.cacher.clean(`orders.list:undefined|${ctx.meta.user}**`);
+          setTimeout((storeKey) => {
+            this.broker.cacher.clean(`orders.list:undefined|${storeKey}**`);
+          }, 60000, ctx.meta.user);
+
           order.status = 'paid';
           order.financialStatus = 'paid';
+          order.fulfillmentStatus = 'processing';
           this.cacheUpdate(order, store);
 
           return applyCreditRes;
@@ -1127,8 +1131,10 @@ const TheService: ServiceSchema = {
       }));
     },
     async cacheUpdate(order, instance) {
-      this.broker.cacher.set(`orders.getOrder:${order.id}`, this.sanitizeResponseOne(order));
-      this.broker.cacher.set(`orders.list:${order.externalId}|${instance.consumer_key}|undefined|undefined|undefined|undefined|undefined|undefined`, this.sanitizeResponseList([order]));
+      await Promise.all([
+        this.broker.cacher.set(`orders.getOrder:${order.id}`, this.sanitizeResponseOne(order)),
+        this.broker.cacher.set(`orders.list:${order.externalId}|${instance.consumer_key}|undefined|undefined|undefined|undefined|undefined|undefined`, this.sanitizeResponseList([order])),
+      ]);
     },
   },
 };
