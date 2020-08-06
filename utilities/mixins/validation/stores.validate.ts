@@ -89,7 +89,6 @@ export const StoresValidation: ServiceSchema = {
           type: 'enum',
           values: [
             'woocommerce',
-            'magento1',
             'magento2',
             'salla',
             'expandcart',
@@ -99,6 +98,8 @@ export const StoresValidation: ServiceSchema = {
             'ebay',
             'api',
             'catalog',
+            'zid.sa',
+            'youcan',
             'other',
           ],
         },
@@ -281,7 +282,6 @@ export const StoresValidation: ServiceSchema = {
           type: 'enum',
           values: [
             'woocommerce',
-            'magento1',
             'magento2',
             'salla',
             'expandcart',
@@ -291,6 +291,8 @@ export const StoresValidation: ServiceSchema = {
             'ebay',
             'api',
             'catalog',
+            'zid.sa',
+            'youcan',
             'other',
           ],
           optional: true,

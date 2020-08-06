@@ -37,7 +37,8 @@
     "traefik",
     "uuidv",
     "webhook",
-    "woocommerce"
+    "woocommerce",
+    "youcan"
   ],
   "files.exclude": {
     "**/.DS_Store": true,
