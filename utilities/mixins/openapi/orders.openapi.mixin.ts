@@ -1,6 +1,6 @@
 import { ServiceSchema } from 'moleculer';
 
-const Order = {
+const ItemSchema = {
   type: 'object',
   required: ['items', 'orderNumber', 'shipping', 'status'],
   properties: {
@@ -271,7 +271,7 @@ const Order = {
   },
 };
 
-const OrderList  = {
+const ListSchema  = {
   type: 'array',
   items: {
     type: 'object',
@@ -367,7 +367,7 @@ const OrderList  = {
   },
 };
 
-const OrdersCreateOpenapi = {
+const CreateItem = {
   $path: 'post /orders',
   summary: 'Create order',
   tags: ['Orders'],
@@ -399,7 +399,7 @@ const OrdersCreateOpenapi = {
   security: [{bearerAuth: [] as []}],
 };
 
-const OrdersUpdateOpenapi = {
+const UpdateItem = {
   $path: 'put /orders/{order_id}',
   parameters: [
     {
@@ -424,7 +424,7 @@ const OrdersUpdateOpenapi = {
   security: [{bearerAuth: [] as []}],
 };
 
-const OrdersGetOpenapi = {
+const GetItemById = {
   $path: 'get /orders/{order_id}',
   summary: 'Order by id',
   tags: ['Orders'],
@@ -446,7 +446,7 @@ const OrdersGetOpenapi = {
   security: [{bearerAuth: [] as []}],
 };
 
-const OrdersListOpenapi = {
+const GetAll = {
   $path: 'get /orders',
   summary: 'Get Order(s)',
   tags: ['Orders'],
@@ -526,7 +526,7 @@ const OrdersListOpenapi = {
   security: [{bearerAuth: [] as []}],
 };
 
-const OrdersDeleteOpenapi = {
+const DeleteItem = {
   $path: 'delete /orders/{order_id}',
   parameters: [
     {
@@ -549,7 +549,7 @@ const OrdersDeleteOpenapi = {
   security: [{bearerAuth: [] as []}],
 };
 
-const OrdersPayOpenapi = {
+const PayOrder = {
   $path: 'put /orders/pay/{order_id}',
   summary: 'Pay order by id',
   tags: ['Orders'],
@@ -603,7 +603,7 @@ export const OrdersOpenapi: ServiceSchema = {
     openapi: {
       components: {
         schemas: {
-          Order,
+          Order: ItemSchema,
         },
         responses: {
           Order: {
@@ -620,7 +620,7 @@ export const OrdersOpenapi: ServiceSchema = {
             description: 'Status 200',
             content: {
               'application/json': {
-                schema: OrderList,
+                schema: ListSchema,
               },
             },
           },
@@ -639,22 +639,22 @@ export const OrdersOpenapi: ServiceSchema = {
   },
   actions: {
     createOrder: {
-      openapi: OrdersCreateOpenapi,
+      openapi: CreateItem,
     },
     updateOrder: {
-      openapi: OrdersUpdateOpenapi,
+      openapi: UpdateItem,
     },
     getOrder: {
-      openapi: OrdersGetOpenapi,
+      openapi: GetItemById,
     },
     list: {
-      openapi: OrdersListOpenapi,
+      openapi: GetAll,
     },
     deleteOrder: {
-      openapi: OrdersDeleteOpenapi,
+      openapi: DeleteItem,
     },
     payOrder: {
-      openapi: OrdersPayOpenapi,
+      openapi: PayOrder,
     },
   },
 };
