@@ -74,7 +74,7 @@ const ShipmentGetOpenapi = {
     {
       name: 'id',
       in: 'path',
-      required: false,
+      required: true,
       schema: {
         type: 'string',
       },
@@ -96,15 +96,9 @@ const ShipmentGetOpenapi = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorBasic',
-    },
+    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
   },
-  security: [
-    {
-      basicAuth: [] as [],
-    },
-  ],
+  security: [{basicAuth: [] as any[]}],
 };
 
 const ShipmentInsertOpenapi = {
@@ -122,15 +116,9 @@ const ShipmentInsertOpenapi = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorBasic',
-    },
+    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
   },
-  security: [
-    {
-      basicAuth: [] as [],
-    },
-  ],
+  security: [{basicAuth: [] as any[]}],
   requestBody: {
     $ref: '#/components/requestBodies/ShipmentPolicy',
   },
@@ -161,15 +149,9 @@ const ShipmentUpdateOpenapi = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorBasic',
-    },
+    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
   },
-  security: [
-    {
-      basicAuth: [] as [],
-    },
-  ],
+  security: [{basicAuth: [] as any[]}],
   requestBody: {
     $ref: '#/components/requestBodies/ShipmentPolicy',
   },
@@ -230,15 +212,9 @@ const ShipmentRuleByCountryOpenapi = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorBasic',
-    },
+    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
   },
-  security: [
-    {
-      basicAuth: [] as [],
-    },
-  ],
+  security: [{basicAuth: [] as any[]}],
 };
 
 const ShipmentGetCurriersOpenapi = {
@@ -249,7 +225,6 @@ const ShipmentGetCurriersOpenapi = {
     {
       name: 'country',
       in: 'query',
-      required: false,
       schema: {
         type: 'string',
         minLength: 2,
@@ -271,15 +246,9 @@ const ShipmentGetCurriersOpenapi = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorBasic',
-    },
+    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
   },
-  security: [
-    {
-      basicAuth: [] as [],
-    },
-  ],
+  security: [{basicAuth: [] as any[]}],
 };
 
 export const ShipmentOpenapi: ServiceSchema = {

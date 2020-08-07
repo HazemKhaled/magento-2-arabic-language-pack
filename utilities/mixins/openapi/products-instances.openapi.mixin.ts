@@ -295,8 +295,6 @@ const GetInstanceProduct = {
       name: 'sku',
       in: 'path',
       required: true,
-      description: 'Identifier of the Task',
-      example: '47ee3550-b619',
       schema: {
         type: 'string',
       },
@@ -304,7 +302,6 @@ const GetInstanceProduct = {
     {
       name: 'currency',
       in: 'query',
-      required: false,
       description: 'Currency for the product returned',
       example: 'USD',
       schema: {
@@ -350,7 +347,6 @@ const ProductsList = {
     {
       name: 'limit',
       in: 'query',
-      required: false,
       description: 'Size of the page to retrieve.',
       schema: {
         type: 'integer',
@@ -361,7 +357,6 @@ const ProductsList = {
     {
       name: 'page',
       in: 'query',
-      required: false,
       description: 'Number of the page to retrieve.',
       schema: {
         type: 'integer',
@@ -372,7 +367,6 @@ const ProductsList = {
     {
       name: 'lastupdate',
       in: 'query',
-      required: false,
       description:
         'Timestamp(seconds since Jan 01 1970. (UTC)) of last import run DateTime (must be in UTC), API will respond only products which are updated/created after this timestamp.',
       example: '1542794072 for 21-11-2018 @ 9:54am',
@@ -383,7 +377,6 @@ const ProductsList = {
     {
       name: 'keyword',
       in: 'query',
-      required: false,
       description: 'Full text search in sku field',
       schema: {
         type: 'string',
@@ -392,7 +385,6 @@ const ProductsList = {
     {
       name: 'externalId',
       in: 'query',
-      required: false,
       description: 'filter with externalId',
       schema: {
         type: 'string',
@@ -401,7 +393,6 @@ const ProductsList = {
     {
       name: 'hasExternalId',
       in: 'query',
-      required: false,
       description: 'filter with or without externalId',
       schema: {
         type: 'number',
@@ -410,7 +401,6 @@ const ProductsList = {
     {
       name: 'hideOutOfStock',
       in: 'query',
-      required: false,
       description: 'Hide out of stock products',
       example: '1 => Hide archived products else will not hide',
       schema: {
@@ -420,7 +410,6 @@ const ProductsList = {
     {
       name: 'currency',
       in: 'query',
-      required: false,
       description: '3 digit numeric ISO 4217 codes',
       schema: {
         type: 'string',
@@ -487,6 +476,16 @@ const DeleteInstanceProduct = {
     401: {$ref: '#/components/responses/UnauthorizedErrorToken'},
     500: {$ref: '#/components/responses/500'},
   },
+  parameters: [
+    {
+      name: 'sku',
+      in: 'path',
+      required: true,
+      schema: {
+        type: 'string',
+      },
+    },
+  ],
   security: [{bearerAuth: [] as []}],
 };
 
@@ -567,7 +566,7 @@ const InstanceUpdate = {
   parameters: [
     {
       name: 'sku',
-      in: 'query',
+      in: 'path',
       required: true,
       schema: {
         type: 'string',

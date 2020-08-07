@@ -54,7 +54,6 @@ const InvoiceResponse = {
     },
     coupon: {
       type: 'string',
-      required: false,
     },
   },
 };
@@ -95,7 +94,11 @@ const InvoiceSchema = {
         },
       },
     },
-    dueDate: { type: 'string', required: false, format: 'date', example: 'yyyy-mm-dd' },
+    dueDate: {
+      type: 'string',
+      format: 'date',
+      example: 'yyyy-mm-dd',
+    },
   },
 };
 
@@ -107,7 +110,6 @@ const InvoicesGetOpenapi = {
     {
       name: 'page',
       in: 'query',
-      required: false,
       schema: {
         type: 'number',
       },
@@ -115,7 +117,6 @@ const InvoicesGetOpenapi = {
     {
       name: 'limit',
       in: 'query',
-      required: false,
       schema: {
         type: 'number',
       },
@@ -123,7 +124,6 @@ const InvoicesGetOpenapi = {
     {
       name: 'reference_number',
       in: 'query',
-      required: false,
       schema: {
         type: 'string',
       },
@@ -131,7 +131,6 @@ const InvoicesGetOpenapi = {
     {
       name: 'invoice_number',
       in: 'query',
-      required: false,
       schema: {
         type: 'string',
       },
@@ -156,15 +155,9 @@ const InvoicesGetOpenapi = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorToken',
-    },
+    401: {$ref: '#/components/responses/UnauthorizedErrorToken'},
   },
-  security: [
-    {
-      bearerAuth: [] as any[],
-    },
-  ],
+  security: [{bearerAuth: [] as any[]}],
 };
 
 const InvoicesCreateOpenapi = {
@@ -182,48 +175,11 @@ const InvoicesCreateOpenapi = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorBasic',
-    },
-    500: {
-      description: 'Status 500',
-      content: {
-        'application/json': {
-          schema: {
-            type: 'object',
-            properties: {
-              errors: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    message: {
-                      type: 'string',
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
+    500: {$ref: '#/components/responses/500'},
   },
-  security: [
-    {
-      basicAuth: [] as any[],
-    },
-  ],
-  requestBody: {
-    content: {
-      'application/json': {
-        schema: {
-          $ref: '#/components/requestBodies/Invoice',
-        },
-      },
-    },
-    required: true,
-  },
+  security: [{basicAuth: [] as any[]}],
+  requestBody: {$ref: '#/components/requestBodies/Invoice' },
 };
 
 const InvoicesApplyCreditsOpenapi = {
@@ -267,52 +223,18 @@ const InvoicesApplyCreditsOpenapi = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorBasic',
-    },
-    500: {
-      description: 'Status 500',
-      content: {
-        'application/json': {
-          schema: {
-            type: 'object',
-            properties: {
-              errors: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    message: {
-                      type: 'string',
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+    401: {$ref: '#/components/responses/UnauthorizedErrorToken'},
+    500: {$ref: '#/components/responses/500'},
   },
-  security: [
-    {
-      bearerAuth: [] as any[],
-    },
-  ],
+  security: [{bearerAuth: [] as any[]}],
   requestBody: {
     content: {
       'application/json': {
         schema: {
           type: 'object',
           properties: {
-            useSavedPaymentMethods: {
-              type: 'boolean',
-              required: true,
-            },
-            paymentAmount: {
-              type: 'number',
-              required: true,
-            },
+            useSavedPaymentMethods: {type: 'boolean'},
+            paymentAmount: {type: 'number'},
           },
         },
       },
@@ -360,33 +282,28 @@ export const InvoicesOpenapi: ServiceSchema = {
               },
             },
           },
-          401: {
-            $ref: '#/components/responses/UnauthorizedErrorBasic',
-          },
-          500: {
-            description: 'Status 500',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    errors: {
-                      type: 'array',
-                      items: {
-                        type: 'object',
-                        properties: {
-                          message: {
-                            type: 'string',
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
+          401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
+          500: {$ref: '#/components/responses/500'},
+        },
+        parameters: [
+          {
+            name: 'storeId',
+            in: 'path',
+            required: true,
+            schema: {
+              type: 'string',
             },
           },
-        },
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+        ],
+        security: [{basicAuth: [] as any[]}],
       },
     },
   },

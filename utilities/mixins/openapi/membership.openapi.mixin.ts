@@ -120,38 +120,10 @@ const MembershipCreateOpenapi = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorBasic',
-    },
-    500: {
-      description: 'Status 500',
-      content: {
-        'application/json': {
-          schema: {
-            type: 'object',
-            properties: {
-              errors: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    message: {
-                      type: 'string',
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
+    500: {$ref: '#/components/responses/500'},
   },
-  security: [
-    {
-      basicAuth: [] as [],
-    },
-  ],
+  security: [{basicAuth: [] as any[]}],
   requestBody: {
     content: {
       'application/json': {
@@ -180,7 +152,6 @@ const MembershipUpdateOpenapi = {
     {
       name: 'country',
       in: 'query',
-      required: false,
       schema: {
         type: 'string',
       },
@@ -197,38 +168,10 @@ const MembershipUpdateOpenapi = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorBasic',
-    },
-    500: {
-      description: 'Status 500',
-      content: {
-        'application/json': {
-          schema: {
-            type: 'object',
-            properties: {
-              errors: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    message: {
-                      type: 'string',
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
+    500: {$ref: '#/components/responses/500'},
   },
-  security: [
-    {
-      basicAuth: [] as [],
-    },
-  ],
+  security: [{basicAuth: [] as any[]}],
   requestBody: {
     $ref: '#/components/requestBodies/Membership',
   },
@@ -251,7 +194,6 @@ const MembershipGetOpenapi = {
     {
       name: 'country',
       in: 'query',
-      required: false,
       schema: {
         type: 'string',
       },
@@ -259,7 +201,6 @@ const MembershipGetOpenapi = {
     {
       name: 'coupon',
       in: 'query',
-      required: false,
       schema: {
         type: 'string',
         description: 'Coupon code to be applied to the membership discount',
@@ -277,38 +218,10 @@ const MembershipGetOpenapi = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorBasic',
-    },
-    500: {
-      description: 'Status 500',
-      content: {
-        'application/json': {
-          schema: {
-            type: 'object',
-            properties: {
-              errors: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    message: {
-                      type: 'string',
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
+    500: {$ref: '#/components/responses/500'},
   },
-  security: [
-    {
-      basicAuth: [] as any[],
-    },
-  ],
+  security: [{basicAuth: [] as any[]}],
 };
 
 const MembershipListOpenapi = {
@@ -320,7 +233,6 @@ const MembershipListOpenapi = {
     {
       name: 'country',
       in: 'query',
-      required: false,
       schema: {
         type: 'string',
       },
@@ -340,38 +252,10 @@ const MembershipListOpenapi = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorBasic',
-    },
-    500: {
-      description: 'Status 500',
-      content: {
-        'application/json': {
-          schema: {
-            type: 'object',
-            properties: {
-              errors: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    message: {
-                      type: 'string',
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
+    500: {$ref: '#/components/responses/500'},
   },
-  security: [
-    {
-      basicAuth: [] as any[],
-    },
-  ],
+  security: [{basicAuth: [] as any[]}],
 };
 
 export const MembershipOpenapi: ServiceSchema = {

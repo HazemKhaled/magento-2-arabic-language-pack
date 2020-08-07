@@ -50,7 +50,7 @@ export function OpenApiMixin(): ServiceSchema {
 
             // https://swagger.io/specification/#infoObject
             info: {
-              title: `${pkg.name} API Documentation`,
+              title: `${pkg.name.toUpperCase()} API Documentation`,
               version: pkg.version,
               termsOfService: 'https://knawat.com/terms-and-conditions/',
               contact: {
@@ -62,12 +62,16 @@ export function OpenApiMixin(): ServiceSchema {
                 url: 'https://knawat.com/terms-and-conditions/',
               },
               description: 'Welcome to the Knawat MP documentation. Navigate through the documentation to learn more. If you encounter any problems when using our APIs, send us an email it@knawat.com;\n\n'+
+
                             '## What is Knawat?\n\n'+
                             'Knawat is a Drop-Shipping platform. We are bringing hundreds of thousands of products to let you list in your e-commerce store. We also do all operations behind the e-commerce, so once you receive an order, we will ship it to your customer with your invoice.\n\n'+
+
                             '## What is Knawat MP API?\n\n'+
                             'Knawat MP APIs mainly for e-commerce stores, allows you to aggregate products to your store, update stock and prices, and send us your orders.\n\n'+
+
                             '## Knawat API rate limit\n\n'+
                             'To ensure Knawat APIs works stable for all our users, all our APIs are rate-limited. We use [leaky bucket](https://en.wikipedia.org/wiki/Leaky_bucket) algorithm to manage requests. Each store limited to 2 requests/second. We ask developers to optimize their requests, cache results, and re-trying requests when needed.\n\n'+
+
                             '## Support and Chat\n\n'+
                             'We are happy to receive your questions. click here to [chat with us](https://gitter.im/Knawat/Lobby)',
             },
@@ -169,10 +173,10 @@ export function OpenApiMixin(): ServiceSchema {
             ],
 
             // https://swagger.io/specification/#externalDocumentationObject
-            externalDocs: [{
+            externalDocs: {
               description: 'Find more info here',
               url: 'https://docs.knawat.io',
-            }],
+            },
           });
 
           const services = this.broker.registry.getServiceList({

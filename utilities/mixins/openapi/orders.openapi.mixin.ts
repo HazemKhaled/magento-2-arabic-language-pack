@@ -459,7 +459,6 @@ const GetAll = {
     {
       name: 'limit',
       in: 'query',
-      required: false,
       description: 'Size of the page to retrieve.',
       schema: {
         type: 'number',
@@ -471,7 +470,6 @@ const GetAll = {
     {
       name: 'page',
       in: 'query',
-      required: false,
       schema: {
         type: 'number',
         minimum: 1,
@@ -481,7 +479,6 @@ const GetAll = {
     {
       name: 'sort',
       in: 'query',
-      required: false,
       schema: {
         type: 'string',
         default: 'created_time',
@@ -498,7 +495,6 @@ const GetAll = {
     {
       name: 'sortOrder',
       in: 'query',
-      required: false,
       schema: {
         type: 'string',
         default: 'D',
@@ -508,7 +504,6 @@ const GetAll = {
     {
       name: 'status',
       in: 'query',
-      required: false,
       schema: {
         type: 'string',
         enum: ['draft', 'open', 'invoiced', 'partially_invoiced', 'void', 'overdue'],
@@ -517,7 +512,6 @@ const GetAll = {
     {
       name: 'externalId',
       in: 'query',
-      required: false,
       schema: {
         type: 'string',
       },
