@@ -236,17 +236,14 @@ const OrderResponse = {
         warningsSnippet: {
           type: 'string',
           readOnly: true,
-          required: false,
         },
         financialStatus: {
           type: 'string',
           readOnly: true,
-          required: false,
         },
         fulfillmentStatus: {
           type: 'string',
           readOnly: true,
-          required: false,
         },
       },
     },
@@ -708,6 +705,7 @@ const OrdersListOpenapi = {
       required: false,
       schema: {
         type: 'string',
+        default: 'created_time',
         enum: [
           'created_time',
           'customer_name',
@@ -717,7 +715,6 @@ const OrdersListOpenapi = {
           'date',
         ],
       },
-      default: 'created_time',
     },
     {
       name: 'sortOrder',
@@ -725,9 +722,9 @@ const OrdersListOpenapi = {
       required: false,
       schema: {
         type: 'string',
+        default: 'D',
         enum: ['A', 'D'],
       },
-      default: 'D',
     },
     {
       name: 'status',
