@@ -371,7 +371,6 @@ const CreateItem = {
   $path: 'post /orders',
   summary: 'Create order',
   tags: ['Orders'],
-  requestBody: {$ref: '#/components/requestBodies/Order'},
   responses: {
     200: {$ref: '#/components/responses/Order'},
     401: {$ref: '#/components/responses/UnauthorizedErrorToken'},
@@ -396,6 +395,7 @@ const CreateItem = {
     },
     500: {$ref: '#/components/responses/500'},
   },
+  requestBody: {$ref: '#/components/requestBodies/Order'},
   security: [{bearerAuth: [] as []}],
 };
 
@@ -414,13 +414,13 @@ const UpdateItem = {
   summary: 'Update order',
   tags: ['Orders'],
   description: 'Update order by id',
-  requestBody: {$ref: '#/components/requestBodies/Order'},
   responses: {
     200: {$ref: '#/components/responses/Order'},
     401: {$ref: '#/components/responses/UnauthorizedErrorToken'},
     404: {$ref: '#/components/responses/404'},
     500: {$ref: '#/components/responses/500'},
   },
+  requestBody: {$ref: '#/components/requestBodies/Order'},
   security: [{bearerAuth: [] as []}],
 };
 
@@ -428,6 +428,11 @@ const GetItemById = {
   $path: 'get /orders/{order_id}',
   summary: 'Order by id',
   tags: ['Orders'],
+  responses: {
+    200: {$ref: '#/components/responses/Order'},
+    401: {$ref: '#/components/responses/UnauthorizedErrorToken'},
+    404: {$ref: '#/components/responses/404'},
+  },
   parameters: [
     {
       name: 'order_id',
@@ -438,11 +443,6 @@ const GetItemById = {
       },
     },
   ],
-  responses: {
-    200: {$ref: '#/components/responses/Order'},
-    401: {$ref: '#/components/responses/UnauthorizedErrorToken'},
-    404: {$ref: '#/components/responses/404'},
-  },
   security: [{bearerAuth: [] as []}],
 };
 
@@ -451,6 +451,10 @@ const GetAll = {
   summary: 'Get Order(s)',
   tags: ['Orders'],
   description: 'To get all the order info you could use get order by id end-point',
+  responses: {
+    200: {$ref: '#/components/responses/OrderList'},
+    401: {$ref: '#/components/responses/UnauthorizedErrorToken'},
+  },
   parameters: [
     {
       name: 'limit',
@@ -519,25 +523,11 @@ const GetAll = {
       },
     },
   ],
-  responses: {
-    200: {$ref: '#/components/responses/OrderList'},
-    401: {$ref: '#/components/responses/UnauthorizedErrorToken'},
-  },
   security: [{bearerAuth: [] as []}],
 };
 
 const DeleteItem = {
   $path: 'delete /orders/{order_id}',
-  parameters: [
-    {
-      name: 'order_id',
-      in: 'path',
-      required: true,
-      schema: {
-        type: 'string',
-      },
-    },
-  ],
   summary: 'Cancel order',
   tags: ['Orders'],
   responses: {
@@ -546,13 +536,6 @@ const DeleteItem = {
     404: {$ref: '#/components/responses/404'},
     500: {$ref: '#/components/responses/500'},
   },
-  security: [{bearerAuth: [] as []}],
-};
-
-const PayOrder = {
-  $path: 'put /orders/pay/{order_id}',
-  summary: 'Pay order by id',
-  tags: ['Orders'],
   parameters: [
     {
       name: 'order_id',
@@ -563,6 +546,13 @@ const PayOrder = {
       },
     },
   ],
+  security: [{bearerAuth: [] as []}],
+};
+
+const PayOrder = {
+  $path: 'put /orders/pay/{order_id}',
+  summary: 'Pay order by id',
+  tags: ['Orders'],
   responses: {
     200: {
       description: 'Status 200',
@@ -590,10 +580,20 @@ const PayOrder = {
         },
       },
     },
-    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
+    401: {$ref: '#/components/responses/UnauthorizedErrorToken'},
     404: {$ref: '#/components/responses/404'},
     500: {$ref: '#/components/responses/500'},
   },
+  parameters: [
+    {
+      name: 'order_id',
+      in: 'path',
+      required: true,
+      schema: {
+        type: 'string',
+      },
+    },
+  ],
   security: [{bearerAuth: [] as []}],
 };
 
@@ -641,14 +641,14 @@ export const OrdersOpenapi: ServiceSchema = {
     createOrder: {
       openapi: CreateItem,
     },
-    updateOrder: {
-      openapi: UpdateItem,
-    },
     getOrder: {
       openapi: GetItemById,
     },
     list: {
       openapi: GetAll,
+    },
+    updateOrder: {
+      openapi: UpdateItem,
     },
     deleteOrder: {
       openapi: DeleteItem,
