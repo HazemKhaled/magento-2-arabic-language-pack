@@ -92,11 +92,13 @@ export function OpenApiMixin(): ServiceSchema {
                 },
                 UnauthorizedErrorBasic: {
                   description: 'Authentication information is missing or invalid',
-                  headers: {
-                    WWW_Authenticate: {
-                      schema: {
-                        type: 'string',
-                      },
+                },
+                404: {description: 'Entity not found.'},
+                500: {
+                  description: 'Internal Error.',
+                  content: {
+                    'application/json': {
+                      schema: {$ref: '#/components/schemas/Error'},
                     },
                   },
                 },
