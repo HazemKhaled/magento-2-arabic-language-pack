@@ -22,8 +22,8 @@ export function OpenApiMixin(): ServiceSchema {
   };
 
   let shouldUpdateSchema = true;
-  let shouldUpdateSchemaPrivate = true;
   let schema: any = null;
+  let schemaPrivate: any = null;
 
   return {
     name: 'openapi',
@@ -39,7 +39,6 @@ export function OpenApiMixin(): ServiceSchema {
        */
       invalidateOpenApiSchema() {
         shouldUpdateSchema = true;
-        shouldUpdateSchemaPrivate = true;
       },
 
       /**
@@ -146,8 +145,7 @@ export function OpenApiMixin(): ServiceSchema {
             security: [],
 
             // https://swagger.io/specification/#tagObject
-            tags: [
-            ],
+            tags: [],
 
             // https://swagger.io/specification/#externalDocumentationObject
             externalDocs: {
@@ -239,13 +237,17 @@ export function OpenApiMixin(): ServiceSchema {
 
               try {
                 schema = this.generateOpenAPISchema({ bearerOnly: true });
-
+                schemaPrivate = this.generateOpenAPISchema({});
                 shouldUpdateSchema = false;
-
-                this.logger.debug(schema);
 
                 if (process.env.NODE_ENV !== 'production') {
                   fs.writeFileSync('./openapi.json', JSON.stringify(schema, null, 4), 'utf8');
+
+                  fs.writeFileSync(
+                    './openapi-private.json',
+                    JSON.stringify(schemaPrivate, null, 4),
+                    'utf8',
+                  );
                 }
               } catch (err) {
                 this.logger.warn(err);
@@ -259,31 +261,10 @@ export function OpenApiMixin(): ServiceSchema {
             return this.sendResponse(ctx, '', req, res, schema);
           },
           'GET /openapi-private.json'(req: any, res: any) {
-            // Send back the generated schema
-            if (shouldUpdateSchemaPrivate || !schema) {
-              // Create new server & regenerate GraphQL schema
-              this.logger.info('♻ Regenerate OpenAPI/Swagger schema...');
-
-              try {
-                schema = this.generateOpenAPISchema({ bearerOnly: false });
-
-                shouldUpdateSchemaPrivate = false;
-
-                this.logger.debug(schema);
-
-                if (process.env.NODE_ENV !== 'production') {
-                  fs.writeFileSync('./openapi-private.json', JSON.stringify(schema, null, 4), 'utf8');
-                }
-              } catch (err) {
-                this.logger.warn(err);
-                this.sendError(req, res, err);
-              }
-            }
-
             const ctx = req.$ctx;
             ctx.meta.responseType = 'application/json';
 
-            return this.sendResponse(ctx, '', req, res, schema);
+            return this.sendResponse(ctx, '', req, res, schemaPrivate);
           },
         },
 
