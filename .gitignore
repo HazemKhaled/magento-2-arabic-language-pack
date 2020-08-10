@@ -14,3 +14,4 @@ currency.db
 openapi.json
 !private/importedProductsMigration/*.js
 build
+openapi-private.json
