@@ -1,6 +1,5 @@
 import { ServiceSchema } from 'moleculer';
 
-
 export const ProductsValidation: ServiceSchema = {
   name: 'products',
   actions: {

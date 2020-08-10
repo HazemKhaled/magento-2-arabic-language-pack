@@ -1,6 +1,5 @@
 import { ServiceSchema } from 'moleculer';
 
-
 export const ProductsInstancesValidation: ServiceSchema = {
   name: 'products',
   actions: {
@@ -17,7 +16,9 @@ export const ProductsInstancesValidation: ServiceSchema = {
         },
         _source: [
           {
-            type: 'array', items: 'string', enum: [
+            type: 'array',
+            items: 'string',
+            enum: [
               'sku',
               'name',
               'description',
@@ -30,7 +31,8 @@ export const ProductsInstancesValidation: ServiceSchema = {
             optional: true,
           },
           {
-            type: 'string', optional: true,
+            type: 'string',
+            optional: true,
           },
         ],
       },

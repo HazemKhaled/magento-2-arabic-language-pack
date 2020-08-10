@@ -5,10 +5,10 @@ const ProductsListListOpenapi = {
   summary: 'Get all Knawat Products',
   tags: ['Products'],
   responses: {
-    200: {$ref: '#/components/responses/200'},
-    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
+    200: { $ref: '#/components/responses/200' },
+    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
   },
-  security: [{basicAuth: [] as any[]}],
+  security: [{ basicAuth: [] as any[] }],
 };
 
 const ProductsListGetOpenapi = {
@@ -36,9 +36,9 @@ const ProductsListGetOpenapi = {
         },
       },
     },
-    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
+    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
   },
-  security: [{basicAuth: [] as any[]}],
+  security: [{ basicAuth: [] as any[] }],
 };
 
 const ProductsByVariationOpenapi = {
@@ -59,10 +59,10 @@ const ProductsByVariationOpenapi = {
   summary: 'Get Product by Variation SKU',
   tags: ['Products'],
   responses: {
-    200: {$ref: '#/components/responses/200'},
-    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
+    200: { $ref: '#/components/responses/200' },
+    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
   },
-  security: [{basicAuth: [] as any[]}],
+  security: [{ basicAuth: [] as any[] }],
 };
 
 export const ProductsOpenapi: ServiceSchema = {
@@ -78,9 +78,11 @@ export const ProductsOpenapi: ServiceSchema = {
       openapi: ProductsByVariationOpenapi,
     },
   },
-  tags: [{
-    name: 'Products',
-    description:
+  tags: [
+    {
+      name: 'Products',
+      description:
         'This is how you can get all Knawat products to list it directly on your store, this endpoint for enterprise only customers only',
-  }],
+    },
+  ],
 };

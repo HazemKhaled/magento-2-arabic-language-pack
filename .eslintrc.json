@@ -8,8 +8,6 @@
     "project": "tsconfig.json"
   },
   "rules": {
-    "@typescript-eslint/no-explicit-any": "warn",
-    "@typescript-eslint/explicit-function-return-type": "warn",
     "@typescript-eslint/camelcase": "off",
     "@typescript-eslint/naming-convention": [
       "error",
@@ -25,6 +23,14 @@
     "no-negated-condition": "off",
     "callback-return": "off",
     "no-return-await": "off",
-    "no-throw-literal": "off"
+    "no-throw-literal": "off",
+    "no-fallthrough": "warn",
+    // Change to error when you can
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/explicit-function-return-type": "warn",
+    "consistent-return": "warn",
+    "@typescript-eslint/no-var-requires": "warn",
+    "id-length": "warn",
+    "promise/catch-or-return": "warn"
   }
 }

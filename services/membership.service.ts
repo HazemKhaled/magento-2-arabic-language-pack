@@ -1,14 +1,21 @@
 import { Context, Errors, ServiceSchema, GenericObject } from 'moleculer';
+
 import DbService from '../utilities/mixins/mongo.mixin';
 import { MembershipOpenapi } from '../utilities/mixins/openapi';
 import { Membership, Coupon } from '../utilities/types';
 import { MembershipValidation } from '../utilities/mixins/validation';
-import TaxCheck from '../utilities/mixins/tax.mixin';
+import { TaxCheck } from '../utilities/mixins/tax.mixin';
+
 const MoleculerError = Errors.MoleculerError;
 
 const TheService: ServiceSchema = {
   name: 'membership',
-  mixins: [DbService('membership'), MembershipValidation, MembershipOpenapi, TaxCheck],
+  mixins: [
+    DbService('membership'),
+    MembershipValidation,
+    MembershipOpenapi,
+    TaxCheck,
+  ],
   actions: {
     create: {
       auth: 'Basic',
@@ -22,9 +29,14 @@ const TheService: ServiceSchema = {
         params._id = `m-${params.id || Date.now()}`;
         delete params.id;
         if (params.isDefault) {
-          const currentDefault = await this.adapter.findOne({ isDefault: true, active: true });
+          const currentDefault = await this.adapter.findOne({
+            isDefault: true,
+            active: true,
+          });
           if (currentDefault) {
-            throw new MoleculerError('There is an active default you add new one');
+            throw new MoleculerError(
+              'There is an active default you add new one'
+            );
           }
         }
         return this.adapter
@@ -45,7 +57,7 @@ const TheService: ServiceSchema = {
       auth: 'Basic',
       cache: {
         keys: ['id', 'country', 'coupon', 'active'],
-        ttl: 60 * 60 * 24, // 1 day
+        ttl: 60 * 60 * 24,
       },
       handler(ctx: Context): Promise<Membership> {
         const { active, id, country } = ctx.params;
@@ -81,25 +93,26 @@ const TheService: ServiceSchema = {
       auth: 'Basic',
       cache: {
         keys: ['country'],
-        ttl: 60 * 60 * 24, // 1 day
+        ttl: 60 * 60 * 24,
       },
       handler(ctx): Promise<Membership[]> {
         const { country } = ctx.params;
         let query: { [key: string]: any } = {};
         if (ctx.params.country) {
           query = {
-            $or: [
-              { country },
-              { country: { $exists: false } },
-            ],
+            $or: [{ country }, { country: { $exists: false } }],
           };
         }
         return this.adapter
-          .find({query})
+          .find({ query })
           .then((res: Membership[]) => {
-            if (!res.length) throw new MoleculerError('No Membership found!', 404);
+            if (!res.length)
+              throw new MoleculerError('No Membership found!', 404);
             const cMemberships = res.filter(m => m.country === country);
-            return this.listNormalize(cMemberships.length ? cMemberships : res, country);
+            return this.listNormalize(
+              cMemberships.length ? cMemberships : res,
+              country
+            );
           })
           .catch((err: any) => {
             if (err.name === 'MoleculerError') {
@@ -116,7 +129,10 @@ const TheService: ServiceSchema = {
         const id = params.id;
         delete params.id;
         return this.adapter.collection
-          .updateOne({_id: id}, { $set: { ...params, updatedAt: new Date() } })
+          .updateOne(
+            { _id: id },
+            { $set: { ...params, updatedAt: new Date() } }
+          )
           .then((res: Membership) => {
             this.broker.cacher.clean('membership.list:**');
             this.broker.cacher.clean(`membership.mGet:${id}**`);
@@ -141,16 +157,30 @@ const TheService: ServiceSchema = {
      * @param {({_id: string})} obj
      * @returns
      */
-    async normalize(obj: { _id: string; country?: string; cost: number }, country: string) {
+    async normalize(
+      obj: { _id: string; country?: string; cost: number },
+      country: string
+    ) {
       let taxData: any = { value: 0 };
       if (country || obj.country) {
-        taxData = (await this.getTaxWithCalc(country || obj.country, {taxClass: 'service', rate: obj.cost})) || {};
-        taxData.value = taxData.percentage ? +(taxData.isInclusive === false ? taxData.percentage / 100 * obj.cost : 0).toFixed(2) : 0;
+        taxData =
+          (await this.getTaxWithCalc(country || obj.country, {
+            taxClass: 'service',
+            rate: obj.cost,
+          })) || {};
+        taxData.value = taxData.percentage
+          ? Number(
+              (taxData.isInclusive === false
+                ? (taxData.percentage / 100) * obj.cost
+                : 0
+              ).toFixed(2)
+            )
+          : 0;
       }
       const newObj = {
         id: obj._id,
         ...obj,
-        cost: +(obj.cost + taxData.value).toFixed(2),
+        cost: Number((obj.cost + taxData.value).toFixed(2)),
         totals: {
           cost: obj.cost,
           taxData,
@@ -159,17 +189,29 @@ const TheService: ServiceSchema = {
       delete newObj._id;
       return newObj;
     },
-    async listNormalize(objArr: Array<{ _id: string; country?: string; cost: number }>, country: string) {
+    async listNormalize(
+      objArr: { _id: string; country?: string; cost: number }[],
+      country: string
+    ) {
       let taxData: any = {};
       if (country || objArr[0].country) {
-        taxData = await this.getItemTax(country || objArr[0].country, {taxClass: 'service'});
+        taxData = await this.getItemTax(country || objArr[0].country, {
+          taxClass: 'service',
+        });
       }
       return objArr.map(obj => {
-        taxData.value = taxData.percentage ? +(taxData.isInclusive === false ? taxData.percentage / 100 * obj.cost : 0).toFixed(2) : 0;
+        taxData.value = taxData.percentage
+          ? Number(
+              (taxData.isInclusive === false
+                ? (taxData.percentage / 100) * obj.cost
+                : 0
+              ).toFixed(2)
+            )
+          : 0;
         const newObj = {
           id: obj._id,
           ...obj,
-          cost: +(obj.cost + taxData.value).toFixed(2),
+          cost: Number((obj.cost + taxData.value).toFixed(2)),
           totals: {
             cost: obj.cost,
             taxData,
@@ -193,12 +235,14 @@ const TheService: ServiceSchema = {
       let discount = 0;
       if (coupon) {
         switch (coupon.discount.total.type) {
-        case '$':
-          discount = Math.min(coupon.discount.total.value, membership.cost);
-          break;
-        case '%':
-          discount = +((membership.cost / 100) * coupon.discount.total.value).toFixed(2);
-          break;
+          case '$':
+            discount = Math.min(coupon.discount.total.value, membership.cost);
+            break;
+          case '%':
+            discount = Number(
+              ((membership.cost / 100) * coupon.discount.total.value).toFixed(2)
+            );
+            break;
         }
       }
       membership.coupon = coupon;

@@ -7,13 +7,14 @@ const ItemSchema = {
     id: {
       type: 'string',
       readOnly: true,
-      description:'Knawat Order ID',
+      description: 'Knawat Order ID',
     },
     status: {
       type: 'string',
       readOnly: true,
       deprecated: true,
-      description: 'Deprecated and will be removed in 2021 Q2, use financialStatus & fulfillmentStatus',
+      description:
+        'Deprecated and will be removed in 2021 Q2, use financialStatus & fulfillmentStatus',
       enum: ['pending', 'processing', 'cancelled'],
     },
     items: {
@@ -26,7 +27,7 @@ const ItemSchema = {
             type: 'string',
             readOnly: true,
           },
-          sku: {type: 'string'},
+          sku: { type: 'string' },
           name: {
             type: 'string',
             readOnly: true,
@@ -75,17 +76,24 @@ const ItemSchema = {
       minItems: 1,
     },
     shipping: {
-      required: ['address_1', 'city', 'country', 'first_name', 'last_name', 'state'],
+      required: [
+        'address_1',
+        'city',
+        'country',
+        'first_name',
+        'last_name',
+        'state',
+      ],
       type: 'object',
       properties: {
-        first_name: {type: 'string'},
-        last_name: {type: 'string'},
-        company: {type: 'string'},
-        address_1: {type: 'string'},
-        address_2: {type: 'string'},
-        city: {type: 'string'},
-        state: {type: 'string'},
-        postcode: {type: 'string'},
+        first_name: { type: 'string' },
+        last_name: { type: 'string' },
+        company: { type: 'string' },
+        address_1: { type: 'string' },
+        address_2: { type: 'string' },
+        city: { type: 'string' },
+        state: { type: 'string' },
+        postcode: { type: 'string' },
         country: {
           type: 'string',
           description: 'ISO 3166-1 alpha-2 codes are two-letter country codes',
@@ -113,7 +121,7 @@ const ItemSchema = {
     },
     externalId: {
       type: 'string',
-      description:'Order ID in your store',
+      description: 'Order ID in your store',
     },
     createDate: {
       type: 'string',
@@ -128,11 +136,13 @@ const ItemSchema = {
     knawat_order_status: {
       type: 'string',
       deprecated: true,
-      description: 'Deprecated and will be removed in 2021 Q2, use financialStatus & fulfillmentStatus',
+      description:
+        'Deprecated and will be removed in 2021 Q2, use financialStatus & fulfillmentStatus',
     },
     notes: {
       type: 'string',
-      description: 'Extra guide for the customer or store owner for Knawat warehouse team',
+      description:
+        'Extra guide for the customer or store owner for Knawat warehouse team',
     },
     adjustment: {
       type: 'number',
@@ -158,10 +168,11 @@ const ItemSchema = {
       type: 'string',
       description: 'Optional invoice to print with the order',
     },
-    shipping_method: {type: 'string'},
+    shipping_method: { type: 'string' },
     shipment_date: {
       type: 'string',
-      description: 'Expected shipping date, could be updated depend on payment date, suppliers status or high demand time.',
+      description:
+        'Expected shipping date, could be updated depend on payment date, suppliers status or high demand time.',
       readOnly: true,
     },
     trackingNumber: {
@@ -170,11 +181,13 @@ const ItemSchema = {
     },
     coupon: {
       type: 'string',
-      description: 'Do you have Knawat coupon code? accepted only before order got paid',
+      description:
+        'Do you have Knawat coupon code? accepted only before order got paid',
     },
     warnings: {
       type: 'string',
-      description: 'Json stringified order warnings, including error key, optional SKU, and extra info depend on each error',
+      description:
+        'Json stringified order warnings, including error key, optional SKU, and extra info depend on each error',
       readOnly: true,
     },
     warningsSnippet: {
@@ -216,7 +229,8 @@ const ItemSchema = {
       {
         id: '1775488000012888568',
         sku: 'ABC-123',
-        name: "[ABC-123] Women's Leopard Pattern Black Modest 2 Piece Outfit Set",
+        name:
+          "[ABC-123] Women's Leopard Pattern Black Modest 2 Piece Outfit Set",
         description: 'Size: 38',
         rate: 13.28,
         quantity: 1,
@@ -271,7 +285,7 @@ const ItemSchema = {
   },
 };
 
-const ListSchema  = {
+const ListSchema = {
   type: 'array',
   items: {
     type: 'object',
@@ -279,18 +293,19 @@ const ListSchema  = {
       id: {
         type: 'string',
         description:
-          'On POST: Order ID in your store\n'+
+          'On POST: Order ID in your store\n' +
           'On GET: Knawat Order ID, your ID returned in externalId',
       },
       externalId: {
         type: 'string',
-        description:'Order ID in your store',
+        description: 'Order ID in your store',
       },
       status: {
         type: 'string',
         readOnly: true,
         deprecated: true,
-        description: 'Deprecated and will be removed in 2021 Q2, use financialStatus & fulfillmentStatus',
+        description:
+          'Deprecated and will be removed in 2021 Q2, use financialStatus & fulfillmentStatus',
         enum: ['pending', 'processing', 'cancelled'],
       },
       createDate: {
@@ -309,13 +324,15 @@ const ListSchema  = {
       },
       shipment_date: {
         type: 'string',
-        description: 'Expected shipping date, could be updated depend on payment date, suppliers status or high demand time.',
+        description:
+          'Expected shipping date, could be updated depend on payment date, suppliers status or high demand time.',
         readOnly: true,
       },
       knawat_order_status: {
         type: 'string',
         deprecated: true,
-        description: 'Deprecated and will be removed in 2021 Q2, use financialStatus & fulfillmentStatus',
+        description:
+          'Deprecated and will be removed in 2021 Q2, use financialStatus & fulfillmentStatus',
       },
       orderNumber: {
         type: 'string',
@@ -372,13 +389,13 @@ const CreateItem = {
   summary: 'Create order',
   tags: ['Orders'],
   responses: {
-    200: {$ref: '#/components/responses/Order'},
-    401: {$ref: '#/components/responses/UnauthorizedErrorToken'},
+    200: { $ref: '#/components/responses/Order' },
+    401: { $ref: '#/components/responses/UnauthorizedErrorToken' },
     404: {
       description: 'SKU(s) out of stock',
       content: {
         'application/json': {
-          schema: {$ref: '#/components/schemas/Error'},
+          schema: { $ref: '#/components/schemas/Error' },
           examples: {
             response: {
               value: {
@@ -393,10 +410,10 @@ const CreateItem = {
         },
       },
     },
-    500: {$ref: '#/components/responses/500'},
+    500: { $ref: '#/components/responses/500' },
   },
-  requestBody: {$ref: '#/components/requestBodies/Order'},
-  security: [{bearerAuth: [] as []}],
+  requestBody: { $ref: '#/components/requestBodies/Order' },
+  security: [{ bearerAuth: [] as [] }],
 };
 
 const UpdateItem = {
@@ -415,13 +432,13 @@ const UpdateItem = {
   tags: ['Orders'],
   description: 'Update order by id',
   responses: {
-    200: {$ref: '#/components/responses/Order'},
-    401: {$ref: '#/components/responses/UnauthorizedErrorToken'},
-    404: {$ref: '#/components/responses/404'},
-    500: {$ref: '#/components/responses/500'},
+    200: { $ref: '#/components/responses/Order' },
+    401: { $ref: '#/components/responses/UnauthorizedErrorToken' },
+    404: { $ref: '#/components/responses/404' },
+    500: { $ref: '#/components/responses/500' },
   },
-  requestBody: {$ref: '#/components/requestBodies/Order'},
-  security: [{bearerAuth: [] as []}],
+  requestBody: { $ref: '#/components/requestBodies/Order' },
+  security: [{ bearerAuth: [] as [] }],
 };
 
 const GetItemById = {
@@ -429,9 +446,9 @@ const GetItemById = {
   summary: 'Order by id',
   tags: ['Orders'],
   responses: {
-    200: {$ref: '#/components/responses/Order'},
-    401: {$ref: '#/components/responses/UnauthorizedErrorToken'},
-    404: {$ref: '#/components/responses/404'},
+    200: { $ref: '#/components/responses/Order' },
+    401: { $ref: '#/components/responses/UnauthorizedErrorToken' },
+    404: { $ref: '#/components/responses/404' },
   },
   parameters: [
     {
@@ -443,17 +460,18 @@ const GetItemById = {
       },
     },
   ],
-  security: [{bearerAuth: [] as []}],
+  security: [{ bearerAuth: [] as [] }],
 };
 
 const GetAll = {
   $path: 'get /orders',
   summary: 'Get Order(s)',
   tags: ['Orders'],
-  description: 'To get all the order info you could use get order by id end-point',
+  description:
+    'To get all the order info you could use get order by id end-point',
   responses: {
-    200: {$ref: '#/components/responses/OrderList'},
-    401: {$ref: '#/components/responses/UnauthorizedErrorToken'},
+    200: { $ref: '#/components/responses/OrderList' },
+    401: { $ref: '#/components/responses/UnauthorizedErrorToken' },
   },
   parameters: [
     {
@@ -506,7 +524,14 @@ const GetAll = {
       in: 'query',
       schema: {
         type: 'string',
-        enum: ['draft', 'open', 'invoiced', 'partially_invoiced', 'void', 'overdue'],
+        enum: [
+          'draft',
+          'open',
+          'invoiced',
+          'partially_invoiced',
+          'void',
+          'overdue',
+        ],
       },
     },
     {
@@ -517,7 +542,7 @@ const GetAll = {
       },
     },
   ],
-  security: [{bearerAuth: [] as []}],
+  security: [{ bearerAuth: [] as [] }],
 };
 
 const DeleteItem = {
@@ -525,10 +550,10 @@ const DeleteItem = {
   summary: 'Cancel order',
   tags: ['Orders'],
   responses: {
-    200: {$ref: '#/components/responses/Order'},
-    401: {$ref: '#/components/responses/UnauthorizedErrorToken'},
-    404: {$ref: '#/components/responses/404'},
-    500: {$ref: '#/components/responses/500'},
+    200: { $ref: '#/components/responses/Order' },
+    401: { $ref: '#/components/responses/UnauthorizedErrorToken' },
+    404: { $ref: '#/components/responses/404' },
+    500: { $ref: '#/components/responses/500' },
   },
   parameters: [
     {
@@ -540,7 +565,7 @@ const DeleteItem = {
       },
     },
   ],
-  security: [{bearerAuth: [] as []}],
+  security: [{ bearerAuth: [] as [] }],
 };
 
 const PayOrder = {
@@ -574,9 +599,9 @@ const PayOrder = {
         },
       },
     },
-    401: {$ref: '#/components/responses/UnauthorizedErrorToken'},
-    404: {$ref: '#/components/responses/404'},
-    500: {$ref: '#/components/responses/500'},
+    401: { $ref: '#/components/responses/UnauthorizedErrorToken' },
+    404: { $ref: '#/components/responses/404' },
+    500: { $ref: '#/components/responses/500' },
   },
   parameters: [
     {
@@ -588,7 +613,7 @@ const PayOrder = {
       },
     },
   ],
-  security: [{bearerAuth: [] as []}],
+  security: [{ bearerAuth: [] as [] }],
 };
 
 export const OrdersOpenapi: ServiceSchema = {
