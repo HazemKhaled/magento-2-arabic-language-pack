@@ -42,6 +42,30 @@ export function OpenApiMixin(): ServiceSchema {
       },
 
       /**
+       * Write static files in not created
+       */
+      generateOpenApiFiles() {
+        if (shouldUpdateSchema || !schema) {
+          // Create new server & regenerate GraphQL schema
+          this.logger.info('♻ Regenerate OpenAPI/Swagger schema...');
+
+          schema = this.generateOpenAPISchema({ bearerOnly: true });
+          schemaPrivate = this.generateOpenAPISchema({});
+          shouldUpdateSchema = false;
+
+          if (process.env.NODE_ENV !== 'production') {
+            fs.writeFileSync('./openapi.json', JSON.stringify(schema, null, 4), 'utf8');
+
+            fs.writeFileSync(
+              './openapi-private.json',
+              JSON.stringify(schemaPrivate, null, 4),
+              'utf8',
+            );
+          }
+        }
+      },
+
+      /**
        * Generate OpenAPI Schema
        */
       generateOpenAPISchema({ bearerOnly }: { bearerOnly: boolean }) {
@@ -170,7 +194,7 @@ export function OpenApiMixin(): ServiceSchema {
               }
 
               // Hide basic endpoint
-              if (bearerOnly && !action.openapi?.security[0]?.bearerAuth) {
+              if (bearerOnly && !action.openapi?.security?.[0]?.bearerAuth) {
                 return;
               }
 
@@ -230,42 +254,41 @@ export function OpenApiMixin(): ServiceSchema {
 
         aliases: {
           'GET /openapi.json'(req: any, res: any) {
-            // Send back the generated schema
-            if (shouldUpdateSchema || !schema) {
-              // Create new server & regenerate GraphQL schema
-              this.logger.info('♻ Regenerate OpenAPI/Swagger schema...');
-
-              try {
-                schema = this.generateOpenAPISchema({ bearerOnly: true });
-                schemaPrivate = this.generateOpenAPISchema({});
-                shouldUpdateSchema = false;
-
-                if (process.env.NODE_ENV !== 'production') {
-                  fs.writeFileSync('./openapi.json', JSON.stringify(schema, null, 4), 'utf8');
-
-                  fs.writeFileSync(
-                    './openapi-private.json',
-                    JSON.stringify(schemaPrivate, null, 4),
-                    'utf8',
-                  );
-                }
-              } catch (err) {
-                this.logger.warn(err);
-                this.sendError(req, res, err);
-              }
-            }
+            // Regenerate static files
+            this.generateOpenApiFiles();
 
             const ctx = req.$ctx;
             ctx.meta.responseType = 'application/json';
 
             return this.sendResponse(ctx, '', req, res, schema);
           },
-          'GET /openapi-private.json'(req: any, res: any) {
-            const ctx = req.$ctx;
-            ctx.meta.responseType = 'application/json';
+          'GET /openapi-private.json': [
+            (req: any, res: any) => {
+              const auth = { login: 'your-login', password: 'your-password' }; // change this
 
-            return this.sendResponse(ctx, '', req, res, schemaPrivate);
-          },
+              // parse login and password from headers
+              const b64auth = (req?.headers?.authorization || '').split(' ')[1] || '';
+              const [login, password] = Buffer.from(b64auth, 'base64').toString().split(':');
+
+              // Verify login and password are set and correct
+              if (login && password && login === auth.login && password === auth.password) {
+                // Regenerate static files
+                this.generateOpenApiFiles();
+
+                const ctx = req.$ctx;
+                ctx.meta.responseType = 'application/json';
+
+                return this.sendResponse(ctx, '', req, res, schemaPrivate);
+              }
+              // Access denied...
+
+              const ctx = req.$ctx;
+              ctx.meta.$responseHeaders = { 'WWW-Authenticate': 'Basic realm="401"' };
+              ctx.meta.$statusCode = 401;
+
+              return this.sendResponse(ctx, '', req, res, 'Authentication required');
+            },
+          ],
         },
 
         mappingPolicy: 'restrict',
