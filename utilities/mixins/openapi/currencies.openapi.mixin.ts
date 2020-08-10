@@ -21,7 +21,7 @@ const CurrencySettingsOpenapi = {
 const CurrenciesGetCurrencyOpenapi = {
   $path: 'get /currencies/{currencyCode}',
   summary: 'Get Currency By Code',
-  tags: ['Currencies', 'Enterprise Only'],
+  tags: ['Currencies'],
   description: 'Gets currency code, name and rate',
   parameters: [
     {
@@ -62,7 +62,7 @@ const CurrenciesGetCurrencyOpenapi = {
 const CurrenciesGetCurrenciesOpenapi = {
   $path: 'get /currencies',
   summary: 'Get Currencies',
-  tags: ['Currencies', 'Enterprise Only'],
+  tags: ['Currencies'],
   description: 'Get all currencies with names, code and rates info',
   responses: {
     200: {

@@ -66,8 +66,7 @@ const PaymentsAddOpenapi = {
     },
   ],
   summary: 'Add Payment',
-  description: 'This service available for some Enterprise subscriptions Only',
-  tags: ['Payments', 'Enterprise Only'],
+  tags: ['Payments'],
   responses: {
     200: {
       description: 'Status 200',

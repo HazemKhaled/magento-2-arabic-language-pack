@@ -711,4 +711,14 @@ export const ProductsInstancesOpenapi: ServiceSchema = {
       openapi: ProductsTotal,
     },
   },
+  tags: [{
+    name: 'My Products',
+    description:
+        'How products can come to your API?' +
+        '![](https://www.dropbox.com/s/tb8708y269pccx0/ZApp%20-%20products.png?dl=1)',
+    externalDocs: {
+      description: 'Register and import some products',
+      url: 'https://app.knawat.com/catalog',
+    },
+  }],
 };

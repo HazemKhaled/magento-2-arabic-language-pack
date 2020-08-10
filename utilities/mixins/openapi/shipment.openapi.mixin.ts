@@ -81,7 +81,7 @@ const ShipmentGetOpenapi = {
     },
   ],
   summary: 'Get All Shipment Policies or Get By Id',
-  tags: ['Shipment', 'Enterprise Only'],
+  tags: ['Shipment'],
   responses: {
     200: {
       description: 'Status 200',
@@ -104,7 +104,7 @@ const ShipmentGetOpenapi = {
 const ShipmentInsertOpenapi = {
   $path: 'post /shipment',
   summary: 'Insert Shipment Policy',
-  tags: ['Shipment', 'Enterprise Only'],
+  tags: ['Shipment'],
   responses: {
     200: {
       description: 'Status 200',
@@ -137,7 +137,7 @@ const ShipmentUpdateOpenapi = {
     },
   ],
   summary: 'Update Shipment Policy',
-  tags: ['Shipment', 'Enterprise Only'],
+  tags: ['Shipment'],
   responses: {
     200: {
       description: 'Status 200',
@@ -160,7 +160,7 @@ const ShipmentUpdateOpenapi = {
 const ShipmentRuleByCountryOpenapi = {
   $path: 'get /shipment/rules',
   summary: 'Get Shipment Cost',
-  tags: ['Shipment', 'Enterprise Only'],
+  tags: ['Shipment'],
   parameters: [
     {
       name: 'country',
@@ -220,7 +220,7 @@ const ShipmentRuleByCountryOpenapi = {
 const ShipmentGetCurriersOpenapi = {
   $path: 'get /shipment/couriers',
   summary: 'Get All Couriers',
-  tags: ['Shipment', 'Enterprise Only'],
+  tags: ['Shipment'],
   parameters: [
     {
       name: 'country',

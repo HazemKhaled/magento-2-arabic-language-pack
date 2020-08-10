@@ -239,7 +239,7 @@ const StoresMeOpenapi = {
 const StoresGetOpenapi = {
   $path: 'get /stores/{url}',
   summary: 'Get Store by url',
-  tags: ['Stores', 'Enterprise Only'],
+  tags: ['Stores'],
   parameters: [
     {
       name: 'url',
@@ -270,7 +270,7 @@ const StoresGetOpenapi = {
 const StoresListOpenapi = {
   $path: 'get /stores',
   summary: 'All User Stores',
-  tags: ['Stores', 'Enterprise Only'],
+  tags: ['Stores'],
   parameters: [
     {
       name: 'filter',
@@ -356,7 +356,7 @@ const StoresSListOpenapi = {
 const StoresCreateOpenapi = {
   $path: 'post /stores',
   summary: 'Create new store',
-  tags: ['Stores', 'Enterprise Only'],
+  tags: ['Stores'],
   responses: {
     200: {
       description: 'Status 200',
@@ -380,7 +380,7 @@ const StoresCreateOpenapi = {
 const StoresUpdateOpenapi = {
   $path: 'put /stores/{url}',
   summary: 'Update Store by URL',
-  tags: ['Stores', 'Enterprise Only'],
+  tags: ['Stores'],
   parameters: [
     {
       name: 'url',

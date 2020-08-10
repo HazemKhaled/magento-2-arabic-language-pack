@@ -3,7 +3,7 @@ import { ServiceSchema } from 'moleculer';
 const ProductsListListOpenapi = {
   $path: 'get /products',
   summary: 'Get all Knawat Products',
-  tags: ['Products', 'Enterprise Only'],
+  tags: ['Products'],
   responses: {
     200: {$ref: '#/components/responses/200'},
     401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
@@ -24,7 +24,7 @@ const ProductsListGetOpenapi = {
     },
   ],
   summary: 'Get Product by SKU',
-  tags: ['Products', 'Enterprise Only'],
+  tags: ['Products'],
   responses: {
     200: {
       description: 'Status 200',
@@ -36,7 +36,7 @@ const ProductsListGetOpenapi = {
         },
       },
     },
-    200: {$ref: '#/components/responses/200'},
+    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
   },
   security: [{basicAuth: [] as any[]}],
 };
@@ -57,7 +57,7 @@ const ProductsByVariationOpenapi = {
     },
   ],
   summary: 'Get Product by Variation SKU',
-  tags: ['Products', 'Enterprise Only'],
+  tags: ['Products'],
   responses: {
     200: {$ref: '#/components/responses/200'},
     401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
@@ -78,4 +78,9 @@ export const ProductsOpenapi: ServiceSchema = {
       openapi: ProductsByVariationOpenapi,
     },
   },
+  tags: [{
+    name: 'Products',
+    description:
+        'This is how you can get all Knawat products to list it directly on your store, this endpoint for enterprise only customers only',
+  }],
 };
