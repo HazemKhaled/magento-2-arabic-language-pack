@@ -38,7 +38,7 @@ const Log = {
 const LogsAddOpenapi = {
   $path: 'post /logs',
   summary: 'Add Log',
-  tags: ['Shipment', 'Enterprise Only'],
+  tags: ['Logs', 'Enterprise Only'],
   responses: {
     200: {
       description: 'Status 200',
@@ -81,7 +81,7 @@ const LogsAddOpenapi = {
 const LogsGetLogsOpenapi = {
   $path: 'get /logs',
   summary: 'Get Logs',
-  tags: ['Shipment', 'Enterprise Only'],
+  tags: ['Logs', 'Enterprise Only'],
   parameters: [
     {
       name: 'topic',
