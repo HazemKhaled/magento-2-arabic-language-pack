@@ -270,19 +270,19 @@ export function OpenApiMixin(): ServiceSchema {
               const b64auth = (req?.headers?.authorization || '').split(' ')[1] || '';
               const [login, password] = Buffer.from(b64auth, 'base64').toString().split(':');
 
+              const ctx = req.$ctx;
+
               // Verify login and password are set and correct
               if (login && password && login === auth.login && password === auth.password) {
                 // Regenerate static files
                 this.generateOpenApiFiles();
 
-                const ctx = req.$ctx;
                 ctx.meta.responseType = 'application/json';
 
                 return this.sendResponse(ctx, '', req, res, schemaPrivate);
               }
-              // Access denied...
 
-              const ctx = req.$ctx;
+              // Access denied...
               ctx.meta.$responseHeaders = { 'WWW-Authenticate': 'Basic realm="401"' };
               ctx.meta.$statusCode = 401;
 
