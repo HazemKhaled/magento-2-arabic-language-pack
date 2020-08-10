@@ -66,8 +66,7 @@ const PaymentsAddOpenapi = {
     },
   ],
   summary: 'Add Payment',
-  description: 'This service available for some Enterprise subscriptions Only',
-  tags: ['Payments', 'Enterprise Only'],
+  tags: ['Payments'],
   responses: {
     200: {
       description: 'Status 200',
@@ -79,15 +78,9 @@ const PaymentsAddOpenapi = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorBasic',
-    },
+    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
   },
-  security: [
-    {
-      basicAuth: [] as [],
-    },
-  ],
+  security: [{basicAuth: [] as any[]}],
   requestBody: {
     required: true,
     content: {
@@ -146,7 +139,6 @@ const PaymentsGetOpenapi = {
     {
       name: 'page',
       in: 'query',
-      required: false,
       schema: {
         type: 'number',
       },
@@ -154,7 +146,6 @@ const PaymentsGetOpenapi = {
     {
       name: 'limit',
       in: 'query',
-      required: false,
       schema: {
         type: 'number',
       },
@@ -162,7 +153,6 @@ const PaymentsGetOpenapi = {
     {
       name: 'reference_number',
       in: 'query',
-      required: false,
       schema: {
         type: 'string',
       },
@@ -170,7 +160,6 @@ const PaymentsGetOpenapi = {
     {
       name: 'payment_mode',
       in: 'query',
-      required: false,
       schema: {
         type: 'string',
       },
@@ -195,15 +184,9 @@ const PaymentsGetOpenapi = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorToken',
-    },
+    401: {$ref: '#/components/responses/UnauthorizedErrorToken'},
   },
-  security: [
-    {
-      bearerAuth: [] as [],
-    },
-  ],
+  security: [{bearerAuth: [] as any[]}],
 };
 
 export const PaymentsOpenapi: ServiceSchema = {

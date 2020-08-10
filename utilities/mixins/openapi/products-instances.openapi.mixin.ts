@@ -1,6 +1,6 @@
 import { ServiceSchema } from 'moleculer';
 
-const Product = {
+const ItemSchema = {
   description: 'An object that represents a Product.',
   type: 'object',
   required: [
@@ -193,7 +193,7 @@ const Product = {
   },
 };
 
-const ProductAttribute = {
+const ProductAttributeSchema = {
   required: ['name', 'options'],
   type: 'object',
   properties: {
@@ -204,7 +204,7 @@ const ProductAttribute = {
     },
   },
 };
-const ProductVariation = {
+const ProductVariationSchema = {
   required: ['cost_price', 'quantity', 'sale_price', 'sku', 'weight'],
   type: 'object',
   properties: {
@@ -244,7 +244,7 @@ const ProductVariation = {
   },
 };
 
-const ProductVariationAttribute = {
+const ProductVariationAttributeSchema = {
   required: ['name', 'option'],
   type: 'object',
   properties: {
@@ -253,7 +253,7 @@ const ProductVariationAttribute = {
   },
 };
 
-const I18nString = {
+const I18nStringSchema = {
   description: 'Key and value depend on available language(s) and selected language from store settings',
   type: 'object',
   properties: {
@@ -286,32 +286,15 @@ const GetInstanceProduct = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorToken',
-    },
-    404: {
-      description: 'SKU not found',
-      content: {
-        'application/json': {
-          schema: {
-            $ref: '#/components/schemas/Error',
-          },
-        },
-      },
-    },
+    401: {$ref: '#/components/responses/UnauthorizedErrorToken'},
+    404: {$ref: '#/components/responses/404'},
   },
-  security: [
-    {
-      bearerAuth: [] as [],
-    },
-  ],
+  security: [{bearerAuth: [] as []}],
   parameters: [
     {
       name: 'sku',
       in: 'path',
       required: true,
-      description: 'Identifier of the Task',
-      example: '47ee3550-b619',
       schema: {
         type: 'string',
       },
@@ -319,7 +302,6 @@ const GetInstanceProduct = {
     {
       name: 'currency',
       in: 'query',
-      required: false,
       description: 'Currency for the product returned',
       example: 'USD',
       schema: {
@@ -350,38 +332,10 @@ const ProductsTotal = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorToken',
-    },
-    500: {
-      description: 'Internal  Server Error',
-      content: {
-        'application/json': {
-          schema: {
-            type: 'object',
-            properties: {
-              errors: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    message: {
-                      type: 'string',
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+    401: {$ref: '#/components/responses/UnauthorizedErrorToken'},
+    500: {$ref: '#/components/responses/500'},
   },
-  security: [
-    {
-      bearerAuth: [] as [],
-    },
-  ],
+  security: [{bearerAuth: [] as []}],
 };
 
 const ProductsList = {
@@ -393,7 +347,6 @@ const ProductsList = {
     {
       name: 'limit',
       in: 'query',
-      required: false,
       description: 'Size of the page to retrieve.',
       schema: {
         type: 'integer',
@@ -404,7 +357,6 @@ const ProductsList = {
     {
       name: 'page',
       in: 'query',
-      required: false,
       description: 'Number of the page to retrieve.',
       schema: {
         type: 'integer',
@@ -415,7 +367,6 @@ const ProductsList = {
     {
       name: 'lastupdate',
       in: 'query',
-      required: false,
       description:
         'Timestamp(seconds since Jan 01 1970. (UTC)) of last import run DateTime (must be in UTC), API will respond only products which are updated/created after this timestamp.',
       example: '1542794072 for 21-11-2018 @ 9:54am',
@@ -426,7 +377,6 @@ const ProductsList = {
     {
       name: 'keyword',
       in: 'query',
-      required: false,
       description: 'Full text search in sku field',
       schema: {
         type: 'string',
@@ -435,7 +385,6 @@ const ProductsList = {
     {
       name: 'externalId',
       in: 'query',
-      required: false,
       description: 'filter with externalId',
       schema: {
         type: 'string',
@@ -444,7 +393,6 @@ const ProductsList = {
     {
       name: 'hasExternalId',
       in: 'query',
-      required: false,
       description: 'filter with or without externalId',
       schema: {
         type: 'number',
@@ -453,7 +401,6 @@ const ProductsList = {
     {
       name: 'hideOutOfStock',
       in: 'query',
-      required: false,
       description: 'Hide out of stock products',
       example: '1 => Hide archived products else will not hide',
       schema: {
@@ -463,7 +410,6 @@ const ProductsList = {
     {
       name: 'currency',
       in: 'query',
-      required: false,
       description: '3 digit numeric ISO 4217 codes',
       schema: {
         type: 'string',
@@ -497,15 +443,9 @@ const ProductsList = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorToken',
-    },
+    401: {$ref: '#/components/responses/UnauthorizedErrorToken'},
   },
-  security: [
-    {
-      bearerAuth: [] as [],
-    },
-  ],
+  security: [{bearerAuth: [] as []}],
 };
 
 const DeleteInstanceProduct = {
@@ -533,38 +473,20 @@ const DeleteInstanceProduct = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorToken',
-    },
-    500: {
-      description: 'Status 500',
-      content: {
-        'application/json': {
-          schema: {
-            type: 'object',
-            properties: {
-              errors: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    message: {
-                      type: 'string',
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
+    401: {$ref: '#/components/responses/UnauthorizedErrorToken'},
+    500: {$ref: '#/components/responses/500'},
+  },
+  parameters: [
+    {
+      name: 'sku',
+      in: 'path',
+      required: true,
+      schema: {
+        type: 'string',
       },
     },
-  },
-  security: [
-    {
-      bearerAuth: [] as [],
-    },
   ],
+  security: [{bearerAuth: [] as []}],
 };
 
 const ProductsImport = {
@@ -597,38 +519,9 @@ const ProductsImport = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorToken',
-    },
-    500: {
-      description: 'Status 500',
-      content: {
-        'application/json': {
-          schema: {
-            type: 'object',
-            properties: {
-              errors: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    message: {
-                      type: 'string',
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+    401: {$ref: '#/components/responses/UnauthorizedErrorToken'},
+    500: {$ref: '#/components/responses/500'},
   },
-  security: [
-    {
-      bearerAuth: [] as [],
-    },
-  ],
   requestBody: {
     content: {
       'application/json': {
@@ -656,6 +549,7 @@ const ProductsImport = {
     },
     required: true,
   },
+  security: [{bearerAuth: [] as []}],
 };
 
 const InstanceUpdate = {
@@ -663,73 +557,20 @@ const InstanceUpdate = {
   summary: 'Update Product',
   tags: ['My Products'],
   description: 'Update imported product External IDs by SKU',
+  responses: {
+    200: {description: 'Status 200'},
+    401: {$ref: '#/components/responses/UnauthorizedErrorToken'},
+    404: {$ref: '#/components/responses/404'},
+    500: {$ref: '#/components/responses/500'},
+  },
   parameters: [
     {
       name: 'sku',
-      in: 'query',
+      in: 'path',
       required: true,
       schema: {
         type: 'string',
       },
-    },
-  ],
-  responses: {
-    200: {
-      description: 'Status 200',
-    },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorToken',
-    },
-    404: {
-      description: 'Status 404',
-      content: {
-        'application/json': {
-          schema: {
-            type: 'object',
-            properties: {
-              errors: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    message: {
-                      type: 'string',
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-    500: {
-      description: 'Status 500',
-      content: {
-        'application/json': {
-          schema: {
-            type: 'object',
-            properties: {
-              errors: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    message: {
-                      type: 'string',
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  },
-  security: [
-    {
-      bearerAuth: [] as [],
     },
   ],
   requestBody: {
@@ -739,9 +580,11 @@ const InstanceUpdate = {
           type: 'object',
           properties: {
             externalUrl: {
+              description: 'Product URL in your store',
               type: 'string',
             },
             externalId: {
+              description: 'Product ID in your store',
               type: 'number',
             },
             variations: {
@@ -750,10 +593,9 @@ const InstanceUpdate = {
                 required: ['sku'],
                 type: 'object',
                 properties: {
-                  sku: {
-                    type: 'string',
-                  },
+                  sku: {type: 'string'},
                   externalId: {
+                    description: 'Variation ID in your store',
                     type: 'number',
                   },
                 },
@@ -762,9 +604,7 @@ const InstanceUpdate = {
             },
             error: {
               type: 'array',
-              items: {
-                type: 'string',
-              },
+              items: {type: 'string'},
             },
           },
         },
@@ -772,6 +612,7 @@ const InstanceUpdate = {
     },
     required: true,
   },
+  security: [{bearerAuth: [] as []}],
 };
 
 const BulkProductInstance = {
@@ -780,53 +621,11 @@ const BulkProductInstance = {
   tags: ['My Products'],
   description: 'Update externalUrl, externalId and variations.error',
   responses: {
-    200: {
-      description: 'Status 200',
-      content: {
-        'application/json': {
-          schema: {
-            type: 'object',
-            properties: {
-              status: {
-                type: 'string',
-              },
-            },
-          },
-        },
-      },
-    },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorToken',
-    },
-    500: {
-      description: 'Status 500',
-      content: {
-        'application/json': {
-          schema: {
-            type: 'object',
-            properties: {
-              errors: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    message: {
-                      type: 'string',
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+    200: {description: 'Status 200'},
+    401: {$ref: '#/components/responses/UnauthorizedErrorToken'},
+    500: {$ref: '#/components/responses/500'},
   },
-  security: [
-    {
-      bearerAuth: [] as [],
-    },
-  ],
+  security: [{bearerAuth: [] as []}],
   requestBody: {
     content: {
       'application/json': {
@@ -880,36 +679,46 @@ export const ProductsInstancesOpenapi: ServiceSchema = {
     openapi: {
       components: {
         schemas: {
-          Product,
-          ProductVariation,
-          ProductAttribute,
-          ProductVariationAttribute,
-          I18nString,
+          Product: ItemSchema,
+          ProductVariation: ProductVariationSchema,
+          ProductAttribute: ProductAttributeSchema,
+          ProductVariationAttribute: ProductVariationAttributeSchema,
+          I18nString: I18nStringSchema,
         },
       },
     },
   },
   actions: {
-    getInstanceProduct: {
-      openapi: GetInstanceProduct,
-    },
-    total: {
-      openapi: ProductsTotal,
+    import: {
+      openapi: ProductsImport,
     },
     list: {
       openapi: ProductsList,
     },
-    deleteInstanceProduct: {
-      openapi: DeleteInstanceProduct,
-    },
-    import: {
-      openapi: ProductsImport,
-    },
-    instanceUpdate: {
-      openapi: InstanceUpdate,
+    getInstanceProduct: {
+      openapi: GetInstanceProduct,
     },
     bulkProductInstance: {
       openapi: BulkProductInstance,
     },
+    instanceUpdate: {
+      openapi: InstanceUpdate,
+    },
+    deleteInstanceProduct: {
+      openapi: DeleteInstanceProduct,
+    },
+    total: {
+      openapi: ProductsTotal,
+    },
   },
+  tags: [{
+    name: 'My Products',
+    description:
+        'How products can come to your API?' +
+        '![](https://www.dropbox.com/s/tb8708y269pccx0/ZApp%20-%20products.png?dl=1)',
+    externalDocs: {
+      description: 'Register and import some products',
+      url: 'https://app.knawat.com/catalog',
+    },
+  }],
 };

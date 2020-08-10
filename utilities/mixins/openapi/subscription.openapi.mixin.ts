@@ -45,7 +45,6 @@ const SubscriptionListOpenapi = {
     {
       name: 'storeId',
       in: 'query',
-      required: false,
       schema: {
         type: 'string',
       },
@@ -53,7 +52,6 @@ const SubscriptionListOpenapi = {
     {
       name: 'membershipId',
       in: 'query',
-      required: false,
       schema: {
         type: 'string',
       },
@@ -63,13 +61,16 @@ const SubscriptionListOpenapi = {
       in: 'query',
       schema: {
         type: 'array',
-        max: 2,
-        min: 1,
+        maxItems: 2,
+        minItems: 1,
         items: {
           type: 'object',
           properties: {
-            operation: { type: 'string', values: ['lte', 'gte', 'gt', 'lt'] },
-            date: { type: 'date' },
+            operation: { type: 'string', enum: ['lte', 'gte', 'gt', 'lt'] },
+            date: {
+              type: 'string',
+              format: 'date',
+            },
           },
         },
       },
@@ -79,13 +80,16 @@ const SubscriptionListOpenapi = {
       in: 'query',
       schema: {
         type: 'array',
-        max: 2,
-        min: 1,
+        maxItems: 2,
+        minItems: 1,
         items: {
           type: 'object',
           properties: {
             operation: { type: 'string', enum: ['lte', 'gte', 'gt', 'lt'] },
-            date: { type: 'date' },
+            date: {
+              type: 'string',
+              format: 'date',
+            },
           },
         },
       },
@@ -93,7 +97,6 @@ const SubscriptionListOpenapi = {
     {
       name: 'status',
       in: 'query',
-      required: false,
       schema: {
         type: 'string',
         enum: ['active', 'confirmed', 'pending', 'cancelled'],
@@ -103,7 +106,6 @@ const SubscriptionListOpenapi = {
     {
       name: 'reference',
       in: 'query',
-      required: false,
       schema: {
         type: 'string',
         description: 'Filter by external reference ID',
@@ -112,7 +114,6 @@ const SubscriptionListOpenapi = {
     {
       name: 'page',
       in: 'query',
-      required: false,
       schema: {
         type: 'number',
       },
@@ -120,7 +121,6 @@ const SubscriptionListOpenapi = {
     {
       name: 'perPage',
       in: 'query',
-      required: false,
       schema: {
         type: 'number',
       },
@@ -151,38 +151,10 @@ const SubscriptionListOpenapi = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorBasic',
-    },
-    404: {
-      description: 'Status 404',
-      content: {
-        'application/json': {
-          schema: {
-            type: 'object',
-            properties: {
-              errors: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    message: {
-                      type: 'string',
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
+    404: {$ref: '#/components/responses/404'},
   },
-  security: [
-    {
-      basicAuth: [] as [],
-    },
-  ],
+  security: [{basicAuth: [] as any[]}],
 };
 
 const SubscriptionCancelOpenapi = {
@@ -193,7 +165,7 @@ const SubscriptionCancelOpenapi = {
     {
       name: 'id',
       in: 'path',
-      required: false,
+      required: true,
       schema: {
         type: 'string',
         description: 'Subscription ID',
@@ -211,38 +183,10 @@ const SubscriptionCancelOpenapi = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorBasic',
-    },
-    404: {
-      description: 'Status 404',
-      content: {
-        'application/json': {
-          schema: {
-            type: 'object',
-            properties: {
-              errors: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    message: {
-                      type: 'string',
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
+    404: {$ref: '#/components/responses/404'},
   },
-  security: [
-    {
-      basicAuth: [] as [],
-    },
-  ],
+  security: [{basicAuth: [] as any[]}],
 };
 
 const SubscriptionCreateOpenapi = {
@@ -260,46 +204,19 @@ const SubscriptionCreateOpenapi = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorBasic',
-    },
-    500: {
-      description: 'Status 500',
-      content: {
-        'application/json': {
-          schema: {
-            type: 'object',
-            properties: {
-              errors: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    message: {
-                      type: 'string',
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
+    500: {$ref: '#/components/responses/500'},
   },
-  security: [
-    {
-      basicAuth: [] as [],
-    },
-  ],
+  security: [{basicAuth: [] as any[]}],
   requestBody: {
     content: {
       'application/json': {
         schema: {
           type: 'object',
+          required: ['storeId','membership'],
           properties: {
-            storeId: { type: 'string', format: 'url', required: true },
-            membership: { type: 'string', required: true },
+            storeId: { type: 'string'},
+            membership: { type: 'string' },
             reference: { type: 'string', description: 'External reference ID could be used for payments integration' },
             postpaid: { type: 'number', enum: [1], description: 'Used when the subscription is paid through a third party' },
             date: {
@@ -313,7 +230,7 @@ const SubscriptionCreateOpenapi = {
             coupon: { type: 'string' },
             grantTo: { type: 'string', format: 'url', description: 'This field is used to donor the subscription to another store' },
             autoRenew: { type: 'boolean' },
-            dueDate: { type: 'string', required: false, format: 'date', example: 'yyyy-mm-dd' },
+            dueDate: { type: 'string', format: 'date', example: 'yyyy-mm-dd' },
           },
         },
       },
@@ -347,38 +264,10 @@ const SubscriptionUpdateOpenapi = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorBasic',
-    },
-    500: {
-      description: 'Status 500',
-      content: {
-        'application/json': {
-          schema: {
-            type: 'object',
-            properties: {
-              errors: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    message: {
-                      type: 'string',
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
+    500: {$ref: '#/components/responses/500'},
   },
-  security: [
-    {
-      basicAuth: [] as [],
-    },
-  ],
+  security: [{basicAuth: [] as any[]}],
   requestBody: {
     $ref: '#/components/requestBodies/Subscription',
   },

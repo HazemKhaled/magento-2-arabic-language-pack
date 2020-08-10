@@ -74,14 +74,14 @@ const ShipmentGetOpenapi = {
     {
       name: 'id',
       in: 'path',
-      required: false,
+      required: true,
       schema: {
         type: 'string',
       },
     },
   ],
   summary: 'Get All Shipment Policies or Get By Id',
-  tags: ['Shipment', 'Enterprise Only'],
+  tags: ['Shipment'],
   responses: {
     200: {
       description: 'Status 200',
@@ -96,21 +96,15 @@ const ShipmentGetOpenapi = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorBasic',
-    },
+    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
   },
-  security: [
-    {
-      basicAuth: [] as [],
-    },
-  ],
+  security: [{basicAuth: [] as any[]}],
 };
 
 const ShipmentInsertOpenapi = {
   $path: 'post /shipment',
   summary: 'Insert Shipment Policy',
-  tags: ['Shipment', 'Enterprise Only'],
+  tags: ['Shipment'],
   responses: {
     200: {
       description: 'Status 200',
@@ -122,15 +116,9 @@ const ShipmentInsertOpenapi = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorBasic',
-    },
+    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
   },
-  security: [
-    {
-      basicAuth: [] as [],
-    },
-  ],
+  security: [{basicAuth: [] as any[]}],
   requestBody: {
     $ref: '#/components/requestBodies/ShipmentPolicy',
   },
@@ -149,7 +137,7 @@ const ShipmentUpdateOpenapi = {
     },
   ],
   summary: 'Update Shipment Policy',
-  tags: ['Shipment', 'Enterprise Only'],
+  tags: ['Shipment'],
   responses: {
     200: {
       description: 'Status 200',
@@ -161,15 +149,9 @@ const ShipmentUpdateOpenapi = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorBasic',
-    },
+    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
   },
-  security: [
-    {
-      basicAuth: [] as [],
-    },
-  ],
+  security: [{basicAuth: [] as any[]}],
   requestBody: {
     $ref: '#/components/requestBodies/ShipmentPolicy',
   },
@@ -178,7 +160,7 @@ const ShipmentUpdateOpenapi = {
 const ShipmentRuleByCountryOpenapi = {
   $path: 'get /shipment/rules',
   summary: 'Get Shipment Cost',
-  tags: ['Shipment', 'Enterprise Only'],
+  tags: ['Shipment'],
   parameters: [
     {
       name: 'country',
@@ -230,26 +212,19 @@ const ShipmentRuleByCountryOpenapi = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorBasic',
-    },
+    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
   },
-  security: [
-    {
-      basicAuth: [] as [],
-    },
-  ],
+  security: [{basicAuth: [] as any[]}],
 };
 
 const ShipmentGetCurriersOpenapi = {
   $path: 'get /shipment/couriers',
   summary: 'Get All Couriers',
-  tags: ['Shipment', 'Enterprise Only'],
+  tags: ['Shipment'],
   parameters: [
     {
       name: 'country',
       in: 'query',
-      required: false,
       schema: {
         type: 'string',
         minLength: 2,
@@ -271,15 +246,9 @@ const ShipmentGetCurriersOpenapi = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorBasic',
-    },
+    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
   },
-  security: [
-    {
-      basicAuth: [] as [],
-    },
-  ],
+  security: [{basicAuth: [] as any[]}],
 };
 
 export const ShipmentOpenapi: ServiceSchema = {
