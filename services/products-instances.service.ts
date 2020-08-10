@@ -214,7 +214,10 @@ module.exports = {
                 );
 
                 const appSearchProducts = [];
-                for (let i = 0; i < skus.length-100; i+=100) appSearchProducts.push(...(await this.getDocumentsByIds(skus.slice(i, 100))));
+
+                for (let i = 0; i < skus.length; i+=100) {
+                  appSearchProducts.push(...(await this.getDocumentsByIds(skus.slice(i, i+100))));
+                }
 
                 const updateArr: any[] = [];
                 appSearchProducts.forEach((product: Product) => {
