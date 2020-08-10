@@ -8,7 +8,8 @@
     "node": "10.x.x"
   },
   "scripts": {
-    "build": "tsc",
+    "clean": "rm -rf build",
+    "build": "npm run clean && tsc",
     "build:watch": "tsc -w",
     "dev": "npm run lint && env $(cat ./docker/development/.env) ts-node ./node_modules/moleculer/bin/moleculer-runner.js --hot --repl --config moleculer.config.ts services/**/*.service.ts",
     "cli": "moleculer connect TCP",
@@ -42,7 +43,7 @@
     "prettier": "^1.17.0",
     "ts-jest": "^24.0.2",
     "ts-node": "^8.10.1",
-    "typescript": "^3.8.3"
+    "typescript": "^3.9.7"
   },
   "dependencies": {
     "@elastic/app-search-node": "^7.6.1",

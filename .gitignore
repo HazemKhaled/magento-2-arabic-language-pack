@@ -13,3 +13,4 @@ deployDev.sh
 currency.db
 openapi.json
 !private/importedProductsMigration/*.js
+build
