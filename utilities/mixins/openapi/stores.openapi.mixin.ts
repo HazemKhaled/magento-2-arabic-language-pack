@@ -230,10 +230,10 @@ const StoresMeOpenapi = {
         },
       },
     },
-    401: { $ref: '#/components/responses/UnauthorizedErrorToken' },
-    404: { $ref: '#/components/responses/404' },
+    401: {$ref: '#/components/responses/UnauthorizedErrorToken'},
+    404: {$ref: '#/components/responses/404'},
   },
-  security: [{ bearerAuth: [] as any[] }],
+  security: [{bearerAuth: [] as any[]}],
 };
 
 const StoresGetOpenapi = {
@@ -261,10 +261,10 @@ const StoresGetOpenapi = {
         },
       },
     },
-    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
-    404: { $ref: '#/components/responses/404' },
+    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
+    404: {$ref: '#/components/responses/404'},
   },
-  security: [{ basicAuth: [] as any[] }],
+  security: [{basicAuth: [] as any[]}],
 };
 
 const StoresListOpenapi = {
@@ -294,10 +294,10 @@ const StoresListOpenapi = {
         },
       },
     },
-    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
-    404: { $ref: '#/components/responses/404' },
+    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
+    404: {$ref: '#/components/responses/404'},
   },
-  security: [{ basicAuth: [] as any[] }],
+  security: [{basicAuth: [] as any[]}],
 };
 
 const StoresSListOpenapi = {
@@ -347,10 +347,10 @@ const StoresSListOpenapi = {
         },
       },
     },
-    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
-    404: { $ref: '#/components/responses/404' },
+    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
+    404: {$ref: '#/components/responses/404'},
   },
-  security: [{ basicAuth: [] as any[] }],
+  security: [{basicAuth: [] as any[]}],
 };
 
 const StoresCreateOpenapi = {
@@ -368,10 +368,10 @@ const StoresCreateOpenapi = {
         },
       },
     },
-    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
-    500: { $ref: '#/components/responses/500' },
+    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
+    500: {$ref: '#/components/responses/500'},
   },
-  security: [{ basicAuth: [] as any[] }],
+  security: [{basicAuth: [] as any[]}],
   requestBody: {
     $ref: '#/components/requestBodies/Store',
   },
@@ -402,10 +402,10 @@ const StoresUpdateOpenapi = {
         },
       },
     },
-    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
-    500: { $ref: '#/components/responses/500' },
+    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
+    500: {$ref: '#/components/responses/500'},
   },
-  security: [{ basicAuth: [] as any[] }],
+  security: [{basicAuth: [] as any[]}],
   requestBody: {
     $ref: '#/components/requestBodies/Store',
   },

@@ -1,5 +1,4 @@
 import { Context, Errors, ServiceSchema } from 'moleculer';
-
 import DbService from '../utilities/mixins/mongo.mixin';
 import { TaxOpenapi } from '../utilities/mixins/openapi';
 import { DbTax, RTax } from '../utilities/types/tax.type';
@@ -67,26 +66,20 @@ const TaxesService: ServiceSchema = {
           .catch((err: any) => {
             throw new MoleculerError(
               err.message ? err.message : 'Something went wrong.',
-              err.code < 500 ? err.code : 500
+              err.code < 500 ? err.code : 500,
             );
           });
         if (taxUpdateData.tax) {
-          ctx.call(
-            'oms.updateTax',
-            ['name', 'percentage'].reduce(
-              (acc, key) => {
-                if (!$set[key]) {
-                  delete acc[key as keyof {}];
-                }
-                return acc;
-              },
-              {
-                id: taxUpdateData.tax.omsId,
-                name: $set.name,
-                percentage: $set.percentage,
-              }
-            )
-          );
+          ctx.call('oms.updateTax', ['name', 'percentage'].reduce((acc, key) => {
+            if (!$set[key]) {
+              delete acc[key as keyof {}];
+            }
+            return acc;
+          }, {
+            id: taxUpdateData.tax.omsId,
+            name: $set.name,
+            percentage: $set.percentage,
+          }));
         }
         return taxUpdateData;
       },
@@ -95,32 +88,27 @@ const TaxesService: ServiceSchema = {
       auth: 'Basic',
       cache: {
         keys: ['id'],
-        // 1 day
-        ttl: 60 * 60 * 24,
+        ttl: 60 * 60 * 24, // 1 day
       },
       handler(ctx: Context): RTax {
-        return this.adapter
-          .findById(ctx.params.id)
-          .then((tax: DbTax) => {
-            if (tax) {
-              return { tax: this.sanitizer(tax) };
-            }
-            throw new MoleculerError('There is no tax with that ID', 404);
-          })
-          .catch((err: any) => {
-            throw new MoleculerError(
-              err.message ? err.message : 'Something went wrong.',
-              err.code < 500 ? err.code : 500
-            );
-          });
+        return this.adapter.findById(ctx.params.id).then((tax: DbTax) => {
+          if (tax) {
+            return { tax: this.sanitizer(tax) };
+          }
+          throw new MoleculerError('There is no tax with that ID', 404);
+        }).catch((err: any) => {
+          throw new MoleculerError(
+            err.message ? err.message : 'Something went wrong.',
+            err.code < 500 ? err.code : 500,
+          );
+        });
       },
     },
     tList: {
       auth: 'Basic',
       cache: {
         keys: ['page', 'perPage', 'country', 'class'],
-        // 1 day
-        ttl: 60 * 60 * 24,
+        ttl: 60 * 60 * 24, // 1 day
       },
       handler(ctx: Context): RTax[] {
         const { country } = ctx.params;
@@ -132,7 +120,7 @@ const TaxesService: ServiceSchema = {
         if (Array.isArray(classes)) {
           query.class = { $in: classes };
         }
-        if (typeof classes === 'string') {
+        if (typeof classes === 'string' ) {
           query.class = classes;
         }
         const page = Number(ctx.params.page) || 1;
@@ -147,7 +135,7 @@ const TaxesService: ServiceSchema = {
           .catch((err: any) => {
             throw new MoleculerError(
               err.message ? err.message : 'Something went wrong.',
-              err.code < 500 ? err.code : 500
+              err.code < 500 ? err.code : 500,
             );
           });
       },
@@ -174,7 +162,7 @@ const TaxesService: ServiceSchema = {
           .catch((err: any) => {
             throw new MoleculerError(
               err.message ? err.message : 'Something went wrong.',
-              err.code < 500 ? err.code : 500
+              err.code < 500 ? err.code : 500,
             );
           });
 
@@ -191,11 +179,8 @@ const TaxesService: ServiceSchema = {
         ttl: 60 * 60,
       },
       handler(ctx: Context) {
-        return this.adapter.count({ query: ctx.params.query }).catch(() => {
-          throw new MoleculerError(
-            'There is an error fetching the taxes total',
-            500
-          );
+        return this.adapter.count({query: ctx.params.query}).catch(() => {
+          throw new MoleculerError('There is an error fetching the taxes total', 500);
         });
       },
     },

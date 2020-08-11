@@ -2,14 +2,7 @@ import { ServiceSchema } from 'moleculer';
 
 const Payment = {
   type: 'object',
-  required: [
-    'amount',
-    'customer_id',
-    'date',
-    'payment_id',
-    'payment_mode',
-    'unused_amount',
-  ],
+  required: ['amount', 'customer_id', 'date', 'payment_id', 'payment_mode', 'unused_amount'],
   properties: {
     payment_id: {
       type: 'string',
@@ -85,9 +78,9 @@ const PaymentsAddOpenapi = {
         },
       },
     },
-    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
+    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
   },
-  security: [{ basicAuth: [] as any[] }],
+  security: [{basicAuth: [] as any[]}],
   requestBody: {
     required: true,
     content: {
@@ -122,8 +115,7 @@ const PaymentsAddOpenapi = {
             },
             bank_charges: {
               type: 'number',
-              description:
-                'Account id should provide id for account with type bank',
+              description: 'Account id should provide id for account with type bank',
             },
             reference: {
               type: 'string',
@@ -192,9 +184,9 @@ const PaymentsGetOpenapi = {
         },
       },
     },
-    401: { $ref: '#/components/responses/UnauthorizedErrorToken' },
+    401: {$ref: '#/components/responses/UnauthorizedErrorToken'},
   },
-  security: [{ bearerAuth: [] as any[] }],
+  security: [{bearerAuth: [] as any[]}],
 };
 
 export const PaymentsOpenapi: ServiceSchema = {

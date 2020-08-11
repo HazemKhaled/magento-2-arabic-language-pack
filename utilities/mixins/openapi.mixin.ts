@@ -1,11 +1,11 @@
 import fs from 'fs';
-
 import _ from 'lodash';
+
 import { Action, Errors, ServiceSchema } from 'moleculer';
 
-import pkg from '../../package.json';
-
 const { MoleculerServerError } = Errors;
+
+import pkg from '../../package.json';
 
 /**
  * OpenAPI mixin
@@ -28,7 +28,7 @@ export function OpenApiMixin(): ServiceSchema {
   return {
     name: 'openapi',
     events: {
-      '$services.changed': function () {
+      '$services.changed'() {
         this.invalidateOpenApiSchema();
       },
     },
@@ -54,16 +54,12 @@ export function OpenApiMixin(): ServiceSchema {
           shouldUpdateSchema = false;
 
           if (process.env.NODE_ENV !== 'production') {
-            fs.writeFileSync(
-              './openapi.json',
-              JSON.stringify(schema, null, 4),
-              'utf8'
-            );
+            fs.writeFileSync('./openapi.json', JSON.stringify(schema, null, 4), 'utf8');
 
             fs.writeFileSync(
               './openapi-private.json',
               JSON.stringify(schemaPrivate, null, 4),
-              'utf8'
+              'utf8',
             );
           }
         }
@@ -118,12 +114,10 @@ export function OpenApiMixin(): ServiceSchema {
             components: {
               responses: {
                 UnauthorizedErrorToken: {
-                  description:
-                    'Access token is missing or invalid, request new one',
+                  description: 'Access token is missing or invalid, request new one',
                 },
                 UnauthorizedErrorBasic: {
-                  description:
-                    'Authentication information is missing or invalid',
+                  description: 'Authentication information is missing or invalid',
                 },
                 404: { description: 'Entity not found.' },
                 500: {
@@ -160,8 +154,7 @@ export function OpenApiMixin(): ServiceSchema {
                       type: 'string',
                     },
                   },
-                  description:
-                    'This general error structure is used throughout this API.',
+                  description: 'This general error structure is used throughout this API.',
                   example: {
                     message: 'SKU(s) out of stock.',
                   },
@@ -226,7 +219,7 @@ export function OpenApiMixin(): ServiceSchema {
             'Unable to compile OpenAPI schema',
             500,
             'UNABLE_COMPILE_OPENAPI_SCHEMA',
-            { err }
+            { err },
           );
         }
       },
@@ -260,7 +253,7 @@ export function OpenApiMixin(): ServiceSchema {
         },
 
         aliases: {
-          'GET /openapi.json': function (req: any, res: any) {
+          'GET /openapi.json'(req: any, res: any) {
             // Regenerate static files
             this.generateOpenApiFiles();
 
@@ -271,24 +264,16 @@ export function OpenApiMixin(): ServiceSchema {
           },
           'GET /openapi-private.json': [
             (req: any, res: any) => {
-              const auth = { login: 'your-login', password: 'your-password' };
+              const auth = { login: 'your-login', password: 'your-password' }; // change this
 
               // parse login and password from headers
-              const b64auth =
-                (req?.headers?.authorization || '').split(' ')[1] || '';
-              const [login, password] = Buffer.from(b64auth, 'base64')
-                .toString()
-                .split(':');
+              const b64auth = (req?.headers?.authorization || '').split(' ')[1] || '';
+              const [login, password] = Buffer.from(b64auth, 'base64').toString().split(':');
 
               const ctx = req.$ctx;
 
               // Verify login and password are set and correct
-              if (
-                login &&
-                password &&
-                login === auth.login &&
-                password === auth.password
-              ) {
+              if (login && password && login === auth.login && password === auth.password) {
                 // Regenerate static files
                 this.generateOpenApiFiles();
 
@@ -298,18 +283,10 @@ export function OpenApiMixin(): ServiceSchema {
               }
 
               // Access denied...
-              ctx.meta.$responseHeaders = {
-                'WWW-Authenticate': 'Basic realm="401"',
-              };
+              ctx.meta.$responseHeaders = { 'WWW-Authenticate': 'Basic realm="401"' };
               ctx.meta.$statusCode = 401;
 
-              return this.sendResponse(
-                ctx,
-                '',
-                req,
-                res,
-                'Authentication required'
-              );
+              return this.sendResponse(ctx, '', req, res, 'Authentication required');
             },
           ],
         },
@@ -323,7 +300,7 @@ export function OpenApiMixin(): ServiceSchema {
 
     started() {
       return this.logger.info(
-        `📜 OpenAPI Docs server is available at ${mixinOptions.routeOptions.path}`
+        `📜 OpenAPI Docs server is available at ${mixinOptions.routeOptions.path}`,
       );
     },
   };

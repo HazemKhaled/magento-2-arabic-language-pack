@@ -41,7 +41,10 @@ export const CrmValidation: ServiceSchema = {
         },
         stock_status: {
           type: 'enum',
-          values: ['idle', 'in-progress'],
+          values: [
+            'idle',
+            'in-progress',
+          ],
           optional: true,
         },
         price_date: {
@@ -51,7 +54,10 @@ export const CrmValidation: ServiceSchema = {
         },
         price_status: {
           type: 'enum',
-          values: ['idle', 'in-progress'],
+          values: [
+            'idle',
+            'in-progress',
+          ],
           optional: true,
         },
         sale_price: {
@@ -68,7 +74,10 @@ export const CrmValidation: ServiceSchema = {
         },
         compared_at_price_operator: {
           type: 'enum',
-          values: [1, 2],
+          values: [
+            1,
+            2,
+          ],
           optional: true,
         },
         currency: {

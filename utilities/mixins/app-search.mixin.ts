@@ -4,11 +4,7 @@ import AppSearchClient from '@elastic/app-search-node';
 export const AppSearch = (engine: string): ServiceSchema => ({
   name: 'appSearch',
   settings: {
-    client: new AppSearchClient(
-      undefined,
-      process.env.APP_SEARCH_KEY,
-      () => `${process.env.APP_SEARCH_BASEURL}/api/as/v1/`
-    ),
+    client: new AppSearchClient(undefined, process.env.APP_SEARCH_KEY, () => `${process.env.APP_SEARCH_BASEURL}/api/as/v1/`),
   },
   methods: {
     /**
@@ -19,7 +15,8 @@ export const AppSearch = (engine: string): ServiceSchema => ({
      * @returns Array
      */
     getDocumentsByIds(documentIds) {
-      return this.settings.client.getDocuments(engine, documentIds);
+      return this.settings.client
+        .getDocuments(engine, documentIds);
     },
     /**
      * Update by id
@@ -29,7 +26,8 @@ export const AppSearch = (engine: string): ServiceSchema => ({
      * @returns Array
      */
     updateDocuments(documents) {
-      return this.settings.client.updateDocuments(engine, documents);
+      return this.settings.client
+        .updateDocuments(engine, documents);
     },
   },
 });

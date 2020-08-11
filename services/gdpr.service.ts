@@ -1,5 +1,4 @@
-import { Errors as MoleculerErrors, ServiceSchema } from 'moleculer';
-
+import {Errors as MoleculerErrors, ServiceSchema } from 'moleculer';
 import { Mail } from '../utilities/mixins/mail.mixin';
 import { GDPROpenapi } from '../utilities/mixins/openapi';
 import { GDPRValidation } from '../utilities/mixins/validation';
@@ -21,9 +20,7 @@ const Service: ServiceSchema = {
         },
       },
       async handler(ctx) {
-        const {
-          customer: { email },
-        } = ctx.params;
+        const { customer: { email } } = ctx.params;
         return this.sendRequest({
           subject: 'GDPR Customer Redact',
           text: `This customer with the storeId: ${ctx.meta.storeId} & customer email is ${email} has sent customer redact request.`,
@@ -50,9 +47,7 @@ const Service: ServiceSchema = {
         },
       },
       handler(ctx) {
-        const {
-          customer: { email },
-        } = ctx.params;
+        const { customer: { email } } = ctx.params;
         return this.sendRequest({
           subject: 'GDPR Customer Data Request',
           text: `This customer with the storeId: ${ctx.meta.storeId} & customer email is ${email} has sent customer data request.`,
@@ -66,19 +61,11 @@ const Service: ServiceSchema = {
         to: process.env.SUPPORT_MAIL,
         subject,
         text,
-      })
-        .then(() => ({
-          message:
-            'Your request succeed & it will be processed with in 14 working days.',
-        }))
-        .catch(() => {
-          const err = new MoleculerError(
-            'Request failed, please try again later',
-            500
-          );
-          err.name = 'GDPR_Service';
-          throw err;
-        });
+      }).then(() => ({message: 'Your request succeed & it will be processed with in 14 working days.'})).catch(() => {
+        const err = new MoleculerError('Request failed, please try again later', 500);
+        err.name = 'GDPR_Service';
+        throw err;
+      });
     },
   },
 };

@@ -16,15 +16,13 @@ const TheService: ServiceSchema = {
   crons: [
     {
       name: 'updateInstanceProducts',
-      cronTime: '* * * * *',
+      cronTime: '* * * * *', // Every minute
       onTick() {
         if (this.call && process.env.NODE_ENV !== 'development') {
           this.logger.info('Update Instance Products Cron ticked');
           this.call('elastic-update.run');
         } else {
-          this.logger.warn(
-            'elastic-update not working on development environment'
-          );
+          this.logger.warn('elastic-update not working on development environment');
         }
       },
     },
@@ -71,15 +69,9 @@ const TheService: ServiceSchema = {
           const products = await this.syncInstanceProducts(lastUpdateDate);
           if (products && products.success === true) {
             if (products.LastDate && products.LastDate !== '') {
-              const updated = await this.updateLastUpdateDate(
-                products.LastDate,
-                ctx
-              );
+              const updated = await this.updateLastUpdateDate(products.LastDate, ctx);
               if (updated) {
-                this.logger.info(
-                  'Last Updated Date Updated',
-                  products.LastDate
-                );
+                this.logger.info('Last Updated Date Updated', products.LastDate);
               }
             } else if (products.noProducts) {
               this.logger.info('No Products for Update');
@@ -138,14 +130,9 @@ const TheService: ServiceSchema = {
         };
       }
 
-      if (
-        searchResponse.hits &&
-        searchResponse.hits.hits &&
-        searchResponse.hits.hits.length > 0
-      ) {
+      if (searchResponse.hits && searchResponse.hits.hits && searchResponse.hits.hits.length > 0) {
         const LastDate =
-          searchResponse.hits.hits[searchResponse.hits.hits.length - 1]._source
-            .updated || '';
+          searchResponse.hits.hits[searchResponse.hits.hits.length - 1]._source.updated || '';
         const isUpdated = await this.bulkUpdateInstanceProducts(searchResponse);
         if (isUpdated) {
           return {
@@ -168,10 +155,7 @@ const TheService: ServiceSchema = {
       let result = true;
       await Loop.each(search.hits.hits, async hit => {
         // If no product came, mark ar archived
-        const product: Partial<Product> = hit._source || {
-          archive: true,
-          updated: new Date(),
-        };
+        const product: Partial<Product> = hit._source || { archive: true, updated: new Date() };
         const updateData = {
           index: 'products-instances',
           type: '_doc',
@@ -222,10 +206,9 @@ const TheService: ServiceSchema = {
       const query = {
         query: { _id: 'last_update_date' },
       };
-      return this.adapter
-        .find(query)
+      return this.adapter.find(query)
         .then(([date]: [{ date: any }]) =>
-          date && date.date ? date.date : new Date('1970-01-01T12:00:00.000Z')
+          date && date.date ? date.date : new Date('1970-01-01T12:00:00.000Z'),
         )
         .catch((err: Error) => {
           this.logger.error('ERROR_DURING_GET_LAST_DATE', err);
@@ -249,12 +232,8 @@ const TheService: ServiceSchema = {
         .then(([dateValue]: [any]) => {
           if (dateValue) {
             return this.adapter
-              .updateById('last_update_date', {
-                $set: { date: new Date(date) },
-              })
-              .then((json: object) =>
-                this.entityChanged('updated', json, ctx).then(() => json)
-              )
+              .updateById('last_update_date', { $set: { date: new Date(date) } })
+              .then((json: object) => this.entityChanged('updated', json, ctx).then(() => json))
               .catch((err: object) => {
                 this.logger.error('ERROR_DURING_UPDATE_LAST_DATE', err);
               });
@@ -262,9 +241,7 @@ const TheService: ServiceSchema = {
 
           return this.adapter
             .insert({ _id: 'last_update_date', date: new Date(date) })
-            .then((json: object) =>
-              this.entityChanged('created', json, ctx).then(() => json)
-            )
+            .then((json: object) => this.entityChanged('created', json, ctx).then(() => json))
             .catch((err: object) => {
               this.logger.error('ERROR_DURING_INSERT_LAST_DATE', err);
             });

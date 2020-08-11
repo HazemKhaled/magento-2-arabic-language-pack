@@ -1,5 +1,6 @@
 import { ServiceSchema } from 'moleculer';
 
+
 export const ShipmentValidation: ServiceSchema = {
   name: 'shipment',
   actions: {
@@ -51,7 +52,10 @@ export const ShipmentValidation: ServiceSchema = {
               },
               type: {
                 type: 'enum',
-                values: ['weight', 'price'],
+                values: [
+                  'weight',
+                  'price',
+                ],
               },
               cost: {
                 type: 'number',
@@ -102,7 +106,10 @@ export const ShipmentValidation: ServiceSchema = {
               },
               type: {
                 type: 'enum',
-                values: ['weight', 'price'],
+                values: [
+                  'weight',
+                  'price',
+                ],
               },
               cost: {
                 type: 'number',

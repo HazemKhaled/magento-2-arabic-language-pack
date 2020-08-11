@@ -5,25 +5,23 @@ export const CategoriesValidation: ServiceSchema = {
   actions: {
     list: {
       params: {
-        parentId: [
-          {
-            type: 'number',
-            optional: true,
-          },
-          {
-            type: 'string',
-            optional: true,
-          },
+        parentId: [{
+          type: 'number',
+          optional: true,
+        },
+        {
+          type: 'string',
+          optional: true,
+        },
         ],
-        treeNodeLevel: [
-          {
-            type: 'number',
-            optional: true,
-          },
-          {
-            type: 'string',
-            optional: true,
-          },
+        treeNodeLevel: [{
+          type: 'number',
+          optional: true,
+        },
+        {
+          type: 'string',
+          optional: true,
+        },
         ],
       },
     },

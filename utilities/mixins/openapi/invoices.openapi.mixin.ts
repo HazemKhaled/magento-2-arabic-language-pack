@@ -155,9 +155,9 @@ const InvoicesGetOpenapi = {
         },
       },
     },
-    401: { $ref: '#/components/responses/UnauthorizedErrorToken' },
+    401: {$ref: '#/components/responses/UnauthorizedErrorToken'},
   },
-  security: [{ bearerAuth: [] as any[] }],
+  security: [{bearerAuth: [] as any[]}],
 };
 
 const InvoicesCreateOpenapi = {
@@ -175,11 +175,11 @@ const InvoicesCreateOpenapi = {
         },
       },
     },
-    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
-    500: { $ref: '#/components/responses/500' },
+    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
+    500: {$ref: '#/components/responses/500'},
   },
-  security: [{ basicAuth: [] as any[] }],
-  requestBody: { $ref: '#/components/requestBodies/Invoice' },
+  security: [{basicAuth: [] as any[]}],
+  requestBody: {$ref: '#/components/requestBodies/Invoice' },
 };
 
 const InvoicesApplyCreditsOpenapi = {
@@ -223,18 +223,18 @@ const InvoicesApplyCreditsOpenapi = {
         },
       },
     },
-    401: { $ref: '#/components/responses/UnauthorizedErrorToken' },
-    500: { $ref: '#/components/responses/500' },
+    401: {$ref: '#/components/responses/UnauthorizedErrorToken'},
+    500: {$ref: '#/components/responses/500'},
   },
-  security: [{ bearerAuth: [] as any[] }],
+  security: [{bearerAuth: [] as any[]}],
   requestBody: {
     content: {
       'application/json': {
         schema: {
           type: 'object',
           properties: {
-            useSavedPaymentMethods: { type: 'boolean' },
-            paymentAmount: { type: 'number' },
+            useSavedPaymentMethods: {type: 'boolean'},
+            paymentAmount: {type: 'number'},
           },
         },
       },
@@ -282,8 +282,8 @@ export const InvoicesOpenapi: ServiceSchema = {
               },
             },
           },
-          401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
-          500: { $ref: '#/components/responses/500' },
+          401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
+          500: {$ref: '#/components/responses/500'},
         },
         parameters: [
           {
@@ -303,7 +303,7 @@ export const InvoicesOpenapi: ServiceSchema = {
             },
           },
         ],
-        security: [{ basicAuth: [] as any[] }],
+        security: [{basicAuth: [] as any[]}],
       },
     },
   },

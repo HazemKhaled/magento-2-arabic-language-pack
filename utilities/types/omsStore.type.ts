@@ -8,7 +8,7 @@ export interface OmsStore {
   id?: string;
   url?: string;
   name?: string;
-  users?: {}[];
+  users?: Array<{}>;
   companyName?: string;
   status?: string;
   platform?: string;
@@ -22,8 +22,8 @@ export interface OmsStore {
   comparedOperator?: number;
   currency?: string[];
   languages?: string[];
-  shippingMethods?: string[] | { name: string }[];
+  shippingMethods?: string[] | Array<{ name: string }>;
   credit?: number;
   debit?: number;
-  [key: string]: string | string[] | Date | {}[] | number;
+  [key: string]: string | string[] | Date | Array<{}> | number;
 }

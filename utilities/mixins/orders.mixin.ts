@@ -11,7 +11,7 @@ export const OrdersOperations: ServiceSchema = {
      *
      * @param {OrderItem[]} items
      * @returns {Promise<{
-     *       products: Product[];
+     *       products: Array<{ _source: Product; _id: string }>;
      *       inStock: OrderItem[];
      *       enoughStock: OrderItem[];
      *       items: OrderItem[];
@@ -22,7 +22,7 @@ export const OrdersOperations: ServiceSchema = {
      *     }>}
      */
     async stockProducts(
-      items: OrderItem[]
+      items: OrderItem[],
     ): Promise<{
       products: Product[];
       inStock: OrderItem[];
@@ -40,7 +40,7 @@ export const OrdersOperations: ServiceSchema = {
         'products.getProductsByVariationSku',
         {
           skus: orderItems,
-        }
+        },
       );
 
       const found: OrderItem[] = [];
@@ -49,9 +49,7 @@ export const OrdersOperations: ServiceSchema = {
       products.forEach(product => {
         found.push(
           ...product.variations
-            .filter((variation: Variation) =>
-              orderItems.includes(variation.sku)
-            )
+            .filter((variation: Variation) => orderItems.includes(variation.sku))
             .map(item => ({
               sku: item.sku,
               quantity: item.quantity,
@@ -71,20 +69,18 @@ export const OrdersOperations: ServiceSchema = {
               description: `${item.attributes.reduce(
                 (accumulator, attribute, n) =>
                   accumulator.concat(
-                    `${n > 0 ? '\n' : ''}${
-                      attribute.name.en || attribute.name.tr
-                    }: ${attribute.option.en || attribute.option.tr}`
+                    `${n > 0 ? '\n' : ''}${attribute.name.en || attribute.name.tr}: ${attribute
+                      .option.en || attribute.option.tr}`,
                   ),
-                ''
+                '',
               )}`,
-            }))
+            })),
         );
       });
 
       // Filter not Knawat products alone
       const notKnawat = items.filter(
-        (item: OrderItem) =>
-          !found.map((i: OrderItem) => i.sku).includes(item.sku)
+        (item: OrderItem) => !found.map((i: OrderItem) => i.sku).includes(item.sku),
       );
 
       // filter not archived products
@@ -92,9 +88,7 @@ export const OrdersOperations: ServiceSchema = {
 
       // filter products with enough stock
       const enoughStock = inStock.filter(
-        item =>
-          item.quantity >=
-          items.find(i => i.sku === item.sku && !item.archive).quantity
+        item => item.quantity >= items.find(i => i.sku === item.sku && !item.archive).quantity,
       );
 
       // Filter products with out of stock put it into Object with sku is the key for every item to remove duplicated data
@@ -127,12 +121,10 @@ export const OrdersOperations: ServiceSchema = {
       });
 
       // reform not enough to array of {}
-      const notEnoughStock: OrderItem[] = Object.keys(notEnoughStockObject).map(
-        key => ({
-          ...notEnoughStockObject[key],
-          quantityRequired: items.find(i => i.sku === key).quantity,
-        })
-      );
+      const notEnoughStock: OrderItem[] = Object.keys(notEnoughStockObject).map(key => ({
+        ...notEnoughStockObject[key],
+        quantityRequired: items.find(i => i.sku === key).quantity,
+      }));
 
       // return all data
       return {
@@ -160,12 +152,12 @@ export const OrdersOperations: ServiceSchema = {
       items: OrderItem[],
       country: string,
       instance: Store,
-      providedMethod?: string
+      providedMethod?: string,
     ): Promise<Rule> {
       const shipmentWeight =
         items.reduce(
-          (accumulator, item) => accumulator + item.weight * item.quantity,
-          0
+          (accumulator, item) => (accumulator + item.weight * item.quantity),
+          0,
         ) * 1000;
       const shipmentRules: Rule[] = await this.broker
         .call('shipment.ruleByCountry', {
@@ -173,42 +165,28 @@ export const OrdersOperations: ServiceSchema = {
           weight: shipmentWeight,
           price: 1,
         })
-        .then((rules: Rule[]) =>
-          rules.sort((a: Rule, b: Rule) => a.cost - b.cost)
-        );
+        .then((rules: Rule[]) => rules.sort((a: Rule, b: Rule) => a.cost - b.cost));
 
       // find shipment policy according to store priorities
       let shipment: Rule;
       if (providedMethod) {
-        shipment =
-          shipmentRules.find(rule => rule.courier === providedMethod) ||
-          undefined;
+        shipment = shipmentRules.find(rule => rule.courier === providedMethod) || undefined;
       }
-      if (
-        instance.shipping_methods &&
-        instance.shipping_methods.length > 0 &&
-        !shipment
-      ) {
-        const sortedShippingMethods = instance.shipping_methods.sort(
-          (a, b) => a.sort - b.sort
-        );
+      if (instance.shipping_methods && instance.shipping_methods.length > 0 && !shipment) {
+        const sortedShippingMethods = instance.shipping_methods.sort((a, b) => a.sort - b.sort);
         const shipmentMethod = sortedShippingMethods.reduceRight(
           (accumulator, method) =>
             accumulator.concat(
-              shipmentRules.find(
-                (rule: Rule) => rule.courier === method.name
-              ) || []
+              shipmentRules.find((rule: Rule) => rule.courier === method.name) || [],
             ),
-          []
+          [],
         );
-
-        if (shipmentMethod.length) {
-          shipment = shipmentMethod[shipmentMethod.length - 1];
-        } else if (shipmentRules.length) {
-          shipment = shipmentRules.sort(
-            (a: Rule, b: Rule) => a.cost - b.cost
-          )[0];
-        }
+        shipment =
+          shipmentMethod.length > 0
+            ? shipmentMethod[shipmentMethod.length - 1]
+            : shipmentRules.length > 0
+              ? shipmentRules.sort((a: Rule, b: Rule) => a.cost - b.cost)[0]
+              : false;
       }
 
       if (!shipment) {
@@ -217,7 +195,7 @@ export const OrdersOperations: ServiceSchema = {
 
       return shipment;
     },
-    async discount({ code, membership, orderExpenses, isValid, isAuto }) {
+    async discount({code, membership, orderExpenses, isValid, isAuto}) {
       const warnings = [];
       const couponQuery: {
         membership: string;
@@ -241,43 +219,31 @@ export const OrdersOperations: ServiceSchema = {
         couponQuery.id = code;
       }
       let coupon = await this.broker
-        .call('coupons.list', couponQuery)
+        .call('coupons.list', couponQuery )
         .then(null, (err: Error) => err);
       if (coupon instanceof Error) {
         warnings.push({
           message: coupon.message,
           code: 2323,
         });
-        return { warnings };
+        return {warnings};
       } else {
         [coupon] = coupon;
-        const discount = Object.keys(coupon.discount).reduce(
-          (totalDis: number, key: 'total' | 'tax' | 'shipping') => {
-            if (orderExpenses[key]) {
-              const disObj: { value: number; type: '%' | '$' } =
-                coupon.discount[key];
-              switch (disObj.type) {
-                case '$':
-                  totalDis +=
-                    orderExpenses[key] < disObj.value
-                      ? orderExpenses[key] - disObj.value
-                      : disObj.value;
-                  break;
-                case '%':
-                  totalDis += (orderExpenses[key] / 100) * disObj.value;
-                  break;
-              }
+        const discount = Object.keys(coupon.discount).reduce((totalDis: number, key: 'total' | 'tax' | 'shipping') => {
+          if (orderExpenses[key]) {
+            const disObj: { value: number; type: '%' | '$'; } = coupon.discount[key];
+            switch (disObj.type) {
+            case '$':
+              totalDis += orderExpenses[key] < disObj.value ? orderExpenses[key] - disObj.value : disObj.value;
+              break;
+            case '%':
+              totalDis += orderExpenses[key] / 100 * disObj.value;
+              break;
             }
-            return totalDis;
-          },
-          0
-        );
-        return {
-          discount,
-          coupon: coupon.campaignName
-            ? `${coupon.code}-${coupon.campaignName}`
-            : coupon.code,
-        };
+          }
+          return totalDis;
+        }, 0);
+        return {discount, coupon: coupon.campaignName ? `${coupon.code}-${coupon.campaignName}` : coupon.code};
       }
     },
   },
