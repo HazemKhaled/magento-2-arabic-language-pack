@@ -36,18 +36,8 @@ const MembershipSchema = {
     paymentFrequency: { type: 'number' },
     paymentFrequencyType: { type: 'string', enum: ['month', 'year'] },
     attributes: { type: 'object', properties: {} },
-    coupon: {
-      $ref: '#/components/schemas/Coupon',
-      readOnly: true,
-      description:
-        'This field is returned with the response added when a coupon is applied to the membership',
-    },
-    originalDiscount: {
-      type: 'number',
-      readOnly: true,
-      description:
-        'This field is only returned with the response when a coupon is applied to the membership',
-    },
+    coupon: { $ref: '#/components/schemas/Coupon', readOnly: true, description: 'This field is returned with the response added when a coupon is applied to the membership' },
+    originalDiscount: { type: 'number', readOnly: true, description: 'This field is only returned with the response when a coupon is applied to the membership'  },
     totals: {
       type: 'object',
       readOnly: true,
@@ -130,10 +120,10 @@ const MembershipCreateOpenapi = {
         },
       },
     },
-    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
-    500: { $ref: '#/components/responses/500' },
+    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
+    500: {$ref: '#/components/responses/500'},
   },
-  security: [{ basicAuth: [] as any[] }],
+  security: [{basicAuth: [] as any[]}],
   requestBody: {
     content: {
       'application/json': {
@@ -178,10 +168,10 @@ const MembershipUpdateOpenapi = {
         },
       },
     },
-    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
-    500: { $ref: '#/components/responses/500' },
+    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
+    500: {$ref: '#/components/responses/500'},
   },
-  security: [{ basicAuth: [] as any[] }],
+  security: [{basicAuth: [] as any[]}],
   requestBody: {
     $ref: '#/components/requestBodies/Membership',
   },
@@ -228,10 +218,10 @@ const MembershipGetOpenapi = {
         },
       },
     },
-    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
-    500: { $ref: '#/components/responses/500' },
+    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
+    500: {$ref: '#/components/responses/500'},
   },
-  security: [{ basicAuth: [] as any[] }],
+  security: [{basicAuth: [] as any[]}],
 };
 
 const MembershipListOpenapi = {
@@ -262,10 +252,10 @@ const MembershipListOpenapi = {
         },
       },
     },
-    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
-    500: { $ref: '#/components/responses/500' },
+    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
+    500: {$ref: '#/components/responses/500'},
   },
-  security: [{ basicAuth: [] as any[] }],
+  security: [{basicAuth: [] as any[]}],
 };
 
 export const MembershipOpenapi: ServiceSchema = {

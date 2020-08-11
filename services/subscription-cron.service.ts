@@ -1,6 +1,5 @@
 import { Context, ServiceSchema } from 'moleculer';
 import * as Cron from 'moleculer-cron';
-
 import { Store } from '../utilities/types';
 
 const TheService: ServiceSchema = {
@@ -11,8 +10,7 @@ const TheService: ServiceSchema = {
   crons: [
     {
       name: 'renewSubscriptions',
-      // Every minute
-      cronTime: process.env.SUBSCRIPTION_CRON || '* * * * *',
+      cronTime: process.env.SUBSCRIPTION_CRON || '* * * * *', // Every minute
       async onTick() {
         const job = this.getJob('renewSubscriptions');
         job.stop();
@@ -27,25 +25,21 @@ const TheService: ServiceSchema = {
     run: {
       cache: false,
       async handler(ctx: Context) {
-        const subscription = await ctx
-          .call('subscription.getSubscriptionByExpireDate', {
-            afterDays: 6 * 30,
-            beforeDays: 1,
-          })
-          .then(null, err => {
-            if (err.code === 422) {
-              this.logger.info("No Store To Renew It's Subscription");
-              return false;
-            }
-            throw err;
-          });
+        const subscription = await ctx.call('subscription.getSubscriptionByExpireDate', {
+          afterDays: 6 * 30,
+          beforeDays: 1,
+        }).then(null, err => {
+          if(err.code === 422) {
+            this.logger.info('No Store To Renew It\'s Subscription');
+            return false;
+          }
+          throw err;
+        });
         if (!subscription) {
           return null;
         }
 
-        const store = await ctx.call('stores.findInstance', {
-          id: subscription.storeId,
-        });
+        const store = await ctx.call('stores.findInstance', { id: subscription.storeId });
 
         if (store?.status !== 'confirmed') {
           return null;

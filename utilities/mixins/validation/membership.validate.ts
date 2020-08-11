@@ -8,7 +8,7 @@ export const MembershipValidation: ServiceSchema = {
         id: {
           type: 'string',
           optional: true,
-          pattern: '^m-[a-z0-9-]+',
+          pattern: '^m-[a-z0-9\-]+',
         },
         name: {
           type: 'object',
@@ -72,14 +72,8 @@ export const MembershipValidation: ServiceSchema = {
         public: {
           type: 'boolean',
         },
-        cost: [
-          { type: 'number', positive: true },
-          { type: 'enum', values: [0] },
-        ],
-        discount: [
-          { type: 'number', positive: true },
-          { type: 'enum', values: [0] },
-        ],
+        cost: [{ type: 'number', positive: true }, { type: 'enum', values: [0] }],
+        discount: [{ type: 'number', positive: true }, { type: 'enum', values: [0] }],
         paymentFrequency: {
           type: 'number',
           integer: true,

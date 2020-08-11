@@ -1,10 +1,8 @@
 import FormData from 'form-data';
 import { Context, Errors, ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
-
 import { CrmStore, OrderAddress, Store } from '../utilities/types';
 import { CrmValidation } from '../utilities/mixins/validation';
-
 const MoleculerError = Errors.MoleculerError;
 
 interface CrmData extends Store {
@@ -61,9 +59,7 @@ const TheService: ServiceSchema = {
     },
     updateStoreById: {
       async handler(ctx: Context): Promise<object> {
-        const { id: crmStoreId } = await ctx.call('crm.findStoreByUrl', {
-          id: ctx.params.id,
-        });
+        const { id: crmStoreId } = await ctx.call('crm.findStoreByUrl', { id: ctx.params.id });
 
         return ctx.call('crm.updateRecord', {
           module: 'accounts',
@@ -195,13 +191,8 @@ const TheService: ServiceSchema = {
       }
       if (params) {
         queryString = Object.keys(params).reduce(
-          (accumulator, key) =>
-            params[key]
-              ? `${accumulator}${
-                  accumulator ? '&' : '?'
-                }${key}=${encodeURIComponent(params[key])}`
-              : accumulator,
-          ''
+          (accumulator, key) => params[key] ?`${accumulator}${accumulator ? '&' : '?'}${key}=${encodeURIComponent(params[key])}` : accumulator,
+          '',
         );
       }
       fetchParams.headers = headers;
@@ -210,14 +201,7 @@ const TheService: ServiceSchema = {
           const parsedRes = res.status !== 204 ? await res.json() : {};
           if (res.status === 401) {
             await this.broker.call('crm.refreshToken');
-            return this.request({
-              method,
-              path,
-              isAccountsUrl,
-              body,
-              bodyType,
-              params,
-            });
+            return this.request({ method, path, isAccountsUrl, body, bodyType, params });
           }
           if (!res.ok && res.status !== 401) {
             throw this.errorFactory(parsedRes, res.status);
@@ -265,9 +249,7 @@ const TheService: ServiceSchema = {
         if (key === 'last_order_date' || key === 'subscription_expiration') {
           const date = new Date(params[key]);
           const year = date.getFullYear();
-          const month = `${date.getMonth() > 8 ? '' : '0'}${
-            date.getMonth() + 1
-          }`;
+          const month = `${date.getMonth() > 8 ? '' : '0'}${date.getMonth() + 1}`;
           const day = `${date.getDate() > 9 ? '' : '0'}${date.getDate()}`;
           const time = `${date.toTimeString().slice(0, 8)}`;
           const timeZoneOffset = -date.getTimezoneOffset() / 60;
@@ -275,35 +257,29 @@ const TheService: ServiceSchema = {
             Math.abs(timeZoneOffset) > 9 ? '' : '0'
           }${Math.abs(timeZoneOffset)}:00`;
 
-          newObj[
-            crmParams[key] as keyof CrmStore
-          ] = `${year}-${month}-${day}T${time}${timeZone}`;
+          newObj[crmParams[key] as keyof CrmStore] = `${year}-${month}-${day}T${time}${timeZone}`;
         }
         if (key === 'address') {
           Object.keys(params[key]).forEach(attr => {
-            newObj[crmParams[attr] as keyof CrmStore] =
-              params[key][attr as keyof OrderAddress];
+            newObj[crmParams[attr] as keyof CrmStore] = params[key][attr as keyof OrderAddress];
           });
         }
       });
       if (params.languages) {
         newObj.Languages = params.languages.reduce(
           (accumulator: string, lang: string) =>
-            `${accumulator ? `${accumulator}-` : accumulator}${lang}`,
-          ''
+            `${accumulator ? accumulator + '-' : accumulator}${lang}`,
+          '',
         );
       }
       if (params.shipping_methods) {
         newObj.Shipping_Methods = params.shipping_methods.reduce(
           (accumulator: string, method: { name: string }) =>
-            `${accumulator ? `${accumulator}-` : accumulator}${method.name}`,
-          ''
+            `${accumulator ? accumulator + '-' : accumulator}${method.name}`,
+          '',
         );
       }
-      if (
-        params.address &&
-        (params.address.first_name || params.address.last_name)
-      ) {
+      if (params.address && (params.address.first_name || params.address.last_name)) {
         newObj.Billing_Name = `${params.address.first_name} ${params.address.last_name}`;
       }
       return newObj;

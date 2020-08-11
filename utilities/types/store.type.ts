@@ -1,5 +1,4 @@
-import { Subscription } from './subscription.type';
-import { OrderAddress } from './order.type';
+import { OrderAddress, Subscription } from '.';
 
 /**
  * Store Type definition

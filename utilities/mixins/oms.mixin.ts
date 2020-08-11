@@ -1,5 +1,4 @@
 import { ServiceSchema } from 'moleculer';
-
 import { MpError } from '../adapters';
 import { OmsStore, User } from '../types';
 
@@ -11,8 +10,7 @@ export const Oms: ServiceSchema = {
 
       params.users.forEach((user: User) => {
         // Backward compatibility since zoho require contact last
-        if (!user.last_name)
-          user.last_name = String(params.name).padEnd(3, '_');
+        if (!user.last_name) user.last_name = String(params.name).padEnd(3, '_');
       });
 
       // Sanitized params keys
@@ -52,8 +50,8 @@ export const Oms: ServiceSchema = {
       // if no attributes no create
       if (Object.keys(body).length === 0) return;
       if (body.shippingMethods) {
-        body.shippingMethods = (body.shippingMethods as { name: string }[]).map(
-          method => method.name
+        body.shippingMethods = (body.shippingMethods as Array<{ name: string }>).map(
+          method => method.name,
         );
       }
       body.stockDate = params.stock_date;
@@ -62,23 +60,10 @@ export const Oms: ServiceSchema = {
 
       // Remove the billing if doesn't has the required fields
       // Billing required fields
-      const billingRequiredFields = [
-        'first_name',
-        'last_name',
-        'address_1',
-        'country',
-      ];
-      if (body.billing) {
+      const billingRequiredFields = ['first_name', 'last_name', 'address_1', 'country'];
+      if(body.billing) {
         const bodyBillingKeys = Object.keys(body.billing);
-        if (
-          billingRequiredFields.reduce(
-            (a, k, i, arr) =>
-              !bodyBillingKeys.includes(k) && Boolean(arr.splice(1)),
-            false
-          )
-        ) {
-          delete body.billing;
-        }
+        billingRequiredFields.reduce((a, k, i, arr) => !bodyBillingKeys.includes(k) && !!arr.splice(1), false) && delete body.billing;
       }
 
       return this.broker.call('oms.createCustomer', body).catch(console.log);
@@ -96,13 +81,7 @@ export const Oms: ServiceSchema = {
         })
         .catch((err: unknown) => {
           console.log(err);
-          throw new MpError(
-            'InvoicesError',
-            "Can't create oms contact!",
-            503,
-            err.toString(),
-            err
-          );
+          throw new MpError('InvoicesError', 'Can\'t create oms contact!', 503, err.toString(), err);
         });
     },
   },

@@ -1,10 +1,9 @@
 import { Context, Errors, ServiceSchema } from 'moleculer';
-
 import { PaymentsOpenapi } from '../utilities/mixins/openapi';
 import { Payment, PaymentInvoice } from '../utilities/types';
 import { PaymentsValidation } from '../utilities/mixins/validation';
 import { Oms } from '../utilities/mixins/oms.mixin';
-import { MpError } from '../utilities/adapters';
+import { MpError } from './../utilities/adapters';
 
 const TheService: ServiceSchema = {
   name: 'payments',
@@ -29,12 +28,10 @@ const TheService: ServiceSchema = {
           accountId: ctx.params.account_id,
         };
         if (ctx.params.invoices) {
-          paymentBody.invoices = ctx.params.invoices.map(
-            (invoice: { [key: string]: string }) => ({
-              invoiceId: invoice.invoice_id,
-              amountApplied: invoice.amount_applied,
-            })
-          );
+          paymentBody.invoices = ctx.params.invoices.map((invoice: { [key: string]: string }) => ({
+            invoiceId: invoice.invoice_id,
+            amountApplied: invoice.amount_applied,
+          }));
         }
         if (ctx.params.bank_charges) {
           paymentBody.bankCharges = ctx.params.bank_charges;
@@ -45,18 +42,21 @@ const TheService: ServiceSchema = {
         if (ctx.params.description) {
           paymentBody.description = ctx.params.description;
         }
-        return ctx.call('oms.createPayment', paymentBody).then(
-          res => {
-            // Store balance
-            this.broker.cacher.clean(`payments.get:${instance.consumer_key}**`);
-            this.broker.cacher.clean(`invoices.get:${instance.consumer_key}**`);
-            this.cacheUpdate(res.payment, instance);
-            return this.sanitizePayment(res.payment);
-          },
-          err => {
-            throw new MpError('Payments Service', err.message, err.code || 500);
-          }
-        );
+        return ctx
+          .call('oms.createPayment', paymentBody)
+          .then(
+            res => {
+              // Store balance
+              this.broker.cacher.clean(`payments.get:${instance.consumer_key}**`);
+              this.broker.cacher.clean(`invoices.get:${instance.consumer_key}**`);
+              this.cacheUpdate(res.payment, instance);
+              return this.sanitizePayment(res.payment);
+            },
+            err => {
+              throw new MpError('Payments Service', err.message, err.code || 500);
+            },
+          );
+
       },
     },
     get: {
@@ -88,19 +88,11 @@ const TheService: ServiceSchema = {
             .then(
               res => ({ payments: res.payments.map(this.sanitizePayment) }),
               err => {
-                throw new MpError(
-                  'Payments Service',
-                  err.message,
-                  err.code || 500
-                );
-              }
+                throw new MpError('Payments Service', err.message, err.code || 500);
+              },
             );
         }
-        throw new MpError(
-          'Payments Service',
-          'No Record Found For This Store!',
-          404
-        );
+        throw new MpError('Payments Service', 'No Record Found For This Store!', 404);
       },
     },
   },

@@ -1,16 +1,11 @@
 import { ServiceSchema } from 'moleculer';
-
-import { Store, Tax, OrderItem } from '../types';
-
+import { Store, Tax, OrderItem } from '../../utilities/types';
 import { Mail } from './mail.mixin';
 
-interface ErrorSchema {
-  code: number;
-  message: string;
-}
+type ErrorSchema = {code: number; message: string;};
 
-export const TaxCheck: ServiceSchema = {
-  name: 'tax-check',
+const TaxCheck: ServiceSchema = {
+  name: 'taxCheck',
   mixins: [Mail],
   methods: {
     /**
@@ -21,10 +16,7 @@ export const TaxCheck: ServiceSchema = {
      * @param {Product} item
      * @returns {{code: number, message: string} | Tax}
      */
-    async getItemTax(
-      instance: Store | string,
-      item: OrderItem
-    ): Promise<{ code: number; message: string } | Tax> {
+    async getItemTax(instance: Store | string, item: OrderItem) {
       // Check if the store billing address country is available
       if (typeof instance !== 'string' && !this.checkAddressCountry(instance)) {
         return {
@@ -33,15 +25,11 @@ export const TaxCheck: ServiceSchema = {
         };
       }
 
-      const country = (typeof instance !== 'string'
-        ? instance.address.country
-        : instance
-      ).toUpperCase();
+      const country = (typeof instance !== 'string' ? instance.address.country : instance).toUpperCase();
 
       // Get countries that should apply taxes to it
       const taxCountries = process.env.TAX_COUNTRIES
-        ? process.env.TAX_COUNTRIES.toUpperCase().trim().split(',')
-        : [];
+        ? process.env.TAX_COUNTRIES.toUpperCase().trim().split(',') : [];
 
       // If the country is not listed for taxes return
       if (!taxCountries.includes(country)) {
@@ -69,20 +57,13 @@ export const TaxCheck: ServiceSchema = {
       const taxClass = item.taxClass;
 
       // Get tax data from taxes service
-      const taxData: Tax | ErrorSchema = await this.broker
-        .call('taxes.tList', {
-          country,
-          class: taxClass.toString(),
-        })
-        .then(
-          (res: { taxes: Tax[] }) => res.taxes[0],
-          (err: any) => [
-            {
-              code: 4444,
-              message: err.message,
-            },
-          ]
-        );
+      const taxData: Tax | ErrorSchema = await this.broker.call('taxes.tList', {
+        country,
+        class: taxClass.toString(),
+      }).then((res: {taxes: Tax[]}) => res.taxes[0], (err: any) => ([{
+        code: 4444,
+        message: err.message,
+      }]));
 
       // Check if no tax data
       if (!taxData) {
@@ -100,7 +81,7 @@ export const TaxCheck: ServiceSchema = {
       }
 
       // If no percentage set it to zero
-      if (!(taxData as Tax).percentage && !(taxData as ErrorSchema).code) {
+      if(!(taxData as Tax).percentage && !(taxData as ErrorSchema).code) {
         (taxData as Tax).percentage = 0;
       }
 
@@ -115,11 +96,11 @@ export const TaxCheck: ServiceSchema = {
      * @returns {boolean}
      */
     checkAddressCountry(instance: Store): boolean {
-      return Boolean(
+      return !!(
         instance &&
-          instance.address &&
-          instance.address.country &&
-          /^[A-Z]{2}$/.test(instance.address.country)
+        instance.address &&
+        instance.address.country &&
+        /^[A-Z]{2}$/.test(instance.address.country)
       );
     },
 
@@ -131,7 +112,7 @@ export const TaxCheck: ServiceSchema = {
      * @returns {boolean}
      */
     checkItemHasTaxClass(item: OrderItem): boolean {
-      return Boolean(item && item.taxClass);
+      return !!(item && item.taxClass);
     },
     /**
      *
@@ -141,17 +122,14 @@ export const TaxCheck: ServiceSchema = {
      * @param {Product} item
      * @returns {0 | Tax}
      */
-    async getTaxWithCalc(
-      instance: Store,
-      item: OrderItem
-    ): Promise<ValueTax | 0> {
-      const tax: ValueTax = await this.getItemTax(instance, item);
+    async getTaxWithCalc(instance: Store, item: OrderItem): Promise<ValueTax | 0> {
+      const tax: ValueTax  = await this.getItemTax(instance, item);
       if (!tax.omsId) {
         return 0;
       }
       tax.value = 0;
       if (!tax.isInclusive) {
-        tax.value = (item.rate / 100) * tax.percentage;
+        tax.value = item.rate/100 * tax.percentage;
       }
       return tax;
     },
@@ -161,3 +139,5 @@ export const TaxCheck: ServiceSchema = {
 interface ValueTax extends Tax {
   value?: number;
 }
+
+export = TaxCheck;

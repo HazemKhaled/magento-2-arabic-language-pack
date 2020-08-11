@@ -1,36 +1,46 @@
 {
-  "extends": [
-    "plugin:@shopify/typescript",
-    "plugin:@shopify/node",
-    "plugin:@shopify/prettier"
-  ],
-  "parserOptions": {
-    "project": "tsconfig.json"
+  "env": {
+    "browser": true,
+    "es6": true
   },
+  "extends": ["plugin:@typescript-eslint/eslint-recommended"],
+  "globals": {
+    "Atomics": "readonly",
+    "SharedArrayBuffer": "readonly"
+  },
+  "settings": {
+    "import/parsers": {
+      "@typescript-eslint/parser": [".ts", ".tsx"]
+    },
+    "import/resolver": {
+      "typescript": {}
+    }
+  },
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 2018,
+    "sourceType": "module"
+  },
+  "plugins": ["@typescript-eslint"],
   "rules": {
-    "@typescript-eslint/camelcase": "off",
-    "@typescript-eslint/naming-convention": [
+    "indent": ["error", 2],
+    "linebreak-style": ["error", "unix"],
+    "quotes": "off",
+    "semi": ["error", "always"],
+    "comma-dangle": ["warn", "always-multiline"],
+    "quote-props": ["error", "as-needed"],
+    "@typescript-eslint/quotes": [
       "error",
-      { "selector": "parameterProperty", "format": ["snake_case"] }
+      "single",
+      {
+        "avoidEscape": true
+      }
     ],
-    "lines-around-comment": "off",
-    "import/no-unresolved": "off",
-    "import/no-anonymous-default-export": "off",
-    "babel/object-curly-spacing": ["error", "always"],
-    "no-warning-comments": "off",
-    "promise/no-nesting": "off",
-    "require-atomic-updates": "off",
-    "no-negated-condition": "off",
-    "callback-return": "off",
-    "no-return-await": "off",
-    "no-throw-literal": "off",
-    "no-fallthrough": "warn",
-    // Change to error when you can
-    "@typescript-eslint/no-explicit-any": "warn",
-    "@typescript-eslint/explicit-function-return-type": "warn",
-    "consistent-return": "warn",
-    "@typescript-eslint/no-var-requires": "warn",
-    "id-length": "warn",
-    "promise/catch-or-return": "warn"
+    "@typescript-eslint/camelcase": [
+      "error",
+      {
+        "properties": "never"
+      }
+    ]
   }
 }

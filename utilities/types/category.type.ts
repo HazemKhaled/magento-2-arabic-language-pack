@@ -1,4 +1,4 @@
-import { I18nText } from './i18ntext.type';
+import { I18nText } from '../types';
 
 /**
  * Category Type definition

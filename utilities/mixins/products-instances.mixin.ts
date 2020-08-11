@@ -1,7 +1,6 @@
-import { ServiceSchema } from 'moleculer';
-
 import { Product, Variation } from '../types';
-import { MpError } from '../adapters';
+import { ServiceSchema } from 'moleculer';
+const { MpError } = require('../adapters');
 
 export const ProductsInstancesMixin: ServiceSchema = {
   name: 'products-instances',
@@ -20,18 +19,11 @@ export const ProductsInstancesMixin: ServiceSchema = {
       const { sku, currency, _source } = ctx.params;
       const { store: instance } = ctx.meta;
 
-      const hasProductInstance = await this.checkProductInstance(
-        sku,
-        instance.consumer_key,
-        _source
-      );
+      const hasProductInstance = await this.checkProductInstance(sku, instance.consumer_key, _source);
+
 
       if (!hasProductInstance) {
-        throw new MpError(
-          'Products Instance Service',
-          `Product not found ${sku}, "store: ${instance.url}" (fetchBySku)!`,
-          404
-        );
+        throw new MpError('Products Instance Service', `Product not found ${sku}, "store: ${instance.url}" (fetchBySku)!`, 404);
       }
 
       const product = await this.broker.call('products.getBySku', { sku });
@@ -59,8 +51,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
               },
             },
           },
-        })
-        .then((res: any) => res.hits.total?.value > 0);
+        }).then((res: any) => res.hits.total?.value > 0);
     },
     async productInstanceSanitizer(product, instance, currency) {
       const currencyRate = await this.broker.call('currencies.getCurrency', {
@@ -73,7 +64,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
           product.variations,
           instance,
           currencyRate.rate,
-          product.archive
+          product.archive,
         ),
       };
 
@@ -116,11 +107,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
         hasExternalId,
       });
 
-      const instanceProducts = instanceProductsFull.page
-        ? instanceProductsFull.page.map(
-            (product: { _id: string; _source: Product }) => product._source.sku
-          )
-        : [];
+      const instanceProducts = instanceProductsFull.page ? instanceProductsFull.page.map((product: { _id: string, _source: Product }) => product._source.sku) : [];
       if (instanceProducts.length === 0) {
         return {
           products: [],
@@ -129,69 +116,58 @@ export const ProductsInstancesMixin: ServiceSchema = {
       }
 
       try {
-        const results = await this.broker.call('products.getProductsBySku', {
-          skus: instanceProducts,
-        });
+        const results = await this.broker.call('products.getProductsBySku', {skus: instanceProducts});
         const currencyRate = await this.broker.call('currencies.getCurrency', {
           currencyCode: currency || instance.currency,
         });
 
-        const products = instanceProductsFull.page.map(
-          (pi: { _source: Partial<Product> }) => {
-            const product = results.find(
-              (p: Product) => String(p.sku) === String(pi._source.sku)
-            );
-            if (product) {
-              return {
-                sku: product.sku,
-                name: this.formatI18nText(product.name),
-                description: this.formatI18nText(product.description),
-                supplier: product.seller_id,
-                images: product.images,
-                updated: pi._source.updated,
-                created: pi._source.createdAt,
-                categories: this.formatCategories(product.categories),
-                attributes: this.formatAttributes(product.attributes || []),
-                variations: this.formatVariations(
-                  product.variations,
-                  instance,
-                  currencyRate.rate,
-                  product.archive,
-                  pi._source.variations
-                ),
-                externalId: pi._source.externalId,
-                externalUrl: pi._source.externalUrl,
-              };
-            }
-
-            // In case product not found at products instance
-            const blankProduct: Partial<Product> = {
-              sku: pi._source.sku,
-              images: [],
-              categories: [],
+        const products = instanceProductsFull.page.map((pi: {_source: Partial<Product>}) => {
+          const product = results.find((p: Product) => String(p.sku) === String(pi._source.sku));
+          if (product) {
+            return {
+              sku: product.sku,
+              name: this.formatI18nText(product.name),
+              description: this.formatI18nText(product.description),
+              supplier: product.seller_id,
+              images: product.images,
+              updated: pi._source.updated,
+              created: pi._source.createdAt,
+              categories: this.formatCategories(product.categories),
+              attributes: this.formatAttributes(product.attributes || []),
+              variations: this.formatVariations(
+                product.variations,
+                instance,
+                currencyRate.rate,
+                product.archive,
+                pi._source.variations,
+              ),
               externalId: pi._source.externalId,
               externalUrl: pi._source.externalUrl,
             };
-            blankProduct.variations = pi._source.variations.map(
-              (variation: Variation) => {
-                variation.quantity = 0;
-                return variation;
-              }
-            );
-            return blankProduct;
           }
-        );
+
+          // In case product not found at products instance
+          const blankProduct: Partial<Product> = {
+            sku: pi._source.sku,
+            images: [],
+            categories: [],
+            externalId: pi._source.externalId,
+            externalUrl: pi._source.externalUrl,
+          };
+          blankProduct.variations = pi._source.variations.map((variation: Variation) => {
+            variation.quantity = 0;
+            return variation;
+          });
+          return blankProduct;
+        });
 
         return {
           products: products.filter((product: Product) => product),
           total: instanceProductsFull.totalProducts,
         };
+
       } catch (err) {
-        throw new MpError(
-          'Products Service',
-          (err && err.message) || 'Internal server error!',
-          500
-        );
+        throw new MpError('Products Service', err && err.message || 'Internal server error!', 500);
       }
     },
 
@@ -223,12 +199,12 @@ export const ProductsInstancesMixin: ServiceSchema = {
       scrollId = false,
       maxScroll = 0,
     }) {
-      page = parseInt(page, 10) || 1;
+      page = parseInt(page) || 1;
       let search = [];
-      const mustNot: { [key: string]: any } = [{ term: { deleted: true } }];
+      const mustNot: { [key: string]: any } = [{term: { deleted: true }}];
 
       if (!scrollId) {
-        const searchQuery: { [key: string]: any } = {
+        const searchQuery: {[key: string]: any} = {
           index: 'products-instances',
           scroll: '1m',
           size: process.env.SCROLL_LIMIT,
@@ -298,20 +274,20 @@ export const ProductsInstancesMixin: ServiceSchema = {
 
         // Add filter if the product has external ID or not
         if (hasExternalId) {
-          switch (Boolean(Number(hasExternalId))) {
-            case true:
-              searchQuery.body.query.bool.must.push({
-                exists: {
-                  field: 'externalId',
-                },
-              });
-              break;
-            case false:
-              mustNot.push({
-                exists: {
-                  field: 'externalId',
-                },
-              });
+          switch(!!Number(hasExternalId)) {
+          case true:
+            searchQuery.body.query.bool.must.push({
+              exists: {
+                field: 'externalId',
+              },
+            });
+            break;
+          case false:
+            mustNot.push({
+              exists: {
+                field: 'externalId',
+              },
+            });
           }
         }
 
@@ -324,10 +300,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
           endTrace = page * size;
         }
 
-        search = await this.broker.call(
-          'products-instances.search',
-          searchQuery
-        );
+        search = await this.broker.call('products-instances.search', searchQuery);
 
         maxScroll = search.hits.total.value;
       } else {
@@ -335,18 +308,15 @@ export const ProductsInstancesMixin: ServiceSchema = {
           api: 'scroll',
           params: {
             scroll: '30s',
-            scrollId,
+            scrollId: scrollId,
           },
         });
       }
 
       const results = fullResult.concat(search.hits.hits);
-      if (
-        endTrace > size &&
-        maxScroll > parseInt(process.env.SCROLL_LIMIT, 10)
-      ) {
-        maxScroll -= parseInt(process.env.SCROLL_LIMIT, 10);
-        endTrace -= parseInt(process.env.SCROLL_LIMIT, 10);
+      if (endTrace > size && maxScroll > parseInt(process.env.SCROLL_LIMIT)) {
+        maxScroll -= parseInt(process.env.SCROLL_LIMIT);
+        endTrace -= parseInt(process.env.SCROLL_LIMIT);
 
         return this.findIP({
           page,
@@ -364,9 +334,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
         });
       }
       return {
-        page: scrollId
-          ? results.slice(page * size - size, page * size)
-          : results,
+        page: scrollId ? results.slice(page * size - size, page * size) : results,
         totalProducts: search.hits.total.value,
       };
     },
@@ -397,13 +365,9 @@ export const ProductsInstancesMixin: ServiceSchema = {
             return {
               status: 'success',
               message: 'Product has been deleted.',
-              sku,
+              sku: sku,
             };
-          throw new MpError(
-            'Products Instance',
-            `Product not found ${sku} store ${id} (Delete Product)!`,
-            404
-          );
+          throw new MpError('Products Instance', `Product not found ${sku} store ${id} (Delete Product)!`, 404);
         })
         .catch((err: unknown) => {
           throw new MpError('Products Instance', err.toString(), 500);

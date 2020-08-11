@@ -5,9 +5,9 @@
  * @interface OmsTax
  */
 export interface OmsTax {
-  name: string;
-  percentage: number;
-  type: 'tax' | 'compound_tax';
+    name: string;
+    percentage: number;
+    type: 'tax' | 'compound_tax';
 }
 
 /**
@@ -18,5 +18,5 @@ export interface OmsTax {
  * @extends {OmsTax}
  */
 export interface OmsTaxResponse extends OmsTax {
-  id: string;
+    id: string;
 }
