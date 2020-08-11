@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export = index;
+// eslint-disable-next-line @typescript-eslint/class-name-casing
 declare class index {
   public uri: any;
   public opts: any;
