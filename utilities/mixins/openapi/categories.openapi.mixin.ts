@@ -130,9 +130,9 @@ const CategoriesListOpenapi = {
         },
       },
     },
-    401: {$ref: '#/components/responses/UnauthorizedErrorToken'},
+    401: { $ref: '#/components/responses/UnauthorizedErrorToken' },
   },
-  security: [{bearerAuth: [] as any[]}],
+  security: [{ bearerAuth: [] as any[] }],
 };
 
 export const CategoriesOpenapi: ServiceSchema = {

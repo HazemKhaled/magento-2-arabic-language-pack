@@ -14,21 +14,21 @@ const CreateCoupon = {
           type: 'object',
           properties: {
             value: { type: 'number' },
-            type: { type: 'string', enum: ['%', '$']},
+            type: { type: 'string', enum: ['%', '$'] },
           },
         },
         shipping: {
           type: 'object',
           properties: {
             value: { type: 'number' },
-            type: { type: 'string', enum: ['%', '$']},
+            type: { type: 'string', enum: ['%', '$'] },
           },
         },
         tax: {
           type: 'object',
           properties: {
             value: { type: 'number' },
-            type: { type: 'string', enum: ['%', '$']},
+            type: { type: 'string', enum: ['%', '$'] },
           },
         },
       },
@@ -92,10 +92,10 @@ const CouponsGetOpenapi = {
         },
       },
     },
-    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
-    404: {$ref: '#/components/responses/404'},
+    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
+    404: { $ref: '#/components/responses/404' },
   },
-  security: [{basicAuth: [] as any[]}],
+  security: [{ basicAuth: [] as any[] }],
 };
 
 const CouponsListOpenapi = {
@@ -140,10 +140,10 @@ const CouponsListOpenapi = {
         },
       },
     },
-    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
-    404: {$ref: '#/components/responses/404'},
+    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
+    404: { $ref: '#/components/responses/404' },
   },
-  security: [{basicAuth: [] as any[]}],
+  security: [{ basicAuth: [] as any[] }],
 };
 
 const CouponsCreateOpenapi = {
@@ -170,9 +170,9 @@ const CouponsCreateOpenapi = {
         },
       },
     },
-    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
+    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
   },
-  security: [{basicAuth: [] as any[]}],
+  security: [{ basicAuth: [] as any[] }],
 };
 
 const CouponsUpdateOpenapi = {

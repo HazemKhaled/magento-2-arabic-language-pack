@@ -53,10 +53,10 @@ const CurrenciesGetCurrencyOpenapi = {
         },
       },
     },
-    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
-    404: {$ref: '#/components/responses/404'},
+    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
+    404: { $ref: '#/components/responses/404' },
   },
-  security: [{basicAuth: [] as any[]}],
+  security: [{ basicAuth: [] as any[] }],
 };
 
 const CurrenciesGetCurrenciesOpenapi = {
@@ -78,9 +78,9 @@ const CurrenciesGetCurrenciesOpenapi = {
         },
       },
     },
-    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
+    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
   },
-  security: [{basicAuth: [] as any[]}],
+  security: [{ basicAuth: [] as any[] }],
 };
 
 export const CurrenciesOpenapi: ServiceSchema = {

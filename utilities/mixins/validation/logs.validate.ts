@@ -1,6 +1,5 @@
 import { ServiceSchema } from 'moleculer';
 
-
 export const LogsValidation: ServiceSchema = {
   name: 'logs',
   actions: {
@@ -14,26 +13,22 @@ export const LogsValidation: ServiceSchema = {
         },
         logLevel: {
           type: 'enum',
-          values: [
-            'info',
-            'debug',
-            'error',
-            'warn',
-          ],
+          values: ['info', 'debug', 'error', 'warn'],
         },
         storeId: {
           type: 'string',
         },
-        topicId: [{
-          type: 'string',
-          optional: true,
-        },
-        {
-          type: 'number',
-          optional: true,
-          convert: true,
-          integer: true,
-        },
+        topicId: [
+          {
+            type: 'string',
+            optional: true,
+          },
+          {
+            type: 'number',
+            optional: true,
+            convert: true,
+            integer: true,
+          },
         ],
         payload: {
           type: 'object',
@@ -54,32 +49,25 @@ export const LogsValidation: ServiceSchema = {
         },
         sort: {
           type: 'enum',
-          values: [
-            'asc',
-            'desc',
-          ],
+          values: ['asc', 'desc'],
           optional: true,
         },
         logLevel: {
           type: 'enum',
-          values: [
-            'info',
-            'debug',
-            'error',
-            'warn',
-          ],
+          values: ['info', 'debug', 'error', 'warn'],
           optional: true,
         },
-        storeId: [{
-          type: 'string',
-          optional: true,
-        },
-        {
-          type: 'number',
-          optional: true,
-          convert: true,
-          integer: true,
-        },
+        storeId: [
+          {
+            type: 'string',
+            optional: true,
+          },
+          {
+            type: 'number',
+            optional: true,
+            convert: true,
+            integer: true,
+          },
         ],
         topicId: {
           type: 'string',
