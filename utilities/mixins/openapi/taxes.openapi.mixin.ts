@@ -18,13 +18,13 @@ const TaxCreateReq = {
     'application/json': {
       schema: {
         type: 'object',
-        required: ['name', 'country', 'class', 'percentage','isInclusive'],
+        required: ['name', 'country', 'class', 'percentage', 'isInclusive'],
         properties: {
           name: { type: 'string' },
-          country: { type: 'string'},
-          class: { type: 'array', items: { type: 'string' }},
+          country: { type: 'string' },
+          class: { type: 'array', items: { type: 'string' } },
           percentage: { type: 'number' },
-          isInclusive: { type: 'boolean'},
+          isInclusive: { type: 'boolean' },
         },
       },
     },
@@ -64,10 +64,10 @@ const TaxCreate = {
         },
       },
     },
-    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
-    500: {$ref: '#/components/responses/500'},
+    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
+    500: { $ref: '#/components/responses/500' },
   },
-  security: [{basicAuth: [] as any[]}],
+  security: [{ basicAuth: [] as any[] }],
   requestBody: {
     $ref: '#/components/requestBodies/TaxCreate',
     required: true,
@@ -100,11 +100,11 @@ const TaxUpdate = {
         },
       },
     },
-    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
-    500: {$ref: '#/components/responses/500'},
+    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
+    500: { $ref: '#/components/responses/500' },
   },
-  security: [{basicAuth: [] as any[]}],
-  requestBody: {$ref: '#/components/requestBodies/TaxUpdate'},
+  security: [{ basicAuth: [] as any[] }],
+  requestBody: { $ref: '#/components/requestBodies/TaxUpdate' },
 };
 
 const TaxGet = {
@@ -135,10 +135,10 @@ const TaxGet = {
         },
       },
     },
-    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
-    500: {$ref: '#/components/responses/500'},
+    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
+    500: { $ref: '#/components/responses/500' },
   },
-  security: [{basicAuth: [] as any[]}],
+  security: [{ basicAuth: [] as any[] }],
 };
 
 const TaxList = {
@@ -195,10 +195,10 @@ const TaxList = {
         },
       },
     },
-    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
-    500: {$ref: '#/components/responses/500'},
+    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
+    500: { $ref: '#/components/responses/500' },
   },
-  security: [{basicAuth: [] as any[]}],
+  security: [{ basicAuth: [] as any[] }],
 };
 
 const TaxDelete = {
@@ -227,10 +227,10 @@ const TaxDelete = {
         },
       },
     },
-    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
-    500: {$ref: '#/components/responses/500'},
+    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
+    500: { $ref: '#/components/responses/500' },
   },
-  security: [{basicAuth: [] as any[]}],
+  security: [{ basicAuth: [] as any[] }],
 };
 
 export const TaxOpenapi: ServiceSchema = {

@@ -4,7 +4,7 @@ import MongoAdapter from 'moleculer-db-adapter-mongo';
 
 const { MoleculerClientError } = Errors;
 
-export = (collection: string): ServiceSchema => {
+export default (collection: string): ServiceSchema => {
   if (!process.env.MONGO_URI) {
     throw new MoleculerClientError('Database connection error', 500);
   }

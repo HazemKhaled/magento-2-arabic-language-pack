@@ -1,6 +1,7 @@
 import { ServiceSchema } from 'moleculer';
 
 import { Attribute, Category, Store, Variation } from '../types';
+
 import { I18nService } from './i18n.mixin';
 
 export const ProductTransformation: ServiceSchema = {
@@ -22,7 +23,7 @@ export const ProductTransformation: ServiceSchema = {
       instance: Store,
       rate: number,
       archive: boolean,
-      variationsInstance: Variation[],
+      variationsInstance: Variation[]
     ): Variation[] {
       return variations.map((variation, n) => {
         const variant: Variation = {

@@ -1,7 +1,8 @@
+import path from 'path';
+
 import { sync as mkdir } from 'mkdirp';
 import { ServiceSchema } from 'moleculer';
 import DbService from 'moleculer-db';
-import path from 'path';
 
 export const DbMixin = (collection: string): ServiceSchema => {
   // Create data folder
@@ -10,7 +11,9 @@ export const DbMixin = (collection: string): ServiceSchema => {
   return {
     name: 'db_service',
     mixins: [DbService],
-    adapter: new DbService.MemoryAdapter({ filename: `./data/${collection}.db` }),
+    adapter: new DbService.MemoryAdapter({
+      filename: `./data/${collection}.db`,
+    }),
 
     methods: {
       entityChanged(type: string, json: object, ctx: any): void {

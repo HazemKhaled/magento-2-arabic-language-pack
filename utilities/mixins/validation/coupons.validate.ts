@@ -81,12 +81,14 @@ export const CouponsValidation: ServiceSchema = {
     },
     get: {
       params: {
-        id: [{
-          type: 'string',
-        },
-        {
-          type: 'number',
-        }],
+        id: [
+          {
+            type: 'string',
+          },
+          {
+            type: 'number',
+          },
+        ],
         membership: {
           type: 'string',
           optional: true,
@@ -100,14 +102,16 @@ export const CouponsValidation: ServiceSchema = {
     },
     list: {
       params: {
-        id: [{
-          type: 'string',
-          optional: true,
-        },
-        {
-          type: 'number',
-          optional: true,
-        }],
+        id: [
+          {
+            type: 'string',
+            optional: true,
+          },
+          {
+            type: 'number',
+            optional: true,
+          },
+        ],
         membership: {
           type: 'string',
           optional: true,

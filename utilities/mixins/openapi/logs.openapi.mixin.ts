@@ -62,10 +62,10 @@ const LogsAddOpenapi = {
         },
       },
     },
-    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
-    500: {$ref: '#/components/responses/500'},
+    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
+    500: { $ref: '#/components/responses/500' },
   },
-  security: [{basicAuth: [] as any[]}],
+  security: [{ basicAuth: [] as any[] }],
   requestBody: {
     content: {
       'application/json': {
@@ -156,11 +156,11 @@ const LogsGetLogsOpenapi = {
         },
       },
     },
-    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
-    404: {$ref: '#/components/responses/404'},
-    500: {$ref: '#/components/responses/500'},
+    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
+    404: { $ref: '#/components/responses/404' },
+    500: { $ref: '#/components/responses/500' },
   },
-  security: [{basicAuth: [] as any[]}],
+  security: [{ basicAuth: [] as any[] }],
 };
 
 export const LogsOpenapi: ServiceSchema = {

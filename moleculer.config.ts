@@ -58,7 +58,8 @@ const brokerConfig: BrokerOptions = {
     // Backoff factor for delay. 2 means exponential backoff.
     factor: 2,
     // A function to check failed requests.
-    check: (err: Errors.MoleculerRetryableError) => err && !!err.retryable,
+    check: (err: Errors.MoleculerRetryableError) =>
+      err && Boolean(err.retryable),
   },
 
   // Limit of calling level. If it reaches the limit, broker will throw an MaxCallLevelError error. (Infinite loop protection)
@@ -69,7 +70,7 @@ const brokerConfig: BrokerOptions = {
   // Number of seconds to wait before setting node to unavailable status.
   heartbeatTimeout: 15,
 
-  // Tracking requests and waiting for running requests before shutdowning. More info: https://moleculer.services/docs/0.13/fault-tolerance.html
+  // Tracking requests and waiting for running requests before shutdown. More info: https://moleculer.services/docs/0.13/fault-tolerance.html
   tracking: {
     // Enable feature
     enabled: false,
@@ -133,13 +134,13 @@ const brokerConfig: BrokerOptions = {
   // Watch the loaded services and hot reload if they changed. You can also enable it in Moleculer Runner with `--hot` argument
   hotReload: true,
 
-  // Register custom middlewares
+  // Register custom middleware(s)
   middlewares: [],
 
   // Called after broker created.
   // created(broker) {},
 
-  // Called after broker starte.
+  // Called after broker started.
   // started(broker) {},
 
   // Called after broker stopped.
