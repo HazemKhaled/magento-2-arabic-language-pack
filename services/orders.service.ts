@@ -805,17 +805,19 @@ const TheService: ServiceSchema = {
      * @param {string} status
      * @returns
      */
-    normalizeResponseStatus(status: string) {
-      switch (status) {
-      case 'draft':
+    normalizeResponseStatus(financialStatus: string) {
+      let status = '';
+      switch (financialStatus) {
+      case 'unpaid':
         status = 'Order Placed';
         break;
-      case 'open':
-        status = 'Processing';
-        break;
-      case 'void':
+      case 'voided':
+      case 'refunded':
+      case 'wallet_refunded':
         status = 'Cancelled';
         break;
+      default:
+        status = 'Processing';
       }
       return status;
     },
@@ -1068,7 +1070,7 @@ const TheService: ServiceSchema = {
     sanitizeResponseOne(order): Order {
       const orderResponse: {[key: string]: any} = {
         id: order.id,
-        status: this.normalizeResponseStatus(order.status),
+        status: this.normalizeResponseStatus(order.financialStatus),
         items: order.items,
         billing: order.billing,
         shipping: order.shipping,
@@ -1078,7 +1080,7 @@ const TheService: ServiceSchema = {
         externalId: order.externalId,
         createDate: order.createDate,
         updateDate: order.updateDate,
-        knawat_order_status: order.status ? this.normalizeResponseStatus(order.status) : '',
+        knawat_order_status: this.normalizeResponseStatus(order.financialStatus),
         notes: order.notes,
         shipping_method: order.shipmentCourier,
         shipping_charge: order.shippingCharge,
@@ -1099,14 +1101,9 @@ const TheService: ServiceSchema = {
         order.meta_data.forEach((meta: any) => {
           if (
             meta.key === '_shipment_tracking_number' ||
-            meta.key === '_shipment_provider_name' ||
-            meta.key === '_knawat_order_status'
+            meta.key === '_shipment_provider_name'
           ) {
             orderResponse[meta.key.substring(1)] = meta.value || '';
-            if (meta.key === '_knawat_order_status') {
-              orderResponse[meta.key.substring(1)] =
-                this.normalizeResponseStatus(meta.value) || '';
-            }
           }
         });
       }
@@ -1116,13 +1113,13 @@ const TheService: ServiceSchema = {
       return orders.map((order: Order) => ({
         id: order.id,
         externalId: order.externalId,
-        status: this.normalizeResponseStatus(order.status),
+        status: this.normalizeResponseStatus(order.financialStatus),
         createDate: order.createDate,
         updateDate: order.updateDate,
         total: order.total,
         trackingNumber: order.shipmentTrackingNumber,
         shipment_date: order.shipmentDate,
-        knawat_order_status: order.status ? this.normalizeResponseStatus(order.status) : '',
+        knawat_order_status: this.normalizeResponseStatus(order.financialStatus),
         orderNumber: order.orderNumber,
         invoice_url: order.externalInvoice,
         warningsSnippet: order.warningsSnippet,
