@@ -7,8 +7,15 @@ const SubscriptionSchema = {
     membershipId: { type: 'string' },
     storeId: { type: 'string' },
     invoiceId: { type: 'string' },
-    reference: { type: 'string', description: 'External reference ID for third party applications' },
-    status: { type: 'string', enum: ['confirmed', 'pending', 'cancelled'], description: 'Subscription status' },
+    reference: {
+      type: 'string',
+      description: 'External reference ID for third party applications',
+    },
+    status: {
+      type: 'string',
+      enum: ['confirmed', 'pending', 'cancelled'],
+      description: 'Subscription status',
+    },
     startDate: { type: 'string', format: 'date-time' },
     expireDate: { type: 'string', format: 'date-time' },
     autoRenew: { type: 'boolean' },
@@ -30,7 +37,10 @@ const SubscriptionRequest = {
           expireDate: { type: 'string', format: 'date-time' },
           autoRenew: { type: 'boolean' },
           renewed: { type: 'boolean' },
-          retries: { type: 'array', items: { type: 'string', format: 'date-time' } },
+          retries: {
+            type: 'array',
+            items: { type: 'string', format: 'date-time' },
+          },
         },
       },
     },
@@ -151,10 +161,10 @@ const SubscriptionListOpenapi = {
         },
       },
     },
-    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
-    404: {$ref: '#/components/responses/404'},
+    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
+    404: { $ref: '#/components/responses/404' },
   },
-  security: [{basicAuth: [] as any[]}],
+  security: [{ basicAuth: [] as any[] }],
 };
 
 const SubscriptionCancelOpenapi = {
@@ -183,10 +193,10 @@ const SubscriptionCancelOpenapi = {
         },
       },
     },
-    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
-    404: {$ref: '#/components/responses/404'},
+    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
+    404: { $ref: '#/components/responses/404' },
   },
-  security: [{basicAuth: [] as any[]}],
+  security: [{ basicAuth: [] as any[] }],
 };
 
 const SubscriptionCreateOpenapi = {
@@ -204,31 +214,53 @@ const SubscriptionCreateOpenapi = {
         },
       },
     },
-    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
-    500: {$ref: '#/components/responses/500'},
+    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
+    500: { $ref: '#/components/responses/500' },
   },
-  security: [{basicAuth: [] as any[]}],
+  security: [{ basicAuth: [] as any[] }],
   requestBody: {
     content: {
       'application/json': {
         schema: {
           type: 'object',
-          required: ['storeId','membership'],
+          required: ['storeId', 'membership'],
           properties: {
-            storeId: { type: 'string'},
+            storeId: { type: 'string' },
             membership: { type: 'string' },
-            reference: { type: 'string', description: 'External reference ID could be used for payments integration' },
-            postpaid: { type: 'number', enum: [1], description: 'Used when the subscription is paid through a third party' },
+            reference: {
+              type: 'string',
+              description:
+                'External reference ID could be used for payments integration',
+            },
+            postpaid: {
+              type: 'number',
+              enum: [1],
+              description:
+                'Used when the subscription is paid through a third party',
+            },
             date: {
               type: 'object',
               properties: {
-                start: { type: 'string', format: 'date', description: 'Pattern yyyy-mm-dd' },
-                expire: { type: 'string', format: 'date', description: 'Pattern yyyy-mm-dd' },
+                start: {
+                  type: 'string',
+                  format: 'date',
+                  description: 'Pattern yyyy-mm-dd',
+                },
+                expire: {
+                  type: 'string',
+                  format: 'date',
+                  description: 'Pattern yyyy-mm-dd',
+                },
               },
               description: 'Subscription Start and Expire date',
             },
             coupon: { type: 'string' },
-            grantTo: { type: 'string', format: 'url', description: 'This field is used to donor the subscription to another store' },
+            grantTo: {
+              type: 'string',
+              format: 'url',
+              description:
+                'This field is used to donor the subscription to another store',
+            },
             autoRenew: { type: 'boolean' },
             dueDate: { type: 'string', format: 'date', example: 'yyyy-mm-dd' },
           },
@@ -264,10 +296,10 @@ const SubscriptionUpdateOpenapi = {
         },
       },
     },
-    401: {$ref: '#/components/responses/UnauthorizedErrorBasic'},
-    500: {$ref: '#/components/responses/500'},
+    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
+    500: { $ref: '#/components/responses/500' },
   },
-  security: [{basicAuth: [] as any[]}],
+  security: [{ basicAuth: [] as any[] }],
   requestBody: {
     $ref: '#/components/requestBodies/Subscription',
   },
