@@ -25,11 +25,13 @@ const ItemSchema = {
       type: 'boolean',
     },
     externalUrl: {
-      description: "Product URL in the customer store, it's only there if the product already pushed",
+      description:
+        "Product URL in the customer store, it's only there if the product already pushed",
       type: 'string',
     },
     externalId: {
-      description: "Product ID in the customer store, it's only there if the product already pushed",
+      description:
+        "Product ID in the customer store, it's only there if the product already pushed",
       type: 'string',
     },
     supplier: {
@@ -51,7 +53,8 @@ const ItemSchema = {
       items: { $ref: '#/components/schemas/Category' },
     },
     attributes: {
-      description: 'Any other information about this product, materials, gender … etc',
+      description:
+        'Any other information about this product, materials, gender … etc',
       type: 'array',
       items: { $ref: '#/components/schemas/ProductAttribute' },
     },
@@ -213,7 +216,8 @@ const ProductVariationSchema = {
       type: 'string',
     },
     externalId: {
-      description: "Product variation ID in the customer store, it's only there if the product already pushed",
+      description:
+        "Product variation ID in the customer store, it's only there if the product already pushed",
       type: 'string',
     },
     cost_price: {
@@ -225,7 +229,8 @@ const ProductVariationSchema = {
       type: 'number',
     },
     market_price: {
-      description: 'Price before the discount, som times known as Compare at or Strike Through price',
+      description:
+        'Price before the discount, som times known as Compare at or Strike Through price',
       type: 'number',
     },
     weight: {
@@ -254,7 +259,8 @@ const ProductVariationAttributeSchema = {
 };
 
 const I18nStringSchema = {
-  description: 'Key and value depend on available language(s) and selected language from store settings',
+  description:
+    'Key and value depend on available language(s) and selected language from store settings',
   type: 'object',
   properties: {
     ar: { type: 'string' },
@@ -286,10 +292,10 @@ const GetInstanceProduct = {
         },
       },
     },
-    401: {$ref: '#/components/responses/UnauthorizedErrorToken'},
-    404: {$ref: '#/components/responses/404'},
+    401: { $ref: '#/components/responses/UnauthorizedErrorToken' },
+    404: { $ref: '#/components/responses/404' },
   },
-  security: [{bearerAuth: [] as []}],
+  security: [{ bearerAuth: [] as [] }],
   parameters: [
     {
       name: 'sku',
@@ -332,10 +338,10 @@ const ProductsTotal = {
         },
       },
     },
-    401: {$ref: '#/components/responses/UnauthorizedErrorToken'},
-    500: {$ref: '#/components/responses/500'},
+    401: { $ref: '#/components/responses/UnauthorizedErrorToken' },
+    500: { $ref: '#/components/responses/500' },
   },
-  security: [{bearerAuth: [] as []}],
+  security: [{ bearerAuth: [] as [] }],
 };
 
 const ProductsList = {
@@ -443,16 +449,17 @@ const ProductsList = {
         },
       },
     },
-    401: {$ref: '#/components/responses/UnauthorizedErrorToken'},
+    401: { $ref: '#/components/responses/UnauthorizedErrorToken' },
   },
-  security: [{bearerAuth: [] as []}],
+  security: [{ bearerAuth: [] as [] }],
 };
 
 const DeleteInstanceProduct = {
   $path: 'delete /catalog/products/{sku}',
   summary: 'Delete product by SKU',
   tags: ['My Products'],
-  description: 'Delete Product by Product SKU from store. product should be under this store',
+  description:
+    'Delete Product by Product SKU from store. product should be under this store',
   responses: {
     200: {
       description: 'Status 200',
@@ -473,8 +480,8 @@ const DeleteInstanceProduct = {
         },
       },
     },
-    401: {$ref: '#/components/responses/UnauthorizedErrorToken'},
-    500: {$ref: '#/components/responses/500'},
+    401: { $ref: '#/components/responses/UnauthorizedErrorToken' },
+    500: { $ref: '#/components/responses/500' },
   },
   parameters: [
     {
@@ -486,7 +493,7 @@ const DeleteInstanceProduct = {
       },
     },
   ],
-  security: [{bearerAuth: [] as []}],
+  security: [{ bearerAuth: [] as [] }],
 };
 
 const ProductsImport = {
@@ -519,8 +526,8 @@ const ProductsImport = {
         },
       },
     },
-    401: {$ref: '#/components/responses/UnauthorizedErrorToken'},
-    500: {$ref: '#/components/responses/500'},
+    401: { $ref: '#/components/responses/UnauthorizedErrorToken' },
+    500: { $ref: '#/components/responses/500' },
   },
   requestBody: {
     content: {
@@ -549,7 +556,7 @@ const ProductsImport = {
     },
     required: true,
   },
-  security: [{bearerAuth: [] as []}],
+  security: [{ bearerAuth: [] as [] }],
 };
 
 const InstanceUpdate = {
@@ -558,10 +565,10 @@ const InstanceUpdate = {
   tags: ['My Products'],
   description: 'Update imported product External IDs by SKU',
   responses: {
-    200: {description: 'Status 200'},
-    401: {$ref: '#/components/responses/UnauthorizedErrorToken'},
-    404: {$ref: '#/components/responses/404'},
-    500: {$ref: '#/components/responses/500'},
+    200: { description: 'Status 200' },
+    401: { $ref: '#/components/responses/UnauthorizedErrorToken' },
+    404: { $ref: '#/components/responses/404' },
+    500: { $ref: '#/components/responses/500' },
   },
   parameters: [
     {
@@ -593,7 +600,7 @@ const InstanceUpdate = {
                 required: ['sku'],
                 type: 'object',
                 properties: {
-                  sku: {type: 'string'},
+                  sku: { type: 'string' },
                   externalId: {
                     description: 'Variation ID in your store',
                     type: 'number',
@@ -604,7 +611,7 @@ const InstanceUpdate = {
             },
             error: {
               type: 'array',
-              items: {type: 'string'},
+              items: { type: 'string' },
             },
           },
         },
@@ -612,7 +619,7 @@ const InstanceUpdate = {
     },
     required: true,
   },
-  security: [{bearerAuth: [] as []}],
+  security: [{ bearerAuth: [] as [] }],
 };
 
 const BulkProductInstance = {
@@ -621,11 +628,11 @@ const BulkProductInstance = {
   tags: ['My Products'],
   description: 'Update externalUrl, externalId and variations.error',
   responses: {
-    200: {description: 'Status 200'},
-    401: {$ref: '#/components/responses/UnauthorizedErrorToken'},
-    500: {$ref: '#/components/responses/500'},
+    200: { description: 'Status 200' },
+    401: { $ref: '#/components/responses/UnauthorizedErrorToken' },
+    500: { $ref: '#/components/responses/500' },
   },
-  security: [{bearerAuth: [] as []}],
+  security: [{ bearerAuth: [] as [] }],
   requestBody: {
     content: {
       'application/json': {
@@ -711,14 +718,16 @@ export const ProductsInstancesOpenapi: ServiceSchema = {
       openapi: ProductsTotal,
     },
   },
-  tags: [{
-    name: 'My Products',
-    description:
+  tags: [
+    {
+      name: 'My Products',
+      description:
         'How products can come to your API?' +
         '![](https://www.dropbox.com/s/tb8708y269pccx0/ZApp%20-%20products.png?dl=1)',
-    externalDocs: {
-      description: 'Register and import some products',
-      url: 'https://app.knawat.com/catalog',
+      externalDocs: {
+        description: 'Register and import some products',
+        url: 'https://app.knawat.com/catalog',
+      },
     },
-  }],
+  ],
 };

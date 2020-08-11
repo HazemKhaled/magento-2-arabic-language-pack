@@ -1,4 +1,4 @@
-import { Subscription } from '.';
+import { Subscription } from './subscription.type';
 
 /**
  * User

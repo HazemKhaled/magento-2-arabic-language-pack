@@ -41,9 +41,7 @@ export const InvoicesValidation: ServiceSchema = {
             },
             type: {
               type: 'enum',
-              values: [
-                'entity_level',
-              ],
+              values: ['entity_level'],
             },
           },
           optional: true,
@@ -97,13 +95,16 @@ export const InvoicesValidation: ServiceSchema = {
                 type: 'number',
                 optional: true,
               },
-              taxId: [{
-                type: 'number',
-                optional: true,
-              },{
-                type: 'string',
-                optional: true,
-              }],
+              taxId: [
+                {
+                  type: 'number',
+                  optional: true,
+                },
+                {
+                  type: 'string',
+                  optional: true,
+                },
+              ],
               $$strict: true,
             },
           },

@@ -1,14 +1,35 @@
 import { Context, ServiceSchema } from 'moleculer';
 import { v1 as uuidv1 } from 'uuid';
 
-import { Log, OrderOMSResponse, Order, OrderAddress, OrderItem, Product, Store } from '../utilities/types';
-import TaxCheck = require('../utilities/mixins/tax.mixin');
-import { Mail, Oms, OrdersOperations, OrdersOpenapi, OrdersValidation } from '../utilities/mixins';
+import {
+  Log,
+  OrderOMSResponse,
+  Order,
+  OrderAddress,
+  OrderItem,
+  Product,
+  Store,
+} from '../utilities/types';
+import {
+  Mail,
+  Oms,
+  OrdersOperations,
+  OrdersOpenapi,
+  OrdersValidation,
+} from '../utilities/mixins';
 import { MpError } from '../utilities/adapters';
+import { TaxCheck } from '../utilities/mixins/tax.mixin';
 
 const TheService: ServiceSchema = {
   name: 'orders',
-  mixins: [OrdersOperations, OrdersValidation, OrdersOpenapi, TaxCheck, Mail, Oms],
+  mixins: [
+    OrdersOperations,
+    OrdersValidation,
+    OrdersOpenapi,
+    TaxCheck,
+    Mail,
+    Oms,
+  ],
   settings: {
     BASEURL:
       process.env.NODE_ENV === 'production'
@@ -19,7 +40,8 @@ const TheService: ServiceSchema = {
     createOrder: {
       auth: 'Bearer',
       async handler(ctx: Context) {
-        let warnings: { code: number; message: string; }[] = []; // Initialize warnings array
+        // Initialize warnings array
+        let warnings: { code: number; message: string }[] = [];
         // Get the Store instance
         const instance = await ctx.call('stores.findInstance', {
           consumerKey: ctx.meta.user,
@@ -31,7 +53,9 @@ const TheService: ServiceSchema = {
         }
 
         if (ctx.params.id) {
-          const isCreated = await this.broker.cacher.get(`createOrder_${instance.consumer_key}|${ctx.params.id}`);
+          const isCreated = await this.broker.cacher.get(
+            `createOrder_${instance.consumer_key}|${ctx.params.id}`
+          );
           if (isCreated) {
             this.sendLogs({
               topic: 'order',
@@ -53,7 +77,11 @@ const TheService: ServiceSchema = {
               data: orders?.[0],
             };
           }
-          this.broker.cacher.set(`createOrder_${instance.consumer_key}|${ctx.params.id}`, 1, 60 * 60 * 24);
+          this.broker.cacher.set(
+            `createOrder_${instance.consumer_key}|${ctx.params.id}`,
+            1,
+            60 * 60 * 24
+          );
         }
 
         const data = this.orderData(ctx.params, instance, true);
@@ -98,12 +126,16 @@ const TheService: ServiceSchema = {
             },
           });
 
-          throw new MpError('Orders Service', 'The products you ordered are not Knawat products, The order has not been created!', 404);
+          throw new MpError(
+            'Orders Service',
+            'The products you ordered are not Knawat products, The order has not been created!',
+            404
+          );
         }
 
         // Taxes
         const taxData = await this.setTaxIds(instance, stock.items);
-        const taxesMsg: { code: number; message: string; }[] = taxData.msgs;
+        const taxesMsg: { code: number; message: string }[] = taxData.msgs;
 
         // Update Order Items
         data.items = taxData.items;
@@ -115,7 +147,7 @@ const TheService: ServiceSchema = {
           stock.items,
           ctx.params.shipping.country,
           instance,
-          ctx.params.shipping_method,
+          ctx.params.shipping_method
         );
 
         if (!shipment) {
@@ -133,7 +165,11 @@ const TheService: ServiceSchema = {
             },
           });
 
-          throw new MpError('Orders Service', 'Sorry the order is not created as there is no shipment method to your country!', 400);
+          throw new MpError(
+            'Orders Service',
+            'Sorry the order is not created as there is no shipment method to your country!',
+            400
+          );
         }
 
         data.shipmentCourier = shipment.courier;
@@ -142,23 +178,28 @@ const TheService: ServiceSchema = {
         // Calculate the order total
         const total: number =
           data.items.reduce(
-            (accumulator: number, current: OrderItem) => accumulator + current.rate * current.quantity,
-            0,
+            (accumulator: number, current: OrderItem) =>
+              accumulator + current.rate * current.quantity,
+            0
           ) + (data.isInclusiveTax ? 0 : taxTotal);
 
         // Getting the current user subscription
-        const subscription = await ctx.call('subscription.sGet', { id: instance.url });
+        const subscription = await ctx.call('subscription.sGet', {
+          id: instance.url,
+        });
         switch (subscription.attributes.orderProcessingType) {
-        case '$':
-          data.adjustment = Number(subscription.attributes.orderProcessingFees);
-          data.adjustmentDescription = 'Processing Fees';
-          break;
-        case '%':
-          data.adjustment = (Number(subscription.attributes.orderProcessingFees) / 100) * total;
-          data.adjustmentDescription = `Processing Fees ${
-            subscription.attributes.orderProcessingFees
-          }%`;
-          break;
+          case '$':
+            data.adjustment = Number(
+              subscription.attributes.orderProcessingFees
+            );
+            data.adjustmentDescription = 'Processing Fees';
+            break;
+          case '%':
+            data.adjustment =
+              (Number(subscription.attributes.orderProcessingFees) / 100) *
+              total;
+            data.adjustmentDescription = `Processing Fees ${subscription.attributes.orderProcessingFees}%`;
+            break;
         }
 
         const orderExpenses = {
@@ -168,7 +209,11 @@ const TheService: ServiceSchema = {
           adjustment: data.adjustment,
         };
 
-        const discountResponse: { warnings?: [], discount?: number; coupon: string; } = await this.discount({
+        const discountResponse: {
+          warnings?: [];
+          discount?: number;
+          coupon: string;
+        } = await this.discount({
           code: ctx.params.coupon,
           membership: subscription.membership.id,
           orderExpenses,
@@ -187,37 +232,53 @@ const TheService: ServiceSchema = {
         this.sendLogs({
           topic: 'order',
           topicId: data.externalId,
-          message: `Subscription Package: ${subscription ? subscription.membership.name.en : 'Free'}`,
+          message: `Subscription Package: ${
+            subscription ? subscription.membership.name.en : 'Free'
+          }`,
           storeId: instance.url,
           logLevel: 'info',
           code: 2103,
-          payload: { subscriptionId: subscription.id.toString(), params: ctx.params },
+          payload: {
+            subscriptionId: subscription.id.toString(),
+            params: ctx.params,
+          },
         });
 
-        data.status = ['pending', 'processing', 'cancelled'].includes(data.status)
+        data.status = ['pending', 'processing', 'cancelled'].includes(
+          data.status
+        )
           ? this.normalizeStatus(data.status)
           : data.status;
         data.subscription = subscription.membership.name.en;
 
         // Initializing warnings array if we have a Warning
-        warnings = warnings.concat(this.warningsMessenger(
-          stock.outOfStock,
-          stock.notEnoughStock,
-          data,
-          instance,
-          ctx.params.shipping_method,
-          ctx.params.shipping,
-          shipment,
-          ctx.params,
-        ));
+        warnings = warnings.concat(
+          this.warningsMessenger(
+            stock.outOfStock,
+            stock.notEnoughStock,
+            data,
+            instance,
+            ctx.params.shipping_method,
+            ctx.params.shipping,
+            shipment,
+            ctx.params
+          )
+        );
         warnings = warnings.concat(taxesMsg);
 
         if (warnings.length) {
           data.warnings = JSON.stringify(warnings);
-          data.warningsSnippet = warnings.reduce((a: string, warn: {message: string}) => `${a}${a && '\n'}${warn.message}`,'');
+          data.warningsSnippet = warnings.reduce(
+            (a: string, warn: { message: string }) =>
+              `${a}${a && '\n'}${warn.message}`,
+            ''
+          );
         }
 
-        const result: OrderOMSResponse = await ctx.call('oms.createNewOrder', data);
+        const result: OrderOMSResponse = await ctx.call(
+          'oms.createNewOrder',
+          data
+        );
         if (!result.salesorder) {
           this.sendLogs({
             topicId: data.externalId,
@@ -241,7 +302,10 @@ const TheService: ServiceSchema = {
             ],
           };
         }
-        if (result.salesorder && !(instance.internal_data && instance.internal_data.omsId)) {
+        if (
+          result.salesorder &&
+          !(instance.internal_data && instance.internal_data.omsId)
+        ) {
           ctx
             .call('stores.update', {
               id: instance.url,
@@ -258,7 +322,10 @@ const TheService: ServiceSchema = {
         }
 
         // Update CRM last update
-        ctx.call('crm.updateStoreById', { id: instance.url, last_order_date: Date.now() });
+        ctx.call('crm.updateStoreById', {
+          id: instance.url,
+          last_order_date: Date.now(),
+        });
 
         // Update products sales quantity
         ctx.call('products.updateQuantityAttributes', {
@@ -273,14 +340,17 @@ const TheService: ServiceSchema = {
         const order = result.salesorder;
 
         // Clearing order list action(API) cache
-        await this.broker.cacher.clean(`orders.list:undefined|${ctx.meta.user}**`);
+        await this.broker.cacher.clean(
+          `orders.list:undefined|${ctx.meta.user}**`
+        );
         this.cacheUpdate(order, instance);
 
         const message: {
           status?: string;
-          data?: OrderOMSResponse['salesorder'] | any; // Remove any after
-          warnings?: Array<{}>;
-          errors?: Array<{}>;
+          // Remove any later
+          data?: OrderOMSResponse['salesorder'] | any;
+          warnings?: {}[];
+          errors?: {}[];
         } = {
           status: 'success',
           data: this.sanitizeResponseOne(order),
@@ -290,7 +360,10 @@ const TheService: ServiceSchema = {
           this.sendMail({
             to: process.env.SUPPORT_MAIL,
             subject: 'Order Warnings',
-            text: `${warnings.reduce((a, o) => `${a}${o.message}\n`, 'OrderID: ${order.id}\n')}`,
+            text: `${warnings.reduce(
+              (a, o) => `${a}${o.message}\n`,
+              `OrderID: ${order.id}\n`
+            )}`,
           });
         }
 
@@ -308,7 +381,8 @@ const TheService: ServiceSchema = {
     updateOrder: {
       auth: 'Bearer',
       async handler(ctx) {
-        let warnings: { code: number; message: string; }[] = []; // Initialize warnings array
+        // Initialize warnings array
+        let warnings: { code: number; message: string }[] = [];
         const instance = await ctx.call('stores.findInstance', {
           consumerKey: ctx.meta.user,
         });
@@ -323,19 +397,26 @@ const TheService: ServiceSchema = {
             params: ctx.params,
           },
         });
-        const orderBeforeUpdate = await ctx.call('orders.getOrder', { order_id: ctx.params.id });
+        const orderBeforeUpdate = await ctx.call('orders.getOrder', {
+          order_id: ctx.params.id,
+        });
         if (orderBeforeUpdate.id === -1) {
           ctx.meta.$statusCode = 404;
           ctx.meta.$statusMessage = 'Not Found';
           return { message: 'Order Not Found!' };
         }
         // Change here
-        if (!['Order Placed', 'Processing'].includes(orderBeforeUpdate.status)) {
+        if (
+          !['Order Placed', 'Processing'].includes(orderBeforeUpdate.status)
+        ) {
           ctx.meta.$statusCode = 405;
           ctx.meta.$statusMessage = 'Not Allowed';
-          return { message: 'The Order Is Now Processed With Knawat You Can Not Update It' };
+          return {
+            message:
+              'The Order Is Now Processed With Knawat You Can Not Update It',
+          };
         }
-        if ('Cancelled' === orderBeforeUpdate.status) {
+        if (orderBeforeUpdate.status === 'Cancelled') {
           return { message: 'The Order Is Cancelled, You Can Not Update It' };
         }
 
@@ -346,7 +427,9 @@ const TheService: ServiceSchema = {
         // Change
         if (data.status === 'cancelled' || data.status === 'void') {
           return ctx.call('orders.delete', { id: data.id }).then(res => {
-            this.broker.cacher.clean(`orders.list:undefined|${ctx.meta.user}**`);
+            this.broker.cacher.clean(
+              `orders.list:undefined|${ctx.meta.user}**`
+            );
             this.broker.cacher.clean(`orders.getOrder:${ctx.params.id}**`);
             return res;
           });
@@ -354,9 +437,10 @@ const TheService: ServiceSchema = {
 
         const message: {
           status?: string;
-          data?: OrderOMSResponse['salesorder'] | any; // Remove any after
-          warnings?: Array<{}>;
-          errors?: Array<{}>;
+          // Remove any later
+          data?: OrderOMSResponse['salesorder'] | any;
+          warnings?: {}[];
+          errors?: {}[];
         } = {};
         let shipment: any = 'No Items';
 
@@ -402,7 +486,7 @@ const TheService: ServiceSchema = {
 
             // Taxes
             const taxData = await this.setTaxIds(instance, stock.items);
-            const taxesMsg: { code: number; message: string; }[] = taxData.msgs;
+            const taxesMsg: { code: number; message: string }[] = taxData.msgs;
             const { taxTotal } = taxData;
 
             // Update Order Items
@@ -414,7 +498,7 @@ const TheService: ServiceSchema = {
               stock.items,
               country,
               instance,
-              ctx.params.shipping_method,
+              ctx.params.shipping_method
             );
 
             if (shipment) {
@@ -424,17 +508,19 @@ const TheService: ServiceSchema = {
             // Calculate the order total
             const total: number =
               data.items.reduce(
-                (accumulator: number, current: OrderItem) => accumulator + current.purchaseRate * current.quantity,
-                0,
+                (accumulator: number, current: OrderItem) =>
+                  accumulator + current.purchaseRate * current.quantity,
+                0
               ) + (data.isInclusiveTax ? 0 : taxTotal);
 
             // Getting the current user subscription
-            const subscription = await ctx.call('subscription.sGet', { id: instance.url });
+            const subscription = await ctx.call('subscription.sGet', {
+              id: instance.url,
+            });
             if (subscription.attributes.orderProcessingType === '%') {
-              subscription.adjustment = (subscription.attributes.orderProcessingFees / 100) * total;
-              subscription.adjustmentDescription = `Processing Fees ${
-                subscription.attributes.orderProcessingFees
-              }%`;
+              subscription.adjustment =
+                (subscription.attributes.orderProcessingFees / 100) * total;
+              subscription.adjustmentDescription = `Processing Fees ${subscription.attributes.orderProcessingFees}%`;
             }
 
             const orderExpenses = {
@@ -444,7 +530,10 @@ const TheService: ServiceSchema = {
               adjustment: data.adjustment,
             };
             if (orderBeforeUpdate.coupon) {
-              const discountResponse: { warnings?: [], discount?: number } = await this.discount({
+              const discountResponse: {
+                warnings?: [];
+                discount?: number;
+              } = await this.discount({
                 code: orderBeforeUpdate.coupon,
                 membership: subscription.membership.id,
                 orderExpenses,
@@ -457,36 +546,47 @@ const TheService: ServiceSchema = {
             }
 
             // Initializing warnings array if we have a Warning
-            warnings = warnings.concat(this.warningsMessenger(
-              stock.outOfStock,
-              stock.notEnoughStock,
-              data,
-              instance,
-              ctx.params.shipping_method,
-              ctx.params.shipping,
-              shipment,
-              ctx.params,
-            ));
+            warnings = warnings.concat(
+              this.warningsMessenger(
+                stock.outOfStock,
+                stock.notEnoughStock,
+                data,
+                instance,
+                ctx.params.shipping_method,
+                ctx.params.shipping,
+                shipment,
+                ctx.params
+              )
+            );
             warnings = warnings.concat(taxesMsg);
 
             if (warnings.length) {
               let parsedOldWarnings = [];
               try {
                 parsedOldWarnings = JSON.parse(orderBeforeUpdate.warnings);
-              } catch(e) {}
-              data.warnings = JSON.stringify(warnings.concat(parsedOldWarnings));
+              } catch (e) {
+                console.error(e);
+              }
+              data.warnings = JSON.stringify(
+                warnings.concat(parsedOldWarnings)
+              );
             }
           }
           // Convert status
-          data.status = ['pending', 'processing', 'cancelled'].includes(data.status)
+          data.status = ['pending', 'processing', 'cancelled'].includes(
+            data.status
+          )
             ? this.normalizeStatus(data.status)
             : data.status;
           // Update order
-          const result: OrderOMSResponse = await ctx.call('oms.updateOrderById', {
-            customerId: instance.internal_data.omsId,
-            orderId: ctx.params.id,
-            ...data,
-          });
+          const result: OrderOMSResponse = await ctx.call(
+            'oms.updateOrderById',
+            {
+              customerId: instance.internal_data.omsId,
+              orderId: ctx.params.id,
+              ...data,
+            }
+          );
 
           if (!result.salesorder) {
             this.sendLogs({
@@ -512,7 +612,9 @@ const TheService: ServiceSchema = {
             };
           }
           const order = result.salesorder;
-          await this.broker.cacher.clean(`orders.list:undefined|${ctx.meta.user}**`);
+          await this.broker.cacher.clean(
+            `orders.list:undefined|${ctx.meta.user}**`
+          );
           this.cacheUpdate(order, instance);
           message.status = 'success';
           message.data = this.sanitizeResponseOne(order);
@@ -529,7 +631,10 @@ const TheService: ServiceSchema = {
           this.logger.error(err);
           this.sendLogs({
             topicId: orderBeforeUpdate.externalId,
-            message: err && err.stack || (err.error && err.error.message) ? err.error.message : 'Order Error',
+            message:
+              (err && err.stack) || (err.error && err.error.message)
+                ? err.error.message
+                : 'Order Error',
             storeId: instance.url,
             logLevel: 'error',
             code: 500,
@@ -552,7 +657,7 @@ const TheService: ServiceSchema = {
       auth: 'Bearer',
       cache: {
         keys: ['order_id'],
-        ttl: 60 * 60 * 24, // 1 hour
+        ttl: 60 * 60 * 24,
       },
       async handler(ctx) {
         const instance = await ctx.call('stores.findInstance', {
@@ -566,7 +671,7 @@ const TheService: ServiceSchema = {
           };
         }
 
-        let order = await ctx.call('oms.getOrderById', {
+        const order = await ctx.call('oms.getOrderById', {
           customerId: instance.internal_data.omsId,
           orderId: ctx.params.order_id,
         });
@@ -591,7 +696,16 @@ const TheService: ServiceSchema = {
     list: {
       auth: 'Bearer',
       cache: {
-        keys: ['externalId', '#user', 'limit', 'page', 'sort', 'sortOrder', 'status', 'timestamp'],
+        keys: [
+          'externalId',
+          '#user',
+          'limit',
+          'page',
+          'sort',
+          'sortOrder',
+          'status',
+          'timestamp',
+        ],
         ttl: 60 * 60 * 24,
       },
       async handler(ctx) {
@@ -633,20 +747,27 @@ const TheService: ServiceSchema = {
     deleteOrder: {
       auth: 'Bearer',
       async handler(ctx) {
-        const orderBeforeUpdate = await ctx.call('orders.getOrder', { order_id: ctx.params.id });
+        const orderBeforeUpdate = await ctx.call('orders.getOrder', {
+          order_id: ctx.params.id,
+        });
         if (orderBeforeUpdate.id === -1) {
           ctx.meta.$statusCode = 404;
           ctx.meta.$statusMessage = 'Not Found';
           return { message: 'Order Not Found!' };
         }
         // Change here
-        //FIXME: Allow cancel order if invoice not paid
-        if (!['Order Placed', 'Processing'].includes(orderBeforeUpdate.status)) {
+        // FIXME: Allow cancel order if invoice not paid
+        if (
+          !['Order Placed', 'Processing'].includes(orderBeforeUpdate.status)
+        ) {
           ctx.meta.$statusCode = 405;
           ctx.meta.$statusMessage = 'Not Allowed';
-          return { message: 'The Order Is Now Processed With Knawat You Can Not Cancel It' };
+          return {
+            message:
+              'The Order Is Now Processed With Knawat You Can Not Cancel It',
+          };
         }
-        if ('Cancelled' === orderBeforeUpdate.status) {
+        if (orderBeforeUpdate.status === 'Cancelled') {
           return { message: 'The Order Is Already Cancelled' };
         }
         const instance = await ctx.call('stores.findInstance', {
@@ -670,7 +791,9 @@ const TheService: ServiceSchema = {
           })
           .then(
             async result => {
-              this.broker.cacher.clean(`orders.list:undefined|${ctx.meta.user}**`);
+              this.broker.cacher.clean(
+                `orders.list:undefined|${ctx.meta.user}**`
+              );
               this.broker.cacher.clean(`orders.getOrder:${ctx.params.id}**`);
               if (result.salesorder) {
                 return {
@@ -708,7 +831,10 @@ const TheService: ServiceSchema = {
             err => {
               this.sendLogs({
                 topicId: ctx.params.id,
-                message: err && err.error && err.error.message ? err.error.message : 'Order Error',
+                message:
+                  err && err.error && err.error.message
+                    ? err.error.message
+                    : 'Order Error',
                 storeId: instance.url,
                 logLevel: 'error',
                 code: 500,
@@ -724,7 +850,7 @@ const TheService: ServiceSchema = {
                   },
                 ],
               };
-            },
+            }
           );
       },
     },
@@ -733,7 +859,9 @@ const TheService: ServiceSchema = {
       async handler(ctx: Context) {
         const store = await ctx.call('stores.sGet', { id: ctx.meta.store.url });
 
-        const order = await ctx.call('orders.getOrder', { order_id: ctx.params.id });
+        const order = await ctx.call('orders.getOrder', {
+          order_id: ctx.params.id,
+        });
 
         if (order.financialStatus === 'paid') {
           return {
@@ -742,29 +870,46 @@ const TheService: ServiceSchema = {
         }
 
         if (order.total > store.credit) {
-          throw new MpError('Orders Service', 'You don\'t have enough balance', 402);
+          throw new MpError(
+            'Orders Service',
+            "You don't have enough balance",
+            402
+          );
         }
 
         if (order?.id) {
           let invoiceId = '';
           if (order.status === 'invoiced') {
-            ({ invoices: [{invoice_id: invoiceId}] } = await ctx.call('invoices.get', { reference_number: order.orderNumber }));
+            ({
+              invoices: [{ invoice_id: invoiceId }],
+            } = await ctx.call('invoices.get', {
+              reference_number: order.orderNumber,
+            }));
           } else {
-            ({invoice: { invoiceId }} = await ctx.call('invoices.createOrderInvoice', { storeId: store.url, orderId: order.id }));
+            ({
+              invoice: { invoiceId },
+            } = await ctx.call('invoices.createOrderInvoice', {
+              storeId: store.url,
+              orderId: order.id,
+            }));
           }
 
           await ctx.call('invoices.markInvoiceSent', {
             omsId: ctx.meta.store.internal_data.omsId,
-            invoiceId: invoiceId,
+            invoiceId,
           });
 
           const applyCreditRes = await ctx.call('invoices.applyCredits', {
             id: invoiceId,
           });
 
-          setTimeout((storeKey) => {
-            this.broker.cacher.clean(`orders.list:undefined|${storeKey}**`);
-          }, 60000, ctx.meta.user);
+          setTimeout(
+            storeKey => {
+              this.broker.cacher.clean(`orders.list:undefined|${storeKey}**`);
+            },
+            60000,
+            ctx.meta.user
+          );
 
           order.status = 'paid';
           order.financialStatus = 'paid';
@@ -780,22 +925,23 @@ const TheService: ServiceSchema = {
     /**
      * Convert order status from MP status to OMS status
      *
-     * @param {string} status
-     * @returns
+     * @param {string} _status
+     * @returns {string}
      */
-    normalizeStatus(status: string) {
-      switch (status) {
-      case 'pending':
-        status = 'draft';
-        break;
-      case 'processing':
-        status = 'open';
-        break;
-      case 'cancelled':
-        status = 'void';
-        break;
-      default:
-        status = 'draft';
+    normalizeStatus(_status: string): string {
+      let status = _status;
+      switch (_status) {
+        case 'pending':
+          status = 'draft';
+          break;
+        case 'processing':
+          status = 'open';
+          break;
+        case 'cancelled':
+          status = 'void';
+          break;
+        default:
+          status = 'draft';
       }
       return status;
     },
@@ -827,17 +973,18 @@ const TheService: ServiceSchema = {
      * @param {string} status
      * @returns
      */
-    normalizeUpdateRequestStatus(status: string) {
+    normalizeUpdateRequestStatus(_status: string): string {
+      let status = _status;
       switch (status) {
-      case 'Order Placed':
-        status = 'draft';
-        break;
-      case 'Processing':
-        status = 'open';
-        break;
-      case 'Cancelled':
-        status = 'void';
-        break;
+        case 'Order Placed':
+          status = 'draft';
+          break;
+        case 'Processing':
+          status = 'open';
+          break;
+        case 'Cancelled':
+          status = 'void';
+          break;
       }
       return status;
     },
@@ -883,7 +1030,7 @@ const TheService: ServiceSchema = {
       shippingMethod,
       shipping,
       shipment,
-      params,
+      params
     ) {
       const warnings = [];
       try {
@@ -891,10 +1038,12 @@ const TheService: ServiceSchema = {
           warnings.push({
             message: `${outOfStock.reduce(
               (accumulator, item) =>
-                `${accumulator}${accumulator && '\n'}SKU: ${item.sku} Required Qty: ${
-                  item.quantityRequired
-                } Available Qty: ${item.quantity}`,
-              '',
+                `${accumulator}${accumulator && '\n'}SKU: ${
+                  item.sku
+                } Required Qty: ${item.quantityRequired} Available Qty: ${
+                  item.quantity
+                }`,
+              ''
             )}`,
             skus: outOfStock.map(e => e.sku),
             code: 1102,
@@ -913,10 +1062,12 @@ const TheService: ServiceSchema = {
           warnings.push({
             message: `${notEnoughStock.reduce(
               (accumulator, item) =>
-                `${accumulator}${accumulator && '\n'}SKU: ${item.sku} Required Qty: ${
-                  item.quantityRequired
-                } Available Qty: ${item.quantity}`,
-              '',
+                `${accumulator}${accumulator && '\n'}SKU: ${
+                  item.sku
+                } Required Qty: ${item.quantityRequired} Available Qty: ${
+                  item.quantity
+                }`,
+              ''
             )}`,
             skus: notEnoughStock.map(e => e.sku),
             code: 1103,
@@ -931,12 +1082,16 @@ const TheService: ServiceSchema = {
             payload: { outOfStock, params },
           });
         }
-        if ((!instance.shipping_methods || !instance.shipping_methods[0].name) && !shippingMethod) {
+        if (
+          (!instance.shipping_methods || !instance.shipping_methods[0].name) &&
+          !shippingMethod
+        ) {
           this.sendLogs({
             topic: 'order',
             topicId: data.externalId,
-            message: `There is no default shipping method for your store, It’ll be shipped with ${shipment.courier ||
-              'Standard'}`,
+            message: `There is no default shipping method for your store, It’ll be shipped with ${
+              shipment.courier || 'Standard'
+            }`,
             storeId: instance.url,
             logLevel: 'warn',
             code: 2102,
@@ -954,8 +1109,9 @@ const TheService: ServiceSchema = {
             topicId: data.externalId,
             message: `Can’t ship to ${
               shipping.country
-            } with provided courier, It’ll be shipped with ${shipment.courier ||
-              'Standard'}, Contact our customer support for more info`,
+            } with provided courier, It’ll be shipped with ${
+              shipment.courier || 'Standard'
+            }, Contact our customer support for more info`,
             storeId: instance.url,
             logLevel: 'warn',
             code: 2101,
@@ -991,18 +1147,18 @@ const TheService: ServiceSchema = {
         data.externalId = params.id ? String(params.id) : uuidv1();
         data.externalInvoice =
           params.invoice_url ||
-          `${this.settings.BASEURL}/invoice/${encodeURIComponent(instance.url)}/external/${
-            data.externalId
-          }`;
+          `${this.settings.BASEURL}/invoice/${encodeURIComponent(
+            instance.url
+          )}/external/${data.externalId}`;
         // Order store data
         data.store =
           instance.internal_data && instance.internal_data.omsId
             ? { id: instance.internal_data.omsId }
             : {
-              url: instance.url,
-              name: instance.name,
-              users: instance.users,
-            };
+                url: instance.url,
+                name: instance.name,
+                users: instance.users,
+              };
         if (instance.logo) {
           data.storeLogo = instance.logo;
         }
@@ -1035,31 +1191,31 @@ const TheService: ServiceSchema = {
       let isInclusive = false;
       let taxTotal = 0;
       const itemsAfterTaxes = await Promise.all(
-        items.map(
-          async (item: OrderItem) => {
-            const taxData = await this.getItemTax(instance, item);
+        items.map(async (item: OrderItem) => {
+          const taxData = await this.getItemTax(instance, item);
 
-            if (!isInclusive) {
-              isInclusive = taxData.isInclusive;
-            }
+          if (!isInclusive) {
+            isInclusive = taxData.isInclusive;
+          }
 
-            // delete taxClass attr.
-            delete item.taxClass;
+          // delete taxClass attr.
+          delete item.taxClass;
 
-            if (taxData.name) {
-              item.taxId = taxData.omsId;
-            }
+          if (taxData.name) {
+            item.taxId = taxData.omsId;
+          }
 
-            if (taxData.code) {
-              taxesMsg.push(taxData);
-            }
+          if (taxData.code) {
+            taxesMsg.push(taxData);
+          }
 
-            if (taxData.percentage) {
-              taxTotal += item.rate / 100 * taxData.percentage;
-            }
+          if (taxData.percentage) {
+            taxTotal += (item.rate / 100) * taxData.percentage;
+          }
 
-            return item;
-          }));
+          return item;
+        })
+      );
       return {
         items: itemsAfterTaxes,
         isInclusive,
@@ -1068,7 +1224,7 @@ const TheService: ServiceSchema = {
       };
     },
     sanitizeResponseOne(order): Order {
-      const orderResponse: {[key: string]: any} = {
+      const orderResponse: { [key: string]: any } = {
         id: order.id,
         status: this.normalizeResponseStatus(order.financialStatus),
         items: order.items,
@@ -1129,8 +1285,14 @@ const TheService: ServiceSchema = {
     },
     async cacheUpdate(order, instance) {
       await Promise.all([
-        this.broker.cacher.set(`orders.getOrder:${order.id}`, this.sanitizeResponseOne(order)),
-        this.broker.cacher.set(`orders.list:${order.externalId}|${instance.consumer_key}|undefined|undefined|undefined|undefined|undefined|undefined`, this.sanitizeResponseList([order])),
+        this.broker.cacher.set(
+          `orders.getOrder:${order.id}`,
+          this.sanitizeResponseOne(order)
+        ),
+        this.broker.cacher.set(
+          `orders.list:${order.externalId}|${instance.consumer_key}|undefined|undefined|undefined|undefined|undefined|undefined`,
+          this.sanitizeResponseList([order])
+        ),
       ]);
     },
   },
