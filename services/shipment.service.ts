@@ -115,7 +115,7 @@ const Shipment: ServiceSchema = {
                 // Reformat the rules
                 .map(rule => ({
                   courier: rule.courier,
-                  cost: rule.cost,
+                  cost: Number(rule.cost),
                   duration: `${rule.delivery_days_min}-${rule.delivery_days_max}`,
                 }))
                 .sort((a, b) => a.cost - b.cost)
