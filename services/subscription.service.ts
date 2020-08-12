@@ -290,24 +290,17 @@ const TheService: ServiceSchema = {
           invoiceBody.dueDate = ctx.params.dueDate;
         }
 
-        const invoice = await ctx
-          .call('invoices.create', invoiceBody)
-          .then(null, err => err);
-        if (isNativeError(invoice as { message: string; code: number })) {
-          throw new MoleculerError(invoice.message, invoice.code || 500);
-        }
-
-        if (ctx.params.postpaid) {
-          await ctx.call('invoices.markInvoiceSent', {
-            omsId: instance.internal_data?.omsId,
-            invoiceId: invoice.invoice.invoiceId,
-          });
-        }
-
         ctx.meta.user = instance.consumer_key;
 
         // Apply credits to invoice if the total not equal to 0
+        let invoice = null;
         if (total !== 0 && !ctx.params.postpaid) {
+          invoice = await ctx
+            .call('invoices.create', invoiceBody)
+            .then(null, err => err);
+          if (isNativeError(invoice as { message: string; code: number })) {
+            throw new MoleculerError(invoice.message, invoice.code || 500);
+          }
           const applyCreditsResponse = await ctx
             .call('invoices.applyCredits', {
               id: invoice.invoice.invoiceId,
@@ -372,7 +365,7 @@ const TheService: ServiceSchema = {
         const subscriptionBody: Subscription = {
           membershipId: membership.id,
           storeId: ctx.params.storeId,
-          invoiceId: invoice.invoice.invoiceId,
+          invoiceId: invoice?.invoice.invoiceId || null,
           status: 'confirmed',
           startDate,
           expireDate,
@@ -579,11 +572,13 @@ const TheService: ServiceSchema = {
             const instance = await ctx.call('stores.findInstance', {
               id: res.storeId,
             });
-            ctx.call('invoices.updateInvoiceStatus', {
-              omsId: instance?.internal_data?.omsId,
-              invoiceId: res.invoiceId,
-              status: 'void',
-            });
+            if (res.invoiceId) {
+              ctx.call('invoices.updateInvoiceStatus', {
+                omsId: instance?.internal_data?.omsId,
+                invoiceId: res.invoiceId,
+                status: 'void',
+              });
+            }
             if (!res) {
               throw new MpError(
                 'Subscription Service',
