@@ -35,7 +35,7 @@ const StoreSchema = {
         'ebay',
         'api',
         'catalog',
-        'zid.sa',
+        'zid',
         'youcan',
         'other',
       ],
