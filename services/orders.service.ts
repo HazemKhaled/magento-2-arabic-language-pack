@@ -954,16 +954,16 @@ const TheService: ServiceSchema = {
     normalizeResponseStatus(financialStatus: string) {
       let status = '';
       switch (financialStatus) {
-      case 'unpaid':
-        status = 'Order Placed';
-        break;
-      case 'voided':
-      case 'refunded':
-      case 'wallet_refunded':
-        status = 'Cancelled';
-        break;
-      default:
-        status = 'Processing';
+        case 'unpaid':
+          status = 'Order Placed';
+          break;
+        case 'voided':
+        case 'refunded':
+        case 'wallet_refunded':
+          status = 'Cancelled';
+          break;
+        default:
+          status = 'Processing';
       }
       return status;
     },
@@ -1236,7 +1236,9 @@ const TheService: ServiceSchema = {
         externalId: order.externalId,
         createDate: order.createDate,
         updateDate: order.updateDate,
-        knawat_order_status: this.normalizeResponseStatus(order.financialStatus),
+        knawat_order_status: this.normalizeResponseStatus(
+          order.financialStatus
+        ),
         notes: order.notes,
         shipping_method: order.shipmentCourier,
         shipping_charge: order.shippingCharge,
@@ -1275,7 +1277,9 @@ const TheService: ServiceSchema = {
         total: order.total,
         trackingNumber: order.shipmentTrackingNumber,
         shipment_date: order.shipmentDate,
-        knawat_order_status: this.normalizeResponseStatus(order.financialStatus),
+        knawat_order_status: this.normalizeResponseStatus(
+          order.financialStatus
+        ),
         orderNumber: order.orderNumber,
         invoice_url: order.externalInvoice,
         warningsSnippet: order.warningsSnippet,
