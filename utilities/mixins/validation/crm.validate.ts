@@ -28,7 +28,7 @@ export const CrmValidation: ServiceSchema = {
             'ebay',
             'api',
             'catalog',
-            'zid.sa',
+            'zid',
             'youcan',
             'other',
           ],
