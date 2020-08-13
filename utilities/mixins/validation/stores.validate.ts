@@ -174,7 +174,13 @@ export const StoresValidation: ServiceSchema = {
                 type: 'array',
                 items: {
                   type: 'enum',
-                  values: ['owner', 'accounting', 'products', 'orders'],
+                  values: [
+                    'owner',
+                    'accounting',
+                    'products',
+                    'orders',
+                    'support',
+                  ],
                 },
               },
             },
@@ -354,7 +360,13 @@ export const StoresValidation: ServiceSchema = {
                 type: 'array',
                 items: {
                   type: 'enum',
-                  values: ['owner', 'accounting', 'products', 'orders'],
+                  values: [
+                    'owner',
+                    'accounting',
+                    'products',
+                    'orders',
+                    'support',
+                  ],
                 },
               },
             },
