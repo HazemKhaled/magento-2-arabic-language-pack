@@ -10,7 +10,7 @@ const Service: ServiceSchema = {
   mixins: [Mail, GDPRValidation, GDPROpenapi],
   actions: {
     customerRedact: {
-      auth: 'Bearer',
+      auth: ['Bearer'],
       params: {
         customer: {
           type: 'object',
@@ -28,7 +28,7 @@ const Service: ServiceSchema = {
       },
     },
     storeRedact: {
-      auth: 'Bearer',
+      auth: ['Bearer'],
       handler(ctx) {
         return this.sendRequest({
           subject: 'GDPR Customer Redact',
@@ -37,7 +37,7 @@ const Service: ServiceSchema = {
       },
     },
     customerDataRequest: {
-      auth: 'Bearer',
+      auth: ['Bearer'],
       params: {
         customer: {
           type: 'object',

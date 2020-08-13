@@ -11,7 +11,7 @@ const TheService: ServiceSchema = {
   mixins: [DbService('membership'), MembershipValidation, MembershipOpenapi, TaxCheck],
   actions: {
     create: {
-      auth: 'Basic',
+      auth: ['Basic'],
       async handler(ctx: Context): Promise<Membership> {
         const { params } = ctx;
 
@@ -42,7 +42,7 @@ const TheService: ServiceSchema = {
       },
     },
     mGet: {
-      auth: 'Basic',
+      auth: ['Basic'],
       cache: {
         keys: ['id', 'country', 'coupon', 'active'],
         ttl: 60 * 60 * 24, // 1 day
@@ -78,7 +78,7 @@ const TheService: ServiceSchema = {
       },
     },
     list: {
-      auth: 'Basic',
+      auth: ['Basic'],
       cache: {
         keys: ['country'],
         ttl: 60 * 60 * 24, // 1 day
@@ -110,7 +110,7 @@ const TheService: ServiceSchema = {
       },
     },
     update: {
-      auth: 'Basic',
+      auth: ['Basic'],
       async handler(ctx: Context): Promise<Membership> {
         const { params } = ctx;
         const id = params.id;

@@ -33,7 +33,7 @@ const TheService: ServiceSchema = {
      * @returns {Array} Categories
      */
     list: {
-      auth: 'Bearer',
+      auth: ['Bearer'],
       cache: {
         ttl: 60 * 60, // 1 hour
         keys: ['parentId', 'treeNodeLevel'],
