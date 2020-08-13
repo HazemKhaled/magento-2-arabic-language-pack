@@ -201,7 +201,13 @@ export function OpenApiMixin(): ServiceSchema {
               }
 
               // Hide basic endpoint
-              if (bearerOnly && !action.openapi?.security?.[0]?.bearerAuth) {
+              if (
+                bearerOnly &&
+                action.openapi?.security?.length &&
+                !action.openapi?.security.some(
+                  (security: { [key: string]: string }) => security.bearerAuth
+                )
+              ) {
                 return;
               }
 
