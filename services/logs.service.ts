@@ -55,7 +55,7 @@ const TheService: ServiceSchema = {
               topicId,
               '@timestamp': date,
               logLevel,
-              storeId,
+              storeId: ctx.meta?.user ? ctx.meta.storeId : storeId,
               message,
               payload,
               code,
