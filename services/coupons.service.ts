@@ -12,7 +12,7 @@ const TheService: ServiceSchema = {
   mixins: [DbService('coupons'), CouponsValidation, CouponsOpenapi],
   actions: {
     create: {
-      auth: 'Basic',
+      auth: ['Basic'],
       handler(ctx: Context): Promise<Coupon> {
         // Different coupon types validation
         this.couponTypeCheck(ctx.params);
@@ -39,7 +39,7 @@ const TheService: ServiceSchema = {
       },
     },
     get: {
-      auth: 'Basic',
+      auth: ['Basic'],
       cache: {
         keys: ['id', 'membership'],
         ttl: 60 * 60 * 24,
@@ -80,7 +80,7 @@ const TheService: ServiceSchema = {
       },
     },
     list: {
-      auth: 'Basic',
+      auth: ['Basic'],
       cache: {
         ttl: 60 * 60 * 24,
         keys: ['id', 'membership', 'type', 'isValid', 'isAuto'],
@@ -123,7 +123,7 @@ const TheService: ServiceSchema = {
       },
     },
     update: {
-      auth: 'Basic',
+      auth: ['Basic'],
       async handler(ctx: Context): Promise<Coupon> {
         this.couponTypeCheck(ctx.params);
 
@@ -163,7 +163,7 @@ const TheService: ServiceSchema = {
       },
     },
     updateCount: {
-      auth: 'Basic',
+      auth: ['Basic'],
       async handler(ctx: Context) {
         return this.adapter
           .updateMany(

@@ -11,7 +11,7 @@ const TheService: ServiceSchema = {
   mixins: [PaymentsValidation, PaymentsOpenapi, Oms],
   actions: {
     add: {
-      auth: 'Basic',
+      auth: ['Basic'],
       async handler(ctx: Context) {
         const instance = await ctx.call('stores.findInstance', {
           id: ctx.params.id,
@@ -60,7 +60,7 @@ const TheService: ServiceSchema = {
       },
     },
     get: {
-      auth: 'Bearer',
+      auth: ['Bearer'],
       cache: {
         keys: ['#user', 'page', 'limit', 'reference_number', 'payment_mode'],
         ttl: 60 * 60 * 24,

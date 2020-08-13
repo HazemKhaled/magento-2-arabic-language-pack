@@ -16,7 +16,7 @@ const Shipment: ServiceSchema = {
      * @returns
      */
     getShipments: {
-      auth: 'Basic',
+      auth: ['Basic'],
       cache: { keys: ['id'], ttl: 60 * 60 * 24 * 30 },
       handler(ctx: Context): ShipmentPolicy | ShipmentPolicy[] {
         return (ctx.params.id
@@ -32,7 +32,7 @@ const Shipment: ServiceSchema = {
      * @returns
      */
     insertShipment: {
-      auth: 'Basic',
+      auth: ['Basic'],
       handler(ctx: Context): ShipmentPolicy {
         // insert to DB
         return this.adapter
@@ -57,7 +57,7 @@ const Shipment: ServiceSchema = {
      * @returns
      */
     updateShipment: {
-      auth: 'Basic',
+      auth: ['Basic'],
       handler(ctx: Context): ShipmentPolicy {
         // update DB
         return this.adapter
@@ -85,7 +85,7 @@ const Shipment: ServiceSchema = {
      * @returns
      */
     ruleByCountry: {
-      auth: 'Basic',
+      auth: ['Basic'],
       cache: { keys: ['country', 'weight', 'price'], ttl: 60 * 60 * 24 * 30 },
       handler(ctx: Context): Rule[] {
         // find policies with matched rules
@@ -130,7 +130,7 @@ const Shipment: ServiceSchema = {
      * @returns {string[]} string array of couriers
      */
     getCouriers: {
-      auth: 'Basic',
+      auth: ['Basic'],
       cache: { keys: ['country'], ttl: 60 * 60 * 24 * 30 },
       handler(ctx: Context): string[] {
         const query = ctx.params.country

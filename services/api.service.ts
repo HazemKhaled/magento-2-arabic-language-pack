@@ -257,7 +257,7 @@ const TheService: ServiceSchema = {
 
       // If token or token type are missing, throw error
       const [type, reqToken] = req.headers.authorization.split(' ');
-      if (!type || !reqToken) {
+      if (!type || !reqToken || !req.$action.auth.includes(type)) {
         return this.Promise.reject(
           new UnAuthorizedError(ERR_NO_TOKEN, req.headers.authorization)
         );
@@ -267,11 +267,6 @@ const TheService: ServiceSchema = {
         .then((token: string) => {
           // Verify JWT token
           if (type === 'Bearer') {
-            if (req.$action.auth !== 'Bearer') {
-              return this.Promise.reject(
-                new UnAuthorizedError(ERR_NO_TOKEN, req.headers.authorization)
-              );
-            }
             return ctx
               .call('stores.resolveBearerToken', { token })
               .then((user: Store) => {
@@ -300,11 +295,6 @@ const TheService: ServiceSchema = {
 
           // Verify Base64 Basic auth
           if (type === 'Basic') {
-            if (req.$action.auth !== 'Basic') {
-              return this.Promise.reject(
-                new UnAuthorizedError(ERR_NO_TOKEN, req.headers.authorization)
-              );
-            }
             return ctx
               .call('stores.resolveBasicToken', { token })
               .then((user: any) => {

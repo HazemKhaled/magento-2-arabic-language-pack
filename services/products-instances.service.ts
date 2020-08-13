@@ -41,7 +41,7 @@ module.exports = {
      * @returns {Object} Product
      */
     getInstanceProduct: {
-      auth: 'Bearer',
+      auth: ['Bearer'],
       cache: {
         keys: ['#user', 'sku', 'currency'],
         ttl: 60 * 60,
@@ -57,7 +57,7 @@ module.exports = {
      * @return {Number}
      */
     total: {
-      auth: 'Bearer',
+      auth: ['Bearer'],
       cache: {
         keys: ['#user'],
         ttl: 60 * 60,
@@ -113,7 +113,7 @@ module.exports = {
      * @returns {Array} 10 - 1000 products per page
      */
     list: {
-      auth: 'Bearer',
+      auth: ['Bearer'],
       cache: {
         keys: [
           '#user',
@@ -144,7 +144,7 @@ module.exports = {
      * @returns {Object} Product
      */
     deleteInstanceProduct: {
-      auth: 'Bearer',
+      auth: ['Bearer'],
       handler(ctx: Context) {
         const { sku } = ctx.params;
 
@@ -190,7 +190,7 @@ module.exports = {
      * @returns {Object} object
      */
     import: {
-      auth: 'Bearer',
+      auth: ['Bearer'],
       handler(ctx: Context) {
         const skus = ctx.params.products.map((i: { sku: string }) => i.sku);
         return ctx
@@ -314,7 +314,7 @@ module.exports = {
      * @returns {Object} Product
      */
     instanceUpdate: {
-      auth: 'Bearer',
+      auth: ['Bearer'],
       handler(ctx: Context) {
         const body: { [key: string]: any } = {};
         if (ctx.params.externalUrl) body.externalUrl = ctx.params.externalUrl;
@@ -368,7 +368,7 @@ module.exports = {
      * @returns {Object} Product
      */
     bulkProductInstance: {
-      auth: 'Bearer',
+      auth: ['Bearer'],
       handler(ctx: Context) {
         const bulk: any[] = [];
         ctx.params.productInstances.forEach((pi: any) => {

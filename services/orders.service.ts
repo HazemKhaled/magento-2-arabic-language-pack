@@ -38,7 +38,7 @@ const TheService: ServiceSchema = {
   },
   actions: {
     createOrder: {
-      auth: 'Bearer',
+      auth: ['Bearer'],
       async handler(ctx: Context) {
         // Initialize warnings array
         let warnings: { code: number; message: string }[] = [];
@@ -379,7 +379,7 @@ const TheService: ServiceSchema = {
       },
     },
     updateOrder: {
-      auth: 'Bearer',
+      auth: ['Bearer'],
       async handler(ctx) {
         // Initialize warnings array
         let warnings: { code: number; message: string }[] = [];
@@ -654,7 +654,7 @@ const TheService: ServiceSchema = {
       },
     },
     getOrder: {
-      auth: 'Bearer',
+      auth: ['Bearer'],
       cache: {
         keys: ['order_id'],
         ttl: 60 * 60 * 24,
@@ -694,7 +694,7 @@ const TheService: ServiceSchema = {
       },
     },
     list: {
-      auth: 'Bearer',
+      auth: ['Bearer'],
       cache: {
         keys: [
           'externalId',
@@ -745,7 +745,7 @@ const TheService: ServiceSchema = {
       },
     },
     deleteOrder: {
-      auth: 'Bearer',
+      auth: ['Bearer'],
       async handler(ctx) {
         const orderBeforeUpdate = await ctx.call('orders.getOrder', {
           order_id: ctx.params.id,
@@ -855,7 +855,7 @@ const TheService: ServiceSchema = {
       },
     },
     payOrder: {
-      auth: 'Bearer',
+      auth: ['Bearer'],
       async handler(ctx: Context) {
         const store = await ctx.call('stores.sGet', { id: ctx.meta.store.url });
 

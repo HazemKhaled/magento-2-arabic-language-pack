@@ -37,7 +37,7 @@ const TheService: ServiceSchema = {
      * @returns {Store}
      */
     findInstance: {
-      auth: 'Basic',
+      auth: ['Basic'],
       cache: {
         keys: ['consumerKey', 'id'],
         ttl: 60 * 60 * 24,
@@ -62,7 +62,7 @@ const TheService: ServiceSchema = {
      * @returns {Store}
      */
     me: {
-      auth: 'Bearer',
+      auth: ['Bearer'],
       cache: {
         keys: ['#user'],
         ttl: 60 * 60 * 24,
@@ -101,7 +101,7 @@ const TheService: ServiceSchema = {
      * @returns {Store}
      */
     sGet: {
-      auth: 'Basic',
+      auth: ['Basic'],
       cache: {
         keys: ['id', 'withoutBalance'],
         ttl: 60 * 60 * 24,
@@ -153,7 +153,7 @@ const TheService: ServiceSchema = {
      * @returns {Store[]}
      */
     list: {
-      auth: 'Basic',
+      auth: ['Basic'],
       cache: {
         keys: ['filter'],
         ttl: 60 * 60 * 24,
@@ -200,7 +200,7 @@ const TheService: ServiceSchema = {
       },
     },
     storesList: {
-      auth: 'Basic',
+      auth: ['Basic'],
       cache: {
         keys: ['id', 'page', 'perPage'],
         ttl: 60 * 60 * 24,
@@ -250,7 +250,7 @@ const TheService: ServiceSchema = {
      * @returns {Store}
      */
     create: {
-      auth: 'Basic',
+      auth: ['Basic'],
       async handler(ctx: Context) {
         // Clear cache
         this.broker.cacher.clean(`stores.sGet:${ctx.params.url}**`);
@@ -288,7 +288,7 @@ const TheService: ServiceSchema = {
      * @returns {Store}
      */
     update: {
-      auth: 'Basic',
+      auth: ['Basic'],
       async handler(ctx: Context) {
         // Save the ID separate into variable to use it to find the store
         const { id } = ctx.params;
@@ -391,7 +391,7 @@ const TheService: ServiceSchema = {
       },
     },
     sync: {
-      auth: 'Basic',
+      auth: ['Basic'],
       cache: {
         ttl: 60 * 60 * 3,
         keys: ['id', 'timestamp'],

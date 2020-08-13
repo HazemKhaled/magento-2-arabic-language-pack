@@ -16,7 +16,7 @@ const TheService: ServiceSchema = {
      * @returns {Currency}
      */
     getCurrency: {
-      auth: 'Basic',
+      auth: ['Basic'],
       cache: {
         keys: ['currencyCode'],
         ttl: 60 * 60,
@@ -44,7 +44,7 @@ const TheService: ServiceSchema = {
      * @returns {Currency[]}
      */
     getCurrencies: {
-      auth: 'Basic',
+      auth: ['Basic'],
       cache: {
         ttl: 60 * 60,
       },

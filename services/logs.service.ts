@@ -21,7 +21,7 @@ const TheService: ServiceSchema = {
   mixins: [ESService, LogsValidation, LogsOpenapi],
   actions: {
     add: {
-      auth: 'Basic',
+      auth: ['Basic', 'Bearer'],
       handler(ctx: Context) {
         const date = new Date();
         const {
@@ -55,7 +55,7 @@ const TheService: ServiceSchema = {
               topicId,
               '@timestamp': date,
               logLevel,
-              storeId,
+              storeId: ctx.meta?.user ? ctx.meta.storeId : storeId,
               message,
               payload,
               code,
@@ -82,7 +82,7 @@ const TheService: ServiceSchema = {
       },
     },
     getLogs: {
-      auth: 'Basic',
+      auth: ['Basic'],
       cache: {
         ttl: 60 * 60 * 24,
       },

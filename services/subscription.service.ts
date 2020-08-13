@@ -63,7 +63,7 @@ const TheService: ServiceSchema = {
       },
     },
     sList: {
-      auth: 'Basic',
+      auth: ['Basic'],
       cache: {
         keys: [
           'storeId',
@@ -149,7 +149,7 @@ const TheService: ServiceSchema = {
       },
     },
     create: {
-      auth: 'Basic',
+      auth: ['Basic'],
       async handler(ctx: Context) {
         let coupon: Coupon = null;
         if (ctx.params.coupon) {
@@ -491,7 +491,7 @@ const TheService: ServiceSchema = {
       },
     },
     updateSubscription: {
-      auth: 'Basic',
+      auth: ['Basic'],
       handler(ctx: Context) {
         let $set: Partial<Subscription> = {};
         const { params } = ctx;
@@ -564,7 +564,7 @@ const TheService: ServiceSchema = {
       },
     },
     cancel: {
-      auth: 'Basic',
+      auth: ['Basic'],
       handler(ctx) {
         return this.adapter
           .updateById(ctx.params.id, { $set: { status: 'cancelled' } })
