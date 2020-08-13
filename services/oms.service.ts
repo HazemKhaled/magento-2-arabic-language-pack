@@ -1,14 +1,18 @@
 import { Context, Errors, ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
+
 import DbService from '../utilities/mixins/mongo.mixin';
 import { OmsValidation } from '../utilities/mixins/validation';
+
 const MoleculerError = Errors.MoleculerError;
 
 const TheService: ServiceSchema = {
   name: 'oms',
   mixins: [OmsValidation, DbService('omsRequests')],
   settings: {
-    auth: Buffer.from(`${process.env.BASIC_USER}:${process.env.BASIC_PASS}`).toString('base64'),
+    auth: Buffer.from(
+      `${process.env.BASIC_USER}:${process.env.BASIC_PASS}`
+    ).toString('base64'),
     url: `${process.env.OMS_BASEURL}`,
   },
   actions: {
@@ -34,7 +38,7 @@ const TheService: ServiceSchema = {
     },
     updateInvoiceStatus: {
       handler(ctx: Context) {
-        const {omsId, invoiceId, status} = ctx.params;
+        const { omsId, invoiceId, status } = ctx.params;
         return this.request({
           path: `invoices/${omsId}/${invoiceId}/status/${status}`,
           method: 'post',
@@ -78,7 +82,11 @@ const TheService: ServiceSchema = {
     },
     updateOrderById: {
       handler(ctx: Context) {
-        const body: {} = { ...ctx.params, customerId: undefined, orderId: undefined };
+        const body: {} = {
+          ...ctx.params,
+          customerId: undefined,
+          orderId: undefined,
+        };
         return this.request({
           path: `orders/${ctx.params.customerId}/${ctx.params.orderId}`,
           method: 'put',
@@ -95,7 +103,7 @@ const TheService: ServiceSchema = {
     },
     listOrders: {
       handler(ctx: Context) {
-        const params: {[key: string]: string} = { ...ctx.params };
+        const params: { [key: string]: string } = { ...ctx.params };
         delete params.customerId;
         return this.request({
           path: `orders/${ctx.params.customerId}`,
@@ -125,7 +133,7 @@ const TheService: ServiceSchema = {
     },
     listPayments: {
       handler(ctx: Context) {
-        const params: {[key: string]: string} = { ...ctx.params};
+        const params: { [key: string]: string } = { ...ctx.params };
         delete params.customerId;
         return this.request({
           path: `payments/${ctx.params.customerId}`,
@@ -170,7 +178,7 @@ const TheService: ServiceSchema = {
     },
     updateTax: {
       handler(ctx: Context) {
-        const {id} = ctx.params;
+        const { id } = ctx.params;
         const body = ctx.params;
         delete body.id;
         return this.request({
@@ -204,8 +212,9 @@ const TheService: ServiceSchema = {
       let queryString = '';
       if (params) {
         queryString = Object.keys(params).reduce(
-          (accumulator, key) => `${accumulator}${accumulator ? '&' : '?'}${key}=${params[key]}`,
-          '',
+          (accumulator, key) =>
+            `${accumulator}${accumulator ? '&' : '?'}${key}=${params[key]}`,
+          ''
         );
       }
       return fetch(`${this.settings.url}/${path}${queryString}`, {
@@ -220,7 +229,7 @@ const TheService: ServiceSchema = {
         .then(async res => {
           const parsedRes = await res.json();
           this.adapter.insert({
-            module: path.replace(/([a-z]+)[\/|\?].*/, '$1'),
+            module: path.replace(/([a-z]+)[/|?].*/, '$1'),
             path,
             method,
             body,
@@ -233,10 +242,9 @@ const TheService: ServiceSchema = {
           if (!res.ok) {
             throw new MoleculerError(
               parsedRes &&
-              parsedRes.error &&
-              (parsedRes.error.details ||
-              parsedRes.error.message),
-              res.status,
+                parsedRes.error &&
+                (parsedRes.error.details || parsedRes.error.message),
+              res.status
             );
           }
           return parsedRes;

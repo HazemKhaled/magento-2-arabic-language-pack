@@ -2,7 +2,11 @@ import { Errors, ServiceSchema } from 'moleculer';
 import ESService from 'moleculer-elasticsearch';
 
 import { MpError } from '../utilities/adapters';
-import { I18nService, CategoriesOpenapi, CategoriesValidation } from '../utilities/mixins';
+import {
+  I18nService,
+  CategoriesOpenapi,
+  CategoriesValidation,
+} from '../utilities/mixins';
 import { Category } from '../utilities/types';
 
 const { MoleculerClientError } = Errors;
@@ -35,7 +39,7 @@ const TheService: ServiceSchema = {
     list: {
       auth: ['Bearer'],
       cache: {
-        ttl: 60 * 60, // 1 hour
+        ttl: 60 * 60,
         keys: ['parentId', 'treeNodeLevel'],
       },
       async handler(ctx): Promise<Category[]> {
@@ -55,7 +59,11 @@ const TheService: ServiceSchema = {
      */
     fetchCategories(params = {}): Category[] {
       const query: any = {
-        bool: { filter: [], should: [], must_not: { term: { productsCount: 0 } } },
+        bool: {
+          filter: [],
+          should: [],
+          must_not: { term: { productsCount: 0 } },
+        },
       };
       if (Object.keys(params).length === 0) {
         query.bool.filter.push({
@@ -65,7 +73,7 @@ const TheService: ServiceSchema = {
       if (params.parentId || params.parentId === 0)
         query.bool.should.push(
           { term: { parentId: params.parentId } },
-          { term: { _id: params.parentId } },
+          { term: { _id: params.parentId } }
         );
       if (params.treeNodeLevel) {
         query.bool.filter.push({
@@ -82,7 +90,10 @@ const TheService: ServiceSchema = {
         })
         .then(
           (result: {
-            hits: { total: { value: number }; hits: Array<{ _id: string; _source: Category }> };
+            hits: {
+              total: { value: number };
+              hits: { _id: string; _source: Category }[];
+            };
           }) => {
             if (result.hits.total.value === 0) {
               return {
@@ -106,7 +117,9 @@ const TheService: ServiceSchema = {
                 }),
             };
             if (params.parentId && params.parentId !== '0') {
-              const parent = result.hits.hits.find(cat => cat._id === params.parentId);
+              const parent = result.hits.hits.find(
+                cat => cat._id === params.parentId
+              );
               response.parent = {
                 id: Number(parent._id),
                 name: this.formatI18nText(parent._source.name),
@@ -116,7 +129,7 @@ const TheService: ServiceSchema = {
               };
             }
             return response;
-          },
+          }
         )
         .catch((error: any) => new MoleculerClientError(error));
     },

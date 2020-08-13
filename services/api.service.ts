@@ -1,10 +1,14 @@
 import { Context, ServiceSchema } from 'moleculer';
 import ApiGateway from 'moleculer-web';
-import { Log, Store } from '../utilities/types';
 
+import { Log, Store } from '../utilities/types';
 import { OpenApiMixin } from '../utilities/mixins/openapi.mixin';
 
-const { UnAuthorizedError, ERR_NO_TOKEN, ERR_INVALID_TOKEN } = ApiGateway.Errors;
+const {
+  UnAuthorizedError,
+  ERR_NO_TOKEN,
+  ERR_INVALID_TOKEN,
+} = ApiGateway.Errors;
 
 const TheService: ServiceSchema = {
   name: 'api',
@@ -28,7 +32,8 @@ const TheService: ServiceSchema = {
           'GET catalog/products/count': 'products-instances.total',
           'GET catalog/products/:sku': 'products-instances.getInstanceProduct',
           'PUT catalog/products/:sku': 'products-instances.instanceUpdate',
-          'DELETE catalog/products/:sku': 'products-instances.deleteInstanceProduct',
+          'DELETE catalog/products/:sku':
+            'products-instances.deleteInstanceProduct',
           'PATCH catalog/products': 'products-instances.bulkProductInstance',
 
           // Old routes, should be deprecated
@@ -135,26 +140,26 @@ const TheService: ServiceSchema = {
           process.env.NODE_ENV === 'production'
             ? false
             : {
-              // Configures the Access-Control-Allow-Origin CORS header.
-              origin: ['http://localhost*'],
-              // Configures the Access-Control-Allow-Methods CORS header.
-              methods: ['POST', 'GET', 'PUT', 'DELETE', 'OPTION'],
-              // Configures the Access-Control-Allow-Headers CORS header.
-              allowedHeaders: [
-                '*',
-                'Origin',
-                'X-Requested-With',
-                'Content-Type',
-                'Accept',
-                'Authorization',
-              ],
-              // Configures the Access-Control-Expose-Headers CORS header.
-              exposedHeaders: [],
-              // Configures the Access-Control-Allow-Credentials CORS header.
-              credentials: true,
-              // Configures the Access-Control-Max-Age CORS header.
-              maxAge: 3600,
-            },
+                // Configures the Access-Control-Allow-Origin CORS header.
+                origin: ['http://localhost*'],
+                // Configures the Access-Control-Allow-Methods CORS header.
+                methods: ['POST', 'GET', 'PUT', 'DELETE', 'OPTION'],
+                // Configures the Access-Control-Allow-Headers CORS header.
+                allowedHeaders: [
+                  '*',
+                  'Origin',
+                  'X-Requested-With',
+                  'Content-Type',
+                  'Accept',
+                  'Authorization',
+                ],
+                // Configures the Access-Control-Expose-Headers CORS header.
+                exposedHeaders: [],
+                // Configures the Access-Control-Allow-Credentials CORS header.
+                credentials: true,
+                // Configures the Access-Control-Max-Age CORS header.
+                maxAge: 3600,
+              },
 
         // Parse body content
         bodyParsers: {
@@ -168,11 +173,21 @@ const TheService: ServiceSchema = {
         async onError(
           req: any,
           res: any,
-          err: { message: string; code: number; name: string; type: string; data: any[] },
+          err: {
+            message: string;
+            code: number;
+            name: string;
+            type: string;
+            data: any[];
+          }
         ) {
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
           res.writeHead(err.code || 500);
-          if (err.code === 422 || err.code === 401 || err.name === 'NotFoundError') {
+          if (
+            err.code === 422 ||
+            err.code === 401 ||
+            err.name === 'NotFoundError'
+          ) {
             res.end(
               JSON.stringify({
                 name: err.name,
@@ -180,7 +195,7 @@ const TheService: ServiceSchema = {
                 code: err.code,
                 type: err.type,
                 data: err.data,
-              }),
+              })
             );
           }
           if (err.code === 500 || !err.code) {
@@ -199,16 +214,18 @@ const TheService: ServiceSchema = {
                 JSON.stringify({
                   errors: [
                     {
-                      message: `Something went wrong for more details Please check the log under ID: ${
-                        log.id
-                      }`,
+                      message: `Something went wrong for more details Please check the log under ID: ${log.id}`,
                     },
                   ],
-                }),
+                })
               );
             }
           }
-          res.end(JSON.stringify({ errors: [{ message: err.message || 'Internal Server Error!' }] }));
+          res.end(
+            JSON.stringify({
+              errors: [{ message: err.message || 'Internal Server Error!' }],
+            })
+          );
         },
       },
     ],
@@ -241,45 +258,60 @@ const TheService: ServiceSchema = {
       // If token or token type are missing, throw error
       const [type, reqToken] = req.headers.authorization.split(' ');
       if (!type || !reqToken || !req.$action.auth.includes(type)) {
-        return this.Promise.reject(new UnAuthorizedError(ERR_NO_TOKEN, req.headers.authorization));
+        return this.Promise.reject(
+          new UnAuthorizedError(ERR_NO_TOKEN, req.headers.authorization)
+        );
       }
 
       return this.Promise.resolve(reqToken)
         .then((token: string) => {
           // Verify JWT token
           if (type === 'Bearer') {
-            return ctx.call('stores.resolveBearerToken', { token }).then((user: Store) => {
-              if (!user) {
-                return this.Promise.reject(
-                  new UnAuthorizedError(ERR_INVALID_TOKEN, req.headers.authorization),
-                );
-              }
-              if (user) {
-                this.logger.info('Authenticated via JWT: ', user.consumer_key);
-                // Reduce user fields (it will be transferred to other nodes)
-                ctx.meta.user = user.consumer_key;
-                ctx.meta.token = token;
-                ctx.meta.storeId = user.id;
-                ctx.meta.store = user;
-              }
-              return user;
-            });
+            return ctx
+              .call('stores.resolveBearerToken', { token })
+              .then((user: Store) => {
+                if (!user) {
+                  return this.Promise.reject(
+                    new UnAuthorizedError(
+                      ERR_INVALID_TOKEN,
+                      req.headers.authorization
+                    )
+                  );
+                }
+                if (user) {
+                  this.logger.info(
+                    'Authenticated via JWT: ',
+                    user.consumer_key
+                  );
+                  // Reduce user fields (it will be transferred to other nodes)
+                  ctx.meta.user = user.consumer_key;
+                  ctx.meta.token = token;
+                  ctx.meta.storeId = user.id;
+                  ctx.meta.store = user;
+                }
+                return user;
+              });
           }
 
           // Verify Base64 Basic auth
           if (type === 'Basic') {
-            return ctx.call('stores.resolveBasicToken', { token }).then((user: any) => {
-              if (user) {
-                ctx.meta.token = token;
-              }
-              return user;
-            });
+            return ctx
+              .call('stores.resolveBasicToken', { token })
+              .then((user: any) => {
+                if (user) {
+                  ctx.meta.token = token;
+                }
+                return user;
+              });
           }
         })
         .then((user: any) => {
           if (!user) {
             return this.Promise.reject(
-              new UnAuthorizedError(ERR_INVALID_TOKEN, req.headers.authorization),
+              new UnAuthorizedError(
+                ERR_INVALID_TOKEN,
+                req.headers.authorization
+              )
             );
           }
         });

@@ -1,12 +1,25 @@
-import { Store, Order, OrderItem } from '../types';
 import { ServiceSchema } from 'moleculer';
+
+import { Store, Order, OrderItem } from '../types';
 
 export const InvoicePage: ServiceSchema = {
   name: 'invoicePage',
   methods: {
     renderInvoice(store: Store, order: Order) {
-      const subTotal = +(order.items.reduce((a, i) => a + i.rate * i.quantity, 0) * store.sale_price).toFixed(4);
-      const total = +(subTotal + order.shipping_charge + order.taxTotal + order.adjustment).toFixed(4);
+      const subTotal = Number(
+        (
+          order.items.reduce((a, i) => a + i.rate * i.quantity, 0) *
+          store.sale_price
+        ).toFixed(4)
+      );
+      const total = Number(
+        (
+          subTotal +
+          order.shipping_charge +
+          order.taxTotal +
+          order.adjustment
+        ).toFixed(4)
+      );
       return `<!DOCTYPE html>
             <html lang="en">
 
@@ -28,11 +41,15 @@ export const InvoicePage: ServiceSchema = {
                         ${store.url}
                       </h3>
                       <div class="invoice-store-details">
-                        ${store.internal_data && store.internal_data.invoice ? store.internal_data.invoice.header : `
+                        ${
+                          store.internal_data && store.internal_data.invoice
+                            ? store.internal_data.invoice.header
+                            : `
                         <div>${store.address.address_1}</div>
                         <div>${store.address.phone || ''}</div>
                         <div>${store.address.email || ''}</div>
-                      `}
+                      `
+                        }
                       </div>
                     </div>
                     <div class="col-xs-6">
@@ -55,7 +72,9 @@ export const InvoicePage: ServiceSchema = {
                           INVOICE TO:
                         </div>
                         <h2 class="invoice-customer-name">
-                          ${order.shipping.first_name + order.shipping.last_name}
+                          ${
+                            order.shipping.first_name + order.shipping.last_name
+                          }
                         </h2>
                         <div class="invoice-customer-address">
                           ${order.shipping.address_1}
@@ -89,13 +108,13 @@ export const InvoicePage: ServiceSchema = {
                     </thead>
 
                     <tbody>
-                      ${order.items.reduce((accumulator: string, item: OrderItem, i: number) => {
-    // eslint-disable-next-line indent
-                        return `
+                      ${order.items.reduce(
+                        (accumulator: string, item: OrderItem, i: number) => {
+                          return `
                         ${accumulator}
                         <tr>
                             <td class="invoice-item-number">
-                                ${i+1}
+                                ${i + 1}
                             </td>
                             <td class="invoice-item-description">
                                 <h3>${item.name.replace(/\[.*?\]/g, '')}</h3>
@@ -105,14 +124,19 @@ export const InvoicePage: ServiceSchema = {
                                 ${item.quantity}
                             </td>
                             <td class="invoice-item-price">
-                                ${+(item.rate * store.sale_price).toFixed(4)}$
+                                ${Number(
+                                  (item.rate * store.sale_price).toFixed(4)
+                                )}$
                             </td>
                             <td class="invoice-item-total">
-                                ${+(item.total * store.sale_price).toFixed(4)}$
+                                ${Number(
+                                  (item.total * store.sale_price).toFixed(4)
+                                )}$
                             </td>
                         </tr>`;
-    // eslint-disable-next-line indent
-                        }, '')}
+                        },
+                        ''
+                      )}
                     </tbody>
 
                     <tfoot>
@@ -164,11 +188,14 @@ export const InvoicePage: ServiceSchema = {
                     </tfoot>
                   </table>
                   ${
-  store.internal_data && store.internal_data.invoice && store.internal_data.invoice.notices ?
-    `<div class="invoice-notices">
+                    store.internal_data &&
+                    store.internal_data.invoice &&
+                    store.internal_data.invoice.notices
+                      ? `<div class="invoice-notices">
                         ${store.internal_data.invoice.notices}
-                    </div>` : ''
-}
+                    </div>`
+                      : ''
+                  }
                 </main>
                 <footer class="invoice-footer">
                   Invoice was created on a computer and is valid without the signature and seal.
