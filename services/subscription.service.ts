@@ -53,7 +53,7 @@ const TheService: ServiceSchema = {
       },
     },
     sList: {
-      auth: 'Basic',
+      auth: ['Basic'],
       cache: {
         keys: ['storeId', 'membershipId', 'reference', 'expireDate', 'startDate', 'status', 'page', 'perPage', 'sort'],
         ttl: 60 * 60 * 24, // 1 day
@@ -124,7 +124,7 @@ const TheService: ServiceSchema = {
       },
     },
     create: {
-      auth: 'Basic',
+      auth: ['Basic'],
       async handler(ctx: Context) {
         let coupon: Coupon = null;
         if (ctx.params.coupon) {
@@ -412,7 +412,7 @@ const TheService: ServiceSchema = {
       },
     },
     updateSubscription: {
-      auth: 'Basic',
+      auth: ['Basic'],
       handler(ctx: Context) {
         let $set: Partial<Subscription> = {};
         const { params } = ctx;
@@ -476,7 +476,7 @@ const TheService: ServiceSchema = {
       },
     },
     cancel: {
-      auth: 'Basic',
+      auth: ['Basic'],
       handler(ctx) {
         return this.adapter.updateById(ctx.params.id, { $set: { status: 'cancelled' } }).then(async (res: any) => {
           const instance = await ctx.call('stores.findInstance', { id: res.storeId });

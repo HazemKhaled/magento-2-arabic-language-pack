@@ -17,7 +17,7 @@ const TheService: ServiceSchema = {
   },
   actions: {
     createOrder: {
-      auth: 'Bearer',
+      auth: ['Bearer'],
       async handler(ctx: Context) {
         let warnings: { code: number; message: string; }[] = []; // Initialize warnings array
         // Get the Store instance
@@ -306,7 +306,7 @@ const TheService: ServiceSchema = {
       },
     },
     updateOrder: {
-      auth: 'Bearer',
+      auth: ['Bearer'],
       async handler(ctx) {
         let warnings: { code: number; message: string; }[] = []; // Initialize warnings array
         const instance = await ctx.call('stores.findInstance', {
@@ -549,7 +549,7 @@ const TheService: ServiceSchema = {
       },
     },
     getOrder: {
-      auth: 'Bearer',
+      auth: ['Bearer'],
       cache: {
         keys: ['order_id'],
         ttl: 60 * 60 * 24, // 1 hour
@@ -589,7 +589,7 @@ const TheService: ServiceSchema = {
       },
     },
     list: {
-      auth: 'Bearer',
+      auth: ['Bearer'],
       cache: {
         keys: ['externalId', '#user', 'limit', 'page', 'sort', 'sortOrder', 'status', 'timestamp'],
         ttl: 60 * 60 * 24,
@@ -631,7 +631,7 @@ const TheService: ServiceSchema = {
       },
     },
     deleteOrder: {
-      auth: 'Bearer',
+      auth: ['Bearer'],
       async handler(ctx) {
         const orderBeforeUpdate = await ctx.call('orders.getOrder', { order_id: ctx.params.id });
         if (orderBeforeUpdate.id === -1) {
@@ -729,7 +729,7 @@ const TheService: ServiceSchema = {
       },
     },
     payOrder: {
-      auth: 'Bearer',
+      auth: ['Bearer'],
       async handler(ctx: Context) {
         const store = await ctx.call('stores.sGet', { id: ctx.meta.store.url });
 

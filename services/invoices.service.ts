@@ -12,7 +12,7 @@ const TheService: ServiceSchema = {
   mixins: [InvoicesValidation, InvoicesOpenapi, InvoicePage, Oms],
   actions: {
     get: {
-      auth: 'Bearer',
+      auth: ['Bearer'],
       cache: {
         keys: ['#user', 'page', 'limit', 'reference_number', 'invoice_number'],
         ttl: 60,
@@ -54,7 +54,7 @@ const TheService: ServiceSchema = {
       },
     },
     create: {
-      auth: 'Basic',
+      auth: ['Basic'],
       async handler(ctx: Context) {
         const instance = await ctx.call('stores.findInstance', {
           id: ctx.params.storeId,
@@ -117,7 +117,7 @@ const TheService: ServiceSchema = {
       },
     },
     applyCredits: {
-      auth: 'Bearer',
+      auth: ['Bearer'],
       async handler(ctx: Context) {
         const instance = await ctx.call('stores.me');
         if (instance.errors) {
