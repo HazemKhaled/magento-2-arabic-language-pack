@@ -9,6 +9,7 @@
     "Unprocessable",
     "barcode",
     "cacher",
+    "camelcase",
     "dockerelk",
     "ebay",
     "entrypoint",
@@ -29,6 +30,7 @@
     "odoo",
     "openapi",
     "opencart",
+    "retryable",
     "salesorder",
     "salesorders",
     "salla",
@@ -45,20 +47,13 @@
     "**/node_modules/": true,
     "**/coverage/": true,
     "**/npm-debug.log": true,
-    "**/stats.json": true,
-    "**/yarn-error.log": true,
-    "**/data/": true,
-    "**/acme.json": true,
-    "**/.env": false,
-    "**/deployDev.sh": true,
-    "**/*.js": true,
-    "**/*.js.map": true,
-    "**/currency.db": true,
-    "test": true
+    "**/build": true,
+    "**/data": true,
+    "**/.env": false
   },
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true
   },
-  "typescript.tsdk": "node_modules/typescript/lib",
-  "editor.formatOnSave": true
+  "editor.formatOnSave": true,
+  "eslint.format.enable": true
 }

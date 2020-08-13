@@ -1,6 +1,5 @@
 import { ServiceSchema } from 'moleculer';
 
-
 export const SubscriptionValidation: ServiceSchema = {
   name: 'subscription',
   actions: {
@@ -21,99 +20,81 @@ export const SubscriptionValidation: ServiceSchema = {
           type: 'string',
           optional: true,
         },
-        expireDate: [{
-          type: 'object',
-          optional: true,
-          props: {
-            operation: {
-              type: 'enum',
-              values: [
-                'lte',
-                'gte',
-                'gt',
-                'lt',
-              ],
-            },
-            date: {
-              type: 'date',
-              convert: true,
-              optional: true,
-            },
-            $$strict: true,
-          },
-        },
-        {
-          type: 'array',
-          optional: true,
-          max: 2,
-          min: 1,
-          items: {
+        expireDate: [
+          {
             type: 'object',
+            optional: true,
             props: {
               operation: {
                 type: 'enum',
-                values: [
-                  'lte',
-                  'gte',
-                  'gt',
-                  'lt',
-                ],
+                values: ['lte', 'gte', 'gt', 'lt'],
               },
               date: {
                 type: 'date',
                 convert: true,
+                optional: true,
               },
               $$strict: true,
             },
           },
-        },
+          {
+            type: 'array',
+            optional: true,
+            max: 2,
+            min: 1,
+            items: {
+              type: 'object',
+              props: {
+                operation: {
+                  type: 'enum',
+                  values: ['lte', 'gte', 'gt', 'lt'],
+                },
+                date: {
+                  type: 'date',
+                  convert: true,
+                },
+                $$strict: true,
+              },
+            },
+          },
         ],
-        startDate: [{
-          type: 'object',
-          optional: true,
-          props: {
-            operation: {
-              type: 'enum',
-              values: [
-                'lte',
-                'gte',
-                'gt',
-                'lt',
-              ],
-            },
-            date: {
-              type: 'date',
-              convert: true,
-              optional: true,
-            },
-            $$strict: true,
-          },
-        },
-        {
-          type: 'array',
-          optional: true,
-          max: 2,
-          min: 1,
-          items: {
+        startDate: [
+          {
             type: 'object',
+            optional: true,
             props: {
               operation: {
                 type: 'enum',
-                values: [
-                  'lte',
-                  'gte',
-                  'gt',
-                  'lt',
-                ],
+                values: ['lte', 'gte', 'gt', 'lt'],
               },
               date: {
                 type: 'date',
                 convert: true,
+                optional: true,
               },
               $$strict: true,
             },
           },
-        },
+          {
+            type: 'array',
+            optional: true,
+            max: 2,
+            min: 1,
+            items: {
+              type: 'object',
+              props: {
+                operation: {
+                  type: 'enum',
+                  values: ['lte', 'gte', 'gt', 'lt'],
+                },
+                date: {
+                  type: 'date',
+                  convert: true,
+                },
+                $$strict: true,
+              },
+            },
+          },
         ],
         status: {
           type: 'enum',
@@ -145,10 +126,7 @@ export const SubscriptionValidation: ServiceSchema = {
             },
             order: {
               type: 'enum',
-              values: [
-                1,
-                -1,
-              ],
+              values: [1, -1],
             },
           },
         },
@@ -175,8 +153,14 @@ export const SubscriptionValidation: ServiceSchema = {
         date: {
           type: 'object',
           props: {
-            start: { type: 'string', pattern: /^(20[1-9][0-9])-((0[1-9])|(1(0|1|2)))-(((0[1-9])|(1|2)[0-9])|3(0|1))$/ },
-            expire: { type: 'string', pattern: /^(20[1-9][0-9])-((0[1-9])|(1(0|1|2)))-(((0[1-9])|(1|2)[0-9])|3(0|1))$/ },
+            start: {
+              type: 'string',
+              pattern: /^(20[1-9][0-9])-((0[1-9])|(1(0|1|2)))-(((0[1-9])|(1|2)[0-9])|3(0|1))$/,
+            },
+            expire: {
+              type: 'string',
+              pattern: /^(20[1-9][0-9])-((0[1-9])|(1(0|1|2)))-(((0[1-9])|(1|2)[0-9])|3(0|1))$/,
+            },
             $$strict: true,
           },
           optional: true,

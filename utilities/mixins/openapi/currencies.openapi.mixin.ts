@@ -21,13 +21,12 @@ const CurrencySettingsOpenapi = {
 const CurrenciesGetCurrencyOpenapi = {
   $path: 'get /currencies/{currencyCode}',
   summary: 'Get Currency By Code',
-  tags: ['Currencies', 'Enterprise Only'],
+  tags: ['Currencies'],
   description: 'Gets currency code, name and rate',
   parameters: [
     {
       name: 'currencyCode',
       in: 'query',
-      required: false,
       schema: {
         type: 'string',
         minLength: 3,
@@ -54,24 +53,16 @@ const CurrenciesGetCurrencyOpenapi = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorBasic',
-    },
-    404: {
-      description: 'Status 404',
-    },
+    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
+    404: { $ref: '#/components/responses/404' },
   },
-  security: [
-    {
-      basicAuth: [] as any[],
-    },
-  ],
+  security: [{ basicAuth: [] as any[] }],
 };
 
 const CurrenciesGetCurrenciesOpenapi = {
   $path: 'get /currencies',
   summary: 'Get Currencies',
-  tags: ['Currencies', 'Enterprise Only'],
+  tags: ['Currencies'],
   description: 'Get all currencies with names, code and rates info',
   responses: {
     200: {
@@ -87,15 +78,9 @@ const CurrenciesGetCurrenciesOpenapi = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorBasic',
-    },
+    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
   },
-  security: [
-    {
-      basicAuth: [] as any[],
-    },
-  ],
+  security: [{ basicAuth: [] as any[] }],
 };
 
 export const CurrenciesOpenapi: ServiceSchema = {

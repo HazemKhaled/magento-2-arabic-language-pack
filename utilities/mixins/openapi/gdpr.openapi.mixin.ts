@@ -45,15 +45,9 @@ const CustomerRedactOpenapi = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorBasic',
-    },
+    401: { $ref: '#/components/responses/UnauthorizedErrorToken' },
   },
-  security: [
-    {
-      bearerAuth: [] as any[],
-    },
-  ],
+  security: [{ bearerAuth: [] as any[] }],
 };
 
 const CustomerDataRequestOpenapi = {
@@ -83,15 +77,9 @@ const CustomerDataRequestOpenapi = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorBasic',
-    },
+    401: { $ref: '#/components/responses/UnauthorizedErrorToken' },
   },
-  security: [
-    {
-      bearerAuth: [] as any[],
-    },
-  ],
+  security: [{ bearerAuth: [] as any[] }],
 };
 
 const StoreRedactOpenapi = {
@@ -112,15 +100,9 @@ const StoreRedactOpenapi = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorBasic',
-    },
+    401: { $ref: '#/components/responses/UnauthorizedErrorToken' },
   },
-  security: [
-    {
-      bearerAuth: [] as any[],
-    },
-  ],
+  security: [{ bearerAuth: [] as any[] }],
 };
 
 export const GDPROpenapi: ServiceSchema = {

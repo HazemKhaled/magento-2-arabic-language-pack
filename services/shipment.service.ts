@@ -1,4 +1,5 @@
 import { Context, ServiceSchema } from 'moleculer';
+
 import DbService from '../utilities/mixins/mongo.mixin';
 import { ShipmentOpenapi } from '../utilities/mixins/openapi';
 import { Rule, ShipmentPolicy } from '../utilities/types';
@@ -18,9 +19,10 @@ const Shipment: ServiceSchema = {
       auth: 'Basic',
       cache: { keys: ['id'], ttl: 60 * 60 * 24 * 30 },
       handler(ctx: Context): ShipmentPolicy | ShipmentPolicy[] {
-        return (ctx.params.id ? this.adapter.findById(ctx.params.id) : this.adapter.find()).then(
-          (data: ShipmentPolicy[]) => this.shipmentTransform(data),
-        );
+        return (ctx.params.id
+          ? this.adapter.findById(ctx.params.id)
+          : this.adapter.find()
+        ).then((data: ShipmentPolicy[]) => this.shipmentTransform(data));
       },
     },
     /**
@@ -67,7 +69,7 @@ const Shipment: ServiceSchema = {
                 rules: ctx.params.rules,
                 updatedAt: new Date(),
               },
-            },
+            }
           )
           .then(() => {
             this.broker.cacher.clean('shipment.**');
@@ -86,7 +88,8 @@ const Shipment: ServiceSchema = {
       auth: 'Basic',
       cache: { keys: ['country', 'weight', 'price'], ttl: 60 * 60 * 24 * 30 },
       handler(ctx: Context): Rule[] {
-        return this.adapter // find policies with matched rules
+        // find policies with matched rules
+        return this.adapter
           .find({
             query: {
               countries: ctx.params.country,
@@ -99,19 +102,20 @@ const Shipment: ServiceSchema = {
             const rules: Rule[] = policies.reduceRight(
               (accumulator: Rule[], policy: ShipmentPolicy): Rule[] =>
                 accumulator.concat(policy.rules),
-              [],
+              []
             );
             return (
               rules
                 // Filter rules
                 .filter(
                   (rule: Rule) =>
-                    rule.units_max >= ctx.params.weight && rule.units_min <= ctx.params.weight,
+                    rule.units_max >= ctx.params.weight &&
+                    rule.units_min <= ctx.params.weight
                 )
                 // Reformat the rules
                 .map(rule => ({
                   courier: rule.courier,
-                  cost: rule.cost,
+                  cost: Number(rule.cost),
                   duration: `${rule.delivery_days_min}-${rule.delivery_days_max}`,
                 }))
                 .sort((a, b) => a.cost - b.cost)
@@ -129,7 +133,9 @@ const Shipment: ServiceSchema = {
       auth: 'Basic',
       cache: { keys: ['country'], ttl: 60 * 60 * 24 * 30 },
       handler(ctx: Context): string[] {
-        const query = ctx.params.country ? { countries: ctx.params.country } : {};
+        const query = ctx.params.country
+          ? { countries: ctx.params.country }
+          : {};
         return this.adapter.find({ query }).then(
           // Get couriers and filter repeated couriers
           (polices: ShipmentPolicy[]) =>
@@ -137,11 +143,13 @@ const Shipment: ServiceSchema = {
               new Set(
                 polices.reduceRight(
                   (accumulator: string[], policy: ShipmentPolicy): string[] =>
-                    accumulator.concat(policy.rules.map((rule: Rule) => rule.courier)),
-                  [],
-                ),
-              ),
-            ),
+                    accumulator.concat(
+                      policy.rules.map((rule: Rule) => rule.courier)
+                    ),
+                  []
+                )
+              )
+            )
         );
       },
     },
@@ -153,7 +161,9 @@ const Shipment: ServiceSchema = {
      * @param {ShipmentPolicy[]} data
      * @returns
      */
-    shipmentTransform(data: ShipmentPolicy[] | ShipmentPolicy): ShipmentPolicy[] | {} {
+    shipmentTransform(
+      data: ShipmentPolicy[] | ShipmentPolicy
+    ): ShipmentPolicy[] | {} {
       if (data === null) {
         return { message: 'No Shipment Policy with This ID Found' };
       }

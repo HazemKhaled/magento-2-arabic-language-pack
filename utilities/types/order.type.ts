@@ -21,7 +21,7 @@ export interface Order {
   invoice_url?: string;
   shipmentCourier?: string;
   shipmentTrackingNumber?: string;
-  shipmentDate?: Date,
+  shipmentDate?: Date;
   shipping_method?: string;
   discount?: number;
   store?: {};
@@ -32,8 +32,22 @@ export interface Order {
   storeLogo?: string;
   warnings?: string;
   warningsSnippet?: string;
-  financialStatus?: 'unpaid' | 'paid' | 'partially_paid' | 'voided' | 'wallet_refunded' | 'wallet_partially_refunded' | 'refunded' | 'partially_refunded';
-  fulfillmentStatus?: 'pending' | 'processing' | 'packed' | 'shipped' | 'delivered' | 'voided';
+  financialStatus?:
+    | 'unpaid'
+    | 'paid'
+    | 'partially_paid'
+    | 'voided'
+    | 'wallet_refunded'
+    | 'wallet_partially_refunded'
+    | 'refunded'
+    | 'partially_refunded';
+  fulfillmentStatus?:
+    | 'pending'
+    | 'processing'
+    | 'packed'
+    | 'shipped'
+    | 'delivered'
+    | 'voided';
 }
 
 /**
@@ -42,7 +56,7 @@ export interface Order {
  * @interface ResError
  */
 export interface ResError {
-  errors: Array<{ message: string }>;
+  errors: { message: string }[];
 }
 
 /**
