@@ -335,7 +335,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
       }
       return {
         page: scrollId ? results.slice(page * size - size, page * size) : results,
-        totalProducts: search.hits.total.value,
+        totalProducts: search.hits.total.relation === 'eq' ? search.hits.total.value : (await this.broker.call('products-instances.total', {}, { meta: { user: instanceId } })).total,
       };
     },
 
