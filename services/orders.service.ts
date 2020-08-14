@@ -268,9 +268,11 @@ const TheService: ServiceSchema = {
 
         if (warnings.length) {
           data.warnings = JSON.stringify(warnings);
-          data.warningsSnippet = warnings.reduce(
-            (a: string, warn: { message: string }) =>
-              `${a}${a && '\n'}${warn.message}`,
+          const warningsSnippetMessages = warnings
+            .map(warn => warn.message)
+            .filter((msg, i, arr) => i === arr.indexOf(msg));
+          data.warningsSnippet = warningsSnippetMessages.reduce(
+            (a: string, msg: string) => `${a}${a && '\n'}${msg}`,
             ''
           );
         }
@@ -1035,18 +1037,11 @@ const TheService: ServiceSchema = {
       const warnings = [];
       try {
         if (outOfStock.length > 0) {
-          warnings.push({
-            message: `${outOfStock.reduce(
-              (accumulator, item) =>
-                `${accumulator}${accumulator && '\n'}SKU: ${
-                  item.sku
-                } Required Qty: ${item.quantityRequired} Available Qty: ${
-                  item.quantity
-                }`,
-              ''
-            )}`,
-            skus: outOfStock.map(e => e.sku),
-            code: 1102,
+          outOfStock.forEach(item => {
+            warnings.push({
+              message: 'out_of_stock',
+              sku: item.sku,
+            });
           });
           this.sendLogs({
             topic: 'order',
@@ -1059,18 +1054,12 @@ const TheService: ServiceSchema = {
           });
         }
         if (notEnoughStock.length > 0) {
-          warnings.push({
-            message: `${notEnoughStock.reduce(
-              (accumulator, item) =>
-                `${accumulator}${accumulator && '\n'}SKU: ${
-                  item.sku
-                } Required Qty: ${item.quantityRequired} Available Qty: ${
-                  item.quantity
-                }`,
-              ''
-            )}`,
-            skus: notEnoughStock.map(e => e.sku),
-            code: 1103,
+          notEnoughStock.forEach(item => {
+            warnings.push({
+              message: 'low_stock',
+              sku: item.sku,
+              data: { available_qty: item.quantity },
+            });
           });
           this.sendLogs({
             topic: 'order',
@@ -1120,7 +1109,7 @@ const TheService: ServiceSchema = {
         }
         if (!this.checkAddress(instance, data.externalId)) {
           warnings.push({
-            message: 'Billing address not found',
+            message: 'billing_missing',
             code: 1104,
           });
         }
