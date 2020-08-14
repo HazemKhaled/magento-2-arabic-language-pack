@@ -329,5 +329,8 @@ export const OrdersValidation: ServiceSchema = {
     payOrder: {
       id: 'string',
     },
+    getOrderWarnings: {
+      order_id: { type: 'string' },
+    },
   },
 };

@@ -150,6 +150,8 @@ export const OmsValidation: ServiceSchema = {
         subscription: { type: 'string', optional: true },
         notes: { type: 'string', optional: true },
         orderNumber: { type: 'string', optional: true },
+        warnings: { type: 'string', optional: true },
+        warningsSnippet: { type: 'string', optional: true },
       },
     },
     updateOrderById: {
@@ -192,6 +194,7 @@ export const OmsValidation: ServiceSchema = {
               accountId: { type: 'string', optional: true },
             },
           },
+          optional: true,
         },
         shipping: {
           type: 'object',
@@ -219,6 +222,8 @@ export const OmsValidation: ServiceSchema = {
         subscription: { type: 'string', optional: true },
         notes: { type: 'string', optional: true },
         orderNumber: { type: 'string', optional: true },
+        warnings: { type: 'string', optional: true },
+        warningsSnippet: { type: 'string', optional: true },
       },
     },
     getOrderById: { params: { customerId: 'string', orderId: 'string' } },

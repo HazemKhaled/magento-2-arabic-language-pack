@@ -86,17 +86,9 @@ const TheService: ServiceSchema = {
 
         const data = this.orderData(ctx.params, instance, true);
 
-        this.sendLogs({
-          topic: 'order',
-          topicId: data.externalId,
-          message: 'Order Received!',
-          storeId: instance.url,
-          logLevel: 'info',
-          code: 100,
-          payload: {
-            params: ctx.params,
-          },
-        });
+        // Send received log
+        this.sendReceiveLog('Create', data.externalId, instance, ctx.params);
+
         // Check the available products and quantities return object with inStock products info
         const stock: {
           products: Product[];
@@ -272,7 +264,7 @@ const TheService: ServiceSchema = {
             .map(warn => warn.message)
             .filter((msg, i, arr) => i === arr.indexOf(msg));
           data.warningsSnippet = warningsSnippetMessages.reduce(
-            (a: string, msg: string) => `${a}${a && '\n'}${msg}`,
+            (a: string, msg: string) => `${a}${a && ','}${msg}`,
             ''
           );
         }
@@ -388,39 +380,21 @@ const TheService: ServiceSchema = {
         const instance = await ctx.call('stores.findInstance', {
           consumerKey: ctx.meta.user,
         });
-        this.sendLogs({
-          topic: 'order',
-          topicId: ctx.params.id,
-          message: 'Cancel Order Received!',
-          storeId: instance.url,
-          logLevel: 'info',
-          code: 100,
-          payload: {
-            params: ctx.params,
-          },
-        });
+
         const orderBeforeUpdate = await ctx.call('orders.getOrder', {
           order_id: ctx.params.id,
         });
-        if (orderBeforeUpdate.id === -1) {
-          ctx.meta.$statusCode = 404;
-          ctx.meta.$statusMessage = 'Not Found';
-          return { message: 'Order Not Found!' };
-        }
-        // Change here
-        if (
-          !['Order Placed', 'Processing'].includes(orderBeforeUpdate.status)
-        ) {
-          ctx.meta.$statusCode = 405;
-          ctx.meta.$statusMessage = 'Not Allowed';
-          return {
-            message:
-              'The Order Is Now Processed With Knawat You Can Not Update It',
-          };
-        }
-        if (orderBeforeUpdate.status === 'Cancelled') {
-          return { message: 'The Order Is Cancelled, You Can Not Update It' };
-        }
+
+        // Send received log
+        this.sendReceiveLog(
+          'Update',
+          orderBeforeUpdate?.externalId,
+          instance,
+          ctx.params
+        );
+
+        // Check update possibility
+        this.checkUpdateStatus(orderBeforeUpdate, ctx.params);
 
         const data = this.orderData(ctx.params);
         if (data.shipping) data.shipping = this.normalizeAddress(data.shipping);
@@ -466,18 +440,11 @@ const TheService: ServiceSchema = {
                   params: ctx.params,
                 },
               });
-              ctx.meta.$statusCode = 404;
-              ctx.meta.$statusMessage = 'Not Found';
-              return {
-                errors: [
-                  {
-                    status: 'fail',
-                    message:
-                      'The products you ordered are not Knawat products, The order has not been created!',
-                    code: 1101,
-                  },
-                ],
-              };
+              throw new MpError(
+                'Not Found',
+                'The products you ordered are not Knawat products, The order has not been created!',
+                404
+              );
             }
 
             // Get Shipping Country
@@ -561,18 +528,14 @@ const TheService: ServiceSchema = {
               )
             );
             warnings = warnings.concat(taxesMsg);
-
-            if (warnings.length) {
-              let parsedOldWarnings = [];
-              try {
-                parsedOldWarnings = JSON.parse(orderBeforeUpdate.warnings);
-              } catch (e) {
-                console.error(e);
-              }
-              data.warnings = JSON.stringify(
-                warnings.concat(parsedOldWarnings)
-              );
-            }
+            data.warnings = JSON.stringify(warnings);
+            const warningsSnippetMessages = warnings
+              .map(warn => warn.message)
+              .filter((msg, i, arr) => i === arr.indexOf(msg));
+            data.warningsSnippet = warningsSnippetMessages.reduce(
+              (a: string, msg: string) => `${a}${a && ','}${msg}`,
+              ''
+            );
           }
           // Convert status
           data.status = ['pending', 'processing', 'cancelled'].includes(
@@ -775,17 +738,9 @@ const TheService: ServiceSchema = {
         const instance = await ctx.call('stores.findInstance', {
           consumerKey: ctx.meta.user,
         });
-        this.sendLogs({
-          topic: 'order',
-          topicId: ctx.params.id,
-          message: 'Cancel Order Received!',
-          storeId: instance.url,
-          logLevel: 'info',
-          code: 100,
-          payload: {
-            params: ctx.params,
-          },
-        });
+        // Send received log
+        this.sendReceiveLog('Cancel', ctx.params.id, instance, ctx.params);
+
         return ctx
           .call('oms.deleteOrderById', {
             customerId: instance.internal_data.omsId,
@@ -920,6 +875,51 @@ const TheService: ServiceSchema = {
 
           return applyCreditRes;
         }
+      },
+    },
+    getOrderWarnings: {
+      auth: ['Bearer'],
+      cache: {
+        keys: ['order_id'],
+        ttl: 60 * 6,
+      },
+      async handler(ctx: Context) {
+        const { order_id } = ctx.params;
+        const { store: instance } = ctx.meta;
+        const order = await ctx.call('orders.getOrder', { order_id });
+        const { outOfStock, notEnoughStock } = await this.stockProducts(
+          order.items
+        );
+        const warnings = this.warningsMessenger(
+          outOfStock,
+          notEnoughStock,
+          order,
+          instance
+        );
+
+        const warningsStr = JSON.stringify(warnings);
+        const warningsSnippetMessages = warnings
+          .map((warn: { message: string }) => warn.message)
+          .filter(
+            (msg: string, i: number, arr: string[]) => i === arr.indexOf(msg)
+          );
+        const warningsSnippet = warningsSnippetMessages.reduce(
+          (a: string, msg: string) => `${a}${a && ','}${msg}`,
+          ''
+        );
+
+        ctx
+          .call('oms.updateOrderById', {
+            orderId: order_id,
+            customerId: instance.internal_data?.omsId,
+            warnings: warningsStr,
+            warningsSnippet,
+          })
+          .then(({ salesorder }) => {
+            this.cacheUpdate(salesorder, instance);
+          });
+
+        return warnings;
       },
     },
   },
@@ -1071,52 +1071,76 @@ const TheService: ServiceSchema = {
             payload: { outOfStock, params },
           });
         }
-        if (
-          (!instance.shipping_methods || !instance.shipping_methods[0].name) &&
-          !shippingMethod
-        ) {
-          this.sendLogs({
-            topic: 'order',
-            topicId: data.externalId,
-            message: `There is no default shipping method for your store, It’ll be shipped with ${
-              shipment.courier || 'Standard'
-            }`,
-            storeId: instance.url,
-            logLevel: 'warn',
-            code: 2102,
-            payload: { shipment, params },
-          });
-        }
-        if (
-          (shipment.courier !== shippingMethod && shippingMethod) ||
-          (instance.shipping_methods &&
-            instance.shipping_methods[0].name &&
-            shipment.courier !== instance.shipping_methods[0].name)
-        ) {
-          this.sendLogs({
-            topic: 'order',
-            topicId: data.externalId,
-            message: `Can’t ship to ${
-              shipping.country
-            } with provided courier, It’ll be shipped with ${
-              shipment.courier || 'Standard'
-            }, Contact our customer support for more info`,
-            storeId: instance.url,
-            logLevel: 'warn',
-            code: 2101,
-            payload: { shipment, params },
-          });
-        }
+        // Check address data
         if (!this.checkAddress(instance, data.externalId)) {
           warnings.push({
             message: 'billing_missing',
             code: 1104,
           });
         }
+        // Shipment check
+        if (shippingMethod) {
+          this.checkShipment(
+            instance,
+            data,
+            shippingMethod,
+            shipping,
+            shipment,
+            params
+          );
+        }
       } catch (err) {
         this.logger.error(err);
       }
       return warnings;
+    },
+    /**
+     * Send logs if there is any change or missing shipment method
+     *
+     * @param instance
+     * @param data
+     * @param shippingMethod
+     * @param shipping
+     * @param shipment
+     * @param params
+     */
+    checkShipment(instance, data, shippingMethod, shipping, shipment, params) {
+      if (
+        (!instance.shipping_methods || !instance.shipping_methods[0].name) &&
+        !shippingMethod
+      ) {
+        this.sendLogs({
+          topic: 'order',
+          topicId: data.externalId,
+          message: `There is no default shipping method for your store, It’ll be shipped with ${
+            shipment.courier || 'Standard'
+          }`,
+          storeId: instance.url,
+          logLevel: 'warn',
+          code: 2102,
+          payload: { shipment, params },
+        });
+      }
+      if (
+        (shipment.courier !== shippingMethod && shippingMethod) ||
+        (instance.shipping_methods &&
+          instance.shipping_methods[0].name &&
+          shipment.courier !== instance.shipping_methods[0].name)
+      ) {
+        this.sendLogs({
+          topic: 'order',
+          topicId: data.externalId,
+          message: `Can’t ship to ${
+            shipping.country
+          } with provided courier, It’ll be shipped with ${
+            shipment.courier || 'Standard'
+          }, Contact our customer support for more info`,
+          storeId: instance.url,
+          logLevel: 'warn',
+          code: 2101,
+          payload: { shipment, params },
+        });
+      }
     },
     /**
      * Transform order to OMS format
@@ -1287,6 +1311,52 @@ const TheService: ServiceSchema = {
           this.sanitizeResponseList([order])
         ),
       ]);
+    },
+    /**
+     * Send a logs for acknowledge that the action received the requested action
+     * @param action
+     * @param order
+     * @param instance
+     * @param params
+     */
+    sendReceiveLog(action, externalId, instance, params) {
+      this.sendLogs({
+        topic: 'order',
+        topicId: externalId,
+        message: `${action} Order Received!`,
+        storeId: instance.url,
+        logLevel: 'info',
+        code: 100,
+        payload: {
+          params,
+        },
+      });
+    },
+    /**
+     *  Check order availability and possibility for update
+     * @param order
+     */
+    checkUpdateStatus(order, params) {
+      if (order.id === -1) {
+        throw new MpError('Not Found', 'Order Not Found!', 404);
+      }
+      if (Object.keys(params).length === 1) {
+        throw new MpError('Unprocessable Entity', 'No thing to update!', 422);
+      }
+      if (!['Order Placed', 'Processing'].includes(order.status)) {
+        throw new MpError(
+          'Not Allowed',
+          'The Order Is Now Processed With Knawat You Can Not Update It',
+          405
+        );
+      }
+      if (order.status === 'Cancelled') {
+        throw new MpError(
+          'Not Allowed',
+          'The Order Is Cancelled, You Can Not Update It',
+          405
+        );
+      }
     },
   },
 };
