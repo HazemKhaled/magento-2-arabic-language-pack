@@ -592,7 +592,7 @@ const InstanceUpdate = {
             },
             externalId: {
               description: 'Product ID in your store',
-              type: 'number',
+              type: 'string',
             },
             variations: {
               type: 'array',
@@ -603,7 +603,7 @@ const InstanceUpdate = {
                   sku: { type: 'string' },
                   externalId: {
                     description: 'Variation ID in your store',
-                    type: 'number',
+                    type: 'string',
                   },
                 },
               },

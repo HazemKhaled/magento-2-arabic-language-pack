@@ -122,11 +122,16 @@ export const ProductsInstancesValidation: ServiceSchema = {
           type: 'string',
           optional: true,
         },
-        externalId: {
-          type: 'number',
-          convert: true,
-          optional: true,
-        },
+        externalId: [
+          {
+            type: 'string',
+            optional: true,
+          },
+          {
+            type: 'number',
+            optional: true,
+          },
+        ],
         errors: {
           type: 'array',
           optional: true,
@@ -145,11 +150,16 @@ export const ProductsInstancesValidation: ServiceSchema = {
                 convert: true,
                 optional: true,
               },
-              externalId: {
-                type: 'number',
-                optional: true,
-                convert: true,
-              },
+              externalId: [
+                {
+                  type: 'string',
+                  optional: true,
+                },
+                {
+                  type: 'number',
+                  optional: true,
+                },
+              ],
               errors: {
                 type: 'array',
                 optional: true,
