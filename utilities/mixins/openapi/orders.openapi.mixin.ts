@@ -46,6 +46,10 @@ const ItemSchema = {
             minimum: 1,
             maximum: 10,
           },
+          quantityCancelled: {
+            type: 'number',
+            readOnly: true,
+          },
           discount: {
             type: 'number',
             readOnly: true,
@@ -616,6 +620,51 @@ const PayOrder = {
   security: [{ bearerAuth: [] as [] }],
 };
 
+const GetOrderWarnings = {
+  $path: 'get /orders/{order_id}/warnings',
+  summary: 'Get & refresh order warnings',
+  tags: ['Orders'],
+  responses: {
+    200: {
+      description: 'Status 200',
+      content: {
+        'application/json': {
+          schema: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                message: { type: 'string', required: true },
+                sku: { type: 'string' },
+                data: {
+                  type: 'object',
+                  properties: {
+                    available_qty: { type: 'number' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    401: { $ref: '#/components/responses/UnauthorizedErrorToken' },
+    404: { $ref: '#/components/responses/404' },
+    500: { $ref: '#/components/responses/500' },
+  },
+  parameters: [
+    {
+      name: 'order_id',
+      in: 'path',
+      required: true,
+      schema: {
+        type: 'string',
+      },
+    },
+  ],
+  security: [{ bearerAuth: [] as [] }],
+};
+
 export const OrdersOpenapi: ServiceSchema = {
   name: 'orders',
   settings: {
@@ -674,6 +723,9 @@ export const OrdersOpenapi: ServiceSchema = {
     },
     payOrder: {
       openapi: PayOrder,
+    },
+    getOrderWarnings: {
+      openapi: GetOrderWarnings,
     },
   },
 };
