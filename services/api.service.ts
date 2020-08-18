@@ -287,7 +287,7 @@ const TheService: ServiceSchema = {
                   // Reduce user fields (it will be transferred to other nodes)
                   ctx.meta.user = user.consumer_key;
                   ctx.meta.token = token;
-                  ctx.meta.storeId = user.id;
+                  ctx.meta.storeId = user.url;
                   ctx.meta.store = user;
                 }
                 return user;
