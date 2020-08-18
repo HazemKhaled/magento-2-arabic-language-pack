@@ -131,6 +131,11 @@ const TheService: ServiceSchema = {
           'PUT crm/:module/:id': 'crm.updateRecord',
           'POST crm/:module/:id/tags/add': 'crm.addTagsToRecord',
           'DELETE crm/:module/:id/tags/remove': 'crm.removeTagsFromRecord',
+
+          // Webhook
+          'POST webhooks': 'registry.create',
+          'GET webhooks': 'registry.list',
+          'DELETE webhooks/:id': 'registry.remove',
         },
 
         // Disable to call not-mapped actions
