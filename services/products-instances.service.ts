@@ -172,6 +172,14 @@ module.exports = {
                 });
               }
             }
+            ctx.emit(
+              'products.delete',
+              {
+                storeId: ctx.meta.storeId,
+                data: { sku: product.sku },
+              },
+              ['publisher']
+            );
             return { product };
           })
           .catch(() => {
@@ -303,6 +311,17 @@ module.exports = {
                     500
                   );
                 }
+                ctx.emit(
+                  'products.create',
+                  {
+                    storeId: ctx.meta.storeId,
+                    data: {
+                      success: newSKUs,
+                      outOfStock,
+                    },
+                  },
+                  ['publisher']
+                );
                 return {
                   success: newSKUs,
                   outOfStock,
@@ -339,6 +358,16 @@ module.exports = {
               if (res.result === 'updated' || res.result === 'noop') {
                 await this.broker.cacher.clean(
                   `products-instances.list:${ctx.meta.user}**`
+                );
+                ctx.emit(
+                  'products.push',
+                  {
+                    storeId: ctx.meta.storeId,
+                    data: {
+                      sku: ctx.params.sku,
+                    },
+                  },
+                  ['publisher']
                 );
                 return {
                   status: 'success',
@@ -397,6 +426,16 @@ module.exports = {
               })
               .then((res: any) => {
                 if (res.errors === false) {
+                  ctx.emit(
+                    'products.push',
+                    {
+                      storeId: ctx.meta.storeId,
+                      data: {
+                        products: ctx.params.productInstances,
+                      },
+                    },
+                    ['publisher']
+                  );
                   return {
                     status: 'success',
                   };
