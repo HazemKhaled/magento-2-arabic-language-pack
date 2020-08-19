@@ -180,22 +180,24 @@ module.exports = {
           }
           res.forEach((product: Product) => {
             bulk.push({
-              index: {
+              update: {
                 _index: 'products-instances',
                 _id: `${instance.consumer_key}-${product.sku}`,
               },
             });
             bulk.push({
-              instanceId: instance.consumer_key,
-              createdAt: new Date(),
-              siteUrl: instance.url,
-              sku: product.sku,
-              variations: product.variations
-                .filter(variation => variation.quantity > 0)
-                .map(variation => ({
-                  sku: variation.sku,
-                })),
-            });
+              doc: {
+                instanceId: instance.consumer_key,
+                createdAt: new Date(),
+                siteUrl: instance.url,
+                sku: product.sku,
+                variations: product.variations
+                  .filter(variation => variation.quantity > 0)
+                  .map(variation => ({
+                    sku: variation.sku,
+                  })),
+                deleted: false,
+              }, doc_as_upsert: true});
           });
 
           return ctx
@@ -207,8 +209,8 @@ module.exports = {
               // Update products import quantity
               if (response.items) {
                 const firstImport = response.items
-                  .filter((item: any) => item.index._version === 1)
-                  .map((item: any) => item.index._id);
+                  .filter((item: any) => item.update._version === 1)
+                  .map((item: any) => item.update._id);
                 const update = res.filter((product: Product) =>
                   firstImport.includes(`${instance.consumer_key}-${product.sku}`),
                 );
