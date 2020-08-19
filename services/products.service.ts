@@ -1,15 +1,29 @@
-import { MpError } from './../utilities/adapters/mpError';
-import { Product } from './../utilities/types/product.type';
 import { ServiceSchema } from 'moleculer';
-const ESService = require('moleculer-elasticsearch');
-const { ProductTransformation, I18nService, ProductsOpenapi, ProductsValidation, AppSearch } = require('../utilities/mixins');
+import ESService from 'moleculer-elasticsearch';
+
+import { MpError } from '../utilities/adapters/mpError';
+import { Product } from '../utilities/types/product.type';
+import {
+  ProductTransformation,
+  I18nService,
+  ProductsOpenapi,
+  ProductsValidation,
+  AppSearch,
+} from '../utilities/mixins';
 
 const TheService: ServiceSchema = {
   name: 'products',
   retryPolicy: {
     retries: 1,
   },
-  mixins: [I18nService, ProductTransformation, ESService, ProductsOpenapi, ProductsValidation, AppSearch(process.env.APP_SEARCH_ENGINE)],
+  mixins: [
+    I18nService,
+    ProductTransformation,
+    ESService,
+    ProductsOpenapi,
+    ProductsValidation,
+    AppSearch(process.env.APP_SEARCH_ENGINE),
+  ],
   settings: {
     elasticsearch: {
       host: process.env.ELASTIC_URL,
@@ -19,7 +33,7 @@ const TheService: ServiceSchema = {
   },
   actions: {
     list: {
-      auth: 'Basic',
+      auth: ['Basic'],
       cache: {
         keys: [
           'page',
@@ -32,7 +46,7 @@ const TheService: ServiceSchema = {
           'sortBy',
           'images',
         ],
-        ttl: 30 * 60, // 10 mins
+        ttl: 30 * 60,
       },
       handler(ctx) {
         const filter = [];
@@ -62,12 +76,14 @@ const TheService: ServiceSchema = {
             multi_match: {
               query: ctx.params.keyword,
               fields: [
-                ...(ctx.params.keywordLang ? ctx.params.keywordLang : ['tr', 'en', 'ar', 'fr']).map(
-                  (l: string) => `name.${l}.text`,
-                ),
-                ...(ctx.params.keywordLang ? ctx.params.keywordLang : ['tr', 'en', 'ar', 'fr']).map(
-                  (l: string) => `description.${l}.text`,
-                ),
+                ...(ctx.params.keywordLang
+                  ? ctx.params.keywordLang
+                  : ['tr', 'en', 'ar', 'fr']
+                ).map((l: string) => `name.${l}.text`),
+                ...(ctx.params.keywordLang
+                  ? ctx.params.keywordLang
+                  : ['tr', 'en', 'ar', 'fr']
+                ).map((l: string) => `description.${l}.text`),
                 'sku',
                 'variations.sku',
               ],
@@ -79,123 +95,147 @@ const TheService: ServiceSchema = {
         if (ctx.params.category_id)
           filter.push({
             term: {
-              'categories.id': parseInt(ctx.params.category_id),
+              'categories.id': parseInt(ctx.params.category_id, 10),
             },
           });
         const sort: { [key: string]: any } = {};
         switch (ctx.params.sortBy) {
-        case 'salesDesc':
-          sort.sales_qty = { order: 'desc' };
-          break;
-        case 'updated':
-          sort.updated = { order: 'desc' };
-          break;
-        case 'createdAsc':
-          sort.created = { order: 'asc' };
-          break;
-        case 'createdDesc':
-          sort.created = { order: 'desc' };
-          break;
-        case 'priceAsc':
-          sort['variations.sale'] = {
-            order: 'asc',
-            nested_path: 'variations',
-          };
-          break;
-        case 'priceDesc':
-          sort['variations.sale'] = {
-            order: 'desc',
-            nested_path: 'variations',
-          };
-          break;
-        default:
-          break;
+          case 'salesDesc':
+            sort.sales_qty = { order: 'desc' };
+            break;
+          case 'updated':
+            sort.updated = { order: 'desc' };
+            break;
+          case 'createdAsc':
+            sort.created = { order: 'asc' };
+            break;
+          case 'createdDesc':
+            sort.created = { order: 'desc' };
+            break;
+          case 'priceAsc':
+            sort['variations.sale'] = {
+              order: 'asc',
+              nested_path: 'variations',
+            };
+            break;
+          case 'priceDesc':
+            sort['variations.sale'] = {
+              order: 'desc',
+              nested_path: 'variations',
+            };
+            break;
+          default:
+            break;
         }
 
         if (ctx.params.images) {
           filter.push({
             script: {
               script: {
-                source: `doc['images'].values.size() > ${parseInt(ctx.params.images)};`,
+                source: `doc['images'].values.size() > ${parseInt(
+                  ctx.params.images,
+                  10
+                )};`,
               },
             },
           });
         }
 
         const body = {
-          sort: sort,
+          sort,
           query: {
             bool: {
               filter,
             },
           },
         };
-        return this.searchCall(ctx.meta.user, body, ctx.params.limit, ctx.params.page);
+        return this.searchCall(
+          ctx.meta.user,
+          body,
+          ctx.params.limit,
+          ctx.params.page
+        );
       },
     },
     getBySku: {
-      auth: 'Basic',
+      auth: ['Basic'],
       cache: {
         keys: ['sku'],
         ttl: 60 * 60 * 5,
       },
       handler(ctx) {
-        return ctx.call('products.search', {
-          index: 'products',
-          type: '_doc',
-          body: {
-            query: {
-              bool: {
-                filter: {
-                  term: {
-                    _id: ctx.params.sku,
+        return ctx
+          .call('products.search', {
+            index: 'products',
+            type: '_doc',
+            body: {
+              query: {
+                bool: {
+                  filter: {
+                    term: {
+                      _id: ctx.params.sku,
+                    },
                   },
                 },
               },
             },
-          },
-        }).then(({ hits: { hits: [product] } }) => {
-          if (!product) {
-            throw new MpError('Products Service', `Product Not Found ${ctx.params.sku} (fetchBySku)!`, 404);
-          }
-          return this.productSanitize(product);
-        });
+          })
+          .then(
+            ({
+              hits: {
+                hits: [product],
+              },
+            }) => {
+              if (!product) {
+                throw new MpError(
+                  'Products Service',
+                  `Product Not Found ${ctx.params.sku} (fetchBySku)!`,
+                  404
+                );
+              }
+              return this.productSanitize(product);
+            }
+          );
       },
     },
     getProductsBySku: {
-      auth: 'Basic',
+      auth: ['Basic'],
       cache: {
         keys: ['skus'],
         ttl: 60 * 60 * 5,
       },
       handler(ctx) {
-        return ctx.call('products.search', {
-          index: 'products',
-          type: '_doc',
-          body: {
-            size: 1000,
-            query: {
-              bool: {
-                filter: [
-                  {
-                    terms: {
-                      sku: ctx.params.skus,
+        return ctx
+          .call('products.search', {
+            index: 'products',
+            type: '_doc',
+            body: {
+              size: 1000,
+              query: {
+                bool: {
+                  filter: [
+                    {
+                      terms: {
+                        sku: ctx.params.skus,
+                      },
                     },
-                  },
-                  {
-                    term: {
-                      archive: false,
+                    {
+                      term: {
+                        archive: false,
+                      },
                     },
-                  },
-                ],
+                  ],
+                },
               },
             },
-          },
-        }).then(({ hits: { hits: products } }) => products.map((product: Product) => this.productSanitize(product)));
+          })
+          .then(({ hits: { hits: products } }) =>
+            products.map((product: Product) => this.productSanitize(product))
+          );
       },
     },
     getProductsByVariationSku: {
-      auth: 'Basic',
+      auth: ['Basic'],
       cache: {
         keys: ['skus'],
         ttl: 60 * 60 * 5,
@@ -223,32 +263,49 @@ const TheService: ServiceSchema = {
             },
           })
           .then(response => {
-            return { products: response.hits.hits.map(({_source} : {_source: Product}) => _source) };
+            return {
+              products: response.hits.hits.map(
+                ({ _source }: { _source: Product }) => _source
+              ),
+            };
           });
       },
     },
     updateQuantityAttributes: {
       async handler(ctx) {
-        const bulk = ctx.params.products.map((product: { id: string; qty: number; attribute: string; imported: string[]; }) => {
-          const body: {
+        const bulk = ctx.params.products.map(
+          (product: {
             id: string;
-            imported?: string[];
-            [x: string]: string | number | string[];
-          } = {
-            id: product.id,
-            [product.attribute]: product.qty,
-          };
-          if (product.imported) body.imported = product.imported;
-          return body;
-        });
+            qty: number;
+            attribute: string;
+            imported: string[];
+          }) => {
+            const body: {
+              id: string;
+              imported?: string[];
+              [x: string]: string | number | string[];
+            } = {
+              id: product.id,
+              [product.attribute]: product.qty,
+            };
+            if (product.imported) body.imported = product.imported;
+            return body;
+          }
+        );
         await ctx.call('products.bulk', {
           index: 'products',
           type: '_doc',
-          body: ctx.params.products.reduce((a: any[], product: { id: string; attribute: string; qty: number }) => {
-            a.push({ update : { _id : product.id, _index : 'products' } });
-            a.push({ doc: { [product.attribute]: product.qty } });
-            return a;
-          }, []),
+          body: ctx.params.products.reduce(
+            (
+              a: any[],
+              product: { id: string; attribute: string; qty: number }
+            ) => {
+              a.push({ update: { _id: product.id, _index: 'products' } });
+              a.push({ doc: { [product.attribute]: product.qty } });
+              return a;
+            },
+            []
+          ),
         });
         return this.updateDocuments(bulk);
       },
@@ -257,9 +314,9 @@ const TheService: ServiceSchema = {
   methods: {
     /* SearchByFilters methods */
     /**
-       * @param {String} user
-       * @param {Object} body
-       */
+     * @param {String} user
+     * @param {Object} body
+     */
     async searchCall(
       user,
       body,
@@ -268,17 +325,17 @@ const TheService: ServiceSchema = {
       fullResult = [],
       scrollId = false,
       trace = 0,
-      maxScroll = 0,
+      maxScroll = 0
     ) {
-      limit = limit ? parseInt(limit) : 10;
-      page = page ? parseInt(page) : 1;
+      limit = limit ? parseInt(limit, 10) : 10;
+      page = page ? parseInt(page, 10) : 1;
       let result = [];
       if (scrollId)
         result = await this.broker.call('products.call', {
           api: 'scroll',
           params: {
             scroll: '30s',
-            scrollId: scrollId,
+            scrollId,
           },
         });
       else {
@@ -286,16 +343,18 @@ const TheService: ServiceSchema = {
           index: 'products',
           size: process.env.SCROLL_LIMIT,
           scroll: '1m',
-          body: body,
+          body,
         });
         maxScroll = result.hits.total.value;
         trace = page * limit;
       }
       fullResult =
-        trace - parseInt(process.env.SCROLL_LIMIT) <= 0 ? fullResult.concat(result.hits.hits) : [];
-      if (trace > limit && maxScroll > parseInt(process.env.SCROLL_LIMIT)) {
-        maxScroll -= parseInt(process.env.SCROLL_LIMIT);
-        trace -= parseInt(process.env.SCROLL_LIMIT);
+        trace - parseInt(process.env.SCROLL_LIMIT, 10) <= 0
+          ? fullResult.concat(result.hits.hits)
+          : [];
+      if (trace > limit && maxScroll > parseInt(process.env.SCROLL_LIMIT, 10)) {
+        maxScroll -= parseInt(process.env.SCROLL_LIMIT, 10);
+        trace -= parseInt(process.env.SCROLL_LIMIT, 10);
         return this.searchCall(
           user,
           body,
@@ -304,7 +363,7 @@ const TheService: ServiceSchema = {
           fullResult,
           result._scroll_id,
           trace,
-          maxScroll,
+          maxScroll
         );
       }
       const instance = await this.broker.call('stores.findInstance', {
@@ -317,8 +376,10 @@ const TheService: ServiceSchema = {
       return {
         products: fullResult
           .slice(
-            scrollId ? -limit + trace + parseInt(process.env.SCROLL_LIMIT) : -limit + trace,
-            scrollId ? trace + parseInt(process.env.SCROLL_LIMIT) : trace,
+            scrollId
+              ? -limit + trace + parseInt(process.env.SCROLL_LIMIT, 10)
+              : -limit + trace,
+            scrollId ? trace + parseInt(process.env.SCROLL_LIMIT, 10) : trace
           )
           .map((product: Product) => this.productSanitize(product)),
         total: result.hits.total.value,

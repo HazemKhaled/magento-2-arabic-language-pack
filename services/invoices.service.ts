@@ -1,10 +1,12 @@
 import { Context, Errors, ServiceSchema, GenericObject } from 'moleculer';
+
 import { InvoicesOpenapi } from '../utilities/mixins/openapi';
 import { Invoice } from '../utilities/types';
 import { InvoicesValidation } from '../utilities/mixins/validation';
 import { InvoicePage } from '../utilities/mixins/invoicePage';
 import { Oms } from '../utilities/mixins/oms.mixin';
 import { MpError } from '../utilities/adapters';
+
 const MoleculerError = Errors.MoleculerError;
 
 const TheService: ServiceSchema = {
@@ -12,7 +14,7 @@ const TheService: ServiceSchema = {
   mixins: [InvoicesValidation, InvoicesOpenapi, InvoicePage, Oms],
   actions: {
     get: {
-      auth: 'Bearer',
+      auth: ['Bearer'],
       cache: {
         keys: ['#user', 'page', 'limit', 'reference_number', 'invoice_number'],
         ttl: 60,
@@ -41,20 +43,20 @@ const TheService: ServiceSchema = {
               async response => {
                 return {
                   invoices: response.invoices.map((invoice: Invoice) =>
-                    this.invoiceSanitize(invoice),
+                    this.invoiceSanitize(invoice)
                   ),
                 };
               },
               err => {
                 throw new MoleculerError(err.message, err.code || 500);
-              },
+              }
             );
         }
         return [];
       },
     },
     create: {
-      auth: 'Basic',
+      auth: ['Basic'],
       async handler(ctx: Context) {
         const instance = await ctx.call('stores.findInstance', {
           id: ctx.params.storeId,
@@ -66,7 +68,10 @@ const TheService: ServiceSchema = {
 
         const { items, discount } = ctx.params;
         // Total items cost
-        const itemsCost = items.reduce((a: number, i: GenericObject) => a+=i.rate, 0);
+        const itemsCost = items.reduce(
+          (a: number, i: GenericObject) => (a += i.rate),
+          0
+        );
         const totalBeforeTax = itemsCost - ((discount && discount.value) || 0);
 
         if (totalBeforeTax === 0) {
@@ -82,7 +87,7 @@ const TheService: ServiceSchema = {
           await this.setOmsId(instance);
         }
 
-        const invoiceParams: {[key:string]: string} = {
+        const invoiceParams: { [key: string]: string } = {
           customerId: instance.internal_data.omsId,
           discount: ctx.params.discount && ctx.params.discount.value,
           discountType: ctx.params.discount && ctx.params.discount.type,
@@ -97,18 +102,18 @@ const TheService: ServiceSchema = {
           invoiceParams.dueDate = ctx.params.dueDate;
         }
 
-        return ctx
-          .call('oms.createInvoice', invoiceParams)
-          .then(
-            async res => {
-              await this.broker.cacher.clean(`invoices.get:${instance.consumer_key}**`);
-              this.cacheUpdate(res.invoice, instance);
-              return res;
-            },
-            err => {
-              throw new MoleculerError(err.message, err.code || 500);
-            },
-          );
+        return ctx.call('oms.createInvoice', invoiceParams).then(
+          async res => {
+            await this.broker.cacher.clean(
+              `invoices.get:${instance.consumer_key}**`
+            );
+            this.cacheUpdate(res.invoice, instance);
+            return res;
+          },
+          err => {
+            throw new MoleculerError(err.message, err.code || 500);
+          }
+        );
       },
     },
     updateInvoiceStatus: {
@@ -117,23 +122,32 @@ const TheService: ServiceSchema = {
       },
     },
     applyCredits: {
-      auth: 'Bearer',
+      auth: ['Bearer'],
       async handler(ctx: Context) {
         const instance = await ctx.call('stores.me');
         if (instance.errors) {
           throw new MpError('Invoices Service', 'Store not found', 404);
         }
-        const {params} = ctx;
-        if(params.useSavedPaymentMethods && instance.credit < params.paymentAmount) {
+        const { params } = ctx;
+        if (
+          params.useSavedPaymentMethods &&
+          instance.credit < params.paymentAmount
+        ) {
           if (process.env.PAYMENT_AUTO_CHARGE_CC_INVOICE) {
-            await ctx.call('paymentGateway.charge', {
-              storeId: instance.url,
-              amount: params.paymentAmount - instance.credit,
-            }).then(null, err => {
-              if (err.type === 'SERVICE_NOT_FOUND')
-                throw new MpError('Invoices Service', 'Not enough balance!', 402);
-              throw err;
-            });
+            await ctx
+              .call('paymentGateway.charge', {
+                storeId: instance.url,
+                amount: params.paymentAmount - instance.credit,
+              })
+              .then(null, err => {
+                if (err.type === 'SERVICE_NOT_FOUND')
+                  throw new MpError(
+                    'Invoices Service',
+                    'Not enough balance!',
+                    402
+                  );
+                throw err;
+              });
           } else {
             throw new MpError('Invoices Service', 'Not enough balance!', 402);
           }
@@ -145,15 +159,23 @@ const TheService: ServiceSchema = {
           })
           .then(
             res => {
-              this.broker.cacher.clean(`invoices.get:${instance.consumer_key}*`);
+              this.broker.cacher.clean(
+                `invoices.get:${instance.consumer_key}*`
+              );
               this.broker.cacher.clean(`stores.sGet:${instance.url}*`);
               this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
-              this.broker.cacher.clean(`payments.get:${instance.consumer_key}**`);
+              this.broker.cacher.clean(
+                `payments.get:${instance.consumer_key}**`
+              );
               return res;
             },
             err => {
-              throw new MpError('invoices Service', err.message, err.code || 500);
-            },
+              throw new MpError(
+                'invoices Service',
+                err.message,
+                err.code || 500
+              );
+            }
           );
       },
     },
@@ -187,7 +209,9 @@ const TheService: ServiceSchema = {
     renderInvoice: {
       params: {},
       async handler(ctx: Context) {
-        const store = await ctx.call('stores.findInstance', { id: ctx.params.storeId });
+        const store = await ctx.call('stores.findInstance', {
+          id: ctx.params.storeId,
+        });
         ctx.meta.user = store.consumer_key;
         const orders = await ctx.call('orders.list', {
           externalId: ctx.params.id,
@@ -223,8 +247,14 @@ const TheService: ServiceSchema = {
     },
     async cacheUpdate(invoice, instance) {
       const invoices = { invoices: [this.invoiceSanitize(invoice)] };
-      this.broker.cacher.set(`invoices.get:${instance.consumer_key}|undefined|undefined|${invoice.referenceNumber}|undefined`, invoices);
-      this.broker.cacher.set(`invoices.get:${instance.consumer_key}|undefined|undefined|undefined|${invoice.invoiceNumber}`, invoices);
+      this.broker.cacher.set(
+        `invoices.get:${instance.consumer_key}|undefined|undefined|${invoice.referenceNumber}|undefined`,
+        invoices
+      );
+      this.broker.cacher.set(
+        `invoices.get:${instance.consumer_key}|undefined|undefined|undefined|${invoice.invoiceNumber}`,
+        invoices
+      );
     },
   },
 };

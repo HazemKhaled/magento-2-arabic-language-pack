@@ -1,8 +1,9 @@
 import { Context, ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
-import { Currency } from './../types/currency.d';
+
 import { CurrenciesValidation, CurrenciesOpenapi } from '../utilities/mixins';
 import { MpError } from '../utilities/adapters';
+import { Currency } from '../types/currency.d';
 
 const TheService: ServiceSchema = {
   name: 'currencies',
@@ -15,18 +16,23 @@ const TheService: ServiceSchema = {
      * @returns {Currency}
      */
     getCurrency: {
-      auth: 'Basic',
+      auth: ['Basic'],
       cache: {
         keys: ['currencyCode'],
-        ttl: 60 * 60, // 1 hour
+        ttl: 60 * 60,
       },
       handler(ctx: Context) {
         return ctx.call('currencies.getCurrencies').then(currencies => {
           const currency = currencies.find(
-            (currencyObj: Currency) => currencyObj.currencyCode === ctx.params.currencyCode,
+            (currencyObj: Currency) =>
+              currencyObj.currencyCode === ctx.params.currencyCode
           );
           if (currency === undefined) {
-            throw new MpError('Currencies Service', 'Currency code could not be found!', 404);
+            throw new MpError(
+              'Currencies Service',
+              'Currency code could not be found!',
+              404
+            );
           }
           return currency;
         });
@@ -38,9 +44,9 @@ const TheService: ServiceSchema = {
      * @returns {Currency[]}
      */
     getCurrencies: {
-      auth: 'Basic',
+      auth: ['Basic'],
       cache: {
-        ttl: 60 * 60, // 1 hour
+        ttl: 60 * 60,
       },
       handler() {
         return fetch('https://openexchangerates.org/api/latest.json', {
@@ -52,7 +58,7 @@ const TheService: ServiceSchema = {
             Object.keys(newCurrencies.rates).map(currency => ({
               currencyCode: currency,
               rate: newCurrencies.rates[currency],
-            })),
+            }))
           );
       },
     },
