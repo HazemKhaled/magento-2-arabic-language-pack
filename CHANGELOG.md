@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.8.0
+
+### 🚀 Features
+
+- Separate private docs and public docs
+- Orders warnings endpoint
+- Remove invoice for postpaid subscriptions
+- Accept multiple auth to actions
+- Add store users support type
+- Add support for zid & youcan stores types
+- Orders status completely depends on financial & fulfillment status
+
+### 🐛 Fixes
+
+- Products instances update externalId validation
+- Products instances list count after 10k issue
+
+### ✨ Enhancements
+
+- Orders warnings messages
+- Update linters
+- Fix docs issue
+- Move typescript build to build directory
+- Remove docs Enterprise tag
+
 ## 1.7.7
 
 ### 🚀 Features
