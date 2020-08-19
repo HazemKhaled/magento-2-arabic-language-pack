@@ -331,7 +331,18 @@ const TheService: ServiceSchema = {
         const myStore: Store = await this.adapter
           .updateById(id, { $set: store })
           .then(async (res: Store) => {
-            return this.sanitizeResponse(res);
+            const response = this.sanitizeResponse(res);
+            ctx.emit(
+              'stores.update',
+              {
+                storeId: ctx.meta.storeId,
+                data: {
+                  store: response,
+                },
+              },
+              ['publisher']
+            );
+            return response;
           })
           .catch((error: { code: number }) => {
             this.sendLogs({
