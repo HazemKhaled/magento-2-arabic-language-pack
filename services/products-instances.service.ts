@@ -7,6 +7,7 @@ import {
   ProductTransformation,
   ProductsInstancesMixin,
   AppSearch,
+  GCPPubSub,
 } from '../utilities/mixins';
 import { MpError } from '../utilities/adapters';
 import { Product } from '../utilities/types/product.type';
@@ -28,12 +29,21 @@ module.exports = {
    */
   mixins: [
     ESService,
+    GCPPubSub,
     ProductTransformation,
     ProductsInstancesMixin,
     ProductsInstancesOpenapi,
     ProductsInstancesValidation,
     AppSearch(process.env.APP_SEARCH_ENGINE),
   ],
+  hooks: {
+    after: {
+      deleteInstanceProduct: ['deletePublish'],
+      import: ['importPublish'],
+      instanceUpdate: ['pushPublish'],
+      bulkProductInstance: ['pushPublish'],
+    },
+  },
   actions: {
     /**
      * Get product by SKU
@@ -172,14 +182,6 @@ module.exports = {
                 });
               }
             }
-            ctx.emit(
-              'products.delete',
-              {
-                storeId: ctx.meta.storeId,
-                data: { sku: product.sku },
-              },
-              ['publisher']
-            );
             return { product };
           })
           .catch(() => {
@@ -307,17 +309,6 @@ module.exports = {
                     500
                   );
                 }
-                ctx.emit(
-                  'products.create',
-                  {
-                    storeId: ctx.meta.storeId,
-                    data: {
-                      success: newSKUs,
-                      outOfStock,
-                    },
-                  },
-                  ['publisher']
-                );
                 return {
                   success: newSKUs,
                   outOfStock,
@@ -354,16 +345,6 @@ module.exports = {
               if (res.result === 'updated' || res.result === 'noop') {
                 await this.broker.cacher.clean(
                   `products-instances.list:${ctx.meta.user}**`
-                );
-                ctx.emit(
-                  'products.push',
-                  {
-                    storeId: ctx.meta.storeId,
-                    data: {
-                      sku: ctx.params.sku,
-                    },
-                  },
-                  ['publisher']
                 );
                 return {
                   status: 'success',
@@ -422,16 +403,6 @@ module.exports = {
               })
               .then((res: any) => {
                 if (res.errors === false) {
-                  ctx.emit(
-                    'products.push',
-                    {
-                      storeId: ctx.meta.storeId,
-                      data: {
-                        products: ctx.params.productInstances,
-                      },
-                    },
-                    ['publisher']
-                  );
                   return {
                     status: 'success',
                   };
@@ -443,6 +414,44 @@ module.exports = {
                 );
               });
       },
+    },
+  },
+  methods: {
+    deletePublish(ctx: Context, res: Product): Product {
+      this.publishMessage('products.delete', {
+        storeId: ctx.meta.storeId,
+        data: { sku: res.sku },
+      });
+      return res;
+    },
+    importPublish(
+      ctx: Context,
+      res: {
+        success: string[];
+        outOfStock: string[];
+      }
+    ): {
+      success: string[];
+      outOfStock: string[];
+    } {
+      this.publishMessage('products.create', {
+        storeId: ctx.meta.storeId,
+        data: res,
+      });
+      return res;
+    },
+    pushPublish(ctx: Context, res: { success: string }): { success: string } {
+      this.publishMessage('products.push', {
+        storeId: ctx.meta.storeId,
+        data: {
+          skus: ctx.params.sku
+            ? ctx.params.sku
+            : ctx.params.productInstances.map(
+                (product: { sku: string }) => product.sku
+              ),
+        },
+      });
+      return res;
     },
   },
 };
