@@ -9,13 +9,20 @@ import { StoresOpenapi } from '../utilities/mixins/openapi';
 import { Oms } from '../utilities/mixins/oms.mixin';
 import { Log, Store, StoreUser } from '../utilities/types';
 import { StoresValidation } from '../utilities/mixins/validation';
+import { GCPPubSub } from '../utilities/mixins';
 
 const MoleculerError = Errors.MoleculerError;
 const { MoleculerClientError } = Errors;
 
 const TheService: ServiceSchema = {
   name: 'stores',
-  mixins: [DbService('stores'), StoresValidation, StoresOpenapi, Oms],
+  mixins: [
+    DbService('stores'),
+    StoresValidation,
+    StoresOpenapi,
+    GCPPubSub,
+    Oms,
+  ],
   settings: {
     /** Secret for JWT */
     JWT_SECRET: process.env.JWT_SECRET || 'jwt-conduit-secret',
@@ -27,6 +34,11 @@ const TheService: ServiceSchema = {
     entityValidator: {
       consumerKey: { type: 'string' },
       consumerSecret: { type: 'string' },
+    },
+  },
+  hooks: {
+    after: {
+      update: ['updatePublish'],
     },
   },
   actions: {
@@ -330,20 +342,7 @@ const TheService: ServiceSchema = {
 
         const myStore: Store = await this.adapter
           .updateById(id, { $set: store })
-          .then(async (res: Store) => {
-            const response = this.sanitizeResponse(res);
-            ctx.emit(
-              'stores.update',
-              {
-                storeId: ctx.meta.storeId,
-                data: {
-                  store: response,
-                },
-              },
-              ['publisher']
-            );
-            return response;
-          })
+          .then(this.sanitizeResponse)
           .catch((error: { code: number }) => {
             this.sendLogs({
               topic: 'store',
@@ -762,6 +761,15 @@ const TheService: ServiceSchema = {
       // Set withoutBalance
       this.broker.cacher.set(`stores.sGet:${myStore.url}|1`, myStore);
       this.broker.cacher.set(`stores.me:${myStore.consumer_key}`, myStore);
+    },
+    updatePublish(ctx: Context, res: Store): Store {
+      this.publishMessage('stores.update', {
+        storeId: ctx.meta.storeId,
+        data: {
+          store: res,
+        },
+      });
+      return res;
     },
   },
 };
