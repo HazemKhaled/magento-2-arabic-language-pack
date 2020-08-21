@@ -6,7 +6,7 @@ import { ServiceSchema } from 'moleculer';
 const pubSubClient = new PubSub({
   keyFilename: path.join(
     __dirname,
-    process.env.GCS_KEYFILE || '../../../gcp-key.json'
+    process.env.GCP_KEYFILE || '../../../gcp-key.json'
   ),
 });
 
