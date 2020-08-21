@@ -129,6 +129,15 @@ services:
     environment:
       SERVICES: logs
 
+  tasks:
+    build:
+      context: ../../
+    image: microes
+    restart: always
+    env_file: .env
+    environment:
+      SERVICES: tasks
+
   redis:
     image: redis:alpine
 

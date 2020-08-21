@@ -136,6 +136,15 @@ const TheService: ServiceSchema = {
           'POST webhooks': 'registry.create',
           'GET webhooks': 'registry.list',
           'DELETE webhooks/:id': 'registry.remove',
+
+          // Async API
+          'DELETE async/catalog/products/:sku': 'tasks.handle',
+          'PUT async/catalog/products/:sku': 'tasks.handle',
+          'POST async/catalog/products': 'tasks.handle',
+          'PATCH async/catalog/products': 'tasks.handle',
+          'POST async/orders': 'tasks.handle',
+          'PUT async/orders/:id': 'tasks.handle',
+          'DELETE async/orders/:id': 'tasks.handle',
         },
 
         // Disable to call not-mapped actions
