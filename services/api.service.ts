@@ -137,6 +137,8 @@ const TheService: ServiceSchema = {
           'GET webhooks': 'registry.list',
           'DELETE webhooks/:id': 'registry.remove',
 
+          'POST webhooks/:event': 'publisher.publish',
+
           // Async API
           'DELETE async/catalog/products/:sku': 'tasks.handle',
           'PUT async/catalog/products/:sku': 'tasks.handle',
