@@ -17,9 +17,8 @@ export interface Order {
   externalId?: string;
   updateDate?: Date;
   notes?: string;
-  externalInvoice?: string;
   invoice_url?: string;
-  shipmentCourier?: string;
+  shipping_charge?: number;
   shipmentTrackingNumber?: string;
   shipmentDate?: Date;
   shipping_method?: string;
@@ -27,7 +26,6 @@ export interface Order {
   store?: {};
   orderNumber?: string;
   taxTotal?: number;
-  shipping_charge?: number;
   adjustment?: number;
   storeLogo?: string;
   warnings?: string;
@@ -107,8 +105,8 @@ export interface OrderOMSResponse {
     items: OrderItem[];
     shipping: OrderAddress;
     billing: OrderAddress;
-    shipmentCourier?: string;
-    shippingCharge: number;
+    shipping_charge?: number;
+    shipping_method: string;
     discount?: number;
     total: number;
     hasQtyCancelled: boolean;
