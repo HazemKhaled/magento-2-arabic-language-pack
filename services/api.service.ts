@@ -140,13 +140,7 @@ const TheService: ServiceSchema = {
           'POST webhooks/:event': 'publisher.publish',
 
           // Async API
-          'DELETE async/catalog/products/:sku': 'tasks.handle',
-          'PUT async/catalog/products/:sku': 'tasks.handle',
-          'POST async/catalog/products': 'tasks.handle',
-          'PATCH async/catalog/products': 'tasks.handle',
-          'POST async/orders': 'tasks.handle',
-          'PUT async/orders/:id': 'tasks.handle',
-          'DELETE async/orders/:id': 'tasks.handle',
+          'async/(.*)': 'tasks.handle',
         },
 
         // Disable to call not-mapped actions

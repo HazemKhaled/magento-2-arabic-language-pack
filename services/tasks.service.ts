@@ -14,6 +14,15 @@ const TasksService: ServiceSchema = {
         if (!req) {
           throw new MoleculerError('Bad Request', 400, 'BAD_REQUEST');
         }
+
+        // Check whitelisted endpoints
+        if (
+          !req?.url?.includes('async/catalog/products') &&
+          !req?.url?.includes('async/orders')
+        ) {
+          throw new MoleculerError('Bad Request', 400, 'BAD_REQUEST');
+        }
+
         // Create task.
         return this.createTask(req)
           .then(() => ({ status: 'success' }))
