@@ -164,8 +164,8 @@ const TheService: ServiceSchema = {
           );
         }
 
-        data.shipmentCourier = shipment.courier;
-        data.shippingCharge = shipment.cost;
+        data.shipping_method = shipment.courier;
+        data.shipping_charge = shipment.cost;
 
         // Calculate the order total
         const total: number =
@@ -196,7 +196,7 @@ const TheService: ServiceSchema = {
 
         const orderExpenses = {
           total,
-          shipping: data.shippingCharge,
+          shipping: data.shipping_charge,
           tax: taxTotal,
           adjustment: data.adjustment,
         };
@@ -347,7 +347,7 @@ const TheService: ServiceSchema = {
           errors?: {}[];
         } = {
           status: 'success',
-          data: this.sanitizeResponseOne(order),
+          data: order,
         };
 
         if (warnings.length) {
@@ -471,8 +471,8 @@ const TheService: ServiceSchema = {
             );
 
             if (shipment) {
-              data.shipmentCourier = shipment.courier;
-              data.shippingCharge = shipment.cost;
+              data.shipping_method = shipment.courier;
+              data.shipping_charge = shipment.cost;
             }
             // Calculate the order total
             const total: number =
@@ -494,7 +494,7 @@ const TheService: ServiceSchema = {
 
             const orderExpenses = {
               total,
-              shipping: data.shippingCharge,
+              shipping: data.shipping_charge,
               tax: taxTotal,
               adjustment: data.adjustment,
             };
@@ -582,7 +582,7 @@ const TheService: ServiceSchema = {
           );
           this.cacheUpdate(order, instance);
           message.status = 'success';
-          message.data = this.sanitizeResponseOne(order);
+          message.data = order;
           if (warnings.length > 0) message.warnings = warnings;
           this.sendLogs({
             topicId: data.externalId,
@@ -655,7 +655,7 @@ const TheService: ServiceSchema = {
           };
         }
 
-        return this.sanitizeResponseOne(order.salesorder);
+        return order.salesorder;
       },
     },
     list: {
@@ -706,7 +706,7 @@ const TheService: ServiceSchema = {
           customerId: instance.internal_data.omsId,
           ...queryParams,
         });
-        return this.sanitizeResponseList(orders.salesorders);
+        return orders.salesorders;
       },
     },
     deleteOrder: {
@@ -948,28 +948,6 @@ const TheService: ServiceSchema = {
       return status;
     },
     /**
-     * Convert order status from OMS status to ZApp status
-     *
-     * @param {string} status
-     * @returns
-     */
-    normalizeResponseStatus(financialStatus: string) {
-      let status = '';
-      switch (financialStatus) {
-        case 'unpaid':
-          status = 'Order Placed';
-          break;
-        case 'voided':
-        case 'refunded':
-        case 'wallet_refunded':
-          status = 'Cancelled';
-          break;
-        default:
-          status = 'Processing';
-      }
-      return status;
-    },
-    /**
      * Convert order status from ZApp status to OMS Status
      *
      * @param {string} status
@@ -1154,11 +1132,11 @@ const TheService: ServiceSchema = {
         items: params.items || params.line_items,
         shipping: params.shipping,
         notes: params.notes,
-        shipping_method: params.shipping_method || params.shipmentCourier,
+        shipping_method: params.shipping_method,
       };
       if (create) {
         data.externalId = params.id ? String(params.id) : uuidv1();
-        data.externalInvoice =
+        data.invoice_url =
           params.invoice_url ||
           `${this.settings.BASEURL}/invoice/${encodeURIComponent(
             instance.url
@@ -1236,79 +1214,12 @@ const TheService: ServiceSchema = {
         taxTotal,
       };
     },
-    sanitizeResponseOne(order): Order {
-      const orderResponse: { [key: string]: any } = {
-        id: order.id,
-        status: this.normalizeResponseStatus(order.financialStatus),
-        items: order.items,
-        billing: order.billing,
-        shipping: order.shipping,
-        total: order.total,
-        coupon: order.coupon,
-        discount: order.discount,
-        externalId: order.externalId,
-        createDate: order.createDate,
-        updateDate: order.updateDate,
-        knawat_order_status: this.normalizeResponseStatus(
-          order.financialStatus
-        ),
-        notes: order.notes,
-        shipping_method: order.shipmentCourier,
-        shipping_charge: order.shippingCharge,
-        shipment_date: order.shipmentDate,
-        adjustment: order.adjustment,
-        adjustmentDescription: order.adjustmentDescription,
-        shipment_tracking_number: order.shipmentTrackingNumber,
-        orderNumber: order.orderNumber,
-        invoice_url: order.externalInvoice,
-        taxTotal: order.taxTotal,
-        taxes: order.taxes,
-        warnings: order.warnings,
-        warningsSnippet: order.warningsSnippet,
-        financialStatus: order.financialStatus,
-        fulfillmentStatus: order.fulfillmentStatus,
-      };
-      if (order.meta_data && order.meta_data.length > 0) {
-        order.meta_data.forEach((meta: any) => {
-          if (
-            meta.key === '_shipment_tracking_number' ||
-            meta.key === '_shipment_provider_name'
-          ) {
-            orderResponse[meta.key.substring(1)] = meta.value || '';
-          }
-        });
-      }
-      return orderResponse as Order;
-    },
-    sanitizeResponseList(orders) {
-      return orders.map((order: Order) => ({
-        id: order.id,
-        externalId: order.externalId,
-        status: this.normalizeResponseStatus(order.financialStatus),
-        createDate: order.createDate,
-        updateDate: order.updateDate,
-        total: order.total,
-        trackingNumber: order.shipmentTrackingNumber,
-        shipment_date: order.shipmentDate,
-        knawat_order_status: this.normalizeResponseStatus(
-          order.financialStatus
-        ),
-        orderNumber: order.orderNumber,
-        invoice_url: order.externalInvoice,
-        warningsSnippet: order.warningsSnippet,
-        financialStatus: order.financialStatus,
-        fulfillmentStatus: order.fulfillmentStatus,
-      }));
-    },
     async cacheUpdate(order, instance) {
       await Promise.all([
-        this.broker.cacher.set(
-          `orders.getOrder:${order.id}`,
-          this.sanitizeResponseOne(order)
-        ),
+        this.broker.cacher.set(`orders.getOrder:${order.id}`, order),
         this.broker.cacher.set(
           `orders.list:${order.externalId}|${instance.consumer_key}|undefined|undefined|undefined|undefined|undefined|undefined`,
-          this.sanitizeResponseList([order])
+          [order]
         ),
       ]);
     },
