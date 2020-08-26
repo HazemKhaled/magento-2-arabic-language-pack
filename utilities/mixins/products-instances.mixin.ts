@@ -258,7 +258,11 @@ export const ProductsInstancesMixin: ServiceSchema = {
           searchQuery.body.query.bool.must.push({
             multi_match: {
               query: keyword,
-              fields: ['sku.keyword', 'variations.sku.keyword'],
+              fields: [
+                'sku.keyword',
+                'externalId.keyword',
+                'variations.sku.keyword',
+              ],
               fuzziness: 'AUTO',
             },
           });
