@@ -13,3 +13,4 @@ export * from './products.openapi.mixin';
 export * from './products-instances.openapi.mixin';
 export * from './taxes.openapi.mixin';
 export * from './gdpr.openapi.mixin';
+export * from './tasks.openapi.mixin';

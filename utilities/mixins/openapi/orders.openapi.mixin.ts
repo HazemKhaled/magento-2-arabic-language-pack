@@ -388,7 +388,7 @@ const ListSchema = {
   },
 };
 
-const CreateItem = {
+export const CreateItem = {
   $path: 'post /orders',
   summary: 'Create order',
   tags: ['Orders'],
@@ -420,7 +420,7 @@ const CreateItem = {
   security: [{ bearerAuth: [] as [] }],
 };
 
-const UpdateItem = {
+export const UpdateItem = {
   $path: 'put /orders/{order_id}',
   parameters: [
     {
@@ -549,7 +549,7 @@ const GetAll = {
   security: [{ bearerAuth: [] as [] }],
 };
 
-const DeleteItem = {
+export const DeleteItem = {
   $path: 'delete /orders/{order_id}',
   summary: 'Cancel order',
   tags: ['Orders'],

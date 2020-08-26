@@ -136,7 +136,11 @@ const TheService: ServiceSchema = {
           'POST webhooks': 'registry.create',
           'GET webhooks': 'registry.list',
           'DELETE webhooks/:id': 'registry.remove',
+
           'POST webhooks/:event': 'publisher.publish',
+
+          // Async API
+          'async/(.*)': 'tasks.handle',
         },
 
         // Disable to call not-mapped actions
