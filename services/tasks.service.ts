@@ -1,10 +1,13 @@
 import { Errors as MoleculerErrors, ServiceSchema } from 'moleculer';
 import { v2beta3 } from '@google-cloud/tasks';
 
+import { TasksOpenapi } from '../utilities/mixins/openapi';
+
 const { MoleculerError } = MoleculerErrors;
 
 const TasksService: ServiceSchema = {
   name: 'tasks',
+  mixins: [TasksOpenapi],
   actions: {
     handle: {
       auth: ['Bearer'],

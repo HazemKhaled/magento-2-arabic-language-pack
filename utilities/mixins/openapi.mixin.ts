@@ -212,17 +212,32 @@ export function OpenApiMixin(): ServiceSchema {
               }
 
               // console.log(action.openapi.security[0].bearerAuth);
-              const def: { $path?: string } = _.cloneDeep(action.openapi);
-              let method: any;
-              let routePath: any;
-              if (def.$path) {
-                const p = def.$path.split(' ');
-                method = p[0].toLowerCase();
-                routePath = p[1];
-                delete def.$path;
-              }
+              const def: any = _.cloneDeep(action.openapi);
+              if (def?.length > 0) {
+                def.forEach((defElement: any) => {
+                  let method: any;
+                  let routePath: any;
+                  if (defElement.$path) {
+                    const p = defElement.$path.split(' ');
+                    method = p[0].toLowerCase();
+                    routePath = p[1];
+                    delete defElement.$path;
+                  }
 
-              _.set(res.paths, [routePath, method], def);
+                  _.set(res.paths, [routePath, method], defElement);
+                });
+              } else {
+                let method: any;
+                let routePath: any;
+                if (def.$path) {
+                  const p = def.$path.split(' ');
+                  method = p[0].toLowerCase();
+                  routePath = p[1];
+                  delete def.$path;
+                }
+
+                _.set(res.paths, [routePath, method], def);
+              }
             });
           });
 

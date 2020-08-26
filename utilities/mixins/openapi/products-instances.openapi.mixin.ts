@@ -454,7 +454,7 @@ const ProductsList = {
   security: [{ bearerAuth: [] as [] }],
 };
 
-const DeleteInstanceProduct = {
+export const DeleteInstanceProduct = {
   $path: 'delete /catalog/products/{sku}',
   summary: 'Delete product by SKU',
   tags: ['My Products'],
@@ -496,7 +496,7 @@ const DeleteInstanceProduct = {
   security: [{ bearerAuth: [] as [] }],
 };
 
-const ProductsImport = {
+export const ProductsImport = {
   $path: 'post /catalog/products',
   summary: 'Add to my products',
   tags: ['My Products'],
@@ -559,7 +559,7 @@ const ProductsImport = {
   security: [{ bearerAuth: [] as [] }],
 };
 
-const InstanceUpdate = {
+export const InstanceUpdate = {
   $path: 'put /catalog/products/{sku}',
   summary: 'Update Product',
   tags: ['My Products'],
@@ -622,7 +622,7 @@ const InstanceUpdate = {
   security: [{ bearerAuth: [] as [] }],
 };
 
-const BulkProductInstance = {
+export const BulkProductInstance = {
   $path: 'patch /catalog/products',
   summary: 'Bulk update products',
   tags: ['My Products'],
