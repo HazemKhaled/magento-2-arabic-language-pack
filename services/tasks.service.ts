@@ -1,6 +1,5 @@
 import { Errors as MoleculerErrors, ServiceSchema } from 'moleculer';
 import { v2beta3 } from '@google-cloud/tasks';
-import _ from 'lodash';
 
 const { MoleculerError } = MoleculerErrors;
 
@@ -54,12 +53,21 @@ const TasksService: ServiceSchema = {
       // Convert message to buffer.
       const convertedPayload = JSON.stringify(payload);
       const body = Buffer.from(convertedPayload).toString('base64');
+      const formattedHeaders: {
+        authorization: string;
+        'content-type'?: string;
+      } = {
+        authorization: headers?.authorization,
+      };
+      if (headers['content-type']) {
+        formattedHeaders['content-type'] = headers['content-type'];
+      }
 
       const task = {
         httpRequest: {
           httpMethod,
           url: mpUrl + endpoint,
-          headers: _.pick(headers, ['authorization', 'content-type']),
+          headers: formattedHeaders,
           body,
         },
       };
