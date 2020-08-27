@@ -36,9 +36,14 @@ const TheService: ServiceSchema = {
       consumerSecret: { type: 'string' },
     },
   },
-  hooks: {
-    after: {
-      update: ['updatePublish'],
+  events: {
+    'stores.event': function ({ event, storeId, res }): void {
+      this.publishMessage(event, {
+        storeId,
+        data: {
+          store: res,
+        },
+      });
     },
   },
   actions: {
@@ -397,6 +402,20 @@ const TheService: ServiceSchema = {
             });
         }
 
+        // Profit update check
+        if (this.isProfitUpdate(myStore, storeBefore)) {
+          // Send profit update event
+          ctx.emit('stores.event', {
+            event: 'stores.update.profit',
+            storeId: myStore.url,
+            res: myStore,
+          });
+        }
+        ctx.emit('stores.event', {
+          event: 'stores.update',
+          storeId: myStore.url,
+          res: myStore,
+        });
         return myStore;
       },
     },
@@ -762,14 +781,23 @@ const TheService: ServiceSchema = {
       this.broker.cacher.set(`stores.sGet:${myStore.url}|1`, myStore);
       this.broker.cacher.set(`stores.me:${myStore.consumer_key}`, myStore);
     },
-    updatePublish(ctx: Context, res: Store): Store {
-      this.publishMessage('stores.update', {
-        storeId: ctx.meta.storeId,
-        data: {
-          store: res,
-        },
-      });
-      return res;
+    isProfitUpdate(store, storeBefore): boolean {
+      const profitFields = [
+        'sale_price',
+        'sale_price_operator',
+        'compared_at_price',
+        'compared_at_price_operator',
+      ];
+
+      for (const profitField of profitFields) {
+        if (
+          store[profitField] &&
+          store[profitField] !== storeBefore[profitField as keyof Store]
+        ) {
+          return true;
+        }
+      }
+      return false;
     },
   },
 };
