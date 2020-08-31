@@ -86,7 +86,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
       const {
         page,
         limit: size = 10,
-        lastUpdated = 0,
+        lastupdate = 0,
         hideOutOfStock,
         keyword,
         externalId,
@@ -100,7 +100,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
         page,
         size,
         instanceId: instance.consumer_key,
-        lastUpdated,
+        lastUpdated: lastupdate,
         hideOutOfStock,
         keyword,
         externalId,
@@ -250,12 +250,11 @@ export const ProductsInstancesMixin: ServiceSchema = {
 
         // Get new an updated products only
         if (lastUpdated) {
-          const lastUpdatedDate = new Date(lastUpdated * 1000).toISOString();
           searchQuery.body.query.bool.should = [
             {
               range: {
                 updated: {
-                  gte: lastUpdatedDate,
+                  gte: new Date(lastUpdated * 1000),
                 },
               },
             },
