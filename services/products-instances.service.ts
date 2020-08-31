@@ -234,6 +234,7 @@ module.exports = {
                 doc: {
                   instanceId: instance.consumer_key,
                   createdAt: new Date(),
+                  updated: new Date(),
                   siteUrl: instance.url,
                   sku: product.sku,
                   variations: product.variations
