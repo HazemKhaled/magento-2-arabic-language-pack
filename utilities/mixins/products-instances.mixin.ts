@@ -234,7 +234,11 @@ export const ProductsInstancesMixin: ServiceSchema = {
           searchQuery.body.query.bool.must.push({
             multi_match: {
               query: keyword,
-              fields: ['sku.keyword', 'variations.sku.keyword'],
+              fields: [
+                'sku.keyword',
+                'externalId.keyword',
+                'variations.sku.keyword',
+              ],
               fuzziness: 'AUTO',
             },
           });
@@ -334,7 +338,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
       }
       return {
         page: scrollId ? results.slice(page * size - size, page * size) : results,
-        totalProducts: search.hits.total.value,
+        totalProducts: search.hits.total.relation === 'eq' ? search.hits.total.value : (await this.broker.call('products-instances.total', {}, { meta: { user: instanceId } })).total,
       };
     },
 

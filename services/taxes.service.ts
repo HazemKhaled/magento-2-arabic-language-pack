@@ -11,7 +11,7 @@ const TaxesService: ServiceSchema = {
   mixins: [DbService('taxes'), TaxesValidation, TaxOpenapi],
   actions: {
     tCreate: {
-      auth: 'Basic',
+      auth: ['Basic'],
       async handler(ctx: Context): Promise<RTax> {
         const taxBody: Partial<DbTax> = {
           ...ctx.params,
@@ -37,7 +37,7 @@ const TaxesService: ServiceSchema = {
       },
     },
     tUpdate: {
-      auth: 'Basic',
+      auth: ['Basic'],
       async handler(ctx: Context): Promise<RTax> {
         const { id } = ctx.params;
         const $set = ctx.params;
@@ -85,7 +85,7 @@ const TaxesService: ServiceSchema = {
       },
     },
     tGet: {
-      auth: 'Basic',
+      auth: ['Basic'],
       cache: {
         keys: ['id'],
         ttl: 60 * 60 * 24, // 1 day
@@ -105,7 +105,7 @@ const TaxesService: ServiceSchema = {
       },
     },
     tList: {
-      auth: 'Basic',
+      auth: ['Basic'],
       cache: {
         keys: ['page', 'perPage', 'country', 'class'],
         ttl: 60 * 60 * 24, // 1 day
@@ -141,7 +141,7 @@ const TaxesService: ServiceSchema = {
       },
     },
     tDelete: {
-      auth: 'Basic',
+      auth: ['Basic'],
       async handler(ctx: Context) {
         const taxDeleteData = await this.adapter
           .removeById(ctx.params.id)
