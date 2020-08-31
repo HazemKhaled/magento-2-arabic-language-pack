@@ -1,18 +1,18 @@
 import { ServiceSchema } from 'moleculer';
 
-
 export const PaymentsValidation: ServiceSchema = {
   name: 'payments',
   actions: {
     add: {
       params: {
-        id: [{
-          type: 'string',
-        },
-        {
-          type: 'number',
-          integer: true,
-        },
+        id: [
+          {
+            type: 'string',
+          },
+          {
+            type: 'number',
+            integer: true,
+          },
         ],
         payment_mode: {
           type: 'string',
@@ -44,13 +44,15 @@ export const PaymentsValidation: ServiceSchema = {
           optional: true,
           convert: true,
         },
-        reference: [{
-          type: 'string',
-        },
-        {
-          type: 'number',
-          integer: true,
-        }],
+        reference: [
+          {
+            type: 'string',
+          },
+          {
+            type: 'number',
+            integer: true,
+          },
+        ],
         description: {
           type: 'string',
           optional: true,

@@ -17,23 +17,35 @@ export interface Order {
   externalId?: string;
   updateDate?: Date;
   notes?: string;
-  externalInvoice?: string;
   invoice_url?: string;
-  shipmentCourier?: string;
+  shipping_charge?: number;
   shipmentTrackingNumber?: string;
-  shipmentDate?: Date,
+  shipmentDate?: Date;
   shipping_method?: string;
   discount?: number;
   store?: {};
   orderNumber?: string;
   taxTotal?: number;
-  shipping_charge?: number;
   adjustment?: number;
   storeLogo?: string;
   warnings?: string;
   warningsSnippet?: string;
-  financialStatus?: 'unpaid' | 'paid' | 'partially_paid' | 'voided' | 'wallet_refunded' | 'wallet_partially_refunded' | 'refunded' | 'partially_refunded';
-  fulfillmentStatus?: 'pending' | 'processing' | 'packed' | 'shipped' | 'delivered' | 'voided';
+  financialStatus?:
+    | 'unpaid'
+    | 'paid'
+    | 'partially_paid'
+    | 'voided'
+    | 'wallet_refunded'
+    | 'wallet_partially_refunded'
+    | 'refunded'
+    | 'partially_refunded';
+  fulfillmentStatus?:
+    | 'pending'
+    | 'processing'
+    | 'packed'
+    | 'shipped'
+    | 'delivered'
+    | 'voided';
 }
 
 /**
@@ -42,7 +54,7 @@ export interface Order {
  * @interface ResError
  */
 export interface ResError {
-  errors: Array<{ message: string }>;
+  errors: { message: string }[];
 }
 
 /**
@@ -93,8 +105,8 @@ export interface OrderOMSResponse {
     items: OrderItem[];
     shipping: OrderAddress;
     billing: OrderAddress;
-    shipmentCourier?: string;
-    shippingCharge: number;
+    shipping_charge?: number;
+    shipping_method: string;
     discount?: number;
     total: number;
     hasQtyCancelled: boolean;

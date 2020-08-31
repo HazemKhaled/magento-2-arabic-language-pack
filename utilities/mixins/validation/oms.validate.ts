@@ -16,7 +16,11 @@ export const OmsValidation: ServiceSchema = {
       params: {
         customerId: { type: 'string' },
         discount: { type: 'number', positive: true, optional: true },
-        discountType: { type: 'enum', values: ['entity_level'], optional: true },
+        discountType: {
+          type: 'enum',
+          values: ['entity_level'],
+          optional: true,
+        },
         coupon: { type: 'string', optional: true },
         items: {
           type: 'array',
@@ -75,7 +79,11 @@ export const OmsValidation: ServiceSchema = {
               type: 'array',
               items: {
                 type: 'object',
-                props: { email: 'string', first_name: { type: 'string', optional: true }, last_name: { type: 'string', optional: true } },
+                props: {
+                  email: 'string',
+                  first_name: { type: 'string', optional: true },
+                  last_name: { type: 'string', optional: true },
+                },
               },
               optional: true,
             },
@@ -84,7 +92,14 @@ export const OmsValidation: ServiceSchema = {
         externalId: 'string',
         status: {
           type: 'enum',
-          values: ['draft', 'open', 'invoiced', 'partially_invoiced', 'void', 'overdue'],
+          values: [
+            'draft',
+            'open',
+            'invoiced',
+            'partially_invoiced',
+            'void',
+            'overdue',
+          ],
         },
         items: {
           type: 'array',
@@ -102,7 +117,10 @@ export const OmsValidation: ServiceSchema = {
               quantity: 'number',
               productType: { type: 'string', optional: true },
               purchaseRate: { type: 'number', optional: true },
-              vendorId: [{ type: 'string', optional: true }, { type: 'number', optional: true }],
+              vendorId: [
+                { type: 'string', optional: true },
+                { type: 'number', optional: true },
+              ],
               accountId: { type: 'string', optional: true },
             },
           },
@@ -123,15 +141,17 @@ export const OmsValidation: ServiceSchema = {
             phone: { type: 'string', optional: true },
           },
         },
-        externalInvoice: 'string',
-        shipmentCourier: 'string',
-        shippingCharge: 'number',
+        invoice_url: 'string',
+        shipping_method: 'string',
+        shipping_charge: 'number',
         discount: { type: 'string', optional: true },
         adjustment: { type: 'number', optional: true },
         adjustmentDescription: { type: 'string', optional: true },
         subscription: { type: 'string', optional: true },
         notes: { type: 'string', optional: true },
         orderNumber: { type: 'string', optional: true },
+        warnings: { type: 'string', optional: true },
+        warningsSnippet: { type: 'string', optional: true },
       },
     },
     updateOrderById: {
@@ -141,7 +161,14 @@ export const OmsValidation: ServiceSchema = {
         externalId: { type: 'string', optional: true },
         status: {
           type: 'enum',
-          values: ['draft', 'open', 'invoiced', 'partially_invoiced', 'void', 'overdue'],
+          values: [
+            'draft',
+            'open',
+            'invoiced',
+            'partially_invoiced',
+            'void',
+            'overdue',
+          ],
           optional: true,
         },
         items: {
@@ -160,10 +187,14 @@ export const OmsValidation: ServiceSchema = {
               quantity: 'number',
               productType: { type: 'string', optional: true },
               purchaseRate: { type: 'number', optional: true },
-              vendorId: [{ type: 'string', optional: true }, { type: 'number', optional: true }],
+              vendorId: [
+                { type: 'string', optional: true },
+                { type: 'number', optional: true },
+              ],
               accountId: { type: 'string', optional: true },
             },
           },
+          optional: true,
         },
         shipping: {
           type: 'object',
@@ -182,15 +213,17 @@ export const OmsValidation: ServiceSchema = {
           },
           optional: true,
         },
-        externalInvoice: { type: 'string', optional: true },
-        shipmentCourier: { type: 'string', optional: true },
-        shippingCharge: { type: 'number', optional: true },
+        invoice_url: { type: 'string', optional: true },
+        shipping_method: { type: 'string', optional: true },
+        shipping_charge: { type: 'number', optional: true },
         discount: { type: 'string', optional: true },
         adjustment: { type: 'number', optional: true },
         adjustmentDescription: { type: 'string', optional: true },
         subscription: { type: 'string', optional: true },
         notes: { type: 'string', optional: true },
         orderNumber: { type: 'string', optional: true },
+        warnings: { type: 'string', optional: true },
+        warningsSnippet: { type: 'string', optional: true },
       },
     },
     getOrderById: { params: { customerId: 'string', orderId: 'string' } },
@@ -201,7 +234,14 @@ export const OmsValidation: ServiceSchema = {
         perPage: { type: 'number', convert: true, optional: true },
         status: {
           type: 'enum',
-          values: ['draft', 'open', 'invoiced', 'partially_invoiced', 'void', 'overdue'],
+          values: [
+            'draft',
+            'open',
+            'invoiced',
+            'partially_invoiced',
+            'void',
+            'overdue',
+          ],
           optional: true,
         },
         externalId: { type: 'string', optional: true },
@@ -247,15 +287,17 @@ export const OmsValidation: ServiceSchema = {
           convert: true,
         },
         accountId: 'string',
-        referenceNumber: [{
-          type: 'string',
-          optional: true,
-        },
-        {
-          type: 'number',
-          integer: true,
-          optional: true,
-        }],
+        referenceNumber: [
+          {
+            type: 'string',
+            optional: true,
+          },
+          {
+            type: 'number',
+            integer: true,
+            optional: true,
+          },
+        ],
         description: {
           type: 'string',
           optional: true,
@@ -291,7 +333,11 @@ export const OmsValidation: ServiceSchema = {
         comparedOperator: { type: 'number', optional: true },
         currency: { type: 'string', optional: true },
         languages: { type: 'array', items: { type: 'string' }, optional: true },
-        shippingMethods: { type: 'array', items: { type: 'string' }, optional: true },
+        shippingMethods: {
+          type: 'array',
+          items: { type: 'string' },
+          optional: true,
+        },
         billing: {
           type: 'object',
           props: {

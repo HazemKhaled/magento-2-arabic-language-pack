@@ -1,6 +1,5 @@
 import { ServiceSchema } from 'moleculer';
 
-
 export const StoresValidation: ServiceSchema = {
   name: 'stores',
   actions: {
@@ -98,7 +97,7 @@ export const StoresValidation: ServiceSchema = {
             'ebay',
             'api',
             'catalog',
-            'zid.sa',
+            'zid',
             'youcan',
             'other',
           ],
@@ -110,10 +109,7 @@ export const StoresValidation: ServiceSchema = {
         },
         stock_status: {
           type: 'enum',
-          values: [
-            'idle',
-            'in-progress',
-          ],
+          values: ['idle', 'in-progress'],
           optional: true,
         },
         price_date: {
@@ -123,10 +119,7 @@ export const StoresValidation: ServiceSchema = {
         },
         price_status: {
           type: 'enum',
-          values: [
-            'idle',
-            'in-progress',
-          ],
+          values: ['idle', 'in-progress'],
           optional: true,
         },
         sale_price: {
@@ -143,10 +136,7 @@ export const StoresValidation: ServiceSchema = {
         },
         compared_at_price_operator: {
           type: 'enum',
-          values: [
-            1,
-            2,
-          ],
+          values: [1, 2],
           optional: true,
         },
         currency: {
@@ -189,6 +179,7 @@ export const StoresValidation: ServiceSchema = {
                     'accounting',
                     'products',
                     'orders',
+                    'support',
                   ],
                 },
               },
@@ -291,7 +282,7 @@ export const StoresValidation: ServiceSchema = {
             'ebay',
             'api',
             'catalog',
-            'zid.sa',
+            'zid',
             'youcan',
             'other',
           ],
@@ -304,10 +295,7 @@ export const StoresValidation: ServiceSchema = {
         },
         stock_status: {
           type: 'enum',
-          values: [
-            'idle',
-            'in-progress',
-          ],
+          values: ['idle', 'in-progress'],
           optional: true,
         },
         price_date: {
@@ -317,10 +305,7 @@ export const StoresValidation: ServiceSchema = {
         },
         price_status: {
           type: 'enum',
-          values: [
-            'idle',
-            'in-progress',
-          ],
+          values: ['idle', 'in-progress'],
           optional: true,
         },
         sale_price: {
@@ -337,10 +322,7 @@ export const StoresValidation: ServiceSchema = {
         },
         compared_at_price_operator: {
           type: 'enum',
-          values: [
-            1,
-            2,
-          ],
+          values: [1, 2],
           optional: true,
         },
         currency: {
@@ -383,6 +365,7 @@ export const StoresValidation: ServiceSchema = {
                     'accounting',
                     'products',
                     'orders',
+                    'support',
                   ],
                 },
               },
