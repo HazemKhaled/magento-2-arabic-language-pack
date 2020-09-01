@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.9.0
+
+### 🚀 Features
+
+- Webhooks
+- Async end-points
+- Find products by external ID
+
+### 🐛 Fixes
+
+- Lastupdate products instances list filter
+
+### ✨ Enhancements
+
+- Remove Zoho order sanitization
+
 ## 1.8.0
 
 ### 🚀 Features
