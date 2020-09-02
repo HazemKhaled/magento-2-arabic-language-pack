@@ -680,6 +680,90 @@ export const BulkProductInstance = {
   },
 };
 
+export const pSearch = {
+  $path: 'post /catalog/products/search',
+  summary: 'Search in product instances',
+  tags: ['My Products'],
+  description: 'Search in product instances',
+  responses: {
+    200: { description: 'Status 200' },
+    401: { $ref: '#/components/responses/UnauthorizedErrorToken' },
+    500: { $ref: '#/components/responses/500' },
+  },
+  security: [{ bearerAuth: [] as [] }],
+  requestBody: {
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            size: { type: 'number' },
+            fields: {
+              type: 'array',
+              items: { type: 'string', enum: ['sku', 'externalId'] },
+            },
+            query: {
+              type: 'object',
+              properties: {
+                filter: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      term: {
+                        oneOf: [
+                          {
+                            type: 'object',
+                            properties: {
+                              'sku.keyword': {
+                                type: 'string',
+                              },
+                            },
+                          },
+                          {
+                            type: 'object',
+                            properties: {
+                              'externalId.keyword': {
+                                type: 'string',
+                              },
+                            },
+                          },
+                        ],
+                      },
+                      terms: {
+                        oneOf: [
+                          {
+                            type: 'object',
+                            properties: {
+                              'sku.keyword': {
+                                type: 'array',
+                                items: { type: 'string' },
+                              },
+                            },
+                          },
+                          {
+                            type: 'object',
+                            properties: {
+                              'externalId.keyword': {
+                                type: 'array',
+                                items: { type: 'string' },
+                              },
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
 export const ProductsInstancesOpenapi: ServiceSchema = {
   name: 'products-instances',
   settings: {
@@ -716,6 +800,9 @@ export const ProductsInstancesOpenapi: ServiceSchema = {
     },
     total: {
       openapi: ProductsTotal,
+    },
+    pSearch: {
+      openapi: pSearch,
     },
   },
   tags: [
