@@ -20,4 +20,5 @@ export interface Subscription {
   retries?: number;
   createdAt: Date;
   updatedAt: Date;
+  coupon?: string;
 }

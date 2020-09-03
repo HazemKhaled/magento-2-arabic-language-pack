@@ -357,11 +357,6 @@ const TheService: ServiceSchema = {
           }
         }
 
-        if (ctx.params.coupon) {
-          ctx.call('coupons.updateCount', {
-            id: ctx.params.coupon,
-          });
-        }
         const subscriptionBody: Subscription = {
           membershipId: membership.id,
           storeId: ctx.params.storeId,
@@ -372,6 +367,13 @@ const TheService: ServiceSchema = {
           createdAt: new Date(),
           updatedAt: new Date(),
         };
+
+        if (ctx.params.coupon) {
+          ctx.call('coupons.updateCount', {
+            id: ctx.params.coupon,
+          });
+          subscriptionBody.coupon = ctx.params.coupon;
+        }
 
         if (ctx.params.grantTo) {
           subscriptionBody.storeId = ctx.params.grantTo;
