@@ -30,6 +30,7 @@ const TheService: ServiceSchema = {
           'PUT catalog/products/:sku': 'products-instances.instanceUpdate',
           'DELETE catalog/products/:sku': 'products-instances.deleteInstanceProduct',
           'PATCH catalog/products': 'products-instances.bulkProductInstance',
+          'POST catalog/products/search': 'products-instances.pSearch',
 
           // Old routes, should be deprecated
           'PUT catalog/update/:sku': 'products-instances.instanceUpdate',

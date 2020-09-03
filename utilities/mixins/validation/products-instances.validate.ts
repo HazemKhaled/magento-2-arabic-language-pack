@@ -211,5 +211,85 @@ export const ProductsInstancesValidation: ServiceSchema = {
         },
       },
     },
+    pSearch: {
+      params: {
+        size: {
+          type: 'number',
+          optional: true,
+          min: 1,
+        },
+        fields: {
+          type: 'array',
+          items: {
+            type: 'enum',
+            values: ['sku', 'externalId'],
+          },
+          optional: true,
+        },
+        query: {
+          type: 'object',
+          optional: true,
+          props: {
+            $$strict: true,
+            filter: {
+              type: 'array',
+              optional: true,
+              items: {
+                type: 'object',
+                optional: true,
+                props: {
+                  term: {
+                    type: 'object',
+                    optional: true,
+                    props: {
+                      'sku.keyword': {
+                        type: 'string',
+                        optional: true,
+                      },
+                      'externalId.keyword': [
+                        {
+                          type: 'string',
+                          optional: true,
+                        },
+                        {
+                          type: 'number',
+                          optional: true,
+                        },
+                      ],
+                      $$strict: true,
+                    },
+                  },
+                  terms: {
+                    type: 'object',
+                    optional: true,
+                    props: {
+                      'sku.keyword': {
+                        type: 'array',
+                        items: { type: 'string' },
+                        optional: true,
+                      },
+                      'externalId.keyword': [
+                        {
+                          type: 'array',
+                          items: { type: 'string' },
+                          optional: true,
+                        },
+                        {
+                          type: 'array',
+                          items: { type: 'number' },
+                          optional: true,
+                        },
+                      ],
+                      $$strict: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        $$strict: true,
+      },
+    },
   },
 };
