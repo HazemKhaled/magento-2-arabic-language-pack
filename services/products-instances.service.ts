@@ -165,7 +165,7 @@ module.exports = {
             );
             const [appSearchProduct] = await this.getDocumentsByIds([sku]);
             if (appSearchProduct) {
-              const index = appSearchProduct.imported.indexOf(
+              const index = appSearchProduct.imported?.indexOf(
                 ctx.meta.store.url
               );
               if (index >= 0) {

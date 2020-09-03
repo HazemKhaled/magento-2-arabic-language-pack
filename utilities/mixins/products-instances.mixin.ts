@@ -398,10 +398,8 @@ export const ProductsInstancesMixin: ServiceSchema = {
           type: '_doc',
           id: `${id}-${sku}`,
           body: {
-            doc: {
-              deleted: true,
-              delete_date: new Date(),
-            },
+            script:
+              'ctx._source.remove("externalId");ctx._source.deleted = true;ctx._source.delete_date = new Date()',
           },
         })
         .then((response: any) => {
