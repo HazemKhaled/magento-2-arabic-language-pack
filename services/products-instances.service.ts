@@ -342,5 +342,13 @@ module.exports = {
             });
       },
     },
+
+    pSearch: {
+      auth: ['Bearer'],
+      handler(ctx: Context) {
+        ctx.params.storeKey = ctx.meta.store.consumer_key;
+        return this.search(ctx.params);
+      },
+    },
   },
 };
