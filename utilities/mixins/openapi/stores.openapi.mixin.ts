@@ -411,6 +411,108 @@ const StoresUpdateOpenapi = {
   },
 };
 
+const MeUpdate = {
+  $path: 'put /stores/me',
+  summary: 'Update Store',
+  tags: ['Stores'],
+  responses: {
+    200: {
+      description: 'Status 200',
+      content: {
+        'application/json': {
+          schema: {
+            $ref: '#/components/schemas/Store',
+          },
+        },
+      },
+    },
+    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
+    500: { $ref: '#/components/responses/500' },
+  },
+  security: [{ bearerAuth: [] as any[] }],
+  requestBody: {
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            logo: {
+              type: 'string',
+              format: 'url',
+            },
+            status: {
+              type: 'string',
+              enum: [
+                'confirmed',
+                'unconfirmed',
+                'uninstalled',
+                'archived',
+                'error',
+              ],
+            },
+            address: {
+              type: 'object',
+              properties: {
+                first_name: {
+                  type: 'string',
+                },
+                last_name: {
+                  type: 'string',
+                },
+                company: {
+                  type: 'string',
+                },
+                address_1: {
+                  type: 'string',
+                },
+                address_2: {
+                  type: 'string',
+                },
+                city: {
+                  type: 'string',
+                },
+                state: {
+                  type: 'string',
+                },
+                postcode: {
+                  type: 'string',
+                },
+                country: {
+                  type: 'string',
+                },
+                email: {
+                  type: 'string',
+                  format: 'email',
+                },
+                phone: {
+                  type: 'string',
+                },
+              },
+            },
+            currency: {
+              type: 'string',
+            },
+            sale_price: {
+              type: 'number',
+            },
+            sale_price_operator: {
+              type: 'number',
+              enum: [1, 2],
+            },
+            compared_at_price: {
+              type: 'number',
+            },
+            compared_at_price_operator: {
+              type: 'string',
+              enum: [1, 2],
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
 const UsersLoginOpenapi = {
   $path: 'post /token',
   summary: 'Get token',
@@ -501,6 +603,9 @@ export const StoresOpenapi: ServiceSchema = {
     },
     login: {
       openapi: UsersLoginOpenapi,
+    },
+    meUpdate: {
+      openapi: MeUpdate,
     },
   },
 };

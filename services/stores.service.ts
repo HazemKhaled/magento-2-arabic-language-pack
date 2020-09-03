@@ -403,14 +403,8 @@ const TheService: ServiceSchema = {
         }
 
         // Profit update check
-        if (this.isProfitUpdate(myStore, storeBefore)) {
-          // Send profit update event
-          ctx.emit('stores.event', {
-            event: 'stores.update.profit',
-            storeId: myStore.url,
-            res: myStore,
-          });
-        }
+        this.emitProfitUpdateEvent(myStore, storeBefore);
+
         ctx.emit('stores.event', {
           event: 'stores.update',
           storeId: myStore.url,
@@ -481,6 +475,39 @@ const TheService: ServiceSchema = {
             ],
           };
         }
+      },
+    },
+
+    meUpdate: {
+      auth: ['Bearer'],
+      async handler(ctx) {
+        const { store } = ctx.meta;
+        const { url: id } = store;
+        if (ctx.params.external_data) {
+          ctx.params.external_data = this.merge2Objects(
+            store.internal_data,
+            ctx.params.internal_data
+          );
+        }
+        if (ctx.params.address) {
+          ctx.params.address.country =
+            store.address?.country || ctx.params.address.country;
+          ctx.params.address = this.merge2Objects(
+            store.address,
+            ctx.params.address
+          );
+        }
+        const updatedStore = await this.adapter
+          .updateById(id, { $set: ctx.params })
+          .then(this.sanitizeResponse);
+        // Profit update check
+        this.emitProfitUpdateEvent(updatedStore, store);
+        ctx.emit('stores.event', {
+          event: 'stores.update',
+          storeId: updatedStore.url,
+          res: updatedStore,
+        });
+        return updatedStore;
       },
     },
 
@@ -798,6 +825,16 @@ const TheService: ServiceSchema = {
         }
       }
       return false;
+    },
+    emitProfitUpdateEvent(myStore, storeBefore): void {
+      if (this.isProfitUpdate(myStore, storeBefore)) {
+        // Send profit update event
+        this.broker.emit('stores.event', {
+          event: 'stores.update.profit',
+          storeId: myStore.url,
+          res: myStore,
+        });
+      }
     },
   },
 };
