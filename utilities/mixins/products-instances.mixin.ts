@@ -376,5 +376,29 @@ export const ProductsInstancesMixin: ServiceSchema = {
           throw new MpError('Products Instance', err.toString(), 500);
         });
     },
+
+    async search({ storeKey, fields, query, size }) {
+      query.filter = query.filter || [];
+      query.filter.push({
+        term: {
+          'instanceId.keyword': storeKey,
+        },
+      });
+      return this.broker
+        .call('products-instances.search', {
+          body: {
+            size,
+            _source: fields,
+            query: {
+              bool: {
+                ...query,
+              },
+            },
+          },
+        })
+        .then(({ hits }: { hits: { hits: { _source: Product }[] } }) =>
+          hits.hits.map(({ _source }: { _source: Product }) => _source)
+        );
+    },
   },
 };
