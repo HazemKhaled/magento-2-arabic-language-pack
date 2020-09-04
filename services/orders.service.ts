@@ -1254,7 +1254,10 @@ const TheService: ServiceSchema = {
       if (Object.keys(params).length === 1) {
         throw new MpError('Unprocessable Entity', 'No thing to update!', 422);
       }
-      if (!['Order Placed', 'Processing'].includes(order.status)) {
+      if (
+        order.financialStatus !== 'unpaid' ||
+        order.fulfillmentStatus !== 'pending'
+      ) {
         throw new MpError(
           'Not Allowed',
           'The Order Is Now Processed With Knawat You Can Not Update It',
