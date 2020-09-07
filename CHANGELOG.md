@@ -7,6 +7,9 @@
 - Webhooks
 - Async end-points
 - Find products by external ID
+- Store bearer update end-point
+- Save coupons with subscription
+- Products instances delete externalId on delete instance
 
 ### 🐛 Fixes
 
