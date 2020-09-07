@@ -311,12 +311,7 @@ const TheService: ServiceSchema = {
         const { id } = ctx.params;
         delete ctx.params.id;
         // storeBefore
-        const storeBefore = await this.adapter.findById(id);
-
-        // If the store not found return Not Found error
-        if (!storeBefore) {
-          throw new MpError('Stores Service', 'Store Not Found', 404);
-        }
+        const storeBefore = await ctx.call('stores.findInstance', { id });
 
         // Sanitize request params
         const store: Store = this.sanitizeStoreParams(ctx.params);
@@ -480,7 +475,7 @@ const TheService: ServiceSchema = {
 
     meUpdate: {
       auth: ['Bearer'],
-      async handler(ctx) {
+      handler(ctx) {
         const { store } = ctx.meta;
         const { url: id } = store;
         if (ctx.params.external_data) {
@@ -497,17 +492,8 @@ const TheService: ServiceSchema = {
             ctx.params.address
           );
         }
-        const updatedStore = await this.adapter
-          .updateById(id, { $set: ctx.params })
-          .then(this.sanitizeResponse);
-        // Profit update check
-        this.emitProfitUpdateEvent(updatedStore, store);
-        ctx.emit('stores.event', {
-          event: 'stores.update',
-          storeId: updatedStore.url,
-          res: updatedStore,
-        });
-        return updatedStore;
+
+        return ctx.call('stores.update', { ...ctx.params, id });
       },
     },
 
