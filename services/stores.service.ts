@@ -311,12 +311,7 @@ const TheService: ServiceSchema = {
         const { id } = ctx.params;
         delete ctx.params.id;
         // storeBefore
-        const storeBefore = await this.adapter.findById(id);
-
-        // If the store not found return Not Found error
-        if (!storeBefore) {
-          throw new MpError('Stores Service', 'Store Not Found', 404);
-        }
+        const storeBefore = await ctx.call('stores.findInstance', { id });
 
         // Sanitize request params
         const store: Store = this.sanitizeStoreParams(ctx.params);
@@ -403,14 +398,8 @@ const TheService: ServiceSchema = {
         }
 
         // Profit update check
-        if (this.isProfitUpdate(myStore, storeBefore)) {
-          // Send profit update event
-          ctx.emit('stores.event', {
-            event: 'stores.update.profit',
-            storeId: myStore.url,
-            res: myStore,
-          });
-        }
+        this.emitProfitUpdateEvent(myStore, storeBefore);
+
         ctx.emit('stores.event', {
           event: 'stores.update',
           storeId: myStore.url,
@@ -481,6 +470,30 @@ const TheService: ServiceSchema = {
             ],
           };
         }
+      },
+    },
+
+    meUpdate: {
+      auth: ['Bearer'],
+      handler(ctx) {
+        const { store } = ctx.meta;
+        const { url: id } = store;
+        if (ctx.params.external_data) {
+          ctx.params.external_data = this.merge2Objects(
+            store.internal_data,
+            ctx.params.internal_data
+          );
+        }
+        if (ctx.params.address) {
+          ctx.params.address.country =
+            store.address?.country || ctx.params.address.country;
+          ctx.params.address = this.merge2Objects(
+            store.address,
+            ctx.params.address
+          );
+        }
+
+        return ctx.call('stores.update', { ...ctx.params, id });
       },
     },
 
@@ -798,6 +811,16 @@ const TheService: ServiceSchema = {
         }
       }
       return false;
+    },
+    emitProfitUpdateEvent(myStore, storeBefore): void {
+      if (this.isProfitUpdate(myStore, storeBefore)) {
+        // Send profit update event
+        this.broker.emit('stores.event', {
+          event: 'stores.update.profit',
+          storeId: myStore.url,
+          res: myStore,
+        });
+      }
     },
   },
 };

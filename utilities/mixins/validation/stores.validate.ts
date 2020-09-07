@@ -444,6 +444,104 @@ export const StoresValidation: ServiceSchema = {
         $$strict: true,
       },
     },
+    meUpdate: {
+      params: {
+        $$strict: true,
+        logo: {
+          type: 'url',
+          optional: true,
+        },
+        status: {
+          type: 'enum',
+          values: [
+            'confirmed',
+            'unconfirmed',
+            'uninstalled',
+            'archived',
+            'error',
+          ],
+          optional: true,
+        },
+        address: {
+          type: 'object',
+          props: {
+            first_name: {
+              type: 'string',
+              min: 3,
+              optional: true,
+            },
+            last_name: {
+              type: 'string',
+              min: 3,
+              optional: true,
+            },
+            company: {
+              type: 'string',
+              optional: true,
+            },
+            address_1: {
+              type: 'string',
+              min: 3,
+              optional: true,
+            },
+            address_2: {
+              type: 'string',
+              optional: true,
+            },
+            city: {
+              type: 'string',
+              optional: true,
+            },
+            state: {
+              type: 'string',
+              optional: true,
+            },
+            postcode: {
+              type: 'string',
+              optional: true,
+            },
+            country: {
+              type: 'string',
+              max: 2,
+              optional: true,
+            },
+            email: {
+              type: 'email',
+              optional: true,
+            },
+            phone: {
+              type: 'string',
+              optional: true,
+              convert: true,
+            },
+            $$strict: true,
+          },
+          optional: true,
+        },
+        currency: {
+          type: 'string',
+          max: 3,
+          optional: true,
+        },
+        sale_price: {
+          type: 'number',
+          optional: true,
+        },
+        sale_price_operator: {
+          type: 'number',
+          optional: true,
+        },
+        compared_at_price: {
+          type: 'number',
+          optional: true,
+        },
+        compared_at_price_operator: {
+          type: 'enum',
+          values: [1, 2],
+          optional: true,
+        },
+      },
+    },
     login: {
       params: {
         consumerKey: {
