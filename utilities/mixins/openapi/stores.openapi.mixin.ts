@@ -426,7 +426,7 @@ const MeUpdate = {
         },
       },
     },
-    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
+    401: { $ref: '#/components/responses/UnauthorizedErrorToken' },
     500: { $ref: '#/components/responses/500' },
   },
   security: [{ bearerAuth: [] as any[] }],
