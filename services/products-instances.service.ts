@@ -165,7 +165,7 @@ module.exports = {
             );
             const [appSearchProduct] = await this.getDocumentsByIds([sku]);
             if (appSearchProduct) {
-              const index = appSearchProduct.imported.indexOf(
+              const index = appSearchProduct.imported?.indexOf(
                 ctx.meta.store.url
               );
               if (index >= 0) {
@@ -418,6 +418,14 @@ module.exports = {
                   500
                 );
               });
+      },
+    },
+
+    pSearch: {
+      auth: ['Bearer'],
+      handler(ctx: Context) {
+        ctx.params.storeKey = ctx.meta.store.consumer_key;
+        return this.search(ctx.params);
       },
     },
   },

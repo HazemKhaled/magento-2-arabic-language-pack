@@ -398,10 +398,8 @@ export const ProductsInstancesMixin: ServiceSchema = {
           type: '_doc',
           id: `${id}-${sku}`,
           body: {
-            doc: {
-              deleted: true,
-              delete_date: new Date(),
-            },
+            script:
+              'ctx._source.remove("externalId");ctx._source.deleted = true;ctx._source.delete_date = new Date()',
           },
         })
         .then((response: any) => {
@@ -420,6 +418,30 @@ export const ProductsInstancesMixin: ServiceSchema = {
         .catch((err: unknown) => {
           throw new MpError('Products Instance', err.toString(), 500);
         });
+    },
+
+    async search({ storeKey, fields, query, size }) {
+      query.filter = query.filter || [];
+      query.filter.push({
+        term: {
+          'instanceId.keyword': storeKey,
+        },
+      });
+      return this.broker
+        .call('products-instances.search', {
+          body: {
+            size,
+            _source: fields,
+            query: {
+              bool: {
+                ...query,
+              },
+            },
+          },
+        })
+        .then(({ hits }: { hits: { hits: { _source: Product }[] } }) =>
+          hits.hits.map(({ _source }: { _source: Product }) => _source)
+        );
     },
   },
 };
