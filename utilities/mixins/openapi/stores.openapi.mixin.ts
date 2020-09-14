@@ -19,7 +19,14 @@ const StoreSchema = {
     },
     status: {
       type: 'string',
-      enum: ['confirmed', 'unconfirmed', 'uninstalled', 'archived', 'error'],
+      enum: [
+        'pending',
+        'confirmed',
+        'unconfirmed',
+        'uninstalled',
+        'archived',
+        'error',
+      ],
     },
     type: {
       type: 'string',
@@ -443,6 +450,7 @@ const MeUpdate = {
             status: {
               type: 'string',
               enum: [
+                'pending',
                 'confirmed',
                 'unconfirmed',
                 'uninstalled',
