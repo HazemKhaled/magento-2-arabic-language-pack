@@ -62,10 +62,12 @@ export const OrdersValidation: ServiceSchema = {
             address_1: {
               type: 'string',
               empty: false,
+              pattern: /^[^;]+$/,
             },
             address_2: {
               type: 'string',
               optional: true,
+              pattern: /^[^;]+$/,
             },
             city: {
               type: 'string',
@@ -165,10 +167,12 @@ export const OrdersValidation: ServiceSchema = {
             address_1: {
               type: 'string',
               empty: false,
+              pattern: /^[^;]+$/,
             },
             address_2: {
               type: 'string',
               optional: true,
+              pattern: /^[^;]+$/,
             },
             city: {
               type: 'string',

@@ -77,6 +77,7 @@ export const StoresValidation: ServiceSchema = {
         status: {
           type: 'enum',
           values: [
+            'pending',
             'confirmed',
             'unconfirmed',
             'uninstalled',
@@ -261,6 +262,7 @@ export const StoresValidation: ServiceSchema = {
         status: {
           type: 'enum',
           values: [
+            'pending',
             'confirmed',
             'unconfirmed',
             'uninstalled',
@@ -454,6 +456,7 @@ export const StoresValidation: ServiceSchema = {
         status: {
           type: 'enum',
           values: [
+            'pending',
             'confirmed',
             'unconfirmed',
             'uninstalled',
