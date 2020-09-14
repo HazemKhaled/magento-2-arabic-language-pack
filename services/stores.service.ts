@@ -651,6 +651,7 @@ const TheService: ServiceSchema = {
         store.consumer_secret = uuidv4();
         store.created = new Date();
         store.updated = new Date();
+        store.status = params.status || 'pending';
         store.stock_date = new Date();
         store.stock_status = 'idle';
         store.price_date = new Date();
