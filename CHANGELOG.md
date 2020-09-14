@@ -10,6 +10,7 @@
 - Store bearer update end-point
 - Save coupons with subscription
 - Products instances delete externalId on delete instance
+- Store pending status
 
 ### 🐛 Fixes
 
@@ -18,6 +19,7 @@
 ### ✨ Enhancements
 
 - Remove Zoho order sanitization
+- Validate order address for ;
 
 ## 1.8.0
 
