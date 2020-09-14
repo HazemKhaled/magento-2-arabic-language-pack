@@ -27,6 +27,7 @@ const StoreSchema = {
         'archived',
         'error',
       ],
+      default: 'pending',
     },
     type: {
       type: 'string',
