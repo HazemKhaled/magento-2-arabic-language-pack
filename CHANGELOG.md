@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.9.0
+
+### 🚀 Features
+
+- Webhooks
+- Async end-points
+- Find products by external ID
+- Store bearer update end-point
+- Save coupons with subscription
+- Products instances delete externalId on delete instance
+- Store pending status
+
+### 🐛 Fixes
+
+- Lastupdate products instances list filter
+
+### ✨ Enhancements
+
+- Remove Zoho order sanitization
+- Validate order address for ;
+
 ## 1.8.0
 
 ### 🚀 Features
