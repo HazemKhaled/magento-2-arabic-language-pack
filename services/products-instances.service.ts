@@ -1,8 +1,16 @@
-import { Product } from './../utilities/types/product.type';
 import { Context } from 'moleculer';
 import ESService from 'moleculer-elasticsearch';
-import { ProductsInstancesOpenapi, ProductsInstancesValidation, ProductTransformation, ProductsInstancesMixin, AppSearch } from '../utilities/mixins';
+
+import {
+  ProductsInstancesOpenapi,
+  ProductsInstancesValidation,
+  ProductTransformation,
+  ProductsInstancesMixin,
+  AppSearch,
+  GCPPubSub,
+} from '../utilities/mixins';
 import { MpError } from '../utilities/adapters';
+import { Product } from '../utilities/types/product.type';
 
 module.exports = {
   name: 'products-instances',
@@ -19,7 +27,23 @@ module.exports = {
   /**
    * Service Mixins
    */
-  mixins: [ESService, ProductTransformation, ProductsInstancesMixin, ProductsInstancesOpenapi, ProductsInstancesValidation, AppSearch(process.env.APP_SEARCH_ENGINE)],
+  mixins: [
+    ESService,
+    GCPPubSub,
+    ProductTransformation,
+    ProductsInstancesMixin,
+    ProductsInstancesOpenapi,
+    ProductsInstancesValidation,
+    AppSearch(process.env.APP_SEARCH_ENGINE),
+  ],
+  hooks: {
+    after: {
+      deleteInstanceProduct: ['deletePublish'],
+      import: ['importPublish'],
+      instanceUpdate: ['pushPublish'],
+      bulkProductInstance: ['pushPublish'],
+    },
+  },
   actions: {
     /**
      * Get product by SKU
@@ -80,7 +104,11 @@ module.exports = {
           })
           .then((res: any) => {
             if (typeof res.count !== 'number') {
-              throw new MpError('Products Instance', 'Something went wrong!', 500);
+              throw new MpError(
+                'Products Instance',
+                'Something went wrong!',
+                500
+              );
             }
             return {
               total: res.count,
@@ -88,7 +116,6 @@ module.exports = {
           });
       },
     },
-
 
     /**
      * Get Products By Page
@@ -133,26 +160,36 @@ module.exports = {
 
         return this.deleteProduct(sku, ctx.meta.user)
           .then(async (product: Product) => {
-            this.broker.cacher.clean(`products-instances.list:${ctx.meta.user}**`);
+            this.broker.cacher.clean(
+              `products-instances.list:${ctx.meta.user}**`
+            );
             const [appSearchProduct] = await this.getDocumentsByIds([sku]);
             if (appSearchProduct) {
-              const index = appSearchProduct.imported.indexOf(ctx.meta.store.url);
+              const index = appSearchProduct.imported?.indexOf(
+                ctx.meta.store.url
+              );
               if (index >= 0) {
-                appSearchProduct.imported.splice( index, 1 );
+                appSearchProduct.imported.splice(index, 1);
                 await ctx.call('products.updateQuantityAttributes', {
-                  products: [{
-                    id: product.sku,
-                    qty: appSearchProduct.imported.length,
-                    attribute: 'import_qty',
-                    imported: appSearchProduct.imported,
-                  }],
+                  products: [
+                    {
+                      id: product.sku,
+                      qty: appSearchProduct.imported.length,
+                      attribute: 'import_qty',
+                      imported: appSearchProduct.imported,
+                    },
+                  ],
                 });
               }
             }
             return { product };
           })
           .catch(() => {
-            throw new MpError('Products Instance', 'Something went wrong!', 500);
+            throw new MpError(
+              'Products Instance',
+              'Something went wrong!',
+              500
+            );
           });
       },
     },
@@ -166,99 +203,123 @@ module.exports = {
       auth: ['Bearer'],
       handler(ctx: Context) {
         const skus = ctx.params.products.map((i: { sku: string }) => i.sku);
-        return ctx.call('products.getProductsBySku', {
-          skus,
-        }).then(async res => {
-          const newSKUs = res.map((product: Product) => product.sku);
-          const outOfStock = skus.filter((sku: string) => !newSKUs.includes(sku));
-          const instance = await this.broker.call('stores.findInstance', {
-            consumerKey: ctx.meta.user,
-          });
-          const bulk: any[] = [];
-          if(newSKUs.length === 0) {
-            throw new MpError('Products Instance Service', `Product not found ${outOfStock.join(',')} (Import)!`, 404);
-          }
-          res.forEach((product: Product) => {
-            bulk.push({
-              update: {
-                _index: 'products-instances',
-                _id: `${instance.consumer_key}-${product.sku}`,
-              },
+        return ctx
+          .call('products.getProductsBySku', {
+            skus,
+          })
+          .then(async res => {
+            const newSKUs = res.map((product: Product) => product.sku);
+            const outOfStock = skus.filter(
+              (sku: string) => !newSKUs.includes(sku)
+            );
+            const instance = await this.broker.call('stores.findInstance', {
+              consumerKey: ctx.meta.user,
             });
-            bulk.push({
-              doc: {
-                instanceId: instance.consumer_key,
-                createdAt: new Date(),
-                updated: new Date(),
-                siteUrl: instance.url,
-                sku: product.sku,
-                variations: product.variations
-                  .filter(variation => variation.quantity > 0)
-                  .map(variation => ({
-                    sku: variation.sku,
-                  })),
-                deleted: false,
-              }, doc_as_upsert: true});
-          });
+            const bulk: any[] = [];
+            if (newSKUs.length === 0) {
+              throw new MpError(
+                'Products Instance Service',
+                `Product not found ${outOfStock.join(',')} (Import)!`,
+                404
+              );
+            }
+            res.forEach((product: Product) => {
+              bulk.push({
+                update: {
+                  _index: 'products-instances',
+                  _id: `${instance.consumer_key}-${product.sku}`,
+                },
+              });
+              bulk.push({
+                doc: {
+                  instanceId: instance.consumer_key,
+                  createdAt: new Date(),
+                  updated: new Date(),
+                  siteUrl: instance.url,
+                  sku: product.sku,
+                  variations: product.variations
+                    .filter(variation => variation.quantity > 0)
+                    .map(variation => ({
+                      sku: variation.sku,
+                    })),
+                  deleted: false,
+                },
+                doc_as_upsert: true,
+              });
+            });
 
-          return ctx
-            .call('products.bulk', {
-              index: 'products-instances',
-              body: bulk,
-            })
-            .then(async (response) => {
-              // Update products import quantity
-              if (response.items) {
-                const firstImport = response.items
-                  .filter((item: any) => item.update._version === 1)
-                  .map((item: any) => item.update._id);
-                const update = res.filter((product: Product) =>
-                  firstImport.includes(`${instance.consumer_key}-${product.sku}`),
-                );
+            return ctx
+              .call('products.bulk', {
+                index: 'products-instances',
+                body: bulk,
+              })
+              .then(async response => {
+                // Update products import quantity
+                if (response.items) {
+                  const firstImport = response.items
+                    .filter((item: any) => item.update._version === 1)
+                    .map((item: any) => item.update._id);
+                  const update = res.filter((product: Product) =>
+                    firstImport.includes(
+                      `${instance.consumer_key}-${product.sku}`
+                    )
+                  );
 
-                const appSearchProducts = [];
+                  const appSearchProducts = [];
 
-                for (let i = 0; i < skus.length; i+=100) {
-                  appSearchProducts.push(...(await this.getDocumentsByIds(skus.slice(i, i+100))));
-                }
-
-                const updateArr: any[] = [];
-                appSearchProducts.forEach((product: Product) => {
-                  if (product) {
-                    let index = -1;
-                    if (product.imported) {
-                      index = product.imported.indexOf(instance.url);
-                    }
-                    if (index === -1) {
-                      product.imported = (product.imported || []).concat([instance.url]);
-                      updateArr.push({
-                        id: product.sku,
-                        qty: product.imported.length,
-                        attribute: 'import_qty',
-                        imported: product.imported,
-                      });
-                    }
+                  for (let i = 0; i < skus.length; i += 100) {
+                    appSearchProducts.push(
+                      ...(await this.getDocumentsByIds(skus.slice(i, i + 100)))
+                    );
                   }
-                });
-                for (let i = 0; i < updateArr.length; i+=100) {
-                  await ctx.call('products.updateQuantityAttributes', {
-                    products: updateArr.slice(i, i+100),
-                  });
-                }
-                this.broker.cacher.clean(`products-instances.list:${ctx.meta.user}**`);
-                this.broker.cacher.clean(`products-instances.total:${ctx.meta.user}**`);;
-              }
 
-              // Responses
-              if (response.errors) {
-                throw new MpError('Products Instance', 'There was an error with importing your products!', 500);
-              }
-              return {
-                success: newSKUs,
-                outOfStock: outOfStock,
-              };
-            });
-        });
+                  const updateArr: any[] = [];
+                  appSearchProducts.forEach((product: Product) => {
+                    if (product) {
+                      let index = -1;
+                      if (product.imported) {
+                        index = product.imported.indexOf(instance.url);
+                      }
+                      if (index === -1) {
+                        product.imported = (product.imported || []).concat([
+                          instance.url,
+                        ]);
+                        updateArr.push({
+                          id: product.sku,
+                          qty: product.imported.length,
+                          attribute: 'import_qty',
+                          imported: product.imported,
+                        });
+                      }
+                    }
+                  });
+                  for (let i = 0; i < updateArr.length; i += 100) {
+                    await ctx.call('products.updateQuantityAttributes', {
+                      products: updateArr.slice(i, i + 100),
+                    });
+                  }
+                  this.broker.cacher.clean(
+                    `products-instances.list:${ctx.meta.user}**`
+                  );
+                  this.broker.cacher.clean(
+                    `products-instances.total:${ctx.meta.user}**`
+                  );
+                }
+
+                // Responses
+                if (response.errors) {
+                  throw new MpError(
+                    'Products Instance',
+                    'There was an error with importing your products!',
+                    500
+                  );
+                }
+                return {
+                  success: newSKUs,
+                  outOfStock,
+                };
+              });
+          });
       },
     },
 
@@ -284,22 +345,35 @@ module.exports = {
               doc: body,
             },
           })
-          .then(async res => {
-            if (res.result === 'updated' || res.result === 'noop') {
-              await this.broker.cacher.clean(`products-instances.list:${ctx.meta.user}**`);
-              return {
-                status: 'success',
-                message: 'Updated successfully!',
-                sku: ctx.params.sku,
-              };
+          .then(
+            async res => {
+              if (res.result === 'updated' || res.result === 'noop') {
+                await this.broker.cacher.clean(
+                  `products-instances.list:${ctx.meta.user}**`
+                );
+                return {
+                  status: 'success',
+                  message: 'Updated successfully!',
+                  sku: ctx.params.sku,
+                };
+              }
+              throw new MpError(
+                'Products Instance',
+                'Something went wrong!',
+                500
+              );
+            },
+            (err: any) => {
+              if (err.message.includes('document_missing_exception')) {
+                throw new MpError('Products Instance', 'Not Found!', 404);
+              }
+              throw new MpError(
+                'Products Instance',
+                'Something went wrong!',
+                500
+              );
             }
-            throw new MpError('Products Instance', 'Something went wrong!', 500);
-          }, (err: any) => {
-            if (err.message.includes('document_missing_exception')) {
-              throw new MpError('Products Instance', 'Not Found!', 404);
-            }
-            throw new MpError('Products Instance', 'Something went wrong!', 500);
-          });
+          );
       },
     },
 
@@ -327,19 +401,23 @@ module.exports = {
         return bulk.length === 0
           ? []
           : this.broker
-            .call('products.bulk', {
-              index: 'products-instances',
-              type: '_doc',
-              body: bulk,
-            })
-            .then((res: any) => {
-              if (res.errors === false) {
-                return {
-                  status: 'success',
-                };
-              }
-              throw new MpError('Products Instance', 'Something went wrong!', 500);
-            });
+              .call('products.bulk', {
+                index: 'products-instances',
+                type: '_doc',
+                body: bulk,
+              })
+              .then((res: any) => {
+                if (res.errors === false) {
+                  return {
+                    status: 'success',
+                  };
+                }
+                throw new MpError(
+                  'Products Instance',
+                  'Something went wrong!',
+                  500
+                );
+              });
       },
     },
 
@@ -349,6 +427,52 @@ module.exports = {
         ctx.params.storeKey = ctx.meta.store.consumer_key;
         return this.search(ctx.params);
       },
+    },
+
+    pSearch: {
+      auth: ['Bearer'],
+      handler(ctx: Context) {
+        ctx.params.storeKey = ctx.meta.store.consumer_key;
+        return this.search(ctx.params);
+      },
+    },
+  },
+  methods: {
+    deletePublish(ctx: Context, res: Product): Product {
+      this.publishMessage('products.delete', {
+        storeId: ctx.meta.storeId,
+        data: { sku: res.sku },
+      });
+      return res;
+    },
+    importPublish(
+      ctx: Context,
+      res: {
+        success: string[];
+        outOfStock: string[];
+      }
+    ): {
+      success: string[];
+      outOfStock: string[];
+    } {
+      this.publishMessage('products.create', {
+        storeId: ctx.meta.storeId,
+        data: res,
+      });
+      return res;
+    },
+    pushPublish(ctx: Context, res: { success: string }): { success: string } {
+      this.publishMessage('products.push', {
+        storeId: ctx.meta.storeId,
+        data: {
+          skus: ctx.params.sku
+            ? ctx.params.sku
+            : ctx.params.productInstances.map(
+                (product: { sku: string }) => product.sku
+              ),
+        },
+      });
+      return res;
     },
   },
 };

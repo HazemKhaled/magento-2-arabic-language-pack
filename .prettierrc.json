@@ -1,16 +1,5 @@
 {
+  "arrowParens": "avoid",
   "singleQuote": true,
-  "tabWidth": 2,
-  "printWidth": 100,
-  "useTabs": false,
-  "overrides": [
-    {
-      "files": [
-        "*.ts"
-      ],
-      "options": {
-        "parser": "babel-ts"
-      }
-    }
-  ]
+  "tabWidth": 2
 }

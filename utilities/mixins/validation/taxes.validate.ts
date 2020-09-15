@@ -1,6 +1,5 @@
 import { ServiceSchema } from 'moleculer';
 
-
 export const TaxesValidation: ServiceSchema = {
   name: 'taxes',
   actions: {
@@ -23,7 +22,7 @@ export const TaxesValidation: ServiceSchema = {
           type: 'number',
           convert: true,
         },
-        isInclusive: {type: 'boolean'},
+        isInclusive: { type: 'boolean' },
         $$strict: true,
       },
     },
@@ -53,7 +52,7 @@ export const TaxesValidation: ServiceSchema = {
           convert: true,
           optional: true,
         },
-        isInclusive: {type: 'boolean', optional: true},
+        isInclusive: { type: 'boolean', optional: true },
         $$strict: true,
       },
     },
@@ -82,17 +81,18 @@ export const TaxesValidation: ServiceSchema = {
           pattern: '^[a-zA-Z]{2}$',
           optional: true,
         },
-        class: [{
-          type: 'string',
-          optional: true,
-        },
-        {
-          type: 'array',
-          items: {
+        class: [
+          {
             type: 'string',
+            optional: true,
           },
-          optional: true,
-        },
+          {
+            type: 'array',
+            items: {
+              type: 'string',
+            },
+            optional: true,
+          },
         ],
         $$strict: true,
       },

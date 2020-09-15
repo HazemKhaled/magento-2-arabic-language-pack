@@ -7,7 +7,7 @@ const StoreSchema = {
     url: {
       type: 'string',
       description: 'URL is the store ID',
-      example: 'https://www.example.com',
+      example: 'https://www.example.com/',
     },
     name: {
       type: 'string',
@@ -19,7 +19,15 @@ const StoreSchema = {
     },
     status: {
       type: 'string',
-      enum: ['confirmed', 'unconfirmed', 'uninstalled', 'archived', 'error'],
+      enum: [
+        'pending',
+        'confirmed',
+        'unconfirmed',
+        'uninstalled',
+        'archived',
+        'error',
+      ],
+      default: 'pending',
     },
     type: {
       type: 'string',
@@ -35,7 +43,7 @@ const StoreSchema = {
         'ebay',
         'api',
         'catalog',
-        'zid.sa',
+        'zid',
         'youcan',
         'other',
       ],
@@ -122,13 +130,11 @@ const StoreSchema = {
             type: 'string',
             minLength: 3,
             pattern: '^[A-Za-z ]{3,}$',
-            required: false,
           },
           last_name: {
             type: 'string',
             minLength: 3,
             pattern: '^[A-Za-z ]{3,}$',
-            required: false,
           },
         },
       },
@@ -232,44 +238,16 @@ const StoresMeOpenapi = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorToken',
-    },
-    404: {
-      description: 'Status 404',
-      content: {
-        'application/json': {
-          schema: {
-            type: 'object',
-            properties: {
-              errors: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    message: {
-                      type: 'string',
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+    401: { $ref: '#/components/responses/UnauthorizedErrorToken' },
+    404: { $ref: '#/components/responses/404' },
   },
-  security: [
-    {
-      bearerAuth: [] as [],
-    },
-  ],
+  security: [{ bearerAuth: [] as any[] }],
 };
 
 const StoresGetOpenapi = {
   $path: 'get /stores/{url}',
   summary: 'Get Store by url',
-  tags: ['Stores', 'Enterprise Only'],
+  tags: ['Stores'],
   parameters: [
     {
       name: 'url',
@@ -291,49 +269,20 @@ const StoresGetOpenapi = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorBasic',
-    },
-    404: {
-      description: 'Status 404',
-      content: {
-        'application/json': {
-          schema: {
-            type: 'object',
-            properties: {
-              errors: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    message: {
-                      type: 'string',
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
+    404: { $ref: '#/components/responses/404' },
   },
-  security: [
-    {
-      basicAuth: [] as [],
-    },
-  ],
+  security: [{ basicAuth: [] as any[] }],
 };
 
 const StoresListOpenapi = {
   $path: 'get /stores',
   summary: 'All User Stores',
-  tags: ['Stores', 'Enterprise Only'],
+  tags: ['Stores'],
   parameters: [
     {
       name: 'filter',
       in: 'query',
-      required: false,
       schema: {
         type: 'string',
       },
@@ -353,38 +302,10 @@ const StoresListOpenapi = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorBasic',
-    },
-    404: {
-      description: 'Status 404',
-      content: {
-        'application/json': {
-          schema: {
-            type: 'object',
-            properties: {
-              errors: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    message: {
-                      type: 'string',
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
+    404: { $ref: '#/components/responses/404' },
   },
-  security: [
-    {
-      basicAuth: [] as [],
-    },
-  ],
+  security: [{ basicAuth: [] as any[] }],
 };
 
 const StoresSListOpenapi = {
@@ -395,7 +316,6 @@ const StoresSListOpenapi = {
     {
       name: 'id',
       in: 'query',
-      required: false,
       schema: {
         type: 'string',
       },
@@ -403,7 +323,6 @@ const StoresSListOpenapi = {
     {
       name: 'page',
       in: 'query',
-      required: false,
       schema: {
         type: 'number',
       },
@@ -411,7 +330,6 @@ const StoresSListOpenapi = {
     {
       name: 'perPage',
       in: 'query',
-      required: false,
       schema: {
         type: 'number',
       },
@@ -437,44 +355,16 @@ const StoresSListOpenapi = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorBasic',
-    },
-    404: {
-      description: 'Status 404',
-      content: {
-        'application/json': {
-          schema: {
-            type: 'object',
-            properties: {
-              errors: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    message: {
-                      type: 'string',
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
+    404: { $ref: '#/components/responses/404' },
   },
-  security: [
-    {
-      basicAuth: [] as [],
-    },
-  ],
+  security: [{ basicAuth: [] as any[] }],
 };
 
 const StoresCreateOpenapi = {
   $path: 'post /stores',
   summary: 'Create new store',
-  tags: ['Stores', 'Enterprise Only'],
+  tags: ['Stores'],
   responses: {
     200: {
       description: 'Status 200',
@@ -486,38 +376,10 @@ const StoresCreateOpenapi = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorBasic',
-    },
-    500: {
-      description: 'Status 500',
-      content: {
-        'application/json': {
-          schema: {
-            type: 'object',
-            properties: {
-              errors: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    message: {
-                      type: 'string',
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
+    500: { $ref: '#/components/responses/500' },
   },
-  security: [
-    {
-      basicAuth: [] as [],
-    },
-  ],
+  security: [{ basicAuth: [] as any[] }],
   requestBody: {
     $ref: '#/components/requestBodies/Store',
   },
@@ -526,7 +388,7 @@ const StoresCreateOpenapi = {
 const StoresUpdateOpenapi = {
   $path: 'put /stores/{url}',
   summary: 'Update Store by URL',
-  tags: ['Stores', 'Enterprise Only'],
+  tags: ['Stores'],
   parameters: [
     {
       name: 'url',
@@ -548,40 +410,115 @@ const StoresUpdateOpenapi = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorBasic',
-    },
-    500: {
-      description: 'Status 500',
+    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
+    500: { $ref: '#/components/responses/500' },
+  },
+  security: [{ basicAuth: [] as any[] }],
+  requestBody: {
+    $ref: '#/components/requestBodies/Store',
+  },
+};
+
+const MeUpdate = {
+  $path: 'put /stores/me',
+  summary: 'Update Store',
+  tags: ['Stores'],
+  responses: {
+    200: {
+      description: 'Status 200',
       content: {
         'application/json': {
           schema: {
-            type: 'object',
-            properties: {
-              errors: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    message: {
-                      type: 'string',
-                    },
-                  },
+            $ref: '#/components/schemas/Store',
+          },
+        },
+      },
+    },
+    401: { $ref: '#/components/responses/UnauthorizedErrorToken' },
+    500: { $ref: '#/components/responses/500' },
+  },
+  security: [{ bearerAuth: [] as any[] }],
+  requestBody: {
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            logo: {
+              type: 'string',
+              format: 'url',
+            },
+            status: {
+              type: 'string',
+              enum: [
+                'pending',
+                'confirmed',
+                'unconfirmed',
+                'uninstalled',
+                'archived',
+                'error',
+              ],
+            },
+            address: {
+              type: 'object',
+              properties: {
+                first_name: {
+                  type: 'string',
+                },
+                last_name: {
+                  type: 'string',
+                },
+                company: {
+                  type: 'string',
+                },
+                address_1: {
+                  type: 'string',
+                },
+                address_2: {
+                  type: 'string',
+                },
+                city: {
+                  type: 'string',
+                },
+                state: {
+                  type: 'string',
+                },
+                postcode: {
+                  type: 'string',
+                },
+                country: {
+                  type: 'string',
+                },
+                email: {
+                  type: 'string',
+                  format: 'email',
+                },
+                phone: {
+                  type: 'string',
                 },
               },
+            },
+            currency: {
+              type: 'string',
+            },
+            sale_price: {
+              type: 'number',
+            },
+            sale_price_operator: {
+              type: 'number',
+              enum: [1, 2],
+            },
+            compared_at_price: {
+              type: 'number',
+            },
+            compared_at_price_operator: {
+              type: 'string',
+              enum: [1, 2],
             },
           },
         },
       },
     },
-  },
-  security: [
-    {
-      basicAuth: [] as [],
-    },
-  ],
-  requestBody: {
-    $ref: '#/components/requestBodies/Store',
   },
 };
 
@@ -675,6 +612,9 @@ export const StoresOpenapi: ServiceSchema = {
     },
     login: {
       openapi: UsersLoginOpenapi,
+    },
+    meUpdate: {
+      openapi: MeUpdate,
     },
   },
 };

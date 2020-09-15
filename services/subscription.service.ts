@@ -1,16 +1,26 @@
+import { types } from 'util';
+
 import { Context, Errors, ServiceSchema } from 'moleculer';
-import { isError } from 'util';
+
 import DbService from '../utilities/mixins/mongo.mixin';
 import { SubscriptionOpenapi } from '../utilities/mixins/openapi';
 import { Coupon, Membership, Subscription, Store } from '../utilities/types';
 import { SubscriptionValidation } from '../utilities/mixins/validation';
-import TaxCheck from '../utilities/mixins/tax.mixin';
+import { TaxCheck } from '../utilities/mixins/tax.mixin';
 import { MpError } from '../utilities/adapters';
+
+const { isNativeError } = types;
+
 const MoleculerError = Errors.MoleculerError;
 
 const TheService: ServiceSchema = {
   name: 'subscription',
-  mixins: [DbService('subscription'), SubscriptionValidation, SubscriptionOpenapi, TaxCheck],
+  mixins: [
+    DbService('subscription'),
+    SubscriptionValidation,
+    SubscriptionOpenapi,
+    TaxCheck,
+  ],
 
   actions: {
     /**
@@ -22,7 +32,7 @@ const TheService: ServiceSchema = {
     sGet: {
       cache: {
         keys: ['id'],
-        ttl: 60 * 60 * 24, // 1 day
+        ttl: 60 * 60 * 24,
       },
       async handler(ctx: Context): Promise<any | false> {
         const subscription =
@@ -55,8 +65,18 @@ const TheService: ServiceSchema = {
     sList: {
       auth: ['Basic'],
       cache: {
-        keys: ['storeId', 'membershipId', 'reference', 'expireDate', 'startDate', 'status', 'page', 'perPage', 'sort'],
-        ttl: 60 * 60 * 24, // 1 day
+        keys: [
+          'storeId',
+          'membershipId',
+          'reference',
+          'expireDate',
+          'startDate',
+          'status',
+          'page',
+          'perPage',
+          'sort',
+        ],
+        ttl: 60 * 60 * 24,
       },
       async handler(ctx: Context): Promise<Subscription | false> {
         const query: { [key: string]: any } = {};
@@ -67,7 +87,10 @@ const TheService: ServiceSchema = {
           query.membershipId = ctx.params.membershipId;
         }
         if (ctx.params.status) {
-          query.status = ctx.params.status === 'active' ? { $ne: 'cancelled' } : ctx.params.status;
+          query.status =
+            ctx.params.status === 'active'
+              ? { $ne: 'cancelled' }
+              : ctx.params.status;
         }
         if (ctx.params.reference) {
           query.reference = ctx.params.reference;
@@ -107,9 +130,11 @@ const TheService: ServiceSchema = {
           findBody.sort = { [ctx.params.sort.field]: ctx.params.sort.order };
         }
         if (ctx.params.perPage) {
-          findBody.limit = +ctx.params.perPage;
+          findBody.limit = Number(ctx.params.perPage);
         }
-        findBody.offset = (findBody.limit || 100) * (ctx.params.page ? +ctx.params.page - 1 : 0);
+        findBody.offset =
+          (findBody.limit || 100) *
+          (ctx.params.page ? Number(ctx.params.page) - 1 : 0);
         return this.adapter
           .find(findBody)
           .then((res: Subscription[]) => {
@@ -135,26 +160,33 @@ const TheService: ServiceSchema = {
               type: 'subscription',
             })
             .then(null, err => err);
-          if (isError(coupon)) {
+          if (isNativeError(coupon)) {
             throw new MoleculerError(coupon.message, Number(coupon.code));
           }
         }
 
-        const membershipRequestBody: { id: string, active: true, coupon?: string } = { id: ctx.params.membership, active: true };
+        const membershipRequestBody: {
+          id: string;
+          active: true;
+          coupon?: string;
+        } = { id: ctx.params.membership, active: true };
         if (ctx.params.coupon) {
           membershipRequestBody.coupon = ctx.params.coupon;
         }
         const membership = await ctx
           .call('membership.mGet', membershipRequestBody)
           .then(null, err => err);
-        if (isError(membership as { message: string; code: number })) {
+        if (isNativeError(membership as { message: string; code: number })) {
           throw new MoleculerError(membership.message, membership.code || 500);
         }
         if (!membership) {
           throw new MoleculerError('No membership found', 404);
         }
         if (membership.isDefault) {
-          throw new MoleculerError('Could not create subscription for default memberships!', 405);
+          throw new MoleculerError(
+            'Could not create subscription for default memberships!',
+            405
+          );
         }
 
         // Membership cost before tax or discount
@@ -168,7 +200,9 @@ const TheService: ServiceSchema = {
           .then(null, err => err);
         let grantToInstance: Store | null = null;
         if (ctx.params.grantTo) {
-          grantToInstance = await ctx.call('stores.findInstance', { id: ctx.params.grantTo });
+          grantToInstance = await ctx.call('stores.findInstance', {
+            id: ctx.params.grantTo,
+          });
         }
 
         // Check for instance errors
@@ -176,31 +210,48 @@ const TheService: ServiceSchema = {
           throw new MoleculerError(instance.errors[0].message, 404);
         }
 
-        if (isError(instance as { message: string; code: number })) {
+        if (isNativeError(instance as { message: string; code: number })) {
           throw new MoleculerError(instance.message, instance.code || 500);
         }
-        let total = +(cost - discount).toFixed(2);
+        let total = Number((cost - discount).toFixed(2));
 
         // Get taxes info
-        const taxData = await this.getTaxWithCalc(instance, { taxClass: 'service', rate: cost });
+        const taxData = await this.getTaxWithCalc(instance, {
+          taxClass: 'service',
+          rate: cost,
+        });
         if (taxData.value) {
-          total = +(total + (total * taxData.percentage / 100)).toFixed(2);
+          total = Number(
+            (total + (total * taxData.percentage) / 100).toFixed(2)
+          );
         }
 
         if (instance.credit < total && !ctx.params.postpaid) {
           if (process.env.PAYMENT_AUTO_CHARGE_CC_SUBSCRIPTION) {
-            await ctx.call('paymentGateway.charge', {
-              storeId: instance.url,
-              amount: total - instance.credit,
-              description: `${membership.name?.en} subscription ${membership.paymentFrequencyType}ly renewal ${ctx.params.grantTo || ctx.params.storeId}`,
-              force: true,
-            }).then(null, err => {
-              if (err.type === 'SERVICE_NOT_FOUND')
-                throw new MpError('Subscription Service', 'You don\'t have enough balance', 402);
-              throw err;
-            });
+            await ctx
+              .call('paymentGateway.charge', {
+                storeId: instance.url,
+                amount: total - instance.credit,
+                description: `${membership.name?.en} subscription ${
+                  membership.paymentFrequencyType
+                }ly renewal ${ctx.params.grantTo || ctx.params.storeId}`,
+                force: true,
+              })
+              .then(null, err => {
+                if (err.type === 'SERVICE_NOT_FOUND')
+                  throw new MpError(
+                    'Subscription Service',
+                    "You don't have enough balance",
+                    402
+                  );
+                throw err;
+              });
           } else {
-            throw new MpError('Subscription Service', 'You don\'t have enough balance', 402);
+            throw new MpError(
+              'Subscription Service',
+              "You don't have enough balance",
+              402
+            );
           }
         }
 
@@ -209,14 +260,14 @@ const TheService: ServiceSchema = {
           items: [
             {
               sku: membership.id,
-              name: `${membership.name.en} subscription ${membership.paymentFrequency} ${
-                membership.paymentFrequencyType
-              }`,
+              name: `${membership.name.en} subscription ${membership.paymentFrequency} ${membership.paymentFrequencyType}`,
               accountId: String(process.env.SUBSCRIPTION_LEDGER_ACCOUNT_ID),
               rate: cost,
               quantity: 1,
               taxId: taxData.omsId,
-              description: `StoreId: ${ctx.params.storeId}${ctx.params.grantTo ? ` Granted To: ${ctx.params.grantTo}`: ''}`,
+              description: `StoreId: ${ctx.params.storeId}${
+                ctx.params.grantTo ? ` Granted To: ${ctx.params.grantTo}` : ''
+              }`,
             },
           ],
           isInclusiveTax: taxData.isInclusive,
@@ -230,36 +281,40 @@ const TheService: ServiceSchema = {
         }
 
         if (coupon) {
-          invoiceBody.coupon = coupon.campaignName ? `${coupon.code}-${coupon.campaignName}` : coupon.code;
+          invoiceBody.coupon = coupon.campaignName
+            ? `${coupon.code}-${coupon.campaignName}`
+            : coupon.code;
         }
 
         if (ctx.params.dueDate) {
           invoiceBody.dueDate = ctx.params.dueDate;
         }
 
-        const invoice = await ctx.call('invoices.create', invoiceBody).then(null, err => err);
-        if (isError(invoice as { message: string; code: number })) {
-          throw new MoleculerError(invoice.message, invoice.code || 500);
-        }
-
-        if (ctx.params.postpaid) {
-          await ctx.call('invoices.markInvoiceSent', {
-            omsId: instance.internal_data?.omsId,
-            invoiceId: invoice.invoice.invoiceId,
-          });
-        }
-
         ctx.meta.user = instance.consumer_key;
 
         // Apply credits to invoice if the total not equal to 0
+        let invoice = null;
         if (total !== 0 && !ctx.params.postpaid) {
+          invoice = await ctx
+            .call('invoices.create', invoiceBody)
+            .then(null, err => err);
+          if (isNativeError(invoice as { message: string; code: number })) {
+            throw new MoleculerError(invoice.message, invoice.code || 500);
+          }
           const applyCreditsResponse = await ctx
             .call('invoices.applyCredits', {
               id: invoice.invoice.invoiceId,
             })
             .then(null, err => err);
-          if (isError(applyCreditsResponse as { message: string; code: number })) {
-            throw new MoleculerError(applyCreditsResponse.message, applyCreditsResponse.code || 500);
+          if (
+            isNativeError(
+              applyCreditsResponse as { message: string; code: number }
+            )
+          ) {
+            throw new MoleculerError(
+              applyCreditsResponse.message,
+              applyCreditsResponse.code || 500
+            );
           }
         }
 
@@ -280,37 +335,45 @@ const TheService: ServiceSchema = {
             storeOldSubscription.forEach((subscription: Subscription) => {
               startDate =
                 new Date(subscription.expireDate) > startDate
-                  ? new Date(new Date(subscription.expireDate).setMilliseconds(1000))
+                  ? new Date(
+                      new Date(subscription.expireDate).setMilliseconds(1000)
+                    )
                   : startDate;
             });
           }
           expireDate = new Date(startDate);
           expireDate.setMilliseconds(-1);
           switch (membership.paymentFrequencyType) {
-          case 'month':
-            expireDate.setMonth(expireDate.getMonth() + membership.paymentFrequency);
-            break;
-          case 'year':
-            expireDate.setFullYear(expireDate.getFullYear() + membership.paymentFrequency);
-            break;
+            case 'month':
+              expireDate.setMonth(
+                expireDate.getMonth() + membership.paymentFrequency
+              );
+              break;
+            case 'year':
+              expireDate.setFullYear(
+                expireDate.getFullYear() + membership.paymentFrequency
+              );
+              break;
           }
         }
 
-        if (ctx.params.coupon) {
-          ctx.call('coupons.updateCount', {
-            id: ctx.params.coupon,
-          });
-        }
         const subscriptionBody: Subscription = {
           membershipId: membership.id,
           storeId: ctx.params.storeId,
-          invoiceId: invoice.invoice.invoiceId,
+          invoiceId: invoice?.invoice.invoiceId || null,
           status: 'confirmed',
           startDate,
           expireDate,
           createdAt: new Date(),
           updatedAt: new Date(),
         };
+
+        if (ctx.params.coupon) {
+          ctx.call('coupons.updateCount', {
+            id: ctx.params.coupon,
+          });
+          subscriptionBody.coupon = ctx.params.coupon;
+        }
 
         if (ctx.params.grantTo) {
           subscriptionBody.storeId = ctx.params.grantTo;
@@ -329,25 +392,35 @@ const TheService: ServiceSchema = {
           subscriptionBody.status = 'pending';
         }
 
-        return this.adapter
-          .insert(subscriptionBody)
-          .then(
-            async (res: Subscription): Promise<{}> => {
-              this.broker.cacher.clean(`subscription.sGet:${ctx.params.grantTo || instance.url}*`);
-              this.broker.cacher.clean(`subscription.sList:${ctx.params.grantTo || instance.url}*`);
-              this.broker.cacher.clean(`stores.sGet:${ctx.params.grantTo || instance.url}*`);
-              this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
-              if (ctx.params.grantTo) {
-                this.broker.cacher.clean(`stores.sGet:${instance.url}*`);
-                this.broker.cacher.clean(`stores.me:${grantToInstance?.consumer_key}*`);
-              }
-              ctx.call('subscription.checkCurrentSubGradingStatus', {
-                id: ctx.params.grantTo || ctx.params.storeId,
-              });
-              ctx.call('crm.updateStoreById', { id: ctx.params.grantTo || ctx.params.storeId, membership_id: membership.id, subscription_expiration: expireDate.getTime() });
-              return { ...res, id: res._id, _id: undefined };
-            },
-          );
+        return this.adapter.insert(subscriptionBody).then(
+          async (res: Subscription): Promise<{}> => {
+            this.broker.cacher.clean(
+              `subscription.sGet:${ctx.params.grantTo || instance.url}*`
+            );
+            this.broker.cacher.clean(
+              `subscription.sList:${ctx.params.grantTo || instance.url}*`
+            );
+            this.broker.cacher.clean(
+              `stores.sGet:${ctx.params.grantTo || instance.url}*`
+            );
+            this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
+            if (ctx.params.grantTo) {
+              this.broker.cacher.clean(`stores.sGet:${instance.url}*`);
+              this.broker.cacher.clean(
+                `stores.me:${grantToInstance?.consumer_key}*`
+              );
+            }
+            ctx.call('subscription.checkCurrentSubGradingStatus', {
+              id: ctx.params.grantTo || ctx.params.storeId,
+            });
+            ctx.call('crm.updateStoreById', {
+              id: ctx.params.grantTo || ctx.params.storeId,
+              membership_id: membership.id,
+              subscription_expiration: expireDate.getTime(),
+            });
+            return { ...res, id: res._id, _id: undefined };
+          }
+        );
       },
     },
     getSubscriptionByExpireDate: {
@@ -375,12 +448,17 @@ const TheService: ServiceSchema = {
           },
           status: { $ne: 'cancelled' },
         };
-        let expiredSubscription = await this.adapter.findOne(query).catch();
+        let expiredSubscription = await this.adapter
+          .findOne(query)
+          .catch(console.error);
         if (!expiredSubscription) {
           return null;
         }
         query.storeId = expiredSubscription.storeId;
-        [expiredSubscription] = await this.adapter.find({query, sort: { expireDate: -1 }});
+        [expiredSubscription] = await this.adapter.find({
+          query,
+          sort: { expireDate: -1 },
+        });
         expiredSubscription._id = expiredSubscription._id.toString();
         const currentSubscription = await ctx.call('subscription.sGet', {
           id: expiredSubscription.storeId,
@@ -394,7 +472,10 @@ const TheService: ServiceSchema = {
             id: expiredSubscription.storeId,
             tag: 'subscription-renew',
           });
-          return ctx.call('subscription.getSubscriptionByExpireDate', { afterDays: ctx.params.afterDays, beforeDays: ctx.params.beforeDays });
+          return ctx.call('subscription.getSubscriptionByExpireDate', {
+            afterDays: ctx.params.afterDays,
+            beforeDays: ctx.params.beforeDays,
+          });
         }
         const date = new Date();
         date.setUTCHours(0, 0, 0, 0);
@@ -430,7 +511,9 @@ const TheService: ServiceSchema = {
         return this.adapter
           .updateById(ctx.params.id, { $set })
           .then(async (subscription: Subscription) => {
-            const store = await ctx.call('stores.findInstance', { id: subscription.storeId });
+            const store = await ctx.call('stores.findInstance', {
+              id: subscription.storeId,
+            });
             this.broker.cacher.clean(`subscription.sGet:${store.url}**`);
             this.broker.cacher.clean(`subscription.sList:${store.url}**`);
             this.broker.cacher.clean(`stores.sGet:${store.url}**`);
@@ -446,7 +529,10 @@ const TheService: ServiceSchema = {
       async handler(ctx: Context) {
         const allSubBefore = await ctx.call('subscription.sList', {
           storeId: ctx.params.id,
-          expireDate: { operation: 'gte', date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7) },
+          expireDate: {
+            operation: 'gte',
+            date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7),
+          },
           status: 'active',
           sort: { field: 'expireDate', order: -1 },
           perPage: 2,
@@ -459,8 +545,12 @@ const TheService: ServiceSchema = {
             tag: 'subscription-upgrade',
           });
         }
-        const oldM = memberships.find((m: Membership) => allSubBefore[0].membershipId === m.id);
-        const lastM = memberships.find((m: Membership) => allSubBefore[1].membershipId === m.id);
+        const oldM = memberships.find(
+          (m: Membership) => allSubBefore[0].membershipId === m.id
+        );
+        const lastM = memberships.find(
+          (m: Membership) => allSubBefore[1].membershipId === m.id
+        );
         if (oldM.sort > lastM.sort) {
           return ctx.call('crm.addTagsByUrl', {
             id: ctx.params.id,
@@ -478,22 +568,32 @@ const TheService: ServiceSchema = {
     cancel: {
       auth: ['Basic'],
       handler(ctx) {
-        return this.adapter.updateById(ctx.params.id, { $set: { status: 'cancelled' } }).then(async (res: any) => {
-          const instance = await ctx.call('stores.findInstance', { id: res.storeId });
-          ctx.call('invoices.updateInvoiceStatus', {
-            omsId: instance?.internal_data?.omsId,
-            invoiceId: res.invoiceId,
-            status: 'void',
+        return this.adapter
+          .updateById(ctx.params.id, { $set: { status: 'cancelled' } })
+          .then(async (res: any) => {
+            const instance = await ctx.call('stores.findInstance', {
+              id: res.storeId,
+            });
+            if (res.invoiceId) {
+              ctx.call('invoices.updateInvoiceStatus', {
+                omsId: instance?.internal_data?.omsId,
+                invoiceId: res.invoiceId,
+                status: 'void',
+              });
+            }
+            if (!res) {
+              throw new MpError(
+                'Subscription Service',
+                'Subscription not found!',
+                404
+              );
+            }
+            this.broker.cacher.clean(`subscription.sGet:${res.storeId}*`);
+            this.broker.cacher.clean(`subscription.sList:${res.storeId}*`);
+            this.broker.cacher.clean(`stores.sGet:${res.storeId}*`);
+            this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
+            return { ...res, id: res._id, _id: undefined };
           });
-          if (!res) {
-            throw new MpError('Subscription Service', 'Subscription not found!', 404);
-          }
-          this.broker.cacher.clean(`subscription.sGet:${res.storeId}*`);
-          this.broker.cacher.clean(`subscription.sList:${res.storeId}*`);
-          this.broker.cacher.clean(`stores.sGet:${res.storeId}*`);
-          this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
-          return { ...res, id: res._id, _id: undefined };
-        });
       },
     },
   },

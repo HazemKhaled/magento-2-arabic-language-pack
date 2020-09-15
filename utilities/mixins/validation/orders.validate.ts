@@ -20,11 +20,7 @@ export const OrdersValidation: ServiceSchema = {
         ],
         status: {
           type: 'enum',
-          values: [
-            'pending',
-            'processing',
-            'cancelled',
-          ],
+          values: ['pending', 'processing', 'cancelled'],
         },
         items: {
           type: 'array',
@@ -53,22 +49,25 @@ export const OrdersValidation: ServiceSchema = {
               type: 'string',
               empty: false,
             },
-            company: [{
-              type: 'string',
-              optional: true,
-            },
-            {
-              type: 'custom',
-              optional: true,
-            },
+            company: [
+              {
+                type: 'string',
+                optional: true,
+              },
+              {
+                type: 'custom',
+                optional: true,
+              },
             ],
             address_1: {
               type: 'string',
               empty: false,
+              pattern: /^[^;]+$/,
             },
             address_2: {
               type: 'string',
               optional: true,
+              pattern: /^[^;]+$|^$/,
             },
             city: {
               type: 'string',
@@ -116,23 +115,20 @@ export const OrdersValidation: ServiceSchema = {
     },
     updateOrder: {
       params: {
-        id: [{
-          type: 'string',
-          empty: false,
-        },
-        {
-          type: 'number',
-          integer: true,
-          convert: true,
-        },
+        id: [
+          {
+            type: 'string',
+            empty: false,
+          },
+          {
+            type: 'number',
+            integer: true,
+            convert: true,
+          },
         ],
         status: {
           type: 'enum',
-          values: [
-            'pending',
-            'processing',
-            'cancelled',
-          ],
+          values: ['pending', 'processing', 'cancelled'],
           optional: true,
         },
         items: {
@@ -171,10 +167,12 @@ export const OrdersValidation: ServiceSchema = {
             address_1: {
               type: 'string',
               empty: false,
+              pattern: /^[^;]+$/,
             },
             address_2: {
               type: 'string',
               optional: true,
+              pattern: /^[^;]+$|^$/,
             },
             city: {
               type: 'string',
@@ -254,10 +252,7 @@ export const OrdersValidation: ServiceSchema = {
         },
         sortOrder: {
           type: 'enum',
-          values: [
-            'A',
-            'D',
-          ],
+          values: ['A', 'D'],
           optional: true,
         },
         status: {
@@ -337,6 +332,9 @@ export const OrdersValidation: ServiceSchema = {
     },
     payOrder: {
       id: 'string',
+    },
+    getOrderWarnings: {
+      order_id: { type: 'string' },
     },
   },
 };

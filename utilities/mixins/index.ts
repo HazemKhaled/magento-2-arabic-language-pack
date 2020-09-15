@@ -8,5 +8,6 @@ export * from './product-transformation.mixin';
 export * from './app-search.mixin';
 export * from './products-instances.mixin';
 export * from './oms.mixin';
+export * from './gcp-pubsub.mixin';
 export * from './openapi';
 export * from './validation';

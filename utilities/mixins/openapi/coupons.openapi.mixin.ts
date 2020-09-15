@@ -14,21 +14,21 @@ const CreateCoupon = {
           type: 'object',
           properties: {
             value: { type: 'number' },
-            type: { type: 'string', enum: ['%', '$']},
+            type: { type: 'string', enum: ['%', '$'] },
           },
         },
         shipping: {
           type: 'object',
           properties: {
             value: { type: 'number' },
-            type: { type: 'string', enum: ['%', '$']},
+            type: { type: 'string', enum: ['%', '$'] },
           },
         },
         tax: {
           type: 'object',
           properties: {
             value: { type: 'number' },
-            type: { type: 'string', enum: ['%', '$']},
+            type: { type: 'string', enum: ['%', '$'] },
           },
         },
       },
@@ -53,12 +53,12 @@ const Coupon = {
 };
 
 const CouponsGetOpenapi = {
-  $path: 'get /coupons/:CODE',
+  $path: 'get /coupons/{code}',
   summary: 'Get Coupon',
   tags: ['Coupon'],
   parameters: [
     {
-      name: 'CODE',
+      name: 'code',
       in: 'path',
       required: true,
       schema: {
@@ -69,7 +69,6 @@ const CouponsGetOpenapi = {
     {
       name: 'membership',
       in: 'query',
-      required: false,
       schema: {
         type: 'string',
       },
@@ -77,7 +76,6 @@ const CouponsGetOpenapi = {
     {
       name: 'type',
       in: 'query',
-      required: false,
       schema: {
         type: 'string',
       },
@@ -94,38 +92,10 @@ const CouponsGetOpenapi = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorBasic',
-    },
-    404: {
-      description: 'Status 404',
-      content: {
-        'application/json': {
-          schema: {
-            type: 'object',
-            properties: {
-              errors: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    message: {
-                      type: 'string',
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
+    404: { $ref: '#/components/responses/404' },
   },
-  security: [
-    {
-      basicAuth: [] as any[],
-    },
-  ],
+  security: [{ basicAuth: [] as any[] }],
 };
 
 const CouponsListOpenapi = {
@@ -136,7 +106,6 @@ const CouponsListOpenapi = {
     {
       name: 'code',
       in: 'query',
-      required: false,
       schema: {
         type: 'string',
         pattern: '^[A-Z0-9]+$',
@@ -145,7 +114,6 @@ const CouponsListOpenapi = {
     {
       name: 'membership',
       in: 'query',
-      required: false,
       schema: {
         type: 'string',
       },
@@ -172,38 +140,10 @@ const CouponsListOpenapi = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorBasic',
-    },
-    404: {
-      description: 'Status 404',
-      content: {
-        'application/json': {
-          schema: {
-            type: 'object',
-            properties: {
-              errors: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    message: {
-                      type: 'string',
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
+    404: { $ref: '#/components/responses/404' },
   },
-  security: [
-    {
-      basicAuth: [] as any[],
-    },
-  ],
+  security: [{ basicAuth: [] as any[] }],
 };
 
 const CouponsCreateOpenapi = {
@@ -230,21 +170,26 @@ const CouponsCreateOpenapi = {
         },
       },
     },
-    401: {
-      $ref: '#/components/responses/UnauthorizedErrorBasic',
-    },
+    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
   },
-  security: [
-    {
-      basicAuth: [] as any[],
-    },
-  ],
+  security: [{ basicAuth: [] as any[] }],
 };
 
 const CouponsUpdateOpenapi = {
   ...CouponsCreateOpenapi,
-  $path: 'put /coupons/:code',
+  $path: 'put /coupons/{code}',
   summary: 'Update Coupon',
+  parameters: [
+    {
+      name: 'code',
+      in: 'path',
+      required: true,
+      schema: {
+        type: 'string',
+        pattern: '^[A-Z0-9]+$',
+      },
+    },
+  ],
 };
 export const CouponsOpenapi: ServiceSchema = {
   name: 'coupons',

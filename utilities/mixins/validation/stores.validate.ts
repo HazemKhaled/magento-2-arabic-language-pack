@@ -1,6 +1,5 @@
 import { ServiceSchema } from 'moleculer';
 
-
 export const StoresValidation: ServiceSchema = {
   name: 'stores',
   actions: {
@@ -78,6 +77,7 @@ export const StoresValidation: ServiceSchema = {
         status: {
           type: 'enum',
           values: [
+            'pending',
             'confirmed',
             'unconfirmed',
             'uninstalled',
@@ -98,7 +98,7 @@ export const StoresValidation: ServiceSchema = {
             'ebay',
             'api',
             'catalog',
-            'zid.sa',
+            'zid',
             'youcan',
             'other',
           ],
@@ -110,10 +110,7 @@ export const StoresValidation: ServiceSchema = {
         },
         stock_status: {
           type: 'enum',
-          values: [
-            'idle',
-            'in-progress',
-          ],
+          values: ['idle', 'in-progress'],
           optional: true,
         },
         price_date: {
@@ -123,10 +120,7 @@ export const StoresValidation: ServiceSchema = {
         },
         price_status: {
           type: 'enum',
-          values: [
-            'idle',
-            'in-progress',
-          ],
+          values: ['idle', 'in-progress'],
           optional: true,
         },
         sale_price: {
@@ -143,10 +137,7 @@ export const StoresValidation: ServiceSchema = {
         },
         compared_at_price_operator: {
           type: 'enum',
-          values: [
-            1,
-            2,
-          ],
+          values: [1, 2],
           optional: true,
         },
         currency: {
@@ -189,6 +180,7 @@ export const StoresValidation: ServiceSchema = {
                     'accounting',
                     'products',
                     'orders',
+                    'support',
                   ],
                 },
               },
@@ -270,6 +262,7 @@ export const StoresValidation: ServiceSchema = {
         status: {
           type: 'enum',
           values: [
+            'pending',
             'confirmed',
             'unconfirmed',
             'uninstalled',
@@ -291,7 +284,7 @@ export const StoresValidation: ServiceSchema = {
             'ebay',
             'api',
             'catalog',
-            'zid.sa',
+            'zid',
             'youcan',
             'other',
           ],
@@ -304,10 +297,7 @@ export const StoresValidation: ServiceSchema = {
         },
         stock_status: {
           type: 'enum',
-          values: [
-            'idle',
-            'in-progress',
-          ],
+          values: ['idle', 'in-progress'],
           optional: true,
         },
         price_date: {
@@ -317,10 +307,7 @@ export const StoresValidation: ServiceSchema = {
         },
         price_status: {
           type: 'enum',
-          values: [
-            'idle',
-            'in-progress',
-          ],
+          values: ['idle', 'in-progress'],
           optional: true,
         },
         sale_price: {
@@ -337,10 +324,7 @@ export const StoresValidation: ServiceSchema = {
         },
         compared_at_price_operator: {
           type: 'enum',
-          values: [
-            1,
-            2,
-          ],
+          values: [1, 2],
           optional: true,
         },
         currency: {
@@ -383,6 +367,7 @@ export const StoresValidation: ServiceSchema = {
                     'accounting',
                     'products',
                     'orders',
+                    'support',
                   ],
                 },
               },
@@ -459,6 +444,105 @@ export const StoresValidation: ServiceSchema = {
           optional: true,
         },
         $$strict: true,
+      },
+    },
+    meUpdate: {
+      params: {
+        $$strict: true,
+        logo: {
+          type: 'url',
+          optional: true,
+        },
+        status: {
+          type: 'enum',
+          values: [
+            'pending',
+            'confirmed',
+            'unconfirmed',
+            'uninstalled',
+            'archived',
+            'error',
+          ],
+          optional: true,
+        },
+        address: {
+          type: 'object',
+          props: {
+            first_name: {
+              type: 'string',
+              min: 3,
+              optional: true,
+            },
+            last_name: {
+              type: 'string',
+              min: 3,
+              optional: true,
+            },
+            company: {
+              type: 'string',
+              optional: true,
+            },
+            address_1: {
+              type: 'string',
+              min: 3,
+              optional: true,
+            },
+            address_2: {
+              type: 'string',
+              optional: true,
+            },
+            city: {
+              type: 'string',
+              optional: true,
+            },
+            state: {
+              type: 'string',
+              optional: true,
+            },
+            postcode: {
+              type: 'string',
+              optional: true,
+            },
+            country: {
+              type: 'string',
+              max: 2,
+              optional: true,
+            },
+            email: {
+              type: 'email',
+              optional: true,
+            },
+            phone: {
+              type: 'string',
+              optional: true,
+              convert: true,
+            },
+            $$strict: true,
+          },
+          optional: true,
+        },
+        currency: {
+          type: 'string',
+          max: 3,
+          optional: true,
+        },
+        sale_price: {
+          type: 'number',
+          optional: true,
+        },
+        sale_price_operator: {
+          type: 'number',
+          optional: true,
+        },
+        compared_at_price: {
+          type: 'number',
+          optional: true,
+        },
+        compared_at_price_operator: {
+          type: 'enum',
+          values: [1, 2],
+          optional: true,
+        },
       },
     },
     login: {

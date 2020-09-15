@@ -13,3 +13,6 @@ deployDev.sh
 currency.db
 openapi.json
 !private/importedProductsMigration/*.js
+build
+openapi-private.json
+gcp-key.json
