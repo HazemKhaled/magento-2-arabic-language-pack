@@ -3,12 +3,7 @@ import path from 'path';
 import { PubSub } from '@google-cloud/pubsub';
 import { ServiceSchema } from 'moleculer';
 
-const pubSubClient = new PubSub({
-  keyFilename: path.join(
-    __dirname,
-    process.env.GCP_KEYFILE || '../../../gcp-key.json'
-  ),
-});
+const pubSubClient = new PubSub();
 
 export const GCPPubSub: ServiceSchema = {
   name: 'GCPPubSub',

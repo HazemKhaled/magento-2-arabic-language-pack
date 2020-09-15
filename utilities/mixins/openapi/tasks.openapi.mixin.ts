@@ -9,7 +9,6 @@ import {
 import { CreateItem, UpdateItem, DeleteItem } from './orders.openapi.mixin';
 
 const commonSchema = {
-  tags: ['Async'],
   responses: {
     200: {
       description: 'Status 200',
@@ -40,6 +39,7 @@ const commonSchema = {
 const AsyncUpdateProductOpenapi = {
   ...InstanceUpdate,
   ...commonSchema,
+  tags: ['Async', 'My Products'],
   $path: 'put /async/catalog/products/{sku}',
   summary: 'Update Product by SKU Asynchronously',
 };
@@ -47,6 +47,7 @@ const AsyncUpdateProductOpenapi = {
 const AsyncDeleteProductOpenapi = {
   ...DeleteInstanceProduct,
   ...commonSchema,
+  tags: ['Async', 'My Products'],
   $path: 'delete /async/catalog/products/{sku}',
   summary: 'Delete product by SKU Asynchronously',
 };
@@ -54,13 +55,15 @@ const AsyncDeleteProductOpenapi = {
 const AsyncCreateProductOpenapi = {
   ...ProductsImport,
   ...commonSchema,
+  tags: ['Async', 'My Products'],
   $path: 'post /async/catalog/products',
   summary: 'Add to my products Asynchronously',
 };
 
-const AsynPatchProductOpenapi = {
+const AsyncPatchProductOpenapi = {
   ...BulkProductInstance,
   ...commonSchema,
+  tags: ['Async', 'My Products'],
   $path: 'patch /async/catalog/products',
   summary: 'Bulk update products Asynchronously',
 };
@@ -68,6 +71,7 @@ const AsynPatchProductOpenapi = {
 const AsyncCreateItemOpenapi = {
   ...CreateItem,
   ...commonSchema,
+  tags: ['Async', 'Orders'],
   $path: 'post /async/orders',
   summary: 'Create order Asynchronously',
 };
@@ -75,6 +79,7 @@ const AsyncCreateItemOpenapi = {
 const AsyncUpdateItemOpenapi = {
   ...UpdateItem,
   ...commonSchema,
+  tags: ['Async', 'Orders'],
   $path: 'put /async/orders/{order_id}',
   summary: 'Update order Asynchronously',
 };
@@ -82,6 +87,7 @@ const AsyncUpdateItemOpenapi = {
 const AsyncDeleteItemOpenapi = {
   ...DeleteItem,
   ...commonSchema,
+  tags: ['Async', 'Orders'],
   $path: 'delete /async/orders/{order_id}',
   summary: 'Cancel order Asynchronously',
 };
@@ -105,7 +111,7 @@ export const TasksOpenapi: ServiceSchema = {
         AsyncUpdateProductOpenapi,
         AsyncDeleteProductOpenapi,
         AsyncCreateProductOpenapi,
-        AsynPatchProductOpenapi,
+        AsyncPatchProductOpenapi,
         AsyncCreateItemOpenapi,
         AsyncUpdateItemOpenapi,
         AsyncDeleteItemOpenapi,
