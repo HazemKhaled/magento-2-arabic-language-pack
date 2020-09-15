@@ -680,7 +680,7 @@ export const BulkProductInstance = {
   },
 };
 
-export const pSearch = {
+export const pSearchOpenapi = {
   $path: 'post /catalog/products/search',
   summary: 'Search in product instances',
   tags: ['My Products'],
@@ -802,7 +802,7 @@ export const ProductsInstancesOpenapi: ServiceSchema = {
       openapi: ProductsTotal,
     },
     pSearch: {
-      openapi: pSearch,
+      openapi: pSearchOpenapi,
     },
   },
   tags: [
