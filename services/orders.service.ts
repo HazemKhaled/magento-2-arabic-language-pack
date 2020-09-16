@@ -621,8 +621,8 @@ const TheService: ServiceSchema = {
     getOrder: {
       auth: ['Bearer'],
       cache: {
-        keys: ['order_id'],
-        ttl: 60 * 60 * 24,
+        keys: ['#user', 'order_id'],
+        ttl: 60 * 60,
       },
       async handler(ctx) {
         const instance = await ctx.call('stores.findInstance', {
