@@ -433,7 +433,7 @@ module.exports = {
     deletePublish(ctx: Context, res: Product): Product {
       this.publishMessage('products.delete', {
         storeId: ctx.meta.storeId,
-        data: { sku: res.sku },
+        data: res,
       });
       return res;
     },
