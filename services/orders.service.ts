@@ -1216,7 +1216,10 @@ const TheService: ServiceSchema = {
     },
     async cacheUpdate(order, instance) {
       await Promise.all([
-        this.broker.cacher.set(`orders.getOrder:${order.id}`, order),
+        this.broker.cacher.set(
+          `orders.getOrder:${instance.consumer_key}|${order.id}`,
+          order
+        ),
         this.broker.cacher.set(
           `orders.list:${order.externalId}|${instance.consumer_key}|undefined|undefined|undefined|undefined|undefined|undefined`,
           [order]
