@@ -720,18 +720,10 @@ const TheService: ServiceSchema = {
           ctx.meta.$statusMessage = 'Not Found';
           return { message: 'Order Not Found!' };
         }
-        // Change here
-        // FIXME: Allow cancel order if invoice not paid
-        if (
-          !['Order Placed', 'Processing'].includes(orderBeforeUpdate.status)
-        ) {
-          ctx.meta.$statusCode = 405;
-          ctx.meta.$statusMessage = 'Not Allowed';
-          return {
-            message:
-              'The Order Is Now Processed With Knawat You Can Not Cancel It',
-          };
-        }
+
+        // Check cancel possibility
+        this.checkUpdateStatus(orderBeforeUpdate, ctx.params);
+
         if (orderBeforeUpdate.status === 'Cancelled') {
           return { message: 'The Order Is Already Cancelled' };
         }
@@ -1254,23 +1246,20 @@ const TheService: ServiceSchema = {
       if (order.id === -1) {
         throw new MpError('Not Found', 'Order Not Found!', 404);
       }
-      if (Object.keys(params).length === 1) {
-        throw new MpError('Unprocessable Entity', 'No thing to update!', 422);
-      }
       if (
         order.financialStatus !== 'unpaid' ||
         order.fulfillmentStatus !== 'pending'
       ) {
         throw new MpError(
           'Not Allowed',
-          'The Order Is Now Processed With Knawat You Can Not Update It',
+          'The Order Is Now Processed With Knawat You Can Not Update Or Cancel It',
           405
         );
       }
       if (order.status === 'Cancelled') {
         throw new MpError(
           'Not Allowed',
-          'The Order Is Cancelled, You Can Not Update It',
+          'The Order Is Cancelled, You Can Not Update Or Cancel It',
           405
         );
       }
