@@ -728,7 +728,7 @@ const TheService: ServiceSchema = {
 
         return ctx
           .call('oms.deleteOrderById', {
-            customerId: store.internal_data.omsId,
+            customerId: store.internal_data?.omsId,
             orderId: ctx.params.id,
           })
           .then(async result => {
