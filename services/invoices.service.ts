@@ -121,7 +121,7 @@ const TheService: ServiceSchema = {
     applyCredits: {
       auth: ['Bearer'],
       async handler(ctx: Context) {
-        const { store } = ctx.meta;
+        const store = await ctx.call('stores.me');
 
         const { params } = ctx;
         if (

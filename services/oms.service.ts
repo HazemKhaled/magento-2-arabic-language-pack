@@ -22,7 +22,7 @@ const TheService: ServiceSchema = {
         const params = { ...ctx.params };
 
         if (!params.omsId) {
-          return [];
+          return { invoices: [] };
         }
 
         delete params.omsId;
