@@ -95,7 +95,7 @@ const TheService: ServiceSchema = {
                   id: res._id,
                 });
               }
-              if (res.internal_data && res.internal_data.omsId) {
+              if (res?.internal_data?.omsId) {
                 omsData = (await ctx
                   .call('oms.getCustomer', {
                     customerId: res.internal_data.omsId,
@@ -133,11 +133,7 @@ const TheService: ServiceSchema = {
                   id: ctx.params.id,
                 });
               }
-              if (
-                res.internal_data &&
-                res.internal_data.omsId &&
-                !ctx.params.withoutBalance
-              ) {
+              if (res?.internal_data?.omsId && !ctx.params.withoutBalance) {
                 const omsData = (await ctx
                   .call('oms.getCustomer', {
                     customerId: res.internal_data.omsId,
@@ -381,7 +377,7 @@ const TheService: ServiceSchema = {
         );
         this.cacheUpdate(myStore);
 
-        if (myStore.internal_data && myStore.internal_data.omsId) {
+        if (myStore?.internal_data?.omsId) {
           ctx
             .call('crm.updateStoreById', { id, ...ctx.params })
             .then(null, (error: unknown) => {
@@ -591,6 +587,7 @@ const TheService: ServiceSchema = {
               const instance = await this.broker.call('stores.findInstance', {
                 consumerKey: decoded.id,
               });
+
               if (instance.status) {
                 return instance;
               }

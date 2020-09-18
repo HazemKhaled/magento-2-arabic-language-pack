@@ -212,9 +212,9 @@ module.exports = {
             const outOfStock = skus.filter(
               (sku: string) => !newSKUs.includes(sku)
             );
-            const instance = await this.broker.call('stores.findInstance', {
-              consumerKey: ctx.meta.user,
-            });
+
+            const { store } = ctx.meta;
+
             const bulk: any[] = [];
             if (newSKUs.length === 0) {
               throw new MpError(
@@ -227,15 +227,15 @@ module.exports = {
               bulk.push({
                 update: {
                   _index: 'products-instances',
-                  _id: `${instance.consumer_key}-${product.sku}`,
+                  _id: `${store.consumer_key}-${product.sku}`,
                 },
               });
               bulk.push({
                 doc: {
-                  instanceId: instance.consumer_key,
+                  instanceId: store.consumer_key,
                   createdAt: new Date(),
                   updated: new Date(),
-                  siteUrl: instance.url,
+                  siteUrl: store.url,
                   sku: product.sku,
                   variations: product.variations
                     .filter(variation => variation.quantity > 0)
@@ -260,9 +260,7 @@ module.exports = {
                     .filter((item: any) => item.update._version === 1)
                     .map((item: any) => item.update._id);
                   const update = res.filter((product: Product) =>
-                    firstImport.includes(
-                      `${instance.consumer_key}-${product.sku}`
-                    )
+                    firstImport.includes(`${store.consumer_key}-${product.sku}`)
                   );
 
                   const appSearchProducts = [];
@@ -278,11 +276,11 @@ module.exports = {
                     if (product) {
                       let index = -1;
                       if (product.imported) {
-                        index = product.imported.indexOf(instance.url);
+                        index = product.imported.indexOf(store.url);
                       }
                       if (index === -1) {
                         product.imported = (product.imported || []).concat([
-                          instance.url,
+                          store.url,
                         ]);
                         updateArr.push({
                           id: product.sku,
