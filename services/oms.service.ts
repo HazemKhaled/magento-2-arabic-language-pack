@@ -20,6 +20,11 @@ const TheService: ServiceSchema = {
     listInvoice: {
       handler(ctx: Context) {
         const params = { ...ctx.params };
+
+        if (!params.omsId) {
+          return [];
+        }
+
         delete params.omsId;
         return this.request({
           path: `invoices/${ctx.params.omsId}`,
