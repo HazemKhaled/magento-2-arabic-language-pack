@@ -715,11 +715,6 @@ const TheService: ServiceSchema = {
         const orderBeforeUpdate = await ctx.call('orders.getOrder', {
           order_id: ctx.params.id,
         });
-        if (orderBeforeUpdate.id === -1) {
-          ctx.meta.$statusCode = 404;
-          ctx.meta.$statusMessage = 'Not Found';
-          return { message: 'Order Not Found!' };
-        }
 
         // Check cancel possibility
         this.checkUpdateStatus(orderBeforeUpdate, ctx.params);
@@ -727,80 +722,44 @@ const TheService: ServiceSchema = {
         if (orderBeforeUpdate.status === 'Cancelled') {
           return { message: 'The Order Is Already Cancelled' };
         }
-        const instance = await ctx.call('stores.findInstance', {
-          consumerKey: ctx.meta.user,
-        });
+        const { store } = ctx.meta;
         // Send received log
-        this.sendReceiveLog('Cancel', ctx.params.id, instance, ctx.params);
+        this.sendReceiveLog('Cancel', ctx.params.id, store, ctx.params);
 
         return ctx
           .call('oms.deleteOrderById', {
-            customerId: instance.internal_data.omsId,
+            customerId: store.internal_data?.omsId,
             orderId: ctx.params.id,
           })
-          .then(
-            async result => {
+          .then(async result => {
+            if (result.salesorder) {
+              // Clean list cache
               this.broker.cacher.clean(
                 `orders.list:undefined|${ctx.meta.user}**`
               );
-              this.broker.cacher.clean(`orders.getOrder:${ctx.params.id}**`);
-              if (result.salesorder) {
-                return {
-                  status: 'success',
-                  data: {
-                    order_id: ctx.params.id,
-                  },
-                };
-              }
-
-              this.logger.error(result);
-
-              this.sendLogs({
-                topicId: ctx.params.id,
-                message:
-                  result && result.error && result.error.message
-                    ? result.error.message
-                    : 'Order Error',
-                storeId: instance.url,
-                logLevel: 'error',
-                code: 500,
-                payload: { errors: result.error || result, params: ctx.params },
-              });
-              ctx.meta.$statusCode = 500;
-              ctx.meta.$statusMessage = 'Internal Server Error';
+              // Update order by id cache
+              this.cacheUpdate(result.salesorder, store);
               return {
-                errors: [
-                  {
-                    status: 'fail',
-                    message: 'Internal Server Error',
-                  },
-                ],
-              };
-            },
-            err => {
-              this.sendLogs({
-                topicId: ctx.params.id,
-                message:
-                  err && err.error && err.error.message
-                    ? err.error.message
-                    : 'Order Error',
-                storeId: instance.url,
-                logLevel: 'error',
-                code: 500,
-                payload: { errors: err.error || err, params: ctx.params },
-              });
-              ctx.meta.$statusCode = 500;
-              ctx.meta.$statusMessage = 'Internal Server Error';
-              return {
-                errors: [
-                  {
-                    status: 'fail',
-                    message: 'Internal Server Error',
-                  },
-                ],
+                status: 'success',
+                data: {
+                  order_id: ctx.params.id,
+                },
               };
             }
-          );
+
+            this.sendLogs({
+              topicId: ctx.params.id,
+              message:
+                result && result.error && result.error.message
+                  ? result.error.message
+                  : 'Order Error',
+              storeId: store.url,
+              logLevel: 'error',
+              code: 500,
+              payload: { errors: result.error || result, params: ctx.params },
+            });
+            throw new MpError('Orders Service', 'Internal Server Error', 500);
+          });
       },
     },
     payOrder: {
