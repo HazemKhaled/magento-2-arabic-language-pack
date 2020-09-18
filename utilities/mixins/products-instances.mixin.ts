@@ -189,7 +189,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
       } catch (err) {
         throw new MpError(
           'Products Service',
-          (err && err.message) || 'Internal server error!',
+          err?.message || 'Internal server error!',
           500
         );
       }

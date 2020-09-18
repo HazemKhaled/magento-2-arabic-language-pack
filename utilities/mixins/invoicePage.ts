@@ -42,7 +42,7 @@ export const InvoicePage: ServiceSchema = {
                       </h3>
                       <div class="invoice-store-details">
                         ${
-                          store.internal_data && store.internal_data.invoice
+                          store.internal_data?.invoice
                             ? store.internal_data.invoice.header
                             : `
                         <div>${store.address.address_1}</div>

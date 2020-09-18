@@ -131,7 +131,7 @@ export const TaxCheck: ServiceSchema = {
      * @returns {boolean}
      */
     checkItemHasTaxClass(item: OrderItem): boolean {
-      return Boolean(item && item.taxClass);
+      return Boolean(item?.taxClass);
     },
     /**
      *

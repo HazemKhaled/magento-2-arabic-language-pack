@@ -262,10 +262,7 @@ const TheService: ServiceSchema = {
         error.name = 'Validation error';
         throw error;
       }
-      if (
-        params.type === 'subscription' &&
-        (!params.discount || !params.discount.total)
-      ) {
+      if (params.type === 'subscription' && !params.discount?.total) {
         const error = new MoleculerError(
           'Parameters validation error!',
           422,

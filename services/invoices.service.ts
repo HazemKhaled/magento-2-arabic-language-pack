@@ -69,7 +69,7 @@ const TheService: ServiceSchema = {
           (a: number, i: GenericObject) => (a += i.rate),
           0
         );
-        const totalBeforeTax = itemsCost - ((discount && discount.value) || 0);
+        const totalBeforeTax = itemsCost - (discount?.value || 0);
 
         if (totalBeforeTax === 0) {
           return {
@@ -86,8 +86,8 @@ const TheService: ServiceSchema = {
 
         const invoiceParams: { [key: string]: string } = {
           customerId: instance?.internal_data?.omsId,
-          discount: ctx.params.discount && ctx.params.discount.value,
-          discountType: ctx.params.discount && ctx.params.discount.type,
+          discount: ctx.params.discount?.value,
+          discountType: ctx.params.discount?.type,
           items: ctx.params.items,
         };
 

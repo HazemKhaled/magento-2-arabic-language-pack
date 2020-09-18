@@ -47,7 +47,7 @@ const TheService: ServiceSchema = {
         const { store } = ctx.meta;
 
         // create OMS contact if no oms ID
-        if (!store?.internal_data?.omsId) {
+        if (!store.internal_data?.omsId) {
           await this.setOmsId(store);
         }
 
@@ -214,7 +214,7 @@ const TheService: ServiceSchema = {
         if (Array.isArray(discountResponse) && ctx.params.coupon) {
           warnings = warnings.concat(discountResponse.warnings);
         }
-        if (discountResponse && discountResponse.discount) {
+        if (discountResponse?.discount) {
           data.discount = discountResponse.discount.toString();
           data.coupon = discountResponse.coupon;
         }
@@ -280,12 +280,12 @@ const TheService: ServiceSchema = {
             logLevel: 'error',
             code: result.error.statusCode,
             payload: {
-              errors: (result.error && result.error.details) || result,
+              errors: result.error?.details || result,
               params: ctx.params,
             },
           });
-          ctx.meta.$statusCode = result.error.statusCode;
-          ctx.meta.$statusMessage = result.error.name;
+          ctx.meta.$statusCode = result.error?.statusCode;
+          ctx.meta.$statusMessage = result.error?.name;
           return {
             errors: [
               {
@@ -295,10 +295,7 @@ const TheService: ServiceSchema = {
             ],
           };
         }
-        if (
-          result.salesorder &&
-          !(store.internal_data && store.internal_data.omsId)
-        ) {
+        if (result.salesorder && !store.internal_data?.omsId) {
           ctx
             .call('stores.update', {
               id: store.url,
@@ -446,7 +443,7 @@ const TheService: ServiceSchema = {
 
             // Get Shipping Country
             let country = orderBeforeUpdate.shipping.country;
-            if (ctx.params.shipping && ctx.params.shipping.country) {
+            if (ctx.params.shipping?.country) {
               country = ctx.params.shipping.country;
             }
 
@@ -558,12 +555,12 @@ const TheService: ServiceSchema = {
               logLevel: 'error',
               code: result.error.statusCode,
               payload: {
-                errors: (result.error && result.error.details) || result,
+                errors: result.error?.details || result,
                 params: ctx.params,
               },
             });
-            ctx.meta.$statusCode = result.error.statusCode;
-            ctx.meta.$statusMessage = result.error.name;
+            ctx.meta.$statusCode = result.error?.statusCode;
+            ctx.meta.$statusMessage = result.error?.name;
             return {
               errors: [
                 {
@@ -594,7 +591,7 @@ const TheService: ServiceSchema = {
           this.sendLogs({
             topicId: orderBeforeUpdate.externalId,
             message:
-              (err && err.stack) || (err.error && err.error.message)
+              err?.stack || err?.error?.message
                 ? err.error.message
                 : 'Order Error',
             storeId: store.url,
@@ -624,7 +621,7 @@ const TheService: ServiceSchema = {
       async handler(ctx) {
         const { store } = ctx.meta;
 
-        if (!store?.internal_data?.omsId) {
+        if (!store.internal_data?.omsId) {
           ctx.meta.$statusCode = 404;
           ctx.meta.$statusMessage = 'Not Found';
           return {
@@ -672,7 +669,7 @@ const TheService: ServiceSchema = {
       async handler(ctx) {
         const { store } = ctx.meta;
 
-        if (store?.internal_data?.omsId) {
+        if (store.internal_data?.omsId) {
           return [];
         }
         const queryParams: { [key: string]: string } = {};
@@ -744,10 +741,9 @@ const TheService: ServiceSchema = {
 
             this.sendLogs({
               topicId: ctx.params.id,
-              message:
-                result && result.error && result.error.message
-                  ? result.error.message
-                  : 'Order Error',
+              message: result.error?.message
+                ? result.error.message
+                : 'Order Error',
               storeId: store.url,
               logLevel: 'error',
               code: 500,
@@ -1029,10 +1025,7 @@ const TheService: ServiceSchema = {
      * @param params
      */
     checkShipment(instance, data, shippingMethod, shipping, shipment, params) {
-      if (
-        (!instance.shipping_methods || !instance.shipping_methods[0].name) &&
-        !shippingMethod
-      ) {
+      if (!instance.shipping_methods?.[0].name && !shippingMethod) {
         this.sendLogs({
           topic: 'order',
           topicId: data.externalId,
@@ -1088,14 +1081,13 @@ const TheService: ServiceSchema = {
             instance.url
           )}/external/${data.externalId}`;
         // Order store data
-        data.store =
-          instance.internal_data && instance.internal_data.omsId
-            ? { id: instance.internal_data.omsId }
-            : {
-                url: instance.url,
-                name: instance.name,
-                users: instance.users,
-              };
+        data.store = instance.internal_data?.omsId
+          ? { id: instance.internal_data.omsId }
+          : {
+              url: instance.url,
+              name: instance.name,
+              users: instance.users,
+            };
         if (instance.logo) {
           data.storeLogo = instance.logo;
         }

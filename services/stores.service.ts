@@ -102,7 +102,7 @@ const TheService: ServiceSchema = {
                   })
                   .then(null, this.logger.error)) as { store: Store };
                 // If the DB response not null will return the data
-                return this.sanitizeResponse(res, omsData && omsData.store);
+                return this.sanitizeResponse(res, Boolean(omsData?.store));
               }
               return this.sanitizeResponse(res);
             }
@@ -433,7 +433,7 @@ const TheService: ServiceSchema = {
             );
           instance.internal_data = {
             ...instance.internal_data,
-            omsId: omsStore.id || (omsStore.store && omsStore.store.id),
+            omsId: omsStore.id || omsStore.store?.id,
           };
           this.broker.cacher.clean(`orders.getOrder:${instance.consumer_key}*`);
           this.broker.cacher.clean(
@@ -452,10 +452,9 @@ const TheService: ServiceSchema = {
             price_status: 'idle',
           });
         } catch (err) {
-          ctx.meta.$statusCode =
-            err.status || (err.error && err.error.statusCode) || 500;
+          ctx.meta.$statusCode = err.status || err.error?.statusCode || 500;
           ctx.meta.$statusMessage =
-            err.statusText || (err.error && err.error.name) || 'Internal Error';
+            err.statusText || err.error?.name || 'Internal Error';
           return {
             errors: [
               {

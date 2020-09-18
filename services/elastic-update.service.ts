@@ -69,7 +69,7 @@ const TheService: ServiceSchema = {
 
         if (lastUpdateDate) {
           const products = await this.syncInstanceProducts(lastUpdateDate);
-          if (products && products.success === true) {
+          if (products?.success === true) {
             if (products.LastDate && products.LastDate !== '') {
               const updated = await this.updateLastUpdateDate(
                 products.LastDate,
@@ -104,7 +104,7 @@ const TheService: ServiceSchema = {
      * @memberof ElasticLib
      */
     async syncInstanceProducts(lastUpdateDate: string | number | Date) {
-      if (!lastUpdateDate && lastUpdateDate === '') {
+      if (!lastUpdateDate || lastUpdateDate === '') {
         return false;
       }
       const limit = process.env.ELASTIC_UPDATE_LIMIT || 999;
@@ -198,10 +198,10 @@ const TheService: ServiceSchema = {
             api: 'updateByQuery',
             params: updateData,
           });
-          if (updated && updated.failures.length === 0) {
+          if (updated?.failures?.length === 0) {
             this.logger.info(`[SUCCESS] ${product.sku} has been Updated`);
           }
-          if (updated && updated.failures.length > 0) {
+          if (updated?.failures?.length) {
             this.logger.error(`[ERROR] ${product.sku}`, updated);
             result = false;
           }
@@ -225,7 +225,7 @@ const TheService: ServiceSchema = {
       return this.adapter
         .find(query)
         .then(([date]: [{ date: any }]) =>
-          date && date.date ? date.date : new Date('1970-01-01T12:00:00.000Z')
+          date?.date ? date.date : new Date('1970-01-01T12:00:00.000Z')
         )
         .catch((err: Error) => {
           this.logger.error('ERROR_DURING_GET_LAST_DATE', err);
