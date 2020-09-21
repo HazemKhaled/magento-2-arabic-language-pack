@@ -1,5 +1,5 @@
 import Loop from 'bluebird';
-import { Context, Errors, ServiceSchema } from 'moleculer';
+import { Context, Errors, GenericObject, ServiceSchema } from 'moleculer';
 import * as Cron from 'moleculer-cron';
 import ESService, { SearchResponse } from 'moleculer-elasticsearch';
 
@@ -252,24 +252,24 @@ const TheService: ServiceSchema = {
               .updateById('last_update_date', {
                 $set: { date: new Date(date) },
               })
-              .then((json: object) =>
+              .then((json: GenericObject) =>
                 this.entityChanged('updated', json, ctx).then(() => json)
               )
-              .catch((err: object) => {
+              .catch((err: GenericObject) => {
                 this.logger.error('ERROR_DURING_UPDATE_LAST_DATE', err);
               });
           }
 
           return this.adapter
             .insert({ _id: 'last_update_date', date: new Date(date) })
-            .then((json: object) =>
+            .then((json: GenericObject) =>
               this.entityChanged('created', json, ctx).then(() => json)
             )
-            .catch((err: object) => {
+            .catch((err: GenericObject) => {
               this.logger.error('ERROR_DURING_INSERT_LAST_DATE', err);
             });
         })
-        .catch((err: object) => {
+        .catch((err: GenericObject) => {
           this.logger.error('ERROR_DURING_UPDATE_LAST_DATE', err);
         });
     },

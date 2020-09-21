@@ -1,3 +1,5 @@
+import { GenericObject } from 'moleculer';
+
 /**
  * Order Type definition
  *
@@ -10,7 +12,7 @@ export interface Order {
   knawat_order_status?: string;
   line_items?: OrderItem[];
   items?: OrderItem[];
-  billing?: object;
+  billing?: GenericObject;
   shipping: OrderAddress;
   total?: number;
   createDate?: Date;
@@ -23,7 +25,7 @@ export interface Order {
   shipmentDate?: Date;
   shipping_method?: string;
   discount?: number;
-  store?: {};
+  store?: GenericObject;
   orderNumber?: string;
   taxTotal?: number;
   adjustment?: number;

@@ -1,4 +1,4 @@
-import { Context, ServiceSchema } from 'moleculer';
+import { Context, GenericObject, ServiceSchema } from 'moleculer';
 import ESService from 'moleculer-elasticsearch';
 import { v1 as uuidv1 } from 'uuid';
 
@@ -90,10 +90,10 @@ const TheService: ServiceSchema = {
         const body: {
           size?: number;
           from?: number;
-          query?: { [key: string]: {} };
+          query?: { [key: string]: GenericObject };
           sort?: { [key: string]: string };
         } = {};
-        const query: { bool?: { filter?: {}[] } } = {
+        const query: { bool?: { filter?: GenericObject[] } } = {
           bool: { filter: [] },
         };
         if (ctx.params.limit) body.size = parseInt(ctx.params.limit, 10);

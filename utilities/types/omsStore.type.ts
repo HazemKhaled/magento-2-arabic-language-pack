@@ -1,3 +1,5 @@
+import { GenericObject } from 'moleculer';
+
 /**
  * Store Type definition
  *
@@ -8,7 +10,7 @@ export interface OmsStore {
   id?: string;
   url?: string;
   name?: string;
-  users?: {}[];
+  users?: GenericObject[];
   companyName?: string;
   status?: string;
   platform?: string;
@@ -25,5 +27,5 @@ export interface OmsStore {
   shippingMethods?: string[] | { name: string }[];
   credit?: number;
   debit?: number;
-  [key: string]: string | string[] | Date | {}[] | number;
+  [key: string]: string | string[] | Date | GenericObject[] | number;
 }
