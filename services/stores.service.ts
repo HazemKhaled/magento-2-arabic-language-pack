@@ -178,8 +178,8 @@ const TheService: ServiceSchema = {
       handler(ctx: Context) {
         let params: {
           where?: GenericObject;
-          limit?: GenericObject;
-          skip?: GenericObject;
+          limit?: number;
+          skip?: number;
           order?: string;
           sort?: GenericObject;
         } = {};
