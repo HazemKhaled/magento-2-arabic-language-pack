@@ -104,7 +104,7 @@ const TheService: ServiceSchema = {
      * @memberof ElasticLib
      */
     async syncInstanceProducts(lastUpdateDate: string | number | Date) {
-      if (!lastUpdateDate || lastUpdateDate === '') {
+      if (!lastUpdateDate) {
         return false;
       }
       const limit = process.env.ELASTIC_UPDATE_LIMIT || 999;
