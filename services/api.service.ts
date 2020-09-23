@@ -92,11 +92,11 @@ const TheService: ServiceSchema = {
 
           // paymentGateway
           'POST paymentGateway/:type/transaction': 'paymentGateway.transaction',
-          'GET checkout': 'paymentGateway.checkout',
 
           // Payments mp
           'POST payments/:id': 'payments.add',
           'GET payments': 'payments.get',
+          'GET checkout': 'payments.checkout',
 
           // Membership
           'POST membership': 'membership.create',
