@@ -5,7 +5,7 @@ export const OmsValidation: ServiceSchema = {
   actions: {
     listInvoice: {
       params: {
-        omsId: { type: ['string'], optional: true },
+        omsId: { type: 'string', optional: true, empty: false },
         page: { type: 'number', integer: true, optional: true, convert: true },
         limit: { type: 'number', integer: true, optional: true, convert: true },
         reference_number: { type: 'string', optional: true },
