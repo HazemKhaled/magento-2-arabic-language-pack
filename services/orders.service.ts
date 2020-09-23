@@ -715,100 +715,51 @@ const TheService: ServiceSchema = {
         const orderBeforeUpdate = await ctx.call('orders.getOrder', {
           order_id: ctx.params.id,
         });
-        if (orderBeforeUpdate.id === -1) {
-          ctx.meta.$statusCode = 404;
-          ctx.meta.$statusMessage = 'Not Found';
-          return { message: 'Order Not Found!' };
-        }
-        // Change here
-        // FIXME: Allow cancel order if invoice not paid
-        if (
-          !['Order Placed', 'Processing'].includes(orderBeforeUpdate.status)
-        ) {
-          ctx.meta.$statusCode = 405;
-          ctx.meta.$statusMessage = 'Not Allowed';
-          return {
-            message:
-              'The Order Is Now Processed With Knawat You Can Not Cancel It',
-          };
-        }
+
+        // Check cancel possibility
+        this.checkUpdateStatus(orderBeforeUpdate, ctx.params);
+
         if (orderBeforeUpdate.status === 'Cancelled') {
           return { message: 'The Order Is Already Cancelled' };
         }
-        const instance = await ctx.call('stores.findInstance', {
-          consumerKey: ctx.meta.user,
-        });
+        const { store } = ctx.meta;
         // Send received log
-        this.sendReceiveLog('Cancel', ctx.params.id, instance, ctx.params);
+        this.sendReceiveLog('Cancel', ctx.params.id, store, ctx.params);
 
         return ctx
           .call('oms.deleteOrderById', {
-            customerId: instance.internal_data.omsId,
+            customerId: store.internal_data?.omsId,
             orderId: ctx.params.id,
           })
-          .then(
-            async result => {
+          .then(async result => {
+            if (result.salesorder) {
+              // Clean list cache
               this.broker.cacher.clean(
                 `orders.list:undefined|${ctx.meta.user}**`
               );
-              this.broker.cacher.clean(`orders.getOrder:${ctx.params.id}**`);
-              if (result.salesorder) {
-                return {
-                  status: 'success',
-                  data: {
-                    order_id: ctx.params.id,
-                  },
-                };
-              }
-
-              this.logger.error(result);
-
-              this.sendLogs({
-                topicId: ctx.params.id,
-                message:
-                  result && result.error && result.error.message
-                    ? result.error.message
-                    : 'Order Error',
-                storeId: instance.url,
-                logLevel: 'error',
-                code: 500,
-                payload: { errors: result.error || result, params: ctx.params },
-              });
-              ctx.meta.$statusCode = 500;
-              ctx.meta.$statusMessage = 'Internal Server Error';
+              // Update order by id cache
+              this.cacheUpdate(result.salesorder, store);
               return {
-                errors: [
-                  {
-                    status: 'fail',
-                    message: 'Internal Server Error',
-                  },
-                ],
-              };
-            },
-            err => {
-              this.sendLogs({
-                topicId: ctx.params.id,
-                message:
-                  err && err.error && err.error.message
-                    ? err.error.message
-                    : 'Order Error',
-                storeId: instance.url,
-                logLevel: 'error',
-                code: 500,
-                payload: { errors: err.error || err, params: ctx.params },
-              });
-              ctx.meta.$statusCode = 500;
-              ctx.meta.$statusMessage = 'Internal Server Error';
-              return {
-                errors: [
-                  {
-                    status: 'fail',
-                    message: 'Internal Server Error',
-                  },
-                ],
+                status: 'success',
+                data: {
+                  order_id: ctx.params.id,
+                },
               };
             }
-          );
+
+            this.sendLogs({
+              topicId: ctx.params.id,
+              message:
+                result && result.error && result.error.message
+                  ? result.error.message
+                  : 'Order Error',
+              storeId: store.url,
+              logLevel: 'error',
+              code: 500,
+              payload: { errors: result.error || result, params: ctx.params },
+            });
+            throw new MpError('Orders Service', 'Internal Server Error', 500);
+          });
       },
     },
     payOrder: {
@@ -1254,23 +1205,20 @@ const TheService: ServiceSchema = {
       if (order.id === -1) {
         throw new MpError('Not Found', 'Order Not Found!', 404);
       }
-      if (Object.keys(params).length === 1) {
-        throw new MpError('Unprocessable Entity', 'No thing to update!', 422);
-      }
       if (
         order.financialStatus !== 'unpaid' ||
         order.fulfillmentStatus !== 'pending'
       ) {
         throw new MpError(
           'Not Allowed',
-          'The Order Is Now Processed With Knawat You Can Not Update It',
+          'The Order Is Now Processed With Knawat You Can Not Update Or Cancel It',
           405
         );
       }
       if (order.status === 'Cancelled') {
         throw new MpError(
           'Not Allowed',
-          'The Order Is Cancelled, You Can Not Update It',
+          'The Order Is Cancelled, You Can Not Update Or Cancel It',
           405
         );
       }
