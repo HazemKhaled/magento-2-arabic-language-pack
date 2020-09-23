@@ -111,17 +111,6 @@ services:
     environment:
       SERVICES: oms
 
-  elastic-update:
-    build:
-      context: ../../
-    image: microes
-    restart: always
-    env_file: .env
-    environment:
-      SERVICES: elastic-update
-    volumes:
-      - ~/data/mp-nedb:/app/data
-
   logs:
     build:
       context: ../../
