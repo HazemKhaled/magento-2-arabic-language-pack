@@ -92,6 +92,7 @@ const TheService: ServiceSchema = {
 
           // paymentGateway
           'POST paymentGateway/:type/transaction': 'paymentGateway.transaction',
+          'GET checkout': 'paymentGateway.checkout',
 
           // Payments mp
           'POST payments/:id': 'payments.add',
