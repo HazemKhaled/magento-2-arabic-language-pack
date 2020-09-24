@@ -28,7 +28,7 @@ export interface Order {
   taxTotal?: number;
   adjustment?: number;
   storeLogo?: string;
-  warnings?: string;
+  warnings?: OrderWarnings;
   warningsSnippet?: string;
   financialStatus?:
     | 'unpaid'
@@ -82,7 +82,8 @@ export interface OrderItem {
   quantityRequired?: number;
   taxId?: string;
   taxClass?: string;
-  warnings?: string;
+  warnings?: string[];
+  ship_to?: string[];
 }
 
 /**
@@ -137,3 +138,5 @@ export interface OrderAddress {
   phone?: string;
   email?: string;
 }
+
+export type OrderWarnings = { message: string; sku: string }[];
