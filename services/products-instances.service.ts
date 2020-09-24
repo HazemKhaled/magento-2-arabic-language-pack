@@ -445,7 +445,7 @@ module.exports = {
       success: string[];
       outOfStock: string[];
     } {
-      this.publishMessage('products.create', {
+      this.publishMessage('products.import', {
         storeId: ctx.meta.storeId,
         data: res,
       });

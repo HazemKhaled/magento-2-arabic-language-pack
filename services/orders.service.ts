@@ -235,11 +235,7 @@ const TheService: ServiceSchema = {
           },
         });
 
-        data.status = ['pending', 'processing', 'cancelled'].includes(
-          data.status
-        )
-          ? this.normalizeStatus(data.status)
-          : data.status;
+        data.status = 'draft';
         data.subscription = subscription.membership.name.en;
 
         // Initializing warnings array if we have a Warning
