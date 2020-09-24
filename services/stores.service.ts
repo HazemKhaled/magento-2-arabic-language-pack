@@ -95,14 +95,14 @@ const TheService: ServiceSchema = {
                   id: res._id,
                 });
               }
-              if (res.internal_data && res.internal_data.omsId) {
+              if (res?.internal_data?.omsId) {
                 omsData = (await ctx
                   .call('oms.getCustomer', {
                     customerId: res.internal_data.omsId,
                   })
                   .then(null, this.logger.error)) as { store: Store };
                 // If the DB response not null will return the data
-                return this.sanitizeResponse(res, omsData && omsData.store);
+                return this.sanitizeResponse(res, Boolean(omsData?.store));
               }
               return this.sanitizeResponse(res);
             }
@@ -133,11 +133,7 @@ const TheService: ServiceSchema = {
                   id: ctx.params.id,
                 });
               }
-              if (
-                res.internal_data &&
-                res.internal_data.omsId &&
-                !ctx.params.withoutBalance
-              ) {
+              if (res?.internal_data?.omsId && !ctx.params.withoutBalance) {
                 const omsData = (await ctx
                   .call('oms.getCustomer', {
                     customerId: res.internal_data.omsId,
@@ -381,7 +377,7 @@ const TheService: ServiceSchema = {
         );
         this.cacheUpdate(myStore);
 
-        if (myStore.internal_data && myStore.internal_data.omsId) {
+        if (myStore?.internal_data?.omsId) {
           ctx
             .call('crm.updateStoreById', { id, ...ctx.params })
             .then(null, (error: unknown) => {
@@ -437,7 +433,7 @@ const TheService: ServiceSchema = {
             );
           instance.internal_data = {
             ...instance.internal_data,
-            omsId: omsStore.id || (omsStore.store && omsStore.store.id),
+            omsId: omsStore.id || omsStore.store?.id,
           };
           this.broker.cacher.clean(`orders.getOrder:${instance.consumer_key}*`);
           this.broker.cacher.clean(
@@ -456,10 +452,9 @@ const TheService: ServiceSchema = {
             price_status: 'idle',
           });
         } catch (err) {
-          ctx.meta.$statusCode =
-            err.status || (err.error && err.error.statusCode) || 500;
+          ctx.meta.$statusCode = err.status || err.error?.statusCode || 500;
           ctx.meta.$statusMessage =
-            err.statusText || (err.error && err.error.name) || 'Internal Error';
+            err.statusText || err.error?.name || 'Internal Error';
           return {
             errors: [
               {
@@ -591,6 +586,7 @@ const TheService: ServiceSchema = {
               const instance = await this.broker.call('stores.findInstance', {
                 consumerKey: decoded.id,
               });
+
               if (instance.status) {
                 return instance;
               }
