@@ -1,4 +1,4 @@
-version: '3.3'
+version: "3.3"
 
 services:
   api:
@@ -8,16 +8,16 @@ services:
     restart: always
     env_file: .env
     environment:
-      SERVICES: api, tasks
+      SERVICES: api, tasks, sentry
       PORT: 4040
     ports:
-      - '4040:4040'
+      - "4040:4040"
     labels:
-      - 'traefik.enable=true'
-      - 'traefik.backend=mp-development'
-      - 'traefik.port=4040'
-      - 'traefik.frontend.entryPoints=http,https'
-      - 'traefik.frontend.rule=Host:dev.mp.knawat.io'
+      - "traefik.enable=true"
+      - "traefik.backend=mp-development"
+      - "traefik.port=4040"
+      - "traefik.frontend.entryPoints=http,https"
+      - "traefik.frontend.rule=Host:dev.mp.knawat.io"
 
   stores:
     build:
@@ -125,9 +125,9 @@ services:
     image: traefik
     restart: always
     ports:
-      - '80:80'
-      - '443:443'
-      - '8080:8080'
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./traefik.toml:/traefik.toml
