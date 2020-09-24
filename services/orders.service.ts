@@ -135,12 +135,14 @@ const TheService: ServiceSchema = {
         const { taxTotal } = taxData;
 
         // Shipping
-        const shipment = await this.shipment(
+        const { shipment, warnings: shipmentWarnings } = await this.shipment(
           stock.items,
           ctx.params.shipping.country,
           instance,
           ctx.params.shipping_method
         );
+
+        warnings = warnings.concat(shipmentWarnings);
 
         if (!shipment) {
           this.sendLogs({
@@ -1048,9 +1050,8 @@ const TheService: ServiceSchema = {
       }
       if (
         (shipment.courier !== shippingMethod && shippingMethod) ||
-        (instance.shipping_methods &&
-          instance.shipping_methods[0].name &&
-          shipment.courier !== instance.shipping_methods[0].name)
+        (shipment.courier !== instance.shipping_methods?.[0]?.name &&
+          instance.shipping_methods?.[0]?.name)
       ) {
         this.sendLogs({
           topic: 'order',
