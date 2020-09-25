@@ -294,7 +294,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
                 updated: {
                   gte:
                     String(Date.now()).length === String(lastUpdated).length
-                      ? new Date(lastUpdated)
+                      ? new Date(Number(lastUpdated))
                       : new Date(lastUpdated * 1000),
                 },
               },
