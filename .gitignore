@@ -19,5 +19,5 @@ gcp-key.json
 !webpack.*
 
 # public filter
-public
+public/*
 !public/.gitkeep
