@@ -89,7 +89,7 @@ export const ProductsInstancesValidation: ServiceSchema = {
           type: 'object',
           optional: true,
           props: {
-            field: { type: 'enum', values: ['updated', 'sku'] },
+            field: { type: 'enum', values: ['updated', 'created'] },
             order: { type: 'enum', values: ['asc', 'desc'] },
             $$strict: true,
           },

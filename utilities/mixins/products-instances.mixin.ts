@@ -232,6 +232,10 @@ export const ProductsInstancesMixin: ServiceSchema = {
       page = parseInt(page, 10) || 1;
       let search = [];
       const mustNot: { [key: string]: any } = [{ term: { deleted: true } }];
+      const getSortField = (): string => {
+        if (!sort || sort.field === 'created') return 'createdAt';
+        return sort.field;
+      };
 
       if (!scrollId) {
         const searchQuery: { [key: string]: any } = {
@@ -241,7 +245,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
           body: {
             sort: [
               {
-                [sort?.field || 'createdAt']: {
+                [getSortField()]: {
                   order: sort?.order || 'asc',
                 },
               },
