@@ -1,8 +1,10 @@
 import { Context, ServiceSchema } from 'moleculer';
 import ApiGateway from 'moleculer-web';
+import compression from 'compression';
 
 import { Log, Store } from '../utilities/types';
 import { OpenApiMixin } from '../utilities/mixins/openapi.mixin';
+import { initWebpackMiddlewares } from '../utilities/adapters';
 
 const {
   UnAuthorizedError,
@@ -96,7 +98,6 @@ const TheService: ServiceSchema = {
           // Payments mp
           'POST payments/:id': 'payments.add',
           'GET payments': 'payments.get',
-          'GET checkout': 'payments.checkout',
 
           // Membership
           'POST membership': 'membership.create',
@@ -242,11 +243,21 @@ const TheService: ServiceSchema = {
           );
         },
       },
-    ],
+      {
+        path: '/',
 
-    assets: {
-      folder: './public',
-    },
+        authorization: false,
+        use: [
+          compression(),
+          // Webpack middleware
+          ...initWebpackMiddlewares(),
+          ApiGateway.serveStatic('public'),
+        ],
+        aliases: {
+          'GET checkout': 'payments.checkout',
+        },
+      },
+    ],
   },
 
   methods: {

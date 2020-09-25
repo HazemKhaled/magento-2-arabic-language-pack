@@ -1,5 +1,3 @@
-import path from 'path';
-
 import { PubSub } from '@google-cloud/pubsub';
 import { ServiceSchema } from 'moleculer';
 
