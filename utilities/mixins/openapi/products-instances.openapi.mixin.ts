@@ -439,6 +439,7 @@ const ProductsList = {
           order: {
             type: 'string',
             enums: ['asc', 'desc'],
+            default: 'asc',
           },
         },
       },
