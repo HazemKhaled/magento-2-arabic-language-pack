@@ -1,8 +1,12 @@
-import { createApp } from './app';
+import Vue from 'vue';
 
-// client-specific bootstrapping logic...
+import App from './App.vue';
 
-const { app } = createApp();
-
-// this assumes App.vue template root element has `id="app"`
-app.$mount('#app');
+// eslint-disable-next-line no-new
+new Vue({
+  el: '#app',
+  components: {
+    App,
+  },
+  render: h => h('app'),
+});

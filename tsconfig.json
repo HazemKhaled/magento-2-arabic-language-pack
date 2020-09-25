@@ -15,5 +15,5 @@
     "outDir": "./build",
     "baseUrl": "./"
   },
-  "exclude": ["node_modules", "test"]
+  "exclude": ["node_modules", "test", "client/**"]
 }
