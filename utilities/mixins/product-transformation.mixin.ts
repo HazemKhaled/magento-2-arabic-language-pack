@@ -80,7 +80,7 @@ export const ProductTransformation: ServiceSchema = {
      */
     formatAttributes(attributes: Attribute[]): GenericObject[] {
       return attributes.map(attribute => {
-        if (attribute && typeof attribute.name === 'string') {
+        if (typeof attribute?.name === 'string') {
           return {
             name: {
               en: attribute.name,

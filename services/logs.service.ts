@@ -15,7 +15,7 @@ const TheService: ServiceSchema = {
     elasticsearch: {
       host: process.env.ELASTIC_URL,
       httpAuth: process.env.ELASTIC_AUTH,
-      apiVersion: process.env.ELASTIC_VERSION || '6.x',
+      apiVersion: process.env.ELASTIC_VERSION || '7.x',
     },
   },
   mixins: [ESService, LogsValidation, LogsOpenapi],
@@ -30,10 +30,10 @@ const TheService: ServiceSchema = {
           logLevel,
           storeId,
           message,
-          payload,
+          payload = {},
           code,
         } = ctx.params;
-        if (payload && (payload.errors || payload.error)) {
+        if (payload.errors || payload.error) {
           let error = payload.error || payload.errors;
           try {
             error = JSON.stringify(error);

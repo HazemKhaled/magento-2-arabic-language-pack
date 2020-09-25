@@ -28,6 +28,7 @@ export interface Product {
   imported: string[];
   createdAt?: Date;
   import_qty: number;
+  ship_to: string[];
 }
 
 /**

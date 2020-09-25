@@ -21,12 +21,7 @@ export const Mail: ServiceSchema = {
         subject,
         text,
       };
-      return this.schema.settings.mail.sendMail(
-        data,
-        (err: unknown, body: { message: string; id: string }) => {
-          this.logger.info(err, body);
-        }
-      );
+      return this.schema.settings.mail.sendMail(data);
     },
   },
 };

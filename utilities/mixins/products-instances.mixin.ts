@@ -165,12 +165,14 @@ export const ProductsInstancesMixin: ServiceSchema = {
             }
 
             // In case product not found at products instance
-            const blankProduct: Partial<Product> = {
+            const blankProduct: Partial<Product> & { created: Date } = {
               sku: pi._source.sku,
               images: [],
               categories: [],
               externalId: pi._source.externalId,
               externalUrl: pi._source.externalUrl,
+              created: pi._source.createdAt,
+              updated: pi._source.updated,
             };
             blankProduct.variations = pi._source.variations.map(
               (variation: Variation) => {
@@ -189,7 +191,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
       } catch (err) {
         throw new MpError(
           'Products Service',
-          (err && err.message) || 'Internal server error!',
+          err?.message || 'Internal server error!',
           500
         );
       }

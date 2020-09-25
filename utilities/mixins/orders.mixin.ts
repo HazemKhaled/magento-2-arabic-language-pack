@@ -1,6 +1,6 @@
 import { ServiceSchema } from 'moleculer';
 
-import { OrderItem, Product, Store, Variation, Coupon } from '../types';
+import { OrderItem, Product, Store, Variation, OrderWarnings } from '../types';
 import { Rule } from '../types/shipment.type';
 
 export const OrdersOperations: ServiceSchema = {
@@ -68,6 +68,7 @@ export const OrdersOperations: ServiceSchema = {
               sales_qty: product.sales_qty,
               barcode: String(product.barcode),
               taxClass: product.tax_class,
+              ship_to: product.ship_to,
               description: `${item.attributes.reduce(
                 (accumulator, attribute, n) =>
                   accumulator.concat(
@@ -161,12 +162,25 @@ export const OrdersOperations: ServiceSchema = {
       country: string,
       instance: Store,
       providedMethod?: string
-    ): Promise<Rule> {
+    ): Promise<{
+      shipment: Rule;
+      warnings: OrderWarnings;
+    }> {
+      const warnings: OrderWarnings = [];
       const shipmentWeight =
-        items.reduce(
-          (accumulator, item) => accumulator + item.weight * item.quantity,
-          0
-        ) * 1000;
+        items.reduce((accumulator, item) => {
+          if (
+            item.ship_to &&
+            !item.ship_to.includes('ZZ') &&
+            !item.ship_to.includes(country)
+          ) {
+            warnings.push({
+              message: 'country_not_available',
+              sku: item.sku,
+            });
+          }
+          return accumulator + item.weight * item.quantity;
+        }, 0) * 1000;
       const shipmentRules: Rule[] = await this.broker
         .call('shipment.ruleByCountry', {
           country,
@@ -215,7 +229,7 @@ export const OrdersOperations: ServiceSchema = {
         [shipment] = shipmentRules;
       }
 
-      return shipment;
+      return { shipment, warnings };
     },
     async discount({ code, membership, orderExpenses, isValid, isAuto }) {
       const warnings = [];

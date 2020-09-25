@@ -514,6 +514,7 @@ const TheService: ServiceSchema = {
             const store = await ctx.call('stores.findInstance', {
               id: subscription.storeId,
             });
+
             this.broker.cacher.clean(`subscription.sGet:${store.url}**`);
             this.broker.cacher.clean(`subscription.sList:${store.url}**`);
             this.broker.cacher.clean(`stores.sGet:${store.url}**`);
@@ -574,6 +575,7 @@ const TheService: ServiceSchema = {
             const instance = await ctx.call('stores.findInstance', {
               id: res.storeId,
             });
+
             if (res.invoiceId) {
               ctx.call('invoices.updateInvoiceStatus', {
                 omsId: instance?.internal_data?.omsId,

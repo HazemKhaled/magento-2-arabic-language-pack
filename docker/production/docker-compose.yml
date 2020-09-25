@@ -53,7 +53,7 @@ services:
     restart: always
     env_file: .env
     environment:
-      SERVICES: currencies, taxes
+      SERVICES: currencies, taxes, gdpr
 
   subscription:
     build:
@@ -110,17 +110,6 @@ services:
     env_file: .env
     environment:
       SERVICES: oms
-
-  elastic-update:
-    build:
-      context: ../../
-    image: microes
-    restart: always
-    env_file: .env
-    environment:
-      SERVICES: elastic-update
-    volumes:
-      - ~/data/mp-nedb:/app/data
 
   logs:
     build:
