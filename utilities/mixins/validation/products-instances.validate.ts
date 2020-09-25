@@ -85,6 +85,15 @@ export const ProductsInstancesValidation: ServiceSchema = {
           min: 3,
           max: 3,
         },
+        sort: {
+          type: 'object',
+          optional: true,
+          props: {
+            field: { type: 'enum', values: ['updated', 'sku'] },
+            order: { type: 'enum', values: ['asc', 'desc'] },
+            $$strict: true,
+          },
+        },
       },
     },
     deleteInstanceProduct: {

@@ -424,6 +424,24 @@ const ProductsList = {
         pattern: '^[A-Z]{3}$',
       },
     },
+    {
+      name: 'sort',
+      in: 'query',
+      description: 'Sort by field',
+      schema: {
+        type: 'object',
+        properties: {
+          field: {
+            type: 'string',
+            enums: ['updated', 'sku'],
+          },
+          order: {
+            type: 'string',
+            enums: ['asc', 'desc'],
+          },
+        },
+      },
+    },
   ],
   responses: {
     200: {
