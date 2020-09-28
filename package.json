@@ -90,7 +90,6 @@
     "moleculer-db-adapter-mongo": "^0.4.9",
     "moleculer-elasticsearch": "^1.1.5",
     "moleculer-web": "^0.8.5",
-    "nats": "^1.4.12",
     "node-fetch": "^2.6.1",
     "nodemailer": "^6.4.11",
     "uuid": "^3.4.0",
