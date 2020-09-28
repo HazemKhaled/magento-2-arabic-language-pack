@@ -171,11 +171,7 @@ const CardIcons = {
 </script>
 
 <style lang="stylus">
-$white = hsl(208, 30%, 100%)
-$gray = hsl(208, 30%, 80%)
-$dark = hsl(208, 30%, 35%)
-$red = hsl(348, 100%, 61%)
-$light = hsl(348, 100%, 61%)
+@import '../styles/colors.styl'
 
 .vc-card
   position: relative

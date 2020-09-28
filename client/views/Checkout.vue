@@ -427,34 +427,4 @@ export default {
     width: 100%
     border: 1px solid $gray
     border-radius: 8px
-
-.text-loader
-  display: block
-  margin-bottom: 10px
-  max-width: 300px
-  width: 90%
-  height: 1em
-  border-radius: 2px
-  background: linear-gradient(to right, alpha($shimmerColor, 0) 0, $shimmerColor 30%, $shimmerColor 70%, alpha($shimmerColor, 0) 100%)
-  background-color: $light
-  background-size: 200px 100%
-  background-repeat: no-repeat
-  animation: loader-shimmer 1.5s linear infinite forwards
-  .rtls &
-    animation: loader-shimmer-rtl 1.5s linear infinite forwards
-  + .text-loader
-    max-width: 150px
-    width: 70%
-
-@keyframes loader-shimmer
-  0%
-    background-position-x: -200px
-  100%
-    background-position-x: 600px
-
-@keyframes loader-shimmer-rtl
-  0%
-    background-position-x: 200px
-  100%
-    background-position-x: -600px
 </style>
