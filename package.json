@@ -15,7 +15,7 @@
     "webpack:watch": "webpack --watch --config webpack.dev.js",
     "build": "npm run clean && npm run tsc & npm run webpack",
     "build:watch": "npm run tsc:watch & npm run webpack:watch",
-    "dev": "env $(cat ./docker/development/.env) tsc-watch ./node_modules/moleculer/bin/moleculer-runner.js --hot --repl --config moleculer.config.ts services/**/*.service.ts",
+    "dev": "env $(cat ./docker/development/.env) tsc-watch --onSuccess \"ts-node ./node_modules/moleculer/bin/moleculer-runner.js --hot --repl --config moleculer.config.ts services/**/*.service.ts\"",
     "predev": "npm run clean && npm run tsc & webpack --config webpack.dev.js",
     "cli": "moleculer connect TCP",
     "start": "env $(cat ./docker/development/.env) ./node_modules/moleculer/bin/moleculer-runner.js services",
