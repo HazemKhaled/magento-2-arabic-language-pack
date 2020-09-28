@@ -374,7 +374,7 @@ const ProductsList = {
       name: 'lastupdate',
       in: 'query',
       description:
-        'Timestamp(seconds since Jan 01 1970. (UTC)) of last import run DateTime (must be in UTC), API will respond only products which are updated/created after this timestamp.',
+        'Timestamp(`seconds/milliseconds` since Jan 01 1970. (UTC)) of last import run DateTime (must be in UTC), API will respond only products which are updated/created after this timestamp.',
       example: '1542794072 for 21-11-2018 @ 9:54am',
       schema: {
         type: 'number',
@@ -422,6 +422,26 @@ const ProductsList = {
         minLength: 3,
         maxLength: 3,
         pattern: '^[A-Z]{3}$',
+      },
+    },
+    {
+      name: 'sort',
+      in: 'query',
+      description: 'Sort by field',
+      schema: {
+        type: 'object',
+        properties: {
+          field: {
+            type: 'string',
+            enums: ['updated', 'created'],
+            default: 'created',
+          },
+          order: {
+            type: 'string',
+            enums: ['asc', 'desc'],
+            default: 'asc',
+          },
+        },
       },
     },
   ],

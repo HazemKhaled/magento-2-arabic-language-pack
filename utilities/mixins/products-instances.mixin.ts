@@ -101,6 +101,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
         externalId,
         hasExternalId,
         currency,
+        sort,
       } = ctx.params;
 
       const { store: instance } = ctx.meta;
@@ -114,6 +115,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
         keyword,
         externalId,
         hasExternalId,
+        sort,
       });
 
       const instanceProducts = instanceProductsFull.page
@@ -209,6 +211,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
      * @param {number} [endTrace=0]  to trace the end product needed and stop scrolling after reaching it
      * @param {boolean} [scrollId=false] sending the scroll id on the callback
      * @param {number} [maxScroll=0] just tracking to total products number to the scroll limit to stop if no more products
+     * @param {object} sort
      * @returns {array} Instance Products
      */
     async findIP({
@@ -224,10 +227,15 @@ export const ProductsInstancesMixin: ServiceSchema = {
       endTrace = 0,
       scrollId = false,
       maxScroll = 0,
+      sort,
     }) {
       page = parseInt(page, 10) || 1;
       let search = [];
       const mustNot: { [key: string]: any } = [{ term: { deleted: true } }];
+      const getSortField = (): string => {
+        if (!sort || sort.field === 'created') return 'createdAt';
+        return sort.field;
+      };
 
       if (!scrollId) {
         const searchQuery: { [key: string]: any } = {
@@ -237,8 +245,8 @@ export const ProductsInstancesMixin: ServiceSchema = {
           body: {
             sort: [
               {
-                createdAt: {
-                  order: 'asc',
+                [getSortField()]: {
+                  order: sort?.order || 'asc',
                 },
               },
             ],
@@ -284,7 +292,10 @@ export const ProductsInstancesMixin: ServiceSchema = {
             {
               range: {
                 updated: {
-                  gte: new Date(lastUpdated * 1000),
+                  gte:
+                    String(Date.now()).length === String(lastUpdated).length
+                      ? new Date(Number(lastUpdated))
+                      : new Date(lastUpdated * 1000),
                 },
               },
             },
