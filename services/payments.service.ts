@@ -111,8 +111,6 @@ const TheService: ServiceSchema = {
     },
 
     checkout: {
-      params: {},
-      auth: false,
       handler(ctx: Context): string {
         ctx.meta.$responseType = 'text/html';
         return this.renderCheckoutPage();
