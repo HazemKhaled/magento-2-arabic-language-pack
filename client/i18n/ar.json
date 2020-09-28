@@ -1,0 +1,27 @@
+{
+  "checkout": {
+    "cardNumber": "رقم البطاقة",
+    "cardName": "الإسم كما يظهر علي البطاقة",
+    "cvc": "رمز التحقق",
+    "expiry": "ناريخ الإنتهاء",
+    "payWith": "الدفع بواسطة",
+    "payNow": "ادفع الآن",
+    "expires": "ينتهي في",
+    "confirm": "تأكيد",
+    "secure": "استخدم الدفع الآمن",
+    "charge": "شحن الرصيد بقيمة",
+    "balanceDeduction": "خصم الرصيد",
+    "useBalance": "استخدم الرصيد",
+    "focusCheckoutBrowser": "لاتستطيع رؤية بوابة الدفع الآمن؟ سوف نساعدك لاستكمال عملية الدفع",
+    "clickToContinue": "اضغط للمتابعة",
+    "saveCard": "احفظ بطاقتي من أجل الدفع السريع",
+    "errors": "يوجد أخطاء في معلومات بطاقتك",
+    "useNewCreditCard": "استخدم كارت جديد",
+    "total": "إجمالي",
+    "byClickingPay": "عند ضغطك على زرار الدفع ",
+    "agreePrivacyPolicy": "أوافق علي <a href=\"https://ar.knawat.com/الشروط-و-الأحكام/\" target=\"_blank\">الشروط و الأحكام</a> و <a href=\"https://ar.knawat.com/سياسة-الخصوصية/\" target=\"_blank\">سياسة خاصة</a> الخاصة بشركة قنوات.",
+    "subscriptionDisclaimer": "ستقوم بدفع {currentPrice} وسيتم تجديد باقتك  {frequency} بسعر {originalPrice}",
+    "paymentType__month": "شهرياً",
+    "paymentType__year": "سنوياً"
+  }
+}

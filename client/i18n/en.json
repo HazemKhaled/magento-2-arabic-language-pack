@@ -1,0 +1,27 @@
+{
+  "checkout": {
+    "cardNumber": "Card Number",
+    "cardName": "Card Name",
+    "cvc": "CVC",
+    "expiry": "MM / YY",
+    "payWith": "Pay with",
+    "payNow": "Pay now",
+    "expires": "Expires",
+    "confirm": "Confirm",
+    "secure": "Use 3D Secure",
+    "charge": "Charge balance with",
+    "balanceDeduction": "Balance deduction",
+    "useBalance": "Use balance",
+    "focusCheckoutBrowser": "Don’t see the secure checkout browser? We’ll help you to complete your purchase",
+    "clickToContinue": "Click to continue",
+    "saveCard": "Save Card for fast payment",
+    "errors": "There are errors in your card info",
+    "useNewCreditCard": "Use a new credit card",
+    "total": "Total",
+    "byClickingPay": "By clicking pay, ",
+    "agreePrivacyPolicy": "I agree to the Knawat <a href=\"https://knawat.com/terms-and-conditions/\" target=\"_blank\">Terms of Service</a> and <a href=\"https://knawat.com/privacy-policy/\" target=\"_blank\">Privacy Policy</a>.",
+    "subscriptionDisclaimer": "You will pay {currentPrice} and renew {frequency} for {originalPrice}",
+    "paymentType__month": "monthly",
+    "paymentType__year": "yearly"
+  }
+}
