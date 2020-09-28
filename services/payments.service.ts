@@ -5,10 +5,11 @@ import { Payment, PaymentInvoice } from '../utilities/types';
 import { PaymentsValidation } from '../utilities/mixins/validation';
 import { Oms } from '../utilities/mixins/oms.mixin';
 import { MpError } from '../utilities/adapters';
+import { CheckoutPage } from '../utilities/mixins';
 
 const TheService: ServiceSchema = {
   name: 'payments',
-  mixins: [PaymentsValidation, PaymentsOpenapi, Oms],
+  mixins: [PaymentsValidation, PaymentsOpenapi, Oms, CheckoutPage],
   actions: {
     add: {
       auth: ['Basic'],
@@ -106,6 +107,13 @@ const TheService: ServiceSchema = {
           'No Record Found For This Store!',
           404
         );
+      },
+    },
+
+    checkout: {
+      handler(ctx: Context): string {
+        ctx.meta.$responseType = 'text/html';
+        return this.renderCheckoutPage();
       },
     },
   },

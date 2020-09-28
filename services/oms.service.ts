@@ -1,4 +1,4 @@
-import { Context, Errors, ServiceSchema } from 'moleculer';
+import { Context, Errors, GenericObject, ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
 
 import DbService from '../utilities/mixins/mongo.mixin';
@@ -87,7 +87,7 @@ const TheService: ServiceSchema = {
     },
     updateOrderById: {
       handler(ctx: Context) {
-        const body: {} = {
+        const body: GenericObject = {
           ...ctx.params,
           customerId: undefined,
           orderId: undefined,
@@ -128,7 +128,7 @@ const TheService: ServiceSchema = {
     // Payments
     createPayment: {
       handler(ctx: Context) {
-        const body: {} = { ...ctx.params, customerId: undefined };
+        const body: GenericObject = { ...ctx.params, customerId: undefined };
         return this.request({
           path: `payments/${ctx.params.customerId}`,
           method: 'post',

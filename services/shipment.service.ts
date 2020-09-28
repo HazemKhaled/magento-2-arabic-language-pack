@@ -1,4 +1,4 @@
-import { Context, ServiceSchema } from 'moleculer';
+import { Context, GenericObject, ServiceSchema } from 'moleculer';
 
 import DbService from '../utilities/mixins/mongo.mixin';
 import { ShipmentOpenapi } from '../utilities/mixins/openapi';
@@ -163,7 +163,7 @@ const Shipment: ServiceSchema = {
      */
     shipmentTransform(
       data: ShipmentPolicy[] | ShipmentPolicy
-    ): ShipmentPolicy[] | {} {
+    ): ShipmentPolicy[] | GenericObject {
       if (data === null) {
         return { message: 'No Shipment Policy with This ID Found' };
       }

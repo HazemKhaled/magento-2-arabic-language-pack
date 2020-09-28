@@ -1,3 +1,5 @@
+import { GenericObject } from 'moleculer';
+
 import { I18nText } from './i18ntext.type';
 
 /**
@@ -46,7 +48,7 @@ export interface Variation {
   quantity: number;
   archive?: boolean;
   attributes: Attribute[];
-  logs?: object[];
+  logs?: GenericObject[];
   cost?: number;
 }
 

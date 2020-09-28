@@ -1,4 +1,4 @@
-import { Context, ServiceSchema } from 'moleculer';
+import { Context, GenericObject, ServiceSchema } from 'moleculer';
 import { v1 as uuidv1 } from 'uuid';
 
 import {
@@ -337,8 +337,8 @@ const TheService: ServiceSchema = {
           status?: string;
           // Remove any later
           data?: OrderOMSResponse['salesorder'] | any;
-          warnings?: {}[];
-          errors?: {}[];
+          warnings?: GenericObject[];
+          errors?: GenericObject[];
         } = {
           status: 'success',
           data: order,
@@ -407,8 +407,8 @@ const TheService: ServiceSchema = {
           status?: string;
           // Remove any later
           data?: OrderOMSResponse['salesorder'] | any;
-          warnings?: {}[];
-          errors?: {}[];
+          warnings?: GenericObject[];
+          errors?: GenericObject[];
         } = {};
         let shipment: any = 'No Items';
 
@@ -670,7 +670,7 @@ const TheService: ServiceSchema = {
         if (store.internal_data?.omsId) {
           return [];
         }
-        const queryParams: { [key: string]: string } = {};
+        const queryParams: GenericObject = {};
         if (ctx.params.limit) queryParams.perPage = ctx.params.limit;
         const keys = [
           'page',
@@ -1113,7 +1113,7 @@ const TheService: ServiceSchema = {
       return true;
     },
     async setTaxIds(instance, items) {
-      const taxesMsg: {}[] = [];
+      const taxesMsg: GenericObject[] = [];
       let isInclusive = false;
       let taxTotal = 0;
       const itemsAfterTaxes = await Promise.all(

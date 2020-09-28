@@ -1,4 +1,4 @@
-import { Context, Errors, ServiceSchema } from 'moleculer';
+import { Context, Errors, GenericObject, ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
 import jwt from 'jsonwebtoken';
 import { v1 as uuidv1, v4 as uuidv4 } from 'uuid';
@@ -173,11 +173,11 @@ const TheService: ServiceSchema = {
       },
       handler(ctx: Context) {
         let params: {
-          where?: {};
-          limit?: {};
-          skip?: {};
+          where?: GenericObject;
+          limit?: number;
+          skip?: number;
           order?: string;
-          sort?: {};
+          sort?: GenericObject;
         } = {};
         try {
           params = JSON.parse(ctx.params.filter);
@@ -219,7 +219,7 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 * 24,
       },
       handler(ctx: Context) {
-        const query: any = {};
+        const query: GenericObject = {};
         if (ctx.params.id) {
           query._id = { $regex: new RegExp(`.*${ctx.params.id}.*`, 'i') };
         }
@@ -571,7 +571,7 @@ const TheService: ServiceSchema = {
           jwt.verify(
             ctx.params.token,
             this.settings.JWT_SECRET,
-            (error: Error, decoded: object) => {
+            (error: Error, decoded: GenericObject) => {
               if (error) {
                 reject(false);
               }
@@ -639,7 +639,7 @@ const TheService: ServiceSchema = {
      * @returns
      */
     sanitizeStoreParams(params, create = false) {
-      const store: Store | any = {};
+      const store: Store | GenericObject = {};
       // Some initial data when creating store
       if (create) {
         store._id = params.url.toLowerCase();
@@ -761,7 +761,7 @@ const TheService: ServiceSchema = {
      * @param {Object} user
      * @param {Boolean} withToken
      */
-    transformEntity(user, withToken, token) {
+    transformEntity(user, withToken, token): GenericObject {
       if (user) {
         if (withToken) {
           user.token = token || this.generateJWT(user);
@@ -771,7 +771,7 @@ const TheService: ServiceSchema = {
       return { channel: user };
     },
 
-    merge2Objects(oldObj, newObj) {
+    merge2Objects(oldObj, newObj): GenericObject {
       return {
         ...oldObj,
         ...newObj,

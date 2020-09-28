@@ -1,5 +1,5 @@
 import FormData from 'form-data';
-import { Context, Errors, ServiceSchema } from 'moleculer';
+import { Context, Errors, GenericObject, ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
 
 import { CrmStore, OrderAddress, Store } from '../utilities/types';
@@ -22,7 +22,7 @@ const TheService: ServiceSchema = {
   actions: {
     refreshToken: {
       cache: false,
-      handler(): Promise<object> {
+      handler(): Promise<GenericObject> {
         return this.request({
           method: 'post',
           isAccountsUrl: true,
@@ -47,7 +47,7 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 * 24,
         keys: ['id'],
       },
-      async handler(ctx: Context): Promise<object> {
+      async handler(ctx: Context): Promise<GenericObject> {
         const res = await ctx.call('crm.findRecords', {
           module: 'accounts',
           criteria: `((Account_Name:equals:${ctx.params.id}))`,
@@ -60,7 +60,7 @@ const TheService: ServiceSchema = {
       },
     },
     updateStoreById: {
-      async handler(ctx: Context): Promise<object> {
+      async handler(ctx: Context): Promise<GenericObject> {
         const { id: crmStoreId } = await ctx.call('crm.findStoreByUrl', {
           id: ctx.params.id,
         });
@@ -73,7 +73,7 @@ const TheService: ServiceSchema = {
       },
     },
     addTagsByUrl: {
-      async handler(ctx: Context): Promise<object> {
+      async handler(ctx: Context): Promise<GenericObject> {
         const { id, tag } = ctx.params;
         const { id: crmStoreId } = await ctx.call('crm.findStoreByUrl', { id });
 
@@ -85,7 +85,7 @@ const TheService: ServiceSchema = {
       },
     },
     createRecord: {
-      handler(ctx: Context): Promise<object> {
+      handler(ctx: Context): Promise<GenericObject> {
         const { module, data } = ctx.params;
 
         return this.request({
@@ -97,7 +97,7 @@ const TheService: ServiceSchema = {
       },
     },
     updateRecord: {
-      handler(ctx: Context): Promise<object> {
+      handler(ctx: Context): Promise<GenericObject> {
         const { module, id, data } = ctx.params;
 
         return this.request({
@@ -109,7 +109,7 @@ const TheService: ServiceSchema = {
       },
     },
     findRecords: {
-      handler(ctx: Context): Promise<object> {
+      handler(ctx: Context): Promise<GenericObject> {
         const { module, criteria, email, phone, word } = ctx.params;
 
         return this.request({
@@ -120,7 +120,7 @@ const TheService: ServiceSchema = {
       },
     },
     addTagsToRecord: {
-      handler(ctx: Context): Promise<object> {
+      handler(ctx: Context): Promise<GenericObject> {
         const { module, id, tag } = ctx.params;
 
         return this.request({
@@ -131,7 +131,7 @@ const TheService: ServiceSchema = {
       },
     },
     removeTagsFromRecord: {
-      handler(ctx: Context): Promise<object> {
+      handler(ctx: Context): Promise<GenericObject> {
         const { module, id, tag } = ctx.params;
 
         return this.request({
@@ -171,7 +171,7 @@ const TheService: ServiceSchema = {
       body: { [key: string]: unknown };
       bodyType: 'json' | 'formData';
       params: { [key: string]: string };
-    }): Promise<object> {
+    }): Promise<GenericObject> {
       let url = process.env.ZOHO_CRM_URL;
       let queryString = '';
       const headers: { [key: string]: string } = {
@@ -228,7 +228,7 @@ const TheService: ServiceSchema = {
           throw this.errorFactory(err.message, err.code);
         });
     },
-    transformStoreParams(params: CrmData): object {
+    transformStoreParams(params: CrmData): GenericObject {
       const newObj: { [key: string]: string } = {
         id: params.id,
       };

@@ -16,3 +16,8 @@ openapi.json
 build
 openapi-private.json
 gcp-key.json
+!webpack.*
+
+# public filter
+public/*
+!public/.gitkeep
