@@ -1,6 +1,8 @@
 const path = require('path');
 const { merge } = require('webpack-merge');
+
 const ServiceWorkerWebpackPlugin = require('serviceworker-webpack-plugin');
+const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 
 const common = require('./webpack.common.js');
 
@@ -14,4 +16,14 @@ module.exports = merge(common, {
       filename: 'service-worker.js',
     }),
   ],
+  optimization: {
+    runtimeChunk: 'single',
+    minimizer: [
+      new OptimizeCSSAssetsPlugin({
+        cssProcessorPluginOptions: {
+          preset: ['default', { discardComments: { removeAll: true } }],
+        },
+      }),
+    ],
+  },
 });
