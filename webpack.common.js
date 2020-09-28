@@ -1,6 +1,5 @@
 const path = require('path');
 
-const webpack = require('webpack');
 const VueLoaderPlugin = require('vue-loader/lib/plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
@@ -9,14 +8,8 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const isDev = process.env.NODE_ENV !== 'production';
 
 module.exports = {
-  mode: process.env.NODE_ENV || 'development',
-  devtool: '#eval-source-map',
-
   entry: {
-    app: [
-      'webpack-hot-middleware/client',
-      path.join(__dirname, '/client', 'main.ts'),
-    ],
+    app: [path.join(__dirname, '/client', 'main.ts')],
   },
 
   output: {
@@ -60,7 +53,6 @@ module.exports = {
   },
 
   plugins: [
-    new webpack.HotModuleReplacementPlugin(),
     new VueLoaderPlugin(),
     new MiniCssExtractPlugin({
       filename: 'style.css',
@@ -75,9 +67,5 @@ module.exports = {
     alias: {
       '@': path.resolve(__dirname, 'client'),
     },
-  },
-
-  performance: {
-    hints: false,
   },
 };

@@ -7,7 +7,7 @@ export function initWebpackMiddlewares(): unknown[] {
   const webpack = require('webpack');
   const devMiddleware = require('webpack-dev-middleware');
   const hotMiddleware = require('webpack-hot-middleware');
-  const config = require('../../webpack.config').default;
+  const config = require('../../../webpack.dev.js');
 
   const compiler = webpack(config);
 
