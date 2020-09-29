@@ -195,7 +195,7 @@ const TheService: ServiceSchema = {
             type: string;
             data: any[];
           }
-        ) {
+        ): Promise<void> {
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
           res.writeHead(err.code || 500);
           if (
@@ -269,10 +269,10 @@ const TheService: ServiceSchema = {
      * @param {IncomingRequest} req
      * @returns {Promise}
      */
-    authorize(ctx: Context, route: any, req: any) {
+    authorize(ctx: Context, route: any, req: any): Promise<any> {
       // Pass if no auth required
       if (!req.$endpoint.action.auth) {
-        return;
+        return this.Promise.resolve();
       }
 
       // if no authorization in the header

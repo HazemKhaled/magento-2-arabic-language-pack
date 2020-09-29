@@ -9,9 +9,7 @@ const isDev = process.env.NODE_ENV !== 'production';
 
 module.exports = {
   entry: {
-    app: [
-      path.join(__dirname, '/client', 'main.ts'),
-    ],
+    app: [path.join(__dirname, '/client', 'main.ts')],
   },
 
   output: {
@@ -24,8 +22,7 @@ module.exports = {
     rules: [
       {
         test: /\.tsx?$/,
-        use: 'ts-loader',
-        exclude: /node_modules/,
+        loader: 'awesome-typescript-loader',
       },
       {
         test: /\.vue$/,
