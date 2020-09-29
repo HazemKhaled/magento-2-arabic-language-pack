@@ -197,6 +197,89 @@ const PaymentsGetOpenapi = {
   security: [{ bearerAuth: [] as any[] }],
 };
 
+const checkoutValueProps = {
+  currency_code: {
+    type: 'string',
+    min: 3,
+  },
+  value: {
+    type: 'number',
+    convert: true,
+  },
+};
+
+const PaymentsCheckoutOpenapi = {
+  $path: 'get /checkout',
+  summary: 'Checkout Gateway',
+  tags: ['Payments'],
+  parameters: [
+    {
+      name: 'store',
+      in: 'query',
+      type: 'string',
+      required: true,
+    },
+    {
+      name: 'hmac',
+      in: 'query',
+      type: 'string',
+      required: true,
+    },
+    {
+      name: 'purchase_units',
+      in: 'query',
+      type: 'array',
+      required: true,
+      items: {
+        type: 'object',
+        properties: {
+          ...checkoutValueProps,
+          description: {
+            type: 'string',
+          },
+          type: {
+            type: 'enum',
+            values: ['order', 'subscription', 'charge'],
+          },
+          breakdown: {
+            type: 'object',
+            properties: {
+              item_total: {
+                type: 'object',
+                properties: checkoutValueProps,
+              },
+              shipping: {
+                type: 'object',
+                properties: checkoutValueProps,
+              },
+              tax_total: {
+                type: 'object',
+                properties: checkoutValueProps,
+              },
+            },
+          },
+        },
+      },
+    },
+  ],
+  responses: {
+    200: {
+      description: 'Status 200',
+      content: {
+        'text/html': {
+          schema: {
+            type: 'string',
+          },
+        },
+      },
+    },
+    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
+    422: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
+    500: { $ref: '#/components/responses/500' },
+  },
+  security: [{ hmac: [] as any[] }],
+};
+
 export const PaymentsOpenapi: ServiceSchema = {
   name: 'payments',
   settings: {
@@ -214,6 +297,9 @@ export const PaymentsOpenapi: ServiceSchema = {
     },
     get: {
       openapi: PaymentsGetOpenapi,
+    },
+    checkout: {
+      openapi: PaymentsCheckoutOpenapi,
     },
   },
 };
