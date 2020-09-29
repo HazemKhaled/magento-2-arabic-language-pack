@@ -5,7 +5,7 @@
   "description": "Knawat MarketPlace API layer",
   "author": "Knawat, LLC.",
   "engines": {
-    "node": "10.x.x"
+    "node": "12.x.x"
   },
   "scripts": {
     "clean": "rm -rf build",
