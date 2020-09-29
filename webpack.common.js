@@ -68,7 +68,8 @@ module.exports = {
       filename: 'style.css',
     }),
     new HtmlWebpackPlugin({
-      template: 'client/index.html',
+      template: 'client/checkout.html',
+      filename: 'checkout.html',
     }),
   ],
 

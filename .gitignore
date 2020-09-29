@@ -21,3 +21,4 @@ gcp-key.json
 # public folder
 public/*
 !public/img
+!public/index.html
