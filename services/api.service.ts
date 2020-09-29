@@ -4,8 +4,7 @@ import compression from 'compression';
 
 import { Log, Store } from '../utilities/types';
 import { OpenApiMixin } from '../utilities/mixins/openapi.mixin';
-import { initWebpackMiddlewares } from '../utilities/adapters';
-import checkHmac from '../utilities/middleware/check-hmac';
+import { hmacMiddleware, webpackMiddlewares } from '../utilities/middleware';
 
 const {
   UnAuthorizedError,
@@ -251,11 +250,11 @@ const TheService: ServiceSchema = {
         use: [
           compression(),
           // Webpack middleware
-          ...initWebpackMiddlewares(),
+          ...webpackMiddlewares(),
           ApiGateway.serveStatic('public'),
         ],
         aliases: {
-          'GET checkout': [checkHmac(), 'payments.checkout'],
+          'GET checkout': [hmacMiddleware(), 'payments.checkout'],
         },
       },
     ],

@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
+
 /**
  * Initialize Webpack middleware in development
  */
-export function initWebpackMiddlewares(): unknown[] {
+export function webpackMiddlewares(): unknown[] {
   if (process.env.NODE_ENV === 'production') return [];
 
   const webpack = require('webpack');

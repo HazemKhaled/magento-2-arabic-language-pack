@@ -6,12 +6,16 @@ import { MoleculerRequest, Response, NextFunction } from 'moleculer-express';
 import { Store } from '../types';
 import { MpError } from '../adapters';
 
-function middlewareGenerator() {
-  return async function checkHmac(
+export function hmacMiddleware(): (
+  req: MoleculerRequest,
+  res: Response,
+  next: NextFunction
+) => Promise<void> {
+  return async (
     req: MoleculerRequest,
     res: Response,
     next: NextFunction
-  ): Promise<void> {
+  ): Promise<void> => {
     const { query } = req;
     const { store: storeUrl, hmac } = query;
 
@@ -62,5 +66,3 @@ function validateKnawatHmac(
 
   return generatedHash === hmac;
 }
-
-export default middlewareGenerator;
