@@ -88,28 +88,29 @@
     .checkout-footer
       details.checkout-summary
         summary {{ $t("ledger.summary") }}
-        template(v-if='order || subscription')
-          dl.checkout-summary-list
-            template(v-if='order')
-              dt {{ $t("ledger.orderId") }}
-              dd {{ order }}
+        .checkout-summary-list
+          template(v-for="unit in purchaseUnites")
+            .checkout-summary-description {{ unit.description }}
+            template(v-if='unit.type === "order"')
+              span {{ $t("ledger.orderId") }}
+              span {{ unit.data.order }}
 
-            template(v-if='subscription')
-              dt {{ $t("membership.plan") }} :
-              dd {{ subscription.name }}
-              dt {{ $t("membership.storeId") }} :
-              dd {{ subscription.grantTo || subscription.storeId }}
-          hr
-          dl.checkout-summary-list
-            dt {{ $t("checkout.total") }}
-            dd {{ currency }}{{ amount }}
-            template(v-if='useBalance')
-              dt {{ $t("checkout.balanceDeduction") }}
-              dd -{{ currency }}{{ fixed2(usedBalance) }}
-        template(v-else)
-          dl.checkout-summary-list
-            dt {{ $t("checkout.charge") }}
-            dd {{ currency }}{{ amount }}
+            template(v-if='unit.type === "subscription"')
+              span {{ $t("membership.plan") }} :
+              span {{ unit.data.name }}
+              span {{ $t("membership.storeId") }} :
+              span {{ unit.data.grantTo || unit.data.storeId }}
+
+            template(v-if='unit.type === "charge"')
+              span {{ $t("checkout.charge") }}
+              span {{ unit.currency_code }}{{ unit.value }}
+        hr
+        .checkout-summary-list
+          span {{ $t("checkout.total") }}
+          span {{ currency }}{{ amount }}
+          template(v-if='useBalance')
+            span {{ $t("checkout.balanceDeduction") }}
+            span -{{ currency }}{{ fixed2(usedBalance) }}
 
       .checkbox(v-if='!ctoken', :class='{ "has-errors": !hasAgreed && showErrors }')
         label.checkbox-label(for='termsAgree')
@@ -123,9 +124,6 @@
       dl.checkout-total
         dt {{ $t("checkout.total") }} :
         dd {{ fixed2(paymentTotal) }} {{ currency }}
-
-      p(v-if='subscription && amount !== subscription.originalPrice')
-        | {{ subscriptionDisclaimer }}
 
       button.checkout-submit.btn.btn-block.btn-primary.btn-lg(
         type='submit',
@@ -161,15 +159,13 @@ export default {
     isFetchingCards: true,
     submitting: false,
     showErrors: false,
-    amount: '',
     currencyRate: 1,
     currency: '',
     cardsList: [],
     ctoken: '',
     card: {},
     paytr: {},
-    order: null,
-    subscription: null,
+    purchaseUnites: [],
   }),
   computed: {
     utoken() {
@@ -179,7 +175,8 @@ export default {
       return round((this.activeStore.credit || 0) * this.currencyRate);
     },
     canUseBalance() {
-      return this.balance && (!!this.order || !!this.subscription);
+      // TODO: handle charging balance
+      return this.balance;
     },
     usedBalance() {
       return this.useBalance ? Math.min(this.balance, this.amount) : 0;
@@ -187,12 +184,20 @@ export default {
     useBalanceOnly() {
       return !this.paymentTotal;
     },
+    amount() {
+      return this.purchaseUnites.reduce((acc, crr) => {
+        acc += Number(crr.amount.value);
+        return acc;
+      }, 0)
+    },
     paymentTotal() {
       return this.amount - this.usedBalance;
     },
     subscriptionDisclaimer() {
-      if (!this.subscription) return '';
-      const { frequencyType, originalPrice } = this.subscription;
+      const subscription = this.purchaseUnites.find(({ type }) => type === 'subscription');
+      if (!subscription) return '';
+
+      const { frequencyType, originalPrice } = subscription;
 
       return this.$t('checkout.subscriptionDisclaimer', {
         currentPrice: `${this.currency}${fixed2(this.paymentTotal)}`,
@@ -203,8 +208,7 @@ export default {
     paytrParams() {
       return {
         amount: this.paymentTotal,
-        order: this.order,
-        subscription: this.subscription,
+        purchase_units: this.purchaseUnits,
         useSecurePayment: this.useSecurePayment,
         gateway: 'paytr',
       };
@@ -242,12 +246,8 @@ export default {
     const search = window.location.search?.substring(1);
     const queryParams = qs.parse(search);
 
-    this.amount = Number(queryParams['amount']);
-    this.currency = queryParams['currency'];
-    this.order = queryParams['order'];
-    this.subscription = queryParams['subscription'];
-    this.debug = queryParams['debug'];
-    this.currencyRate = queryParams['currencyRate'] || 1;
+    this.purchaseUnites = queryParams['purchase_units'] || [];
+    this.currency = this.purchaseUnites[0].amount.currency_code;
 
     this.updatePaytr();
     this.isLoading = false;
@@ -293,15 +293,7 @@ export default {
     handlePayingFromBalance() {
       this.submitting = true;
 
-      if (this.subscription) {
-        const { storeId, membership, coupon, grantTo } = this.subscription;
-
-        // TODO: Handle creating subscription
-      }
-
-      if (this.order) {
-        // TODO: handle creating order
-      }
+      // TODO: handle paying purchase_units
 
       // TODO: handle payment fail
     },
@@ -311,9 +303,7 @@ export default {
         id: this.paytr.merchant_oid,
         requestDateTime: new Date().toISOString(),
         amount: this.paymentTotal,
-        currency: this.currency,
-        order: this.order,
-        subscription: this.subscription,
+        purchase_units: this.purchaseUnits,
         store: this.activeStore.url,
         debug: this.debug,
         gateway: 'paytr',
@@ -392,11 +382,9 @@ export default {
   justify-content: space-between
   flex-wrap: wrap
   margin: 2px 0
-  >dt
+  > span
     align-self: flex-start
     width: 50%
-  >dd
-    align-self: flex-end
 
 .checkout-card
   display: flex

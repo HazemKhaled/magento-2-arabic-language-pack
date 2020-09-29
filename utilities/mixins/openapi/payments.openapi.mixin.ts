@@ -240,6 +240,11 @@ const PaymentsCheckoutOpenapi = {
           type: {
             type: 'enum',
             values: ['order', 'subscription', 'charge'],
+            required: true,
+          },
+          data: {
+            type: 'object',
+            required: true,
           },
           breakdown: {
             type: 'object',

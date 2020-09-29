@@ -2,12 +2,14 @@ import { ServiceSchema } from 'moleculer';
 
 const checkoutValueProps = {
   currency_code: {
-    type: 'string',
-    min: 3,
+    type: 'enum',
+    // Allow only USD and try
+    values: ['USD', 'TRY'],
   },
   value: {
     type: 'number',
     convert: true,
+    positive: true,
   },
 };
 
@@ -113,9 +115,9 @@ export const PaymentsValidation: ServiceSchema = {
               },
               type: {
                 type: 'enum',
-                optional: true,
                 values: ['order', 'subscription', 'charge'],
               },
+              data: 'object',
               amount: {
                 type: 'object',
                 props: {
