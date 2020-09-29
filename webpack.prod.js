@@ -12,7 +12,7 @@ module.exports = merge(common, {
 
   plugins: [
     new ServiceWorkerWebpackPlugin({
-      entry: path.join(__dirname, 'client/sw.js'),
+      entry: path.join(__dirname, 'client/sw.ts'),
       filename: 'service-worker.js',
     }),
   ],
