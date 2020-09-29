@@ -18,6 +18,6 @@ openapi-private.json
 gcp-key.json
 !webpack.*
 
-# public filter
+# public folder
 public/*
-!public/.gitkeep
+!public/img

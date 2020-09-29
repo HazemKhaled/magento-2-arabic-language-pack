@@ -17,7 +17,7 @@ export function initWebpackMiddlewares(): unknown[] {
       noInfo: true,
       publicPath: config.output.publicPath,
       headers: { 'Access-Control-Allow-Origin': '*' },
-      stats: { colors: true },
+      stats: 'errors-only',
     }),
 
     // Webpack hot replacement

@@ -32,6 +32,7 @@
     "@shopify/eslint-plugin": "^39.0.0",
     "@types/bluebird": "^3.5.32",
     "@types/compression": "^1.7.0",
+    "@types/express": "^4.17.8",
     "@types/jest": "^24.9.1",
     "@types/jsonwebtoken": "^8.5.0",
     "@types/lodash": "^4.14.161",

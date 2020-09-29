@@ -78,8 +78,4 @@ module.exports = {
       '@': path.resolve(__dirname, 'client'),
     },
   },
-
-  devServer: {
-    port: 3000,
-  },
 };
