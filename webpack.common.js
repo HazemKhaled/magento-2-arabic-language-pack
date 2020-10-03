@@ -22,12 +22,16 @@ module.exports = {
     rules: [
       {
         test: /\.tsx?$/,
-        use: 'ts-loader',
-        exclude: /node_modules/,
+        loader: 'awesome-typescript-loader',
       },
       {
         test: /\.vue$/,
         loader: 'vue-loader',
+        options: {
+          loaders: {
+            stylus: ['vue-style-loader', 'css-loader', 'stylus-loader'],
+          },
+        },
       },
       {
         test: /\.js$/,
@@ -35,19 +39,25 @@ module.exports = {
         exclude: /node_modules/,
       },
       {
+        test: /\.css$/,
+        use: [
+          // 'vue-style-loader',
+          MiniCssExtractPlugin.loader,
+          { loader: 'css-loader', options: { sourceMap: isDev } },
+        ],
+      },
+      {
         test: /\.styl(us)?$/,
-        use: ['vue-style-loader', 'css-loader', 'stylus-loader'],
+        use: [
+          // 'vue-style-loader',
+          MiniCssExtractPlugin.loader,
+          'css-loader',
+          'stylus-loader',
+        ],
       },
       {
         test: /\.pug$/,
         loader: 'pug-plain-loader',
-      },
-      {
-        test: /\.css$/,
-        use: [
-          isDev ? 'vue-style-loader' : MiniCssExtractPlugin.loader,
-          'css-loader',
-        ],
       },
     ],
   },
@@ -58,12 +68,13 @@ module.exports = {
       filename: 'style.css',
     }),
     new HtmlWebpackPlugin({
-      template: 'client/index.html',
+      template: 'client/checkout.html',
+      filename: 'checkout.html',
     }),
   ],
 
   resolve: {
-    extensions: ['.vue', '.js', '.ts', '.tsx', '.js'],
+    extensions: ['.vue', '.js', '.ts', '.tsx'],
     alias: {
       '@': path.resolve(__dirname, 'client'),
     },
