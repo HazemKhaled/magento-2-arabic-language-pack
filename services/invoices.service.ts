@@ -19,7 +19,18 @@ const TheService: ServiceSchema = {
         keys: ['#user', 'page', 'limit', 'reference_number', 'invoice_number'],
         ttl: 60,
       },
-      handler(ctx: Context) {
+      handler(
+        ctx: Context<
+          any,
+          {
+            store: {
+              internal_data: {
+                omsId: string;
+              };
+            };
+          }
+        >
+      ) {
         const { store } = ctx.meta;
 
         const keys: { [key: string]: string } = {
@@ -39,7 +50,7 @@ const TheService: ServiceSchema = {
             ...queryParams,
           })
           .then(
-            async response => {
+            async (response: any) => {
               return {
                 invoices: response.invoices.map((invoice: Invoice) =>
                   this.invoiceSanitize(invoice)
@@ -54,8 +65,19 @@ const TheService: ServiceSchema = {
     },
     create: {
       auth: ['Basic'],
-      async handler(ctx: Context) {
-        const instance = await ctx.call('stores.findInstance', {
+      async handler(
+        ctx: Context<{
+          storeId: string;
+          items: any;
+          discount: {
+            value: number;
+            type: string;
+          };
+          coupon: string;
+          dueDate: string;
+        }>
+      ) {
+        const instance: any = await ctx.call('stores.findInstance', {
           id: ctx.params.storeId,
         });
 
@@ -86,7 +108,7 @@ const TheService: ServiceSchema = {
 
         const invoiceParams: { [key: string]: string } = {
           customerId: instance?.internal_data?.omsId,
-          discount: ctx.params.discount?.value,
+          discount: ctx.params.discount?.value.toString(),
           discountType: ctx.params.discount?.type,
           items: ctx.params.items,
         };
@@ -100,7 +122,7 @@ const TheService: ServiceSchema = {
         }
 
         return ctx.call('oms.createInvoice', invoiceParams).then(
-          async res => {
+          async (res: any) => {
             await this.broker.cacher.clean(
               `invoices.get:${instance.consumer_key}**`
             );
@@ -120,8 +142,15 @@ const TheService: ServiceSchema = {
     },
     applyCredits: {
       auth: ['Bearer'],
-      async handler(ctx: Context) {
-        const store = await ctx.call('stores.me');
+      async handler(
+        ctx: Context<{
+          id: string;
+          useSavedPaymentMethods: string;
+          credit: number;
+          paymentAmount: number;
+        }>
+      ) {
+        const store: any = await ctx.call('stores.me');
 
         const { params } = ctx;
         if (
@@ -172,8 +201,13 @@ const TheService: ServiceSchema = {
       },
     },
     createOrderInvoice: {
-      async handler(ctx: Context) {
-        const instance = await ctx.call('stores.findInstance', {
+      async handler(
+        ctx: Context<{
+          storeId: string;
+          orderId: string;
+        }>
+      ) {
+        const instance: any = await ctx.call('stores.findInstance', {
           id: ctx.params.storeId,
         });
 
@@ -188,7 +222,12 @@ const TheService: ServiceSchema = {
       },
     },
     markInvoiceSent: {
-      handler(ctx: Context) {
+      handler(
+        ctx: Context<{
+          omsId: string;
+          invoiceId: string;
+        }>
+      ) {
         return ctx
           .call('oms.markInvoiceToSent', {
             customerId: ctx.params.omsId,
@@ -201,12 +240,23 @@ const TheService: ServiceSchema = {
     },
     renderInvoice: {
       params: {},
-      async handler(ctx: Context) {
-        const store = await ctx.call('stores.findInstance', {
+      async handler(
+        ctx: Context<
+          {
+            storeId: string;
+            id: string;
+          },
+          {
+            user: string;
+            $responseType: string;
+          }
+        >
+      ) {
+        const store: any = await ctx.call('stores.findInstance', {
           id: ctx.params.storeId,
         });
         ctx.meta.user = store.consumer_key;
-        const orders = await ctx.call('orders.list', {
+        const orders: any = await ctx.call('orders.list', {
           externalId: ctx.params.id,
         });
         const order = await ctx.call('orders.getOrder', {

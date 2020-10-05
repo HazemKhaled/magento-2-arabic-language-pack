@@ -1,7 +1,7 @@
 import fs from 'fs';
 
 import _ from 'lodash';
-import { Action, Errors, ServiceSchema } from 'moleculer';
+import { Errors, ServiceSchema } from 'moleculer';
 
 import pkg from '../../package.json';
 
@@ -196,7 +196,7 @@ export function OpenApiMixin(): ServiceSchema {
             }
 
             // --- COMPILE ACTION-LEVEL DEFINITIONS ---
-            _.forIn(service.actions, (action: Action) => {
+            _.forIn(service.actions, (action: any) => {
               if (!action.openapi && !_.isObject(action.openapi)) {
                 return;
               }

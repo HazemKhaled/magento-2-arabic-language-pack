@@ -13,13 +13,13 @@ const TaxesService: ServiceSchema = {
   actions: {
     tCreate: {
       auth: ['Basic'],
-      async handler(ctx: Context): Promise<RTax> {
+      async handler(ctx: Context<any>): Promise<RTax> {
         const taxBody: Partial<DbTax> = {
           ...ctx.params,
           createdAt: new Date(),
           updatedAt: new Date(),
         };
-        const omsTax = await ctx.call('oms.createTax', {
+        const omsTax: any = await ctx.call('oms.createTax', {
           name: taxBody.name,
           percentage: taxBody.percentage,
           type: 'tax',
@@ -39,7 +39,7 @@ const TaxesService: ServiceSchema = {
     },
     tUpdate: {
       auth: ['Basic'],
-      async handler(ctx: Context): Promise<RTax> {
+      async handler(ctx: Context<any>): Promise<RTax> {
         const { id } = ctx.params;
         const $set = ctx.params;
         $set.updatedAt = new Date();
@@ -98,7 +98,11 @@ const TaxesService: ServiceSchema = {
         // 1 day
         ttl: 60 * 60 * 24,
       },
-      handler(ctx: Context): RTax {
+      handler(
+        ctx: Context<{
+          id: string;
+        }>
+      ): RTax {
         return this.adapter
           .findById(ctx.params.id)
           .then((tax: DbTax) => {
@@ -122,7 +126,14 @@ const TaxesService: ServiceSchema = {
         // 1 day
         ttl: 60 * 60 * 24,
       },
-      handler(ctx: Context): RTax[] {
+      handler(
+        ctx: Context<{
+          country: string;
+          class: string;
+          page: string;
+          perPage: string;
+        }>
+      ): RTax[] {
         const { country } = ctx.params;
         const classes = ctx.params.class;
         const query: any = {};
@@ -154,7 +165,11 @@ const TaxesService: ServiceSchema = {
     },
     tDelete: {
       auth: ['Basic'],
-      async handler(ctx: Context) {
+      async handler(
+        ctx: Context<{
+          id: string;
+        }>
+      ) {
         const taxDeleteData = await this.adapter
           .removeById(ctx.params.id)
           .then((tax: DbTax) => {
@@ -190,7 +205,11 @@ const TaxesService: ServiceSchema = {
         keys: ['query'],
         ttl: 60 * 60,
       },
-      handler(ctx: Context) {
+      handler(
+        ctx: Context<{
+          query: string;
+        }>
+      ) {
         return this.adapter.count({ query: ctx.params.query }).catch(() => {
           throw new MoleculerError(
             'There is an error fetching the taxes total',

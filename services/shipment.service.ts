@@ -18,7 +18,11 @@ const Shipment: ServiceSchema = {
     getShipments: {
       auth: ['Basic'],
       cache: { keys: ['id'], ttl: 60 * 60 * 24 * 30 },
-      handler(ctx: Context): ShipmentPolicy | ShipmentPolicy[] {
+      handler(
+        ctx: Context<{
+          id: string;
+        }>
+      ): ShipmentPolicy | ShipmentPolicy[] {
         return (ctx.params.id
           ? this.adapter.findById(ctx.params.id)
           : this.adapter.find()
@@ -33,7 +37,13 @@ const Shipment: ServiceSchema = {
      */
     insertShipment: {
       auth: ['Basic'],
-      handler(ctx: Context): ShipmentPolicy {
+      handler(
+        ctx: Context<{
+          name: string;
+          countries: string;
+          rules: string;
+        }>
+      ): ShipmentPolicy {
         // insert to DB
         return this.adapter
           .insert({
@@ -58,7 +68,13 @@ const Shipment: ServiceSchema = {
      */
     updateShipment: {
       auth: ['Basic'],
-      handler(ctx: Context): ShipmentPolicy {
+      handler(
+        ctx: Context<{
+          id: string;
+          countries: string;
+          rules: string;
+        }>
+      ): ShipmentPolicy {
         // update DB
         return this.adapter
           .updateMany(
@@ -87,14 +103,23 @@ const Shipment: ServiceSchema = {
     ruleByCountry: {
       auth: ['Basic'],
       cache: { keys: ['country', 'weight', 'price'], ttl: 60 * 60 * 24 * 30 },
-      handler(ctx: Context): Rule[] {
+      handler(
+        ctx: Context<{
+          country: string;
+          weight: number;
+        }>
+      ): Rule[] {
         // find policies with matched rules
         return this.adapter
           .find({
             query: {
               countries: ctx.params.country,
-              'rules.units_max': { $gte: parseInt(ctx.params.weight, 10) },
-              'rules.units_min': { $lte: parseInt(ctx.params.weight, 10) },
+              'rules.units_max': {
+                $gte: parseInt(ctx.params.weight.toString(), 10),
+              },
+              'rules.units_min': {
+                $lte: parseInt(ctx.params.weight.toString(), 10),
+              },
             },
           })
           .then((policies: ShipmentPolicy[]) => {
@@ -132,7 +157,11 @@ const Shipment: ServiceSchema = {
     getCouriers: {
       auth: ['Basic'],
       cache: { keys: ['country'], ttl: 60 * 60 * 24 * 30 },
-      handler(ctx: Context): string[] {
+      handler(
+        ctx: Context<{
+          country: string;
+        }>
+      ): string[] {
         const query = ctx.params.country
           ? { countries: ctx.params.country }
           : {};

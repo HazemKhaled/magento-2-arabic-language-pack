@@ -13,8 +13,19 @@ const TheService: ServiceSchema = {
   actions: {
     add: {
       auth: ['Basic'],
-      async handler(ctx: Context) {
-        const instance = await ctx.call('stores.findInstance', {
+      async handler(
+        ctx: Context<{
+          id: string;
+          payment_mode: string;
+          amount: number;
+          account_id: string;
+          invoices: any;
+          bank_charges: number;
+          reference: string;
+          description: string;
+        }>
+      ) {
+        const instance: any = await ctx.call('stores.findInstance', {
           id: ctx.params.id,
         });
 
@@ -52,7 +63,7 @@ const TheService: ServiceSchema = {
         }
 
         return ctx.call('oms.createPayment', paymentBody).then(
-          res => {
+          (res: any) => {
             // Store balance
             this.broker.cacher.clean(`payments.get:${instance.consumer_key}**`);
             this.broker.cacher.clean(`invoices.get:${instance.consumer_key}**`);
@@ -71,7 +82,14 @@ const TheService: ServiceSchema = {
         keys: ['#user', 'page', 'limit', 'reference_number', 'payment_mode'],
         ttl: 60 * 60 * 24,
       },
-      async handler(ctx: Context) {
+      async handler(
+        ctx: Context<
+          any,
+          {
+            store: any;
+          }
+        >
+      ) {
         const { store } = ctx.meta;
         const keys: { [key: string]: string } = {
           page: 'page',
@@ -91,7 +109,9 @@ const TheService: ServiceSchema = {
               ...queryParams,
             })
             .then(
-              res => ({ payments: res.payments.map(this.sanitizePayment) }),
+              (res: any) => ({
+                payments: res.payments.map(this.sanitizePayment),
+              }),
               err => {
                 throw new MpError(
                   'Payments Service',
@@ -111,7 +131,14 @@ const TheService: ServiceSchema = {
     },
 
     checkout: {
-      handler(ctx: Context): string {
+      handler(
+        ctx: Context<
+          unknown,
+          {
+            $responseType: string;
+          }
+        >
+      ): string {
         ctx.meta.$responseType = 'text/html';
         return this.renderCheckoutPage();
       },

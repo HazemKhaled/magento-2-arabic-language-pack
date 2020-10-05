@@ -34,7 +34,11 @@ const TheService: ServiceSchema = {
         keys: ['id'],
         ttl: 60 * 60 * 24,
       },
-      async handler(ctx: Context): Promise<any | false> {
+      async handler(
+        ctx: Context<{
+          id: string;
+        }>
+      ): Promise<any | false> {
         const subscription =
           (await this.adapter.findOne({
             storeId: ctx.params.id,
@@ -42,7 +46,7 @@ const TheService: ServiceSchema = {
             expireDate: { $gte: new Date() },
             startDate: { $lte: new Date() },
           })) || {};
-        const membership = await ctx.call('membership.mGet', {
+        const membership: any = await ctx.call('membership.mGet', {
           id: subscription.membershipId || 'free',
         });
         return {
@@ -78,7 +82,22 @@ const TheService: ServiceSchema = {
         ],
         ttl: 60 * 60 * 24,
       },
-      async handler(ctx: Context): Promise<Subscription | false> {
+      async handler(
+        ctx: Context<{
+          storeId: string;
+          membershipId: string;
+          status: string;
+          reference: string;
+          expireDate: string;
+          startDate: string;
+          sort: {
+            field: string;
+            order: string;
+          };
+          perPage: string;
+          page: string;
+        }>
+      ): Promise<Subscription | false> {
         const query: GenericObject = {};
         if (ctx.params.storeId) {
           query.storeId = ctx.params.storeId;
@@ -150,7 +169,27 @@ const TheService: ServiceSchema = {
     },
     create: {
       auth: ['Basic'],
-      async handler(ctx: Context) {
+      async handler(
+        ctx: Context<
+          {
+            coupon: string;
+            membership: string;
+            storeId: string;
+            grantTo: string;
+            postpaid: string;
+            dueDate: string;
+            date: {
+              start: string;
+              expire: string;
+            };
+            autoRenew: string;
+            reference: string;
+          },
+          {
+            user: string;
+          }
+        >
+      ) {
         let coupon: Coupon = null;
         if (ctx.params.coupon) {
           coupon = await ctx
@@ -325,11 +364,14 @@ const TheService: ServiceSchema = {
           startDate = new Date(ctx.params.date.start);
           expireDate = new Date(ctx.params.date.expire);
         } else {
-          const storeOldSubscription = await ctx.call('subscription.sList', {
-            storeId: ctx.params.grantTo || ctx.params.storeId,
-            expireDate: { operation: 'gte' },
-            status: 'active',
-          });
+          const storeOldSubscription: any = await ctx.call(
+            'subscription.sList',
+            {
+              storeId: ctx.params.grantTo || ctx.params.storeId,
+              expireDate: { operation: 'gte' },
+              status: 'active',
+            }
+          );
           startDate.setUTCHours(0, 0, 0, 0);
           if (storeOldSubscription.length > 0) {
             storeOldSubscription.forEach((subscription: Subscription) => {
@@ -425,7 +467,12 @@ const TheService: ServiceSchema = {
     },
     getSubscriptionByExpireDate: {
       cache: false,
-      async handler(ctx: Context) {
+      async handler(
+        ctx: Context<{
+          afterDays: number;
+          beforeDays: number;
+        }>
+      ) {
         const minDate = new Date();
         minDate.setDate(minDate.getDate() - (ctx.params.afterDays || 0));
         const maxDate = new Date();
@@ -460,7 +507,7 @@ const TheService: ServiceSchema = {
           sort: { expireDate: -1 },
         });
         expiredSubscription._id = expiredSubscription._id.toString();
-        const currentSubscription = await ctx.call('subscription.sGet', {
+        const currentSubscription: any = await ctx.call('subscription.sGet', {
           id: expiredSubscription.storeId,
         });
         if (currentSubscription.id !== -1) {
@@ -494,7 +541,7 @@ const TheService: ServiceSchema = {
     },
     updateSubscription: {
       auth: ['Basic'],
-      handler(ctx: Context) {
+      handler(ctx: Context<any>) {
         let $set: Partial<Subscription> = {};
         const { params } = ctx;
         if (ctx.params.retries) {
@@ -511,7 +558,7 @@ const TheService: ServiceSchema = {
         return this.adapter
           .updateById(ctx.params.id, { $set })
           .then(async (subscription: Subscription) => {
-            const store = await ctx.call('stores.findInstance', {
+            const store: any = await ctx.call('stores.findInstance', {
               id: subscription.storeId,
             });
 
@@ -527,8 +574,12 @@ const TheService: ServiceSchema = {
       },
     },
     checkCurrentSubGradingStatus: {
-      async handler(ctx: Context) {
-        const allSubBefore = await ctx.call('subscription.sList', {
+      async handler(
+        ctx: Context<{
+          id: string;
+        }>
+      ) {
+        const allSubBefore: any = await ctx.call('subscription.sList', {
           storeId: ctx.params.id,
           expireDate: {
             operation: 'gte',
@@ -538,7 +589,7 @@ const TheService: ServiceSchema = {
           sort: { field: 'expireDate', order: -1 },
           perPage: 2,
         });
-        const memberships = await ctx.call('membership.list');
+        const memberships: any = await ctx.call('membership.list');
         if (allSubBefore.length === 0) return;
         if (allSubBefore.length === 1) {
           return ctx.call('crm.addTagsByUrl', {
@@ -572,7 +623,7 @@ const TheService: ServiceSchema = {
         return this.adapter
           .updateById(ctx.params.id, { $set: { status: 'cancelled' } })
           .then(async (res: any) => {
-            const instance = await ctx.call('stores.findInstance', {
+            const instance: any = await ctx.call('stores.findInstance', {
               id: res.storeId,
             });
 

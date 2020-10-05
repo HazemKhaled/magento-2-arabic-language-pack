@@ -13,7 +13,39 @@ const TheService: ServiceSchema = {
   actions: {
     create: {
       auth: ['Basic'],
-      handler(ctx: Context): Promise<Coupon> {
+      handler(
+        ctx: Context<{
+          code: string;
+          type: string;
+          discount: {
+            tax?: {
+              value: number;
+              type: string;
+            };
+            shipping?: {
+              value: number;
+              type: string;
+            };
+            total?: {
+              value: number;
+              type: string;
+            };
+          };
+          startDate: Date;
+          endDate: Date;
+          maxUses: number;
+          minAppliedAmount?: number;
+          appliedMemberships: [
+            {
+              items: {
+                type: string;
+              };
+            }
+          ];
+          auto: boolean;
+          campaignName?: string;
+        }>
+      ): Promise<Coupon> {
         // Different coupon types validation
         this.couponTypeCheck(ctx.params);
 
@@ -44,7 +76,13 @@ const TheService: ServiceSchema = {
         keys: ['id', 'membership'],
         ttl: 60 * 60 * 24,
       },
-      handler(ctx: Context): Promise<Coupon> {
+      handler(
+        ctx: Context<{
+          id: string;
+          membership?: string;
+          type: string;
+        }>
+      ): Promise<Coupon> {
         const query: GenericObject = {
           _id: ctx.params.id.toUpperCase(),
           startDate: { $lte: new Date() },
@@ -85,7 +123,16 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 * 24,
         keys: ['id', 'membership', 'type', 'isValid', 'isAuto'],
       },
-      handler(ctx): Promise<Coupon[]> {
+      handler(
+        ctx: Context<{
+          id?: string;
+          membership?: string;
+          type?: string;
+          totalAmount?: number;
+          isValid?: boolean;
+          isAuto?: boolean;
+        }>
+      ): Promise<Coupon[]> {
         this.couponListValidation(ctx.params);
         const query: GenericObject = {};
         const isAuto = Number(ctx.params.isAuto);
@@ -124,7 +171,33 @@ const TheService: ServiceSchema = {
     },
     update: {
       auth: ['Basic'],
-      async handler(ctx: Context): Promise<Coupon> {
+      async handler(
+        ctx: Context<{
+          id: string;
+          type?: string;
+          discount: {
+            tax?: {
+              value: number;
+              type: any;
+            };
+            shipping?: {
+              value: number;
+              type: any;
+            };
+            total?: {
+              value: number;
+              type: any;
+            };
+          };
+          startDate?: Date;
+          endDate?: Date;
+          maxUses?: number;
+          minAppliedAmount?: number;
+          appliedMemberships?: any;
+          auto?: boolean;
+          campaignName?: string;
+        }>
+      ): Promise<Coupon> {
         this.couponTypeCheck(ctx.params);
 
         const id = ctx.params.id.toUpperCase();
@@ -164,7 +237,11 @@ const TheService: ServiceSchema = {
     },
     updateCount: {
       auth: ['Basic'],
-      async handler(ctx: Context) {
+      async handler(
+        ctx: Context<{
+          id: string;
+        }>
+      ) {
         return this.adapter
           .updateMany(
             { _id: ctx.params.id.toUpperCase() },

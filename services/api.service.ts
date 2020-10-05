@@ -269,7 +269,19 @@ const TheService: ServiceSchema = {
      * @param {IncomingRequest} req
      * @returns {Promise}
      */
-    authorize(ctx: Context, route: any, req: any) {
+    authorize(
+      ctx: Context<
+        unknown,
+        {
+          user: string;
+          token: string;
+          storeId: string;
+          store: Store;
+        }
+      >,
+      route: any,
+      req: any
+    ) {
       // Pass if no auth required
       if (!req.$endpoint.action.auth) {
         return;

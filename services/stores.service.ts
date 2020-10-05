@@ -11,6 +11,10 @@ import { Log, Store, StoreUser } from '../utilities/types';
 import { StoresValidation } from '../utilities/mixins/validation';
 import { GCPPubSub } from '../utilities/mixins';
 
+interface EventArguments extends Context {
+  storeId?: string;
+  res?: any;
+}
 const MoleculerError = Errors.MoleculerError;
 const { MoleculerClientError } = Errors;
 
@@ -37,7 +41,7 @@ const TheService: ServiceSchema = {
     },
   },
   events: {
-    'stores.event': function ({ event, storeId, res }): void {
+    'stores.event': function ({ event, storeId, res }: EventArguments): void {
       this.publishMessage(event, {
         storeId,
         data: {
@@ -59,7 +63,12 @@ const TheService: ServiceSchema = {
         keys: ['consumerKey', 'id'],
         ttl: 60 * 60 * 24,
       },
-      handler(ctx: Context) {
+      handler(
+        ctx: Context<{
+          id: string;
+          consumerKey: string;
+        }>
+      ) {
         let query: { _id?: string } | false = false;
         if (ctx.params.id) query = { _id: ctx.params.id };
         return this.adapter
@@ -84,7 +93,7 @@ const TheService: ServiceSchema = {
         keys: ['#user'],
         ttl: 60 * 60 * 24,
       },
-      handler(ctx: Context) {
+      handler(ctx: Context<unknown, { user: string }>) {
         return this.adapter
           .findOne({ consumer_key: ctx.meta.user })
           .then(async (res: Store | null) => {
@@ -123,7 +132,12 @@ const TheService: ServiceSchema = {
         keys: ['id', 'withoutBalance'],
         ttl: 60 * 60 * 24,
       },
-      handler(ctx: Context) {
+      handler(
+        ctx: Context<{
+          id: string;
+          withoutBalance: string;
+        }>
+      ) {
         return this.adapter
           .findById(ctx.params.id)
           .then(async (res: Store | null) => {
@@ -171,7 +185,11 @@ const TheService: ServiceSchema = {
         keys: ['filter'],
         ttl: 60 * 60 * 24,
       },
-      handler(ctx: Context) {
+      handler(
+        ctx: Context<{
+          filter: string;
+        }>
+      ) {
         let params: {
           where?: GenericObject;
           limit?: number;
@@ -218,7 +236,13 @@ const TheService: ServiceSchema = {
         keys: ['id', 'page', 'perPage'],
         ttl: 60 * 60 * 24,
       },
-      handler(ctx: Context) {
+      handler(
+        ctx: Context<{
+          id: string;
+          perPage: number;
+          page: number;
+        }>
+      ) {
         const query: GenericObject = {};
         if (ctx.params.id) {
           query._id = { $regex: new RegExp(`.*${ctx.params.id}.*`, 'i') };
@@ -252,7 +276,11 @@ const TheService: ServiceSchema = {
         keys: ['key'],
         ttl: 60 * 60 * 24,
       },
-      handler(ctx: Context) {
+      handler(
+        ctx: Context<{
+          query: string;
+        }>
+      ) {
         return this.adapter.count({ query: ctx.params.query });
       },
     },
@@ -264,7 +292,11 @@ const TheService: ServiceSchema = {
      */
     create: {
       auth: ['Basic'],
-      async handler(ctx: Context) {
+      async handler(
+        ctx: Context<{
+          url: string;
+        }>
+      ) {
         // Clear cache
         this.broker.cacher.clean(`stores.sGet:${ctx.params.url}**`);
 
@@ -302,12 +334,24 @@ const TheService: ServiceSchema = {
      */
     update: {
       auth: ['Basic'],
-      async handler(ctx: Context) {
+      async handler(
+        ctx: Context<
+          {
+            id: string;
+            internal_data: string;
+            external_data: string;
+          },
+          {
+            $statusMessage: string;
+            $statusCode: number;
+          }
+        >
+      ) {
         // Save the ID separate into variable to use it to find the store
         const { id } = ctx.params;
         delete ctx.params.id;
         // storeBefore
-        const storeBefore = await ctx.call('stores.findInstance', { id });
+        const storeBefore: any = await ctx.call('stores.findInstance', { id });
 
         // Sanitize request params
         const store: Store = this.sanitizeStoreParams(ctx.params);
@@ -412,14 +456,14 @@ const TheService: ServiceSchema = {
       },
       async handler(ctx) {
         const storeId = ctx.params.id;
-        const instance = await ctx.call('stores.findInstance', {
+        const instance: any = await ctx.call('stores.findInstance', {
           id: storeId,
         });
         try {
           const omsStore = await ctx
             .call('oms.getCustomerByUrl', { storeId })
             .then(
-              response => response.store,
+              (response: any) => response.store,
               err => {
                 if (err.code !== 404) {
                   throw new MoleculerError(err.message, err.code || 500);
@@ -503,7 +547,19 @@ const TheService: ServiceSchema = {
      * @returns {Object} Logged in user with token
      */
     login: {
-      handler(ctx: Context) {
+      handler(
+        ctx: Context<
+          {
+            consumerKey: string;
+            consumerSecret: string;
+          },
+          {
+            $statusCode: number;
+            $statusMessage: string;
+            token: string;
+          }
+        >
+      ) {
         const { consumerKey, consumerSecret } = ctx.params;
 
         return this.broker
@@ -566,7 +622,11 @@ const TheService: ServiceSchema = {
         keys: ['token'],
         ttl: 60 * 60 * 24 * 30,
       },
-      handler(ctx: Context) {
+      handler(
+        ctx: Context<{
+          token: string;
+        }>
+      ) {
         return new this.Promise((resolve: any, reject: any) => {
           jwt.verify(
             ctx.params.token,
@@ -611,7 +671,11 @@ const TheService: ServiceSchema = {
         keys: ['token'],
         ttl: 60 * 60 * 24,
       },
-      handler(ctx: Context) {
+      handler(
+        ctx: Context<{
+          token: string;
+        }>
+      ) {
         return fetch(`${process.env.AUTH_BASEURL}/login`, {
           headers: {
             Authorization: `Basic ${ctx.params.token}`,

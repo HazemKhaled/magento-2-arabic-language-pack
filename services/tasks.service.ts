@@ -11,7 +11,7 @@ const TasksService: ServiceSchema = {
   actions: {
     handle: {
       auth: ['Bearer'],
-      handler(ctx) {
+      handler(ctx: any) {
         const req = ctx.options.parentCtx?.params?.req;
         if (!req) {
           throw new MoleculerError('Bad Request', 400, 'BAD_REQUEST');

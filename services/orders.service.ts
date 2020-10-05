@@ -39,7 +39,24 @@ const TheService: ServiceSchema = {
   actions: {
     createOrder: {
       auth: ['Bearer'],
-      async handler(ctx: Context) {
+      async handler(
+        ctx: Context<
+          {
+            id: string;
+            shipping: {
+              country: string;
+            };
+            shipping_method: string;
+            coupon: string;
+          },
+          {
+            store: any;
+            $statusCode: number;
+            $statusMessage: string;
+            user: any;
+          }
+        >
+      ) {
         // Initialize warnings array
         let warnings: { code: number; message: string }[] = [];
 
@@ -67,7 +84,7 @@ const TheService: ServiceSchema = {
                 params: ctx.params,
               },
             });
-            const orders = await ctx.call('orders.list', {
+            const orders: any = await ctx.call('orders.list', {
               externalId: ctx.params.id,
             });
             return {
@@ -177,7 +194,7 @@ const TheService: ServiceSchema = {
           ) + (data.isInclusiveTax ? 0 : taxTotal);
 
         // Getting the current user subscription
-        const subscription = await ctx.call('subscription.sGet', {
+        const subscription: any = await ctx.call('subscription.sGet', {
           id: store.url,
         });
         switch (subscription.attributes.orderProcessingType) {
@@ -373,7 +390,7 @@ const TheService: ServiceSchema = {
         let warnings: { code: number; message: string }[] = [];
         const { store } = ctx.meta;
 
-        const orderBeforeUpdate = await ctx.call('orders.getOrder', {
+        const orderBeforeUpdate: any = await ctx.call('orders.getOrder', {
           order_id: ctx.params.id,
         });
 
@@ -475,7 +492,7 @@ const TheService: ServiceSchema = {
               ) + (data.isInclusiveTax ? 0 : taxTotal);
 
             // Getting the current user subscription
-            const subscription = await ctx.call('subscription.sGet', {
+            const subscription: any = await ctx.call('subscription.sGet', {
               id: store.url,
             });
             if (subscription.attributes.orderProcessingType === '%') {
@@ -627,7 +644,7 @@ const TheService: ServiceSchema = {
           };
         }
 
-        const order = await ctx.call('oms.getOrderById', {
+        const order: any = await ctx.call('oms.getOrderById', {
           customerId: store.internal_data.omsId,
           orderId: ctx.params.order_id,
         });
@@ -692,7 +709,7 @@ const TheService: ServiceSchema = {
           if (!keys.includes(key)) return;
           queryParams[key] = ctx.params[key];
         });
-        const orders = await ctx.call('oms.listOrders', {
+        const orders: any = await ctx.call('oms.listOrders', {
           customerId: store.internal_data.omsId,
           ...queryParams,
         });
@@ -702,7 +719,7 @@ const TheService: ServiceSchema = {
     deleteOrder: {
       auth: ['Bearer'],
       async handler(ctx) {
-        const orderBeforeUpdate = await ctx.call('orders.getOrder', {
+        const orderBeforeUpdate: any = await ctx.call('orders.getOrder', {
           order_id: ctx.params.id,
         });
 
@@ -721,7 +738,7 @@ const TheService: ServiceSchema = {
             customerId: store.internal_data?.omsId,
             orderId: ctx.params.id,
           })
-          .then(async result => {
+          .then(async (result: any) => {
             if (result.salesorder) {
               // Clean list cache
               this.broker.cacher.clean(
@@ -753,10 +770,27 @@ const TheService: ServiceSchema = {
     },
     payOrder: {
       auth: ['Bearer'],
-      async handler(ctx: Context) {
-        const store = await ctx.call('stores.sGet', { id: ctx.meta.store.url });
+      async handler(
+        ctx: Context<
+          {
+            id: string;
+          },
+          {
+            store: {
+              url: string;
+              internal_data: {
+                omsId: string;
+              };
+            };
+            user: any;
+          }
+        >
+      ) {
+        const store: any = await ctx.call('stores.sGet', {
+          id: ctx.meta.store.url,
+        });
 
-        const order = await ctx.call('orders.getOrder', {
+        const order: any = await ctx.call('orders.getOrder', {
           order_id: ctx.params.id,
         });
 
@@ -823,10 +857,19 @@ const TheService: ServiceSchema = {
         keys: ['order_id'],
         ttl: 60 * 6,
       },
-      async handler(ctx: Context) {
+      async handler(
+        ctx: Context<
+          {
+            order_id: string;
+          },
+          {
+            store: any;
+          }
+        >
+      ) {
         const { order_id } = ctx.params;
         const { store: instance } = ctx.meta;
-        const order = await ctx.call('orders.getOrder', { order_id });
+        const order: any = await ctx.call('orders.getOrder', { order_id });
         const { outOfStock, notEnoughStock } = await this.stockProducts(
           order.items
         );

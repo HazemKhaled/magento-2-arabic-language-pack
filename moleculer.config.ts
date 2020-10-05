@@ -1,4 +1,9 @@
-import { BrokerOptions, Errors } from 'moleculer';
+import {
+  BrokerOptions,
+  Errors,
+  MetricRegistry,
+  ServiceBroker,
+} from 'moleculer';
 
 /**
  * Moleculer ServiceBroker configuration file
@@ -22,13 +27,27 @@ const brokerConfig: BrokerOptions = {
   nodeID: null,
 
   // Enable/disable logging or use custom logger. More info: https://moleculer.services/docs/0.13/logging.html
-  logger: true,
+  logger: {
+    type: 'Console',
+    options: {
+      // Using colors on the output
+      colors: true,
+      // Print module names with different colors (like docker-compose for containers)
+      moduleColors: false,
+      // Line formatter. It can be "json", "short", "simple", "full", a `Function` or a template string like "{timestamp} {level} {nodeID}/{mod}: {msg}"
+      formatter: 'full',
+      // Custom object printer. If not defined, it uses the `util.inspect` method.
+      objectPrinter: null,
+      // Auto-padding the module name in order to messages begin at the same column.
+      autoPadding: false,
+    },
+  },
   // Log level for built-in console logger. Available values: trace, debug, info, warn, error, fatal
   logLevel: 'info',
   // Log formatter for built-in console logger. Available values: default, simple, short. It can be also a `Function`.
-  logFormatter: 'default',
+  // logFormatter: 'default',
   // Custom object & array printer for built-in console logger.
-  logObjectPrinter: null,
+  // logObjectPrinter: null,
 
   // Define transporter.
   // More info: https://moleculer.services/docs/0.13/networking.html
@@ -117,14 +136,14 @@ const brokerConfig: BrokerOptions = {
   },
 
   // Enable parameters validation. More info: https://moleculer.services/docs/0.13/validating.html
-  validation: true,
+  // validation: true,
   // Custom Validator class for validation.
-  validator: null,
+  validator: true,
 
   // Enable metrics function. More info: https://moleculer.services/docs/0.13/metrics.html
-  metrics: true,
-  // Rate of metrics calls. 1 means to measure every request, 0 means to measure nothing.
-  metricsRate: 1,
+  metrics: {
+    enabled: false,
+  },
 
   // Register internal services ("$node"). More info: https://moleculer.services/docs/0.13/services.html#Internal-services
   internalServices: false,
