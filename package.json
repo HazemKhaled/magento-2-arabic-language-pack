@@ -5,19 +5,18 @@
   "description": "Knawat MarketPlace API layer",
   "author": "Knawat, LLC.",
   "engines": {
-    "node": "10.x.x"
+    "node": "12.x.x"
   },
   "scripts": {
+    "build": "npm run clean && npm run tsc && npm run webpack:prod",
     "clean": "rm -rf build",
     "tsc": "tsc",
-    "tsc:watch": "tsc --watch",
-    "webpack": "webpack --config webpack.prod.js",
-    "webpack:watch": "webpack --watch --config webpack.dev.js",
-    "build": "npm run clean && npm run tsc & npm run webpack",
-    "build:watch": "npm run tsc:watch & npm run webpack:watch",
-    "dev": "env $(cat ./docker/development/.env) ts-node ./node_modules/moleculer/bin/moleculer-runner.js --hot --repl --config moleculer.config.ts services/**/*.service.ts",
+    "webpack:prod": "NODE_ENV=production webpack --config webpack.prod.js",
+    "webpack:dev": "NODE_ENV=development webpack --config webpack.dev.js",
+    "dev": "env $(cat ./docker/development/.env) tsc-watch --onSuccess \"ts-node ./node_modules/moleculer/bin/moleculer-runner.js --hot --repl --config moleculer.config.ts services/**/*.service.ts\"",
+    "predev": "npm run lint && npm run clean && npm run tsc & npm run webpack:dev",
     "cli": "moleculer connect TCP",
-    "start": "env $(cat ./docker/development/.env) ./node_modules/moleculer/bin/moleculer-runner.js services",
+    "start": "moleculer-runner services",
     "deps": "npm-check -u",
     "ci": "jest --watch",
     "test": "jest --coverage",
@@ -27,9 +26,11 @@
     "prettier": "prettier services/*.ts utilities/**/*.ts *.ts --write"
   },
   "devDependencies": {
+    "@babel/plugin-proposal-optional-chaining": "^7.11.0",
     "@shopify/eslint-plugin": "^39.0.0",
     "@types/bluebird": "^3.5.32",
     "@types/compression": "^1.7.0",
+    "@types/express": "^4.17.8",
     "@types/jest": "^24.9.1",
     "@types/jsonwebtoken": "^8.5.0",
     "@types/lodash": "^4.14.161",
@@ -44,7 +45,6 @@
     "@typescript-eslint/parser": "^4.3.0",
     "awesome-typescript-loader": "^5.2.1",
     "babel-loader": "^8.1.0",
-    "concurrently": "^5.3.0",
     "css-loader": "^4.3.0",
     "dotenv": "^8.2.0",
     "eslint": "^7.9.0",
@@ -54,6 +54,7 @@
     "mini-css-extract-plugin": "^0.11.2",
     "moleculer-repl": "^0.6.4",
     "moleculer-sentry": "0.0.9",
+    "optimize-css-assets-webpack-plugin": "^5.0.4",
     "prettier": "^2.1.2",
     "pug": "^3.0.0",
     "pug-plain-loader": "^1.0.0",
@@ -61,7 +62,6 @@
     "stylus": "^0.54.8",
     "stylus-loader": "^3.0.2",
     "ts-jest": "^26.4.0",
-    "ts-loader": "^8.0.4",
     "ts-node": "^8.10.1",
     "tsc-watch": "^4.2.9",
     "typescript": "^3.9.7",
@@ -94,8 +94,12 @@
     "moleculer-web": "^0.8.5",
     "node-fetch": "^2.6.1",
     "nodemailer": "^6.4.11",
+    "payment": "^2.4.0",
+    "qs": "^6.9.4",
     "uuid": "^3.4.0",
-    "vue": "^2.6.12"
+    "vue": "^2.6.12",
+    "vue-i18n": "^8.21.1",
+    "vue-router": "^3.4.5"
   },
   "jest": {
     "coverageDirectory": "<rootDir>/coverage",

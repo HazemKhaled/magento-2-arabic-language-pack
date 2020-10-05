@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
+
 /**
  * Initialize Webpack middleware in development
  */
-export function initWebpackMiddlewares(): unknown[] {
+export function webpackMiddlewares(): unknown[] {
   if (process.env.NODE_ENV === 'production') return [];
 
   const webpack = require('webpack');
@@ -17,7 +19,7 @@ export function initWebpackMiddlewares(): unknown[] {
       noInfo: true,
       publicPath: config.output.publicPath,
       headers: { 'Access-Control-Allow-Origin': '*' },
-      stats: { colors: true },
+      stats: 'errors-only',
     }),
 
     // Webpack hot replacement

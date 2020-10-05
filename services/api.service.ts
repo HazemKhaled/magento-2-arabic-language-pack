@@ -4,7 +4,7 @@ import compression from 'compression';
 
 import { Log, Store } from '../utilities/types';
 import { OpenApiMixin } from '../utilities/mixins/openapi.mixin';
-import { initWebpackMiddlewares } from '../utilities/adapters';
+import { hmacMiddleware, webpackMiddlewares } from '../utilities/middleware';
 
 const {
   UnAuthorizedError,
@@ -195,7 +195,7 @@ const TheService: ServiceSchema = {
             type: string;
             data: any[];
           }
-        ) {
+        ): Promise<void> {
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
           res.writeHead(err.code || 500);
           if (
@@ -250,11 +250,11 @@ const TheService: ServiceSchema = {
         use: [
           compression(),
           // Webpack middleware
-          ...initWebpackMiddlewares(),
+          ...webpackMiddlewares(),
           ApiGateway.serveStatic('public'),
         ],
         aliases: {
-          'GET checkout': 'payments.checkout',
+          'GET checkout': [hmacMiddleware(), 'payments.checkout'],
         },
       },
     ],
@@ -284,7 +284,7 @@ const TheService: ServiceSchema = {
     ) {
       // Pass if no auth required
       if (!req.$endpoint.action.auth) {
-        return;
+        return this.Promise.resolve();
       }
 
       // if no authorization in the header

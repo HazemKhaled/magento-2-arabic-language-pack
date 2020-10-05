@@ -1,23 +1,12 @@
 <template lang="pug">
-  <div>
-    <h1>{{ title }}</h1>
-    <h2>{{ subTitle }}</h2>
-  </div>
+Checkout
 </template>
 
 <script>
-  export default {
-    data() {
-      return {
-        title: "Hello Webpack!",
-        subTitle: "Hello Moleculer!"
-      }
-    }
-  }
-</script>
+import Checkout from '@/views/Checkout';
 
-<style>
-body {
-  background: red;
+export default {
+  name: 'App',
+  components: { Checkout },
 }
-</style>
+</script>
