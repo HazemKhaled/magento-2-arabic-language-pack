@@ -443,10 +443,12 @@ export const StoresValidation: ServiceSchema = {
           type: 'string',
           optional: true,
         },
+        $$strict: true,
       },
     },
     meUpdate: {
       params: {
+        $$strict: true,
         logo: {
           type: 'url',
           optional: true,
@@ -465,6 +467,7 @@ export const StoresValidation: ServiceSchema = {
         },
         address: {
           type: 'object',
+          strict: true,
           props: {
             first_name: {
               type: 'string',

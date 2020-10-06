@@ -15,9 +15,11 @@ export const CouponsValidation: ServiceSchema = {
         },
         discount: {
           type: 'object',
+          strict: true,
           props: {
             tax: {
               type: 'object',
+              strict: true,
               optional: true,
               props: {
                 value: { type: 'number', integer: true },
@@ -26,6 +28,7 @@ export const CouponsValidation: ServiceSchema = {
             },
             shipping: {
               type: 'object',
+              strict: true,
               optional: true,
               props: {
                 value: { type: 'number', integer: true },
@@ -34,6 +37,7 @@ export const CouponsValidation: ServiceSchema = {
             },
             total: {
               type: 'object',
+              strict: true,
               optional: true,
               props: {
                 value: { type: 'number', integer: true },
@@ -72,6 +76,7 @@ export const CouponsValidation: ServiceSchema = {
           type: 'string',
           optional: true,
         },
+        $$strict: true,
       },
     },
     get: {
@@ -157,9 +162,11 @@ export const CouponsValidation: ServiceSchema = {
         },
         discount: {
           type: 'object',
+          strict: true,
           props: {
             tax: {
               type: 'object',
+              strict: true,
               optional: true,
               props: {
                 value: { type: 'number', integer: true },
@@ -168,6 +175,7 @@ export const CouponsValidation: ServiceSchema = {
             },
             shipping: {
               type: 'object',
+              strict: true,
               optional: true,
               props: {
                 value: { type: 'number', integer: true },
@@ -176,6 +184,7 @@ export const CouponsValidation: ServiceSchema = {
             },
             total: {
               type: 'object',
+              strict: true,
               optional: true,
               props: {
                 value: { type: 'number', integer: true },
@@ -220,6 +229,7 @@ export const CouponsValidation: ServiceSchema = {
           type: 'string',
           optional: true,
         },
+        $$strict: true,
       },
     },
     updateCount: {

@@ -50,6 +50,7 @@ export const InvoicesValidation: ServiceSchema = {
           type: 'array',
           items: {
             type: 'object',
+            strict: true,
             props: {
               sku: {
                 type: 'string',
@@ -121,6 +122,7 @@ export const InvoicesValidation: ServiceSchema = {
           pattern: /^(20[1-9][0-9])-((0[1-9])|(1(0|1|2)))-(((0[1-9])|(1|2)[0-9])|3(0|1))$/,
           optional: true,
         },
+        $$strict: true,
       },
     },
     updateInvoiceStatus: {
@@ -128,6 +130,7 @@ export const InvoicesValidation: ServiceSchema = {
         omsId: 'string',
         invoiceId: 'string',
         status: 'string',
+        $$strict: true,
       },
     },
     applyCredits: {

@@ -23,6 +23,7 @@ export const TaxesValidation: ServiceSchema = {
           convert: true,
         },
         isInclusive: { type: 'boolean' },
+        $$strict: true,
       },
     },
     tUpdate: {
@@ -52,6 +53,7 @@ export const TaxesValidation: ServiceSchema = {
           optional: true,
         },
         isInclusive: { type: 'boolean', optional: true },
+        $$strict: true,
       },
     },
     tGet: {
@@ -92,6 +94,7 @@ export const TaxesValidation: ServiceSchema = {
             optional: true,
           },
         ],
+        $$strict: true,
       },
     },
     tDelete: {

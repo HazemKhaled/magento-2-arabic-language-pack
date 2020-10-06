@@ -26,6 +26,7 @@ export const OmsValidation: ServiceSchema = {
           type: 'array',
           items: {
             type: 'object',
+            strict: true,
             props: {
               sku: { type: 'string' },
               barcode: { type: 'string', optional: true },
@@ -54,6 +55,7 @@ export const OmsValidation: ServiceSchema = {
         omsId: 'string',
         invoiceId: 'string',
         status: 'string',
+        $$strict: true,
       },
     },
     applyInvoiceCredits: {
@@ -360,6 +362,7 @@ export const OmsValidation: ServiceSchema = {
         name: { type: 'string' },
         percentage: { type: 'number' },
         type: { type: 'enum', values: ['tax', 'compound_tax'] },
+        $$strict: true,
       },
     },
     updateTax: {
@@ -368,11 +371,13 @@ export const OmsValidation: ServiceSchema = {
         name: { type: 'string', optional: true },
         percentage: { type: 'number', optional: true },
         type: { type: 'enum', values: ['tax', 'compound_tax'], optional: true },
+        $$strict: true,
       },
     },
     deleteTax: {
       params: {
         id: 'string',
+        $$strict: true,
       },
     },
   },

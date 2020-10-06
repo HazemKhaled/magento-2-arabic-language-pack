@@ -23,6 +23,7 @@ export const SubscriptionValidation: ServiceSchema = {
         expireDate: [
           {
             type: 'object',
+            strict: true,
             optional: true,
             props: {
               operation: {
@@ -43,6 +44,7 @@ export const SubscriptionValidation: ServiceSchema = {
             min: 1,
             items: {
               type: 'object',
+              strict: true,
               props: {
                 operation: {
                   type: 'enum',
@@ -59,6 +61,7 @@ export const SubscriptionValidation: ServiceSchema = {
         startDate: [
           {
             type: 'object',
+            strict: true,
             optional: true,
             props: {
               operation: {
@@ -79,6 +82,7 @@ export const SubscriptionValidation: ServiceSchema = {
             min: 1,
             items: {
               type: 'object',
+              strict: true,
               props: {
                 operation: {
                   type: 'enum',
@@ -126,6 +130,7 @@ export const SubscriptionValidation: ServiceSchema = {
             },
           },
         },
+        $$strict: true,
       },
     },
     create: {
@@ -147,6 +152,7 @@ export const SubscriptionValidation: ServiceSchema = {
         },
         date: {
           type: 'object',
+          strict: true,
           props: {
             start: {
               type: 'string',
@@ -176,6 +182,7 @@ export const SubscriptionValidation: ServiceSchema = {
           optional: true,
           pattern: /^(20[1-9][0-9])-((0[1-9])|(1(0|1|2)))-(((0[1-9])|(1|2)[0-9])|3(0|1))$/,
         },
+        $$strict: true,
       },
     },
     getSubscriptionByExpireDate: {
@@ -227,6 +234,7 @@ export const SubscriptionValidation: ServiceSchema = {
           convert: true,
           optional: true,
         },
+        $$strict: true,
       },
     },
     checkCurrentSubGradingStatus: {

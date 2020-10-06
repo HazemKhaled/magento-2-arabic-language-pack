@@ -12,6 +12,7 @@ export const MembershipValidation: ServiceSchema = {
         },
         name: {
           type: 'object',
+          strict: true,
           props: {
             tr: {
               type: 'string',
@@ -28,6 +29,7 @@ export const MembershipValidation: ServiceSchema = {
         },
         tagline: {
           type: 'object',
+          strict: true,
           props: {
             tr: {
               type: 'string',
@@ -44,6 +46,7 @@ export const MembershipValidation: ServiceSchema = {
         },
         description: {
           type: 'object',
+          strict: true,
           props: {
             tr: {
               type: 'string',
@@ -98,6 +101,7 @@ export const MembershipValidation: ServiceSchema = {
           pattern: '^[A-Z]{2}$',
           optional: true,
         },
+        $$strict: true,
       },
     },
     update: {
@@ -107,6 +111,7 @@ export const MembershipValidation: ServiceSchema = {
         },
         name: {
           type: 'object',
+          strict: true,
           props: {
             tr: {
               type: 'string',
@@ -125,6 +130,7 @@ export const MembershipValidation: ServiceSchema = {
         },
         tagline: {
           type: 'object',
+          strict: true,
           props: {
             tr: {
               type: 'string',
@@ -143,6 +149,7 @@ export const MembershipValidation: ServiceSchema = {
         },
         description: {
           type: 'object',
+          strict: true,
           props: {
             tr: {
               type: 'string',
@@ -205,6 +212,7 @@ export const MembershipValidation: ServiceSchema = {
           pattern: '^[A-Z]{2}$',
           optional: true,
         },
+        $$strict: true,
       },
     },
     mGet: {
