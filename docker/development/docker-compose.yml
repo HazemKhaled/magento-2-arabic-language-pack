@@ -18,7 +18,6 @@ services:
       traefik.port: 4040
       traefik.frontend.entryPoints: "http,https"
       traefik.frontend.rule: "Host:dev.mp.knawat.io"
-      com.datadoghq.ad.logs: '[{"source": "mp", "service": "api"}]'
 
   stores:
     build:
@@ -28,8 +27,6 @@ services:
     env_file: .env
     environment:
       SERVICES: stores
-    labels:
-      com.datadoghq.ad.logs: '[{"source": "mp", "service": "stores"}]'
 
   products-instances:
     build:
@@ -39,8 +36,6 @@ services:
     env_file: .env
     environment:
       SERVICES: products-instances
-    labels:
-      com.datadoghq.ad.logs: '[{"source": "mp", "service": "products-instances"}]'
 
   products:
     build:
@@ -50,8 +45,6 @@ services:
     env_file: .env
     environment:
       SERVICES: categories, products
-    labels:
-      com.datadoghq.ad.logs: '[{"source": "mp", "service": "products"}]'
 
   currencies:
     build:
@@ -61,8 +54,6 @@ services:
     env_file: .env
     environment:
       SERVICES: currencies, taxes, gdpr
-    labels:
-      com.datadoghq.ad.logs: '[{"source": "mp", "service": "currencies"}]'
 
   subscription:
     build:
@@ -72,8 +63,6 @@ services:
     env_file: .env
     environment:
       SERVICES: membership, subscription, coupons, crm
-    labels:
-      com.datadoghq.ad.logs: '[{"source": "mp", "service": "subscription"}]'
 
   subscription-cron:
     build:
@@ -83,8 +72,6 @@ services:
     env_file: .env
     environment:
       SERVICES: subscription-cron
-    labels:
-      com.datadoghq.ad.logs: '[{"source": "mp", "service": "subscription-cron"}]'
 
   orders:
     build:
@@ -94,8 +81,6 @@ services:
     env_file: .env
     environment:
       SERVICES: orders
-    labels:
-      com.datadoghq.ad.logs: '[{"source": "mp", "service": "orders"}]'
 
   invoices:
     build:
@@ -105,8 +90,6 @@ services:
     env_file: .env
     environment:
       SERVICES: invoices, payments
-    labels:
-      com.datadoghq.ad.logs: '[{"source": "mp", "service": "invoices"}]'
 
   oms:
     build:
@@ -116,8 +99,6 @@ services:
     env_file: .env
     environment:
       SERVICES: oms
-    labels:
-      com.datadoghq.ad.logs: '[{"source": "mp", "service": "oms"}]'
 
   shipment:
     build:
@@ -127,8 +108,6 @@ services:
     env_file: .env
     environment:
       SERVICES: shipment
-    labels:
-      com.datadoghq.ad.logs: '[{"source": "mp", "service": "shipment"}]'
 
   logs:
     build:
@@ -138,13 +117,9 @@ services:
     env_file: .env
     environment:
       SERVICES: logs
-    labels:
-      com.datadoghq.ad.logs: '[{"source": "mp", "service": "logs"}]'
 
   redis:
     image: redis:alpine
-    labels:
-      com.datadoghq.ad.logs: '[{"source": "mp", "service": "redis"}]'
 
   traefik:
     image: traefik:v1.7
@@ -157,37 +132,3 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./traefik.toml:/traefik.toml
       - ./acme.json:/acme.json
-    labels:
-      com.datadoghq.ad.logs: '[{"source": "mp", "service": "traefik"}]'
-
-  datadog:
-    build: ../datadog
-    env_file: .env
-    links:
-      - api
-      - stores
-      - products-instances
-      - products
-      - currencies
-      - subscription
-      - subscription-cron
-      - orders
-      - invoices
-      - oms
-      - shipment
-      - logs
-      - redis
-      - traefik
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /proc/:/host/proc/:ro
-      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
-      - /sys/kernel/debug:/sys/kernel/debug
-    cap_add:
-      - SYS_ADMIN
-      - SYS_RESOURCE
-      - SYS_PTRACE
-      - NET_ADMIN
-      - IPC_LOCK
-    security_opt:
-      - apparmor:unconfined
