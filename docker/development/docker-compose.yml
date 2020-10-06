@@ -132,3 +132,34 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./traefik.toml:/traefik.toml
       - ./acme.json:/acme.json
+
+  datadog:
+    build: ../datadog
+    env_file: .env
+    links:
+      - api
+      - stores
+      - products-instances
+      - products
+      - currencies
+      - subscription
+      - subscription-cron
+      - orders
+      - invoices
+      - oms
+      - shipment
+      - logs
+      - redis
+      - traefik
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+    cap_add:
+      - SYS_ADMIN
+      - SYS_RESOURCE
+      - SYS_PTRACE
+      - NET_ADMIN
+      - IPC_LOCK
+    security_opt:
+      - apparmor:unconfined
