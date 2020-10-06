@@ -22,7 +22,6 @@ export const CouponsValidation: ServiceSchema = {
               props: {
                 value: { type: 'number', integer: true },
                 type: { type: 'enum', values: ['%', '$'] },
-                $$strict: true,
               },
             },
             shipping: {
@@ -31,7 +30,6 @@ export const CouponsValidation: ServiceSchema = {
               props: {
                 value: { type: 'number', integer: true },
                 type: { type: 'enum', values: ['%', '$'] },
-                $$strict: true,
               },
             },
             total: {
@@ -40,10 +38,8 @@ export const CouponsValidation: ServiceSchema = {
               props: {
                 value: { type: 'number', integer: true },
                 type: { type: 'enum', values: ['%', '$'] },
-                $$strict: true,
               },
             },
-            $$strict: true,
           },
         },
         startDate: {
@@ -76,7 +72,6 @@ export const CouponsValidation: ServiceSchema = {
           type: 'string',
           optional: true,
         },
-        $$strict: true,
       },
     },
     get: {
@@ -169,7 +164,6 @@ export const CouponsValidation: ServiceSchema = {
               props: {
                 value: { type: 'number', integer: true },
                 type: { type: 'enum', values: ['%', '$'] },
-                $$strict: true,
               },
             },
             shipping: {
@@ -178,7 +172,6 @@ export const CouponsValidation: ServiceSchema = {
               props: {
                 value: { type: 'number', integer: true },
                 type: { type: 'enum', values: ['%', '$'] },
-                $$strict: true,
               },
             },
             total: {
@@ -187,10 +180,8 @@ export const CouponsValidation: ServiceSchema = {
               props: {
                 value: { type: 'number', integer: true },
                 type: { type: 'enum', values: ['%', '$'] },
-                $$strict: true,
               },
             },
-            $$strict: true,
           },
           optional: true,
         },
@@ -229,7 +220,6 @@ export const CouponsValidation: ServiceSchema = {
           type: 'string',
           optional: true,
         },
-        $$strict: true,
       },
     },
     updateCount: {

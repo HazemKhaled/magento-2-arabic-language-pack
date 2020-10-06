@@ -1,8 +1,10 @@
 import fs from 'fs';
+import { ServerResponse } from 'http';
 
 import _ from 'lodash';
-import { Errors, ServiceSchema } from 'moleculer';
+import { ActionSchema, Errors, ServiceSchema, Context } from 'moleculer';
 
+import { OpenAPIAction, OpenAPIV3Document } from '../../types/OpenAPI';
 import pkg from '../../package.json';
 
 const { MoleculerServerError } = Errors;
@@ -14,7 +16,10 @@ const { MoleculerServerError } = Errors;
  * @returns {ServiceSchema}
  */
 export function OpenApiMixin(): ServiceSchema {
-  const mixinOptions: { schema: any; routeOptions: { path: string } } = {
+  const mixinOptions: {
+    schema: OpenAPIV3Document;
+    routeOptions: { path: string };
+  } = {
     routeOptions: {
       path: '/openapi',
     },
@@ -22,8 +27,8 @@ export function OpenApiMixin(): ServiceSchema {
   };
 
   let shouldUpdateSchema = true;
-  let schema: any = null;
-  let schemaPrivate: any = null;
+  let schema: OpenAPIV3Document = null;
+  let schemaPrivate: OpenAPIV3Document = null;
 
   return {
     name: 'openapi',
@@ -201,7 +206,7 @@ export function OpenApiMixin(): ServiceSchema {
             }
 
             // --- COMPILE ACTION-LEVEL DEFINITIONS ---
-            _.forIn(service.actions, (action: any) => {
+            _.forIn(service.actions, (action: ActionSchema) => {
               if (!action.openapi && !_.isObject(action.openapi)) {
                 return;
               }
@@ -221,10 +226,10 @@ export function OpenApiMixin(): ServiceSchema {
               const def: any = _.cloneDeep(action.openapi);
               if (def?.length > 0) {
                 def.forEach((defElement: any) => {
-                  let method: any;
-                  let routePath: any;
+                  let method: string;
+                  let routePath: string;
                   if (defElement.$path) {
-                    const p = defElement.$path.split(' ');
+                    const p: any = defElement.$path.split(' ');
                     method = p[0].toLowerCase();
                     routePath = p[1];
                     delete defElement.$path;
@@ -233,10 +238,10 @@ export function OpenApiMixin(): ServiceSchema {
                   _.set(res.paths, [routePath, method], defElement);
                 });
               } else {
-                let method: any;
-                let routePath: any;
+                let method: string;
+                let routePath: string;
                 if (def.$path) {
-                  const p = def.$path.split(' ');
+                  const p: any = def.$path.split(' ');
                   method = p[0].toLowerCase();
                   routePath = p[1];
                   delete def.$path;
@@ -287,7 +292,10 @@ export function OpenApiMixin(): ServiceSchema {
         },
 
         aliases: {
-          'GET /openapi.json': function (req: any, res: any) {
+          'GET /openapi.json': function (
+            req: { $ctx: Context<unknown, { responseType: string }> },
+            res: ServerResponse
+          ) {
             // Regenerate static files
             this.generateOpenApiFiles();
 
@@ -297,7 +305,7 @@ export function OpenApiMixin(): ServiceSchema {
             return this.sendResponse(ctx, '', req, res, schema);
           },
           'GET /openapi-private.json': [
-            (req: any, res: any) => {
+            (req: any, res: ServerResponse) => {
               const auth = { login: 'your-login', password: 'your-password' };
 
               // parse login and password from headers

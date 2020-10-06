@@ -13,39 +13,7 @@ const TheService: ServiceSchema = {
   actions: {
     create: {
       auth: ['Basic'],
-      handler(
-        ctx: Context<{
-          code: string;
-          type: string;
-          discount: {
-            tax?: {
-              value: number;
-              type: string;
-            };
-            shipping?: {
-              value: number;
-              type: string;
-            };
-            total?: {
-              value: number;
-              type: string;
-            };
-          };
-          startDate: Date;
-          endDate: Date;
-          maxUses: number;
-          minAppliedAmount?: number;
-          appliedMemberships: [
-            {
-              items: {
-                type: string;
-              };
-            }
-          ];
-          auto: boolean;
-          campaignName?: string;
-        }>
-      ): Promise<Coupon> {
+      handler(ctx: Context<Coupon>): Promise<Coupon> {
         // Different coupon types validation
         this.couponTypeCheck(ctx.params);
 

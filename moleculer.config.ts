@@ -1,9 +1,4 @@
-import {
-  BrokerOptions,
-  Errors,
-  MetricRegistry,
-  ServiceBroker,
-} from 'moleculer';
+import { BrokerOptions, Errors, MetricRegistry } from 'moleculer';
 
 /**
  * Moleculer ServiceBroker configuration file
@@ -77,8 +72,7 @@ const brokerConfig: BrokerOptions = {
     // Backoff factor for delay. 2 means exponential backoff.
     factor: 2,
     // A function to check failed requests.
-    check: (err: Errors.MoleculerRetryableError) =>
-      err && Boolean(err.retryable),
+    check: (err: Errors.MoleculerError) => err && Boolean(err.retryable),
   },
 
   // Limit of calling level. If it reaches the limit, broker will throw an MaxCallLevelError error. (Infinite loop protection)
@@ -122,7 +116,7 @@ const brokerConfig: BrokerOptions = {
     // Number of milliseconds to switch from open to half-open state
     halfOpenTime: 10 * 1000,
     // A function to check failed requests.
-    check: (err: Errors.MoleculerRetryableError) => err && err.code >= 500,
+    check: (err: Errors.MoleculerError) => err && err.code >= 500,
   },
 
   // Settings of bulkhead feature. More info: https://moleculer.services/docs/0.13/fault-tolerance.html#Bulkhead
@@ -135,14 +129,46 @@ const brokerConfig: BrokerOptions = {
     maxQueueSize: 100,
   },
 
-  // Enable parameters validation. More info: https://moleculer.services/docs/0.13/validating.html
-  // validation: true,
   // Custom Validator class for validation.
   validator: true,
 
-  // Enable metrics function. More info: https://moleculer.services/docs/0.13/metrics.html
+  // Enable/disable built-in metrics function. More info: https://moleculer.services/docs/0.14/metrics.html
   metrics: {
-    enabled: false,
+    enabled: true,
+    // Available built-in reporters: "Console", "CSV", "Event", "Prometheus", "Datadog", "StatsD"
+    reporter: {
+      type: 'Prometheus',
+      options: {
+        // HTTP port
+        port: 3030,
+        // HTTP URL path
+        path: '/metrics',
+        // Default labels which are appended to all metrics labels
+        defaultLabels: (registry: MetricRegistry) => ({
+          namespace: registry.broker.namespace,
+          nodeID: registry.broker.nodeID,
+        }),
+      },
+    },
+  },
+
+  // Enable built-in tracing function. More info: https://moleculer.services/docs/0.14/tracing.html
+  tracing: {
+    enabled: true,
+    // Available built-in exporters: "Console", "Datadog", "Event", "EventLegacy", "Jaeger", "Zipkin"
+    exporter: {
+      type: 'Console',
+      options: {
+        // Custom logger
+        logger: null,
+        // Using colors
+        colors: true,
+        // Width of row
+        width: 100,
+        // Gauge width in the row
+        gaugeWidth: 40,
+      },
+    },
   },
 
   // Register internal services ("$node"). More info: https://moleculer.services/docs/0.13/services.html#Internal-services

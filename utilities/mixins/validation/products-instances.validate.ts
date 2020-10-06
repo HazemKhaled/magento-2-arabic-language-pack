@@ -91,7 +91,6 @@ export const ProductsInstancesValidation: ServiceSchema = {
           props: {
             field: { type: 'enum', values: ['updated', 'created'] },
             order: { type: 'enum', values: ['asc', 'desc'] },
-            $$strict: true,
           },
         },
       },
@@ -251,7 +250,6 @@ export const ProductsInstancesValidation: ServiceSchema = {
           type: 'object',
           optional: true,
           props: {
-            $$strict: true,
             filter: {
               type: 'array',
               optional: true,
@@ -277,7 +275,6 @@ export const ProductsInstancesValidation: ServiceSchema = {
                           optional: true,
                         },
                       ],
-                      $$strict: true,
                     },
                   },
                   terms: {
@@ -301,7 +298,6 @@ export const ProductsInstancesValidation: ServiceSchema = {
                           optional: true,
                         },
                       ],
-                      $$strict: true,
                     },
                   },
                 },
@@ -309,7 +305,6 @@ export const ProductsInstancesValidation: ServiceSchema = {
             },
           },
         },
-        $$strict: true,
       },
     },
   },

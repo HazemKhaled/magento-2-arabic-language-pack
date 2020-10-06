@@ -34,7 +34,6 @@ export const SubscriptionValidation: ServiceSchema = {
                 convert: true,
                 optional: true,
               },
-              $$strict: true,
             },
           },
           {
@@ -53,7 +52,6 @@ export const SubscriptionValidation: ServiceSchema = {
                   type: 'date',
                   convert: true,
                 },
-                $$strict: true,
               },
             },
           },
@@ -72,7 +70,6 @@ export const SubscriptionValidation: ServiceSchema = {
                 convert: true,
                 optional: true,
               },
-              $$strict: true,
             },
           },
           {
@@ -91,7 +88,6 @@ export const SubscriptionValidation: ServiceSchema = {
                   type: 'date',
                   convert: true,
                 },
-                $$strict: true,
               },
             },
           },
@@ -130,7 +126,6 @@ export const SubscriptionValidation: ServiceSchema = {
             },
           },
         },
-        $$strict: true,
       },
     },
     create: {
@@ -161,7 +156,6 @@ export const SubscriptionValidation: ServiceSchema = {
               type: 'string',
               pattern: /^(20[1-9][0-9])-((0[1-9])|(1(0|1|2)))-(((0[1-9])|(1|2)[0-9])|3(0|1))$/,
             },
-            $$strict: true,
           },
           optional: true,
         },
@@ -182,7 +176,6 @@ export const SubscriptionValidation: ServiceSchema = {
           optional: true,
           pattern: /^(20[1-9][0-9])-((0[1-9])|(1(0|1|2)))-(((0[1-9])|(1|2)[0-9])|3(0|1))$/,
         },
-        $$strict: true,
       },
     },
     getSubscriptionByExpireDate: {
@@ -234,7 +227,6 @@ export const SubscriptionValidation: ServiceSchema = {
           convert: true,
           optional: true,
         },
-        $$strict: true,
       },
     },
     checkCurrentSubGradingStatus: {

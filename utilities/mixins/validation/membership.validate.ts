@@ -24,7 +24,6 @@ export const MembershipValidation: ServiceSchema = {
               type: 'string',
               optional: true,
             },
-            $$strict: true,
           },
         },
         tagline: {
@@ -41,7 +40,6 @@ export const MembershipValidation: ServiceSchema = {
               type: 'string',
               optional: true,
             },
-            $$strict: true,
           },
         },
         description: {
@@ -58,7 +56,6 @@ export const MembershipValidation: ServiceSchema = {
               type: 'string',
               optional: true,
             },
-            $$strict: true,
           },
         },
         sort: {
@@ -101,7 +98,6 @@ export const MembershipValidation: ServiceSchema = {
           pattern: '^[A-Z]{2}$',
           optional: true,
         },
-        $$strict: true,
       },
     },
     update: {
@@ -124,7 +120,6 @@ export const MembershipValidation: ServiceSchema = {
               type: 'string',
               optional: true,
             },
-            $$strict: true,
           },
           optional: true,
         },
@@ -143,7 +138,6 @@ export const MembershipValidation: ServiceSchema = {
               type: 'string',
               optional: true,
             },
-            $$strict: true,
           },
           optional: true,
         },
@@ -162,7 +156,6 @@ export const MembershipValidation: ServiceSchema = {
               type: 'string',
               optional: true,
             },
-            $$strict: true,
           },
           optional: true,
         },
@@ -212,7 +205,6 @@ export const MembershipValidation: ServiceSchema = {
           pattern: '^[A-Z]{2}$',
           optional: true,
         },
-        $$strict: true,
       },
     },
     mGet: {
