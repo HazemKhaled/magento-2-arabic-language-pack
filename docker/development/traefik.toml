@@ -42,3 +42,23 @@ endpoint = "unix:///var/run/docker.sock"
 domain = "dev.mp.knawat.io"
 watch = true
 exposedByDefault = false
+
+[tracing]
+  # Backend name used to send tracing data
+  #
+  # Default: "jaeger"
+  #
+  backend = "datadog"
+
+  # Service name used in DataDog backend
+  #
+  # Default: "traefik"
+  #
+  serviceName = "mp-"
+
+  # Span name limit allows for name truncation in case of very long Frontend/Backend names
+  # This can prevent certain tracing providers to drop traces that exceed their length limits
+  #
+  # Default: 0 - no truncation will occur
+  #
+  spanNameLimit = 100

@@ -38,3 +38,17 @@ instances:
     # set the value here.
     # Warning: It may impact the performance of your redis instance
     # slowlog-max-len: 128
+#Log section
+logs:
+  # - type : (mandatory) type of log input source (tcp / udp / file)
+  #   port / path : (mandatory) Set port if type is tcp or udp. Set path if type is file
+  #   service : (mandatory) name of the service owning the log
+  #   source : (mandatory) attribute that defines which integration is sending the log
+  #   sourcecategory : (optional) Multiple value attribute. Can be used to refine the source attribute
+  #   tags: (optional) add tags to each log collected
+
+  - type: file
+    path: /var/log/redis_6379.log
+    source: mp
+    sourcecategory: database
+    service: redis
