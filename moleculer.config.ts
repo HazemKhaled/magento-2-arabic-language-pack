@@ -3,17 +3,27 @@ import { BrokerOptions, Errors, MetricRegistry } from 'moleculer';
 /**
  * Moleculer ServiceBroker configuration file
  *
- * More info about options: https://moleculer.services/docs/0.13/broker.html#Broker-options
+ * More info about options:
+ *     https://moleculer.services/docs/0.14/configuration.html
  *
- * Overwrite options in production:
+ *
+ * Overwriting options in production:
  * ================================
- * 	You can overwrite any option with environment variables.
- * 	For example to overwrite the "logLevel", use `LOGLEVEL=warn` env var.
- * 	To overwrite a nested parameter, e.g. retryPolicy.retries, use `RETRYPOLICY_RETRIES=10` env var.
+ *    You can overwrite any option with environment variables.
+ *    For example to overwrite the "logLevel" value, use `LOGLEVEL=warn` env var.
+ *    To overwrite a nested parameter, e.g. retryPolicy.retries, use `RETRYPOLICY_RETRIES=10` env var.
  *
- * 	To overwrite broker’s deeply nested default options, which are not presented in "moleculer.config.ts",
- * 	via environment variables, use the `MOL_` prefix and double underscore `__` for nested properties in .env file.
- * 	For example, to set the cacher prefix to `MYCACHE`, you should declare an env var as `MOL_CACHER__OPTIONS__PREFIX=MYCACHE`.
+ *    To overwrite broker’s deeply nested default options, which are not presented in "moleculer.config.js",
+ *    use the `MOL_` prefix and double underscore `__` for nested properties in .env file.
+ *    For example, to set the cacher prefix to `MYCACHE`, you should declare an env var as `MOL_CACHER__OPTIONS__PREFIX=mycache`.
+ *  It will set this:
+ *  {
+ *    cacher: {
+ *      options: {
+ *        prefix: "mycache"
+ *      }
+ *    }
+ *  }
  */
 const brokerConfig: BrokerOptions = {
   // Namespace of nodes to segment your nodes on the same network.
@@ -21,7 +31,8 @@ const brokerConfig: BrokerOptions = {
   // Unique node identifier. Must be unique in a namespace.
   nodeID: null,
 
-  // Enable/disable logging or use custom logger. More info: https://moleculer.services/docs/0.13/logging.html
+  // Enable/disable logging or use custom logger. More info: https://moleculer.services/docs/0.14/logging.html
+  // Available logger types: "Console", "File", "Pino", "Winston", "Bunyan", "debug", "Log4js", "Datadog"
   logger: {
     type: 'Console',
     options: {
@@ -45,21 +56,24 @@ const brokerConfig: BrokerOptions = {
   // logObjectPrinter: null,
 
   // Define transporter.
-  // More info: https://moleculer.services/docs/0.13/networking.html
+  // More info: https://moleculer.services/docs/0.14/networking.html
+  // Note: During the development, you don't need to define it because all services will be loaded locally.
+  // In production you can set it via `TRANSPORTER=nats://localhost:4222` environment variable.
   transporter: 'TCP',
 
-  // Define a cacher. More info: https://moleculer.services/docs/0.13/caching.html
+  // Define a cacher.
+  // More info: https://moleculer.services/docs/0.14/caching.html
   cacher: 'Memory',
 
   // Define a serializer.
   // Available values: "JSON", "Avro", "ProtoBuf", "MsgPack", "Notepack", "Thrift".
-  // More info: https://moleculer.services/docs/0.13/networking.html
+  // More info: https://moleculer.services/docs/0.14/networking.html#Serialization
   serializer: 'JSON',
 
   // Number of milliseconds to wait before reject a request with a RequestTimeout error. Disabled: 0
   requestTimeout: 60 * 1000,
 
-  // Retry policy settings. More info: https://moleculer.services/docs/0.13/fault-tolerance.html#Retry
+  // Retry policy settings. More info: https://moleculer.services/docs/0.14/fault-tolerance.html#Retry
   retryPolicy: {
     // Enable feature
     enabled: false,
@@ -83,7 +97,7 @@ const brokerConfig: BrokerOptions = {
   // Number of seconds to wait before setting node to unavailable status.
   heartbeatTimeout: 15,
 
-  // Tracking requests and waiting for running requests before shutdown. More info: https://moleculer.services/docs/0.13/fault-tolerance.html
+  // Tracking requests and waiting for running requests before shuting down. More info: https://moleculer.services/docs/0.14/context.html#Context-tracking
   tracking: {
     // Enable feature
     enabled: false,
@@ -91,19 +105,19 @@ const brokerConfig: BrokerOptions = {
     shutdownTimeout: 5000,
   },
 
-  // Disable built-in request & emit balancer. (Transporter must support it, as well.)
+  // Disable built-in request & emit balancer. (Transporter must support it, as well.). More info: https://moleculer.services/docs/0.14/networking.html#Disabled-balancer
   disableBalancer: false,
 
-  // Settings of Service Registry. More info: https://moleculer.services/docs/0.13/registry.html
+  // Settings of Service Registry. More info: https://moleculer.services/docs/0.14/registry.html
   registry: {
-    // Define balancing strategy.
-    // Available values: "RoundRobin", "Random", "CpuUsage", "Latency"
+    // Define balancing strategy. More info: https://moleculer.services/docs/0.14/balancing.html
+    // Available values: "RoundRobin", "Random", "CpuUsage", "Latency", "Shard"
     strategy: 'RoundRobin',
-    // Enable local action call preferring.
+    // Enable local action call preferring. Always call the local action instance if available.
     preferLocal: true,
   },
 
-  // Settings of Circuit Breaker. More info: https://moleculer.services/docs/0.13/fault-tolerance.html#Circuit-Breaker
+  // Settings of Circuit Breaker. More info: https://moleculer.services/docs/0.14/fault-tolerance.html#Circuit-Breaker
   circuitBreaker: {
     // Enable feature
     enabled: false,
@@ -119,7 +133,7 @@ const brokerConfig: BrokerOptions = {
     check: (err: Errors.MoleculerError) => err && err.code >= 500,
   },
 
-  // Settings of bulkhead feature. More info: https://moleculer.services/docs/0.13/fault-tolerance.html#Bulkhead
+  // Settings of bulkhead feature. More info: https://moleculer.services/docs/0.14/fault-tolerance.html#Bulkhead
   bulkhead: {
     // Enable feature.
     enabled: false,
@@ -129,8 +143,10 @@ const brokerConfig: BrokerOptions = {
     maxQueueSize: 100,
   },
 
-  // Custom Validator class for validation.
+  // Enable action & event parameter validation. More info: https://moleculer.services/docs/0.14/validating.html
   validator: true,
+
+  errorHandler: null,
 
   // Enable/disable built-in metrics function. More info: https://moleculer.services/docs/0.14/metrics.html
   metrics: {
@@ -170,14 +186,6 @@ const brokerConfig: BrokerOptions = {
       },
     },
   },
-
-  // Register internal services ("$node"). More info: https://moleculer.services/docs/0.13/services.html#Internal-services
-  internalServices: false,
-  // Register internal middlewares. More info: https://moleculer.services/docs/0.13/middlewares.html#Internal-middlewares
-  internalMiddlewares: true,
-
-  // Watch the loaded services and hot reload if they changed. You can also enable it in Moleculer Runner with `--hot` argument
-  hotReload: true,
 
   // Register custom middleware(s)
   middlewares: [],
