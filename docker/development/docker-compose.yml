@@ -122,7 +122,7 @@ services:
     image: redis:alpine
 
   traefik:
-    image: traefik
+    image: traefik:v1.7
     restart: always
     ports:
       - "80:80"
