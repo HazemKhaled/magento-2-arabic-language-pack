@@ -131,6 +131,7 @@ export const MembershipValidation: ServiceSchema = {
         tagline: {
           type: 'object',
           strict: true,
+          optional: true,
           props: {
             tr: {
               type: 'string',
@@ -145,11 +146,11 @@ export const MembershipValidation: ServiceSchema = {
               optional: true,
             },
           },
-          optional: true,
         },
         description: {
           type: 'object',
           strict: true,
+          optional: true,
           props: {
             tr: {
               type: 'string',
@@ -164,7 +165,6 @@ export const MembershipValidation: ServiceSchema = {
               optional: true,
             },
           },
-          optional: true,
         },
         sort: {
           type: 'number',

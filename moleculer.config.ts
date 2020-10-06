@@ -1,4 +1,9 @@
-import { BrokerOptions, Errors, MetricRegistry } from 'moleculer';
+import {
+  BrokerOptions,
+  Errors,
+  MetricRegistry,
+  ServiceBroker,
+} from 'moleculer';
 
 /**
  * Moleculer ServiceBroker configuration file
@@ -150,10 +155,10 @@ const brokerConfig: BrokerOptions = {
 
   // Enable/disable built-in metrics function. More info: https://moleculer.services/docs/0.14/metrics.html
   metrics: {
-    enabled: true,
+    enabled: Boolean(process.env.isMetricsEnabled) || false,
     // Available built-in reporters: "Console", "CSV", "Event", "Prometheus", "Datadog", "StatsD"
     reporter: {
-      type: 'Prometheus',
+      type: process.env.metricsReportType || 'Prometheus',
       options: {
         // HTTP port
         port: 3030,
@@ -170,10 +175,10 @@ const brokerConfig: BrokerOptions = {
 
   // Enable built-in tracing function. More info: https://moleculer.services/docs/0.14/tracing.html
   tracing: {
-    enabled: true,
+    enabled: Boolean(process.env.isTracingEnabled) || false,
     // Available built-in exporters: "Console", "Datadog", "Event", "EventLegacy", "Jaeger", "Zipkin"
     exporter: {
-      type: 'Console',
+      type: process.env.tracingType || 'Console',
       options: {
         // Custom logger
         logger: null,

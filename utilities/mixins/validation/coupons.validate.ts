@@ -163,6 +163,7 @@ export const CouponsValidation: ServiceSchema = {
         discount: {
           type: 'object',
           strict: true,
+          optional: true,
           props: {
             tax: {
               type: 'object',
@@ -192,7 +193,6 @@ export const CouponsValidation: ServiceSchema = {
               },
             },
           },
-          optional: true,
         },
         startDate: {
           type: 'date',

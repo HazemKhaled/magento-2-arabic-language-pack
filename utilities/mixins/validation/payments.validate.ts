@@ -35,6 +35,7 @@ export const PaymentsValidation: ServiceSchema = {
         },
         invoices: {
           type: 'array',
+          optional: true,
           item: {
             type: 'object',
             props: {
@@ -47,7 +48,6 @@ export const PaymentsValidation: ServiceSchema = {
               },
             },
           },
-          optional: true,
         },
         account_id: {
           type: 'string',
