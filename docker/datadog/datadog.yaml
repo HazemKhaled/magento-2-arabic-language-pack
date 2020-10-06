@@ -1,0 +1,292 @@
+#########################
+## Basic Configuration ##
+#########################
+
+## @param api_key - string - required
+## The Datadog API key to associate your Agent's data with your organization.
+## Create a new API key here: https://app.datadoghq.com/account/settings
+#
+# api_key:
+
+## @param site - string - optional - default: datadoghq.com
+## The site of the Datadog intake to send Agent data to.
+## Set to 'datadoghq.eu' to send data to the EU site.
+#
+site: datadoghq.eu
+
+## @param dd_url - string - optional - default: https://app.datadoghq.com
+## The host of the Datadog intake server to send metrics to, only set this option
+## if you need the Agent to send metrics to a custom URL, it overrides the site
+## setting defined in "site". It does not affect APM, Logs or Live Process intake which have their
+## own "*_dd_url" settings.
+#
+dd_url: https://app.datadoghq.eu
+
+## @param proxy - custom object - optional
+## If you need a proxy to connect to the Internet, provide it here (default:
+## disabled). Refer to https://docs.datadoghq.com/agent/proxy/ to understand how to use these settings.
+## For Logs proxy information, refer to https://docs.datadoghq.com/agent/proxy/#proxy-for-logs
+#
+# proxy:
+#   https: http://<USERNAME>:<PASSWORD>@<PROXY_SERVER_FOR_HTTPS>:<PORT>
+#   http: http://<USERNAME>:<PASSWORD>@<PROXY_SERVER_FOR_HTTP>:<PORT>
+#   no_proxy:
+#     - <HOSTNAME-1>
+#     - <HOSTNAME-2>
+
+## @param skip_ssl_validation - boolean - optional - default: false
+## Setting this option to "true" tells the Agent to skip validation of SSL/TLS certificates.
+#
+# skip_ssl_validation: false
+
+## @param force_tls_12 - boolean - optional - default: false
+## Setting this option to "true" forces the Agent to only use TLS 1.2 when
+## pushing data to the Datadog intake specified in "site" or "dd_url".
+#
+# force_tls_12: false
+
+## @param hostname - string - optional - default: auto-detected
+## Force the hostname name.
+#
+hostname: mp-dev
+
+## @param hostname_fqdn - boolean - optional - default: false
+## When the Agent relies on the OS to determine the hostname, make it use the
+## FQDN instead of the short hostname. Recommended value: true
+## More information at https://dtdg.co/flag-hostname-fqdn
+#
+# hostname_fqdn: false
+
+## @param tags  - list of key:value elements - optional
+## List of host tags. Attached in-app to every metric, event, log, trace, and service check emitted by this Agent.
+##
+## Learn more about tagging: https://docs.datadoghq.com/tagging/
+#
+# tags:
+#   - environment:dev
+#   - <TAG_KEY>:<TAG_VALUE>
+
+## @param env - string - optional
+## The environment name where the agent is running. Attached in-app to every
+## metric, event, log, trace, and service check emitted by this Agent.
+#
+# env: <environment name>
+
+## @param tag_value_split_separator - list of key:value elements - optional
+## Split tag values according to a given separator. Only applies to host tags,
+## and tags coming from container integrations. It does not apply to tags on dogstatsd metrics,
+## and tags collected by other integrations.
+##
+## Example use-case:
+##
+##  With a raw collected tag "foo:1;2;3", using the following configuration:
+##
+##  tag_value_split_separator:
+##    foo: ;
+##
+##  results in the raw tag being transformed into "foo:1", "foo:2", "foo:3" tags
+#
+# tag_value_split_separator:
+#   - <TAG_KEY>: <SEPARATOR>
+
+## @param checks_tag_cardinality - string - optional - default: low
+## Configure the level of granularity of tags to send for checks metrics and events. Choices are:
+##   * low: add tags about low-cardinality objects (clusters, hosts, deployments, container images, ...)
+##   * orchestrator: add tags about pod, (in Kubernetes), or task (in ECS or Mesos) -level of cardinality
+##   * high: add tags about high-cardinality objects (individual containers, user IDs in requests, ...)
+## WARNING: sending container tags for checks metrics may create more metrics
+## (one per container instead of one per host). This may impact your custom metrics billing.
+#
+# checks_tag_cardinality: low
+
+## @param dogstatsd_tag_cardinality - string - optional - default: low
+## Configure the level of granularity of tags to send for DogStatsD metrics and events. Choices are:
+##   * low: add tags about low-cardinality objects (clusters, hosts, deployments, container images, ...)
+##   * orchestrator: add tags about pod, (in Kubernetes), or task (in ECS or Mesos) -level of cardinality
+##   * high: add tags about high-cardinality objects (individual containers, user IDs in requests, ...)
+##
+## WARNING: sending container tags for dogstatsd metrics may create more metrics
+## (one per container instead of one per host). This may impact your custom metrics billing.
+#
+# dogstatsd_tag_cardinality: low
+
+## @param histogram_aggregates - list of strings - optional - default: ["max", "median", "avg", "count"]
+## Configure which aggregated value to compute.
+## Possible values are: min, max, median, avg, sum and count.
+#
+# histogram_aggregates:
+#   - max
+#   - median
+#   - avg
+#   - count
+
+## @param histogram_percentiles - list of strings - optional - default: ["0.95"]
+## Configure which percentiles are computed by the Agent. It must be a list of float between 0 and 1.
+## Warning: percentiles must be specified as yaml strings
+#
+# histogram_percentiles:
+#   - "0.95"
+
+## @param histogram_copy_to_distribution - boolean - optional - default: false
+## Copy histogram values to distributions for true global distributions (in beta)
+## Note: This increases the number of custom metrics created.
+#
+# histogram_copy_to_distribution: false
+
+## @param histogram_copy_to_distribution_prefix - string - optional
+## A prefix to add to distribution metrics created when histogram_copy_to_distributions is true
+#
+# histogram_copy_to_distribution_prefix: "<PREFIX>"
+
+## @param aggregator_stop_timeout - integer - optional - default: 2
+## When stopping the agent, the Aggregator will try to flush out data ready for
+## aggregation (metrics, events, ...). Data are flushed to the Forwarder in order
+## to be sent to Datadog, therefore the Agent might take at most
+## 'aggregator_stop_timeout'+'forwarder_stop_timeout' seconds to exit.
+##
+## You can set the maximum amount of time, in seconds, allocated to the
+## Aggregator to do so. You can disable this feature by setting
+## 'aggregator_stop_timeout' to 0.
+#
+# aggregator_stop_timeout: 2
+#
+# @param aggregator_buffer_size - integer - optional - default: 100
+# The default buffer size for the aggregator use a sane value for most of the
+# use cases, however, it could be useful to manually set it in order to trade
+# RSS usage with better performances.
+#
+# aggregator_buffer_size: 100
+
+## @param forwarder_timeout - integer - optional - default: 20
+## Forwarder timeout in seconds
+#
+# forwarder_timeout: 20
+
+## @param forwarder_retry_queue_max_size - integer - optional - default: 30
+## The forwarder retries failed requests. Use this setting to change the
+## maximum length of the forwarder's retry queue (each request in the queue
+## takes no more than 2MB in memory)
+#
+# forwarder_retry_queue_max_size: 30
+
+## @param forwarder_num_workers - integer - optional - default: 1
+## The number of workers used by the forwarder.
+#
+# forwarder_num_workers: 1
+
+## @param forwarder_stop_timeout - integer - optional - default: 2
+## When stopping the agent, the Forwarder will try to flush all new
+## transactions (not the ones in retry state).  New transactions will be created
+## as the Aggregator flush it's internal data too, therefore the Agent might take
+## at most 'aggregator_stop_timeout'+'forwarder_stop_timeout' seconds to exit.
+##
+## You can set the maximum amount of time, in seconds, allocated to the
+## Forwarder to send those transactions.  You can disable this feature by setting
+## 'forwarder_stop_timeout' to 0.
+#
+# forwarder_stop_timeout: 2
+
+## @param cloud_provider_metadata - list of strings -  optional - default: ["aws", "gcp", "azure", "alibaba"]
+## This option restricts which cloud provider endpoint will be used by the
+## agent to retrieve metadata. By default the agent will try # AWS, GCP, Azure
+## and alibaba providers. Some cloud provider are not enabled by default to not
+## trigger security alert when querying unknown IP (for example, when enabling
+## Tencent on AWS).
+## Setting an empty list will disable querying any cloud metadata endpoints
+## (falling back on system metadata). Disabling metadata for the cloud provider in which an Agent runs may result in
+## duplicated hosts in your Datadog account and missing Autodiscovery features
+##
+## Possible values are:
+## "aws"     AWS EC2, ECS/Fargate
+## "gcp"     Google Cloud Provider
+## "azure"   Azure
+## "alibaba" Alibaba
+## "tencent" Tencent
+#
+# cloud_provider_metadata:
+#   - "aws"
+#   - "gcp"
+#   - "azure"
+#   - "alibaba"
+
+## @param collect_ec2_tags - boolean - optional - default: false
+## Collect AWS EC2 custom tags as host tags.
+#
+# collect_ec2_tags: false
+
+## @param ec2_metadata_timeout - integer - optional - default: 300
+## Timeout in milliseconds on calls to the AWS EC2 metadata endpoints.
+#
+# ec2_metadata_timeout: 300
+
+## @param ec2_prefer_imdsv2 - boolean - optional - default: false
+## If this flag is true then the agent will request EC2 metadata using IMDS v2,
+## which offers additional security for accessing metadata. However, in some
+## situations (such as a containerized agent on a plain EC2 instance) it may
+## require additional configuration on the AWS side. See the AWS guidelines
+## for further details:
+## https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-instance-metadata-service.html#instance-metadata-transition-to-version-2
+#
+# ec2_prefer_imdsv2: false
+
+## @param collect_gce_tags - boolean - optional - default: true
+## Collect Google Cloud Engine metadata as host tags
+#
+# collect_gce_tags: true
+
+## @param exclude_gce_tags - list of strings - optional - default: ["kube-env", "kubelet-config", "containerd-configure-sh", "startup-script", "shutdown-script", "configure-sh", "sshKeys", "ssh-keys", "user-data", "cli-cert", "ipsec-cert", "ssl-cert", "google-container-manifest", "bosh_settings"]
+## Google Cloud Engine metadata attribute to exclude from being converted into
+## host tags -- only applicable when collect_gce_tags is true.
+#
+# exclude_gce_tags:
+#   - "kube-env"
+#   - "kubelet-config"
+#   - "containerd-configure-sh"
+#   - "startup-script"
+#   - "shutdown-script"
+#   - "configure-sh"
+#   - "sshKeys"
+#   - "ssh-keys"
+#   - "user-data"
+#   - "cli-cert"
+#   - "ipsec-cert"
+#   - "ssl-cert"
+#   - "google-container-manifest"
+#   - "bosh_settings"
+
+## @param gce_send_project_id_tag - bool - optional - default: false
+## Send the project ID host tag with the `project_id:` tag key in addition to
+## the `project:` tag key.
+#
+# gce_send_project_id_tag: false
+
+## @param gce_metadata_timeout - integer - optional - default: 1000
+## Timeout in milliseconds on calls to the GCE metadata endpoints.
+#
+# gce_metadata_timeout: 1000
+
+## @param flare_stripped_keys - list of strings - optional
+## By default, the Agent removes known sensitive keys from Agent and Integrations yaml configs before
+## including them in the flare.
+## Use this parameter to define additional sensitive keys that the Agent should scrub from
+## the yaml files included in the flare.
+#
+# flare_stripped_keys:
+#   - "sensitive_key_1"
+#   - "sensitive_key_2"
+
+## @param profiling - custom object - optional
+## Enter specific configurations for profiling.
+## Uncomment this parameter and the one below to enable profiling.
+## See https://docs.datadoghq.com/tracing/profiling/
+#
+## NOTE: If enabled this option may incur in billing charges or other
+##       unexpected side-effects (ie. agent profiles showing with your
+##       services).
+#
+profiling:
+  #
+  ## @param enabled - boolean - optional - default: false
+  ## Enable profiling for the Agent process.
+  #
+  enabled: true
