@@ -22,6 +22,14 @@ site: datadoghq.eu
 #
 dd_url: https://app.datadoghq.eu
 
+logs_enabled: true
+listeners:
+  - name: docker
+config_providers:
+  - name: docker
+    polling: true
+logs_config:
+  container_collect_all: true
 ## @param proxy - custom object - optional
 ## If you need a proxy to connect to the Internet, provide it here (default:
 ## disabled). Refer to https://docs.datadoghq.com/agent/proxy/ to understand how to use these settings.
