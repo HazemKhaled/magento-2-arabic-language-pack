@@ -45,3 +45,40 @@ export interface Invoice {
   shippingCharge: number;
   adjustment: number;
 }
+
+/**
+ * Get Invoice Request Params
+ *
+ * @export
+ * @interface GetInvoiceRequestParams
+ */
+export interface GetInvoiceRequestParams {
+  [key: string]: string;
+}
+
+/**
+ * Invoice Request Params
+ *
+ * @export
+ * @interface InvoiceRequestParams
+ */
+export interface InvoiceRequestParams {
+  id?: string;
+  storeId: string;
+  customerId?: string;
+  orderId?: string;
+  items: any;
+  discount?: {
+    value: number;
+    type: string;
+  };
+  isInclusiveTax?: boolean;
+  coupon?: string;
+  dueDate?: string;
+  useSavedPaymentMethods?: string;
+  credit?: number;
+  paymentAmount?: number;
+  omsId?: string;
+  invoiceId?: string;
+  status?: string;
+}

@@ -142,3 +142,140 @@ export interface OrderAddress {
 }
 
 export type OrderWarnings = { message: string; sku: string }[];
+
+/**
+ * Create Order schema
+ *
+ * @exports
+ * @interface CreateOrderRequestParams
+ */
+export interface CreateOrderRequestParams {
+  store: {
+    id: string;
+    name: string;
+    url: string;
+    users: [
+      {
+        items: {
+          email: string;
+          first_name: string;
+          last_name: string;
+        };
+      }
+    ];
+  };
+  externalId: string;
+  status: string;
+  items: [
+    {
+      items: {
+        sku: string;
+        barcode: string;
+        name: string;
+        description: string;
+        url: string;
+        image: string;
+        weight: number;
+        rate: number;
+        quantity: number;
+        productType: string;
+        purchaseRate: number;
+        vendorId: string;
+        accountId: string;
+      };
+    }
+  ];
+  shipping: {
+    first_name: string;
+    last_name: string;
+    company: string;
+    address_1: string;
+    address_2: string;
+    city: string;
+    state: string;
+    postcode: string;
+    country: string;
+    email: string;
+    phone: string;
+  };
+  invoice_url: string;
+  shipping_method: string;
+  shipping_charge: number;
+  discount: string;
+  adjustment: number;
+  adjustmentDescription: string;
+  subscription: string;
+  notes: string;
+  orderNumber: string;
+  warnings: string;
+  warningsSnippet: string;
+}
+/**
+ * update Order schema
+ *
+ * @exports
+ * @interface updateOderRequestParams
+ */
+export interface updateOderRequestParams {
+  customerId: string;
+  orderId: string;
+  externalId: string;
+  status: string;
+  items: [
+    {
+      items: {
+        sku: string;
+        barcode: string;
+        name: string;
+        description: string;
+        url: string;
+        image: string;
+        weight: number;
+        rate: number;
+        quantity: number;
+        productType: string;
+        purchaseRate: number;
+        vendorId: string;
+        accountId: string;
+      };
+    }
+  ];
+  shipping: {
+    first_name: string;
+    last_name: string;
+    company: string;
+    address_1: string;
+    address_2: string;
+    city: string;
+    state: string;
+    postcode: string;
+    country: string;
+    email: string;
+    phone: string;
+  };
+  invoice_url: string;
+  shipping_method: string;
+  shipping_charge: number;
+  discount: string;
+  adjustment: number;
+  adjustmentDescription: string;
+  subscription: string;
+  notes: string;
+  orderNumber: string;
+  warnings: string;
+  warningsSnippet: string;
+}
+
+/**
+ * Order schema
+ *
+ * @exports
+ * @interface OrderRequestParams
+ */
+export interface OrderRequestParams extends Order {
+  customerId?: string;
+  orderId?: string;
+  coupon?: string;
+  order_id?: string;
+  limit?: number;
+}

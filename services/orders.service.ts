@@ -5,6 +5,8 @@ import {
   Log,
   OrderOMSResponse,
   Order,
+  OrderRequestParams,
+  MetaParams,
   OrderAddress,
   OrderItem,
   Product,
@@ -39,24 +41,7 @@ const TheService: ServiceSchema = {
   actions: {
     createOrder: {
       auth: ['Bearer'],
-      async handler(
-        ctx: Context<
-          {
-            id: string;
-            shipping: {
-              country: string;
-            };
-            shipping_method: string;
-            coupon: string;
-          },
-          {
-            store: any;
-            $statusCode: number;
-            $statusMessage: string;
-            user: any;
-          }
-        >
-      ) {
+      async handler(ctx: Context<OrderRequestParams, MetaParams>) {
         // Initialize warnings array
         let warnings: { code: number; message: string }[] = [];
 
@@ -385,7 +370,7 @@ const TheService: ServiceSchema = {
     },
     updateOrder: {
       auth: ['Bearer'],
-      async handler(ctx) {
+      async handler(ctx: Context<OrderRequestParams, MetaParams>) {
         // Initialize warnings array
         let warnings: { code: number; message: string }[] = [];
         const { store } = ctx.meta;
@@ -633,7 +618,7 @@ const TheService: ServiceSchema = {
         keys: ['#user', 'order_id'],
         ttl: 60 * 60,
       },
-      async handler(ctx) {
+      async handler(ctx: Context<OrderRequestParams, MetaParams>) {
         const { store } = ctx.meta;
 
         if (!store.internal_data?.omsId) {
@@ -770,22 +755,7 @@ const TheService: ServiceSchema = {
     },
     payOrder: {
       auth: ['Bearer'],
-      async handler(
-        ctx: Context<
-          {
-            id: string;
-          },
-          {
-            store: {
-              url: string;
-              internal_data: {
-                omsId: string;
-              };
-            };
-            user: any;
-          }
-        >
-      ) {
+      async handler(ctx: Context<OrderRequestParams, MetaParams>) {
         const store: any = await ctx.call('stores.sGet', {
           id: ctx.meta.store.url,
         });
@@ -859,9 +829,7 @@ const TheService: ServiceSchema = {
       },
       async handler(
         ctx: Context<
-          {
-            order_id: string;
-          },
+          OrderRequestParams,
           {
             store: any;
           }

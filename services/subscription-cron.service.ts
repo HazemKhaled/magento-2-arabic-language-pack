@@ -1,8 +1,6 @@
 import { Context, ServiceSchema } from 'moleculer';
 import * as Cron from 'moleculer-cron';
 
-import { Store } from '../utilities/types';
-
 const TheService: ServiceSchema = {
   name: 'subscription-cron',
   /**

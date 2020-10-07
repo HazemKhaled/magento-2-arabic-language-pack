@@ -1,7 +1,13 @@
 import { Context, Errors, ServiceSchema } from 'moleculer';
 
 import { PaymentsOpenapi } from '../utilities/mixins/openapi';
-import { Payment, PaymentInvoice } from '../utilities/types';
+import {
+  Payment,
+  PaymentInvoice,
+  PaymentRequestParams,
+  GetPaymentRequestParams,
+  MetaParams,
+} from '../utilities/types';
 import { PaymentsValidation } from '../utilities/mixins/validation';
 import { Oms } from '../utilities/mixins/oms.mixin';
 import { MpError } from '../utilities/adapters';
@@ -13,18 +19,7 @@ const TheService: ServiceSchema = {
   actions: {
     add: {
       auth: ['Basic'],
-      async handler(
-        ctx: Context<{
-          id: string;
-          payment_mode: string;
-          amount: number;
-          account_id: string;
-          invoices: any;
-          bank_charges: number;
-          reference: string;
-          description: string;
-        }>
-      ) {
+      async handler(ctx: Context<PaymentRequestParams>) {
         const instance: any = await ctx.call('stores.findInstance', {
           id: ctx.params.id,
         });
@@ -82,14 +77,7 @@ const TheService: ServiceSchema = {
         keys: ['#user', 'page', 'limit', 'reference_number', 'payment_mode'],
         ttl: 60 * 60 * 24,
       },
-      async handler(
-        ctx: Context<
-          any,
-          {
-            store: any;
-          }
-        >
-      ) {
+      async handler(ctx: Context<GetPaymentRequestParams, MetaParams>) {
         const { store } = ctx.meta;
         const keys: { [key: string]: string } = {
           page: 'page',
@@ -131,14 +119,7 @@ const TheService: ServiceSchema = {
     },
 
     checkout: {
-      handler(
-        ctx: Context<
-          unknown,
-          {
-            $responseType: string;
-          }
-        >
-      ): string {
+      handler(ctx: Context<unknown, MetaParams>): string {
         ctx.meta.$responseType = 'text/html';
         return this.renderCheckoutPage();
       },

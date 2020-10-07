@@ -2,7 +2,7 @@ import { Context, Errors, GenericObject, ServiceSchema } from 'moleculer';
 
 import DbService from '../utilities/mixins/mongo.mixin';
 import { TaxOpenapi } from '../utilities/mixins/openapi';
-import { DbTax, RTax } from '../utilities/types/tax.type';
+import { DbTax, RTax, TaxRequestParams } from '../utilities/types/tax.type';
 import { TaxesValidation } from '../utilities/mixins/validation';
 
 const MoleculerError = Errors.MoleculerError;
@@ -13,7 +13,7 @@ const TaxesService: ServiceSchema = {
   actions: {
     tCreate: {
       auth: ['Basic'],
-      async handler(ctx: Context<any>): Promise<RTax> {
+      async handler(ctx: Context<Partial<DbTax>>): Promise<RTax> {
         const taxBody: Partial<DbTax> = {
           ...ctx.params,
           createdAt: new Date(),
@@ -98,11 +98,7 @@ const TaxesService: ServiceSchema = {
         // 1 day
         ttl: 60 * 60 * 24,
       },
-      handler(
-        ctx: Context<{
-          id: string;
-        }>
-      ): RTax {
+      handler(ctx: Context<RTax>): RTax {
         return this.adapter
           .findById(ctx.params.id)
           .then((tax: DbTax) => {
@@ -126,14 +122,7 @@ const TaxesService: ServiceSchema = {
         // 1 day
         ttl: 60 * 60 * 24,
       },
-      handler(
-        ctx: Context<{
-          country: string;
-          class: string;
-          page: string;
-          perPage: string;
-        }>
-      ): RTax[] {
+      handler(ctx: Context<TaxRequestParams>): RTax[] {
         const { country } = ctx.params;
         const classes = ctx.params.class;
         const query: any = {};
@@ -165,11 +154,7 @@ const TaxesService: ServiceSchema = {
     },
     tDelete: {
       auth: ['Basic'],
-      async handler(
-        ctx: Context<{
-          id: string;
-        }>
-      ) {
+      async handler(ctx: Context<RTax>) {
         const taxDeleteData = await this.adapter
           .removeById(ctx.params.id)
           .then((tax: DbTax) => {
@@ -205,11 +190,7 @@ const TaxesService: ServiceSchema = {
         keys: ['query'],
         ttl: 60 * 60,
       },
-      handler(
-        ctx: Context<{
-          query: string;
-        }>
-      ) {
+      handler(ctx: Context<TaxRequestParams>) {
         return this.adapter.count({ query: ctx.params.query }).catch(() => {
           throw new MoleculerError(
             'There is an error fetching the taxes total',

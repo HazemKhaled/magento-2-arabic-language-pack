@@ -24,6 +24,10 @@ export interface Coupon {
   updatedAt: Date;
   campaignName?: string;
   minAppliedAmount: number;
+  membership?: string;
+  isAuto?: boolean;
+  isValid?: boolean;
+  totalAmount?: number;
 }
 
 interface Discount {

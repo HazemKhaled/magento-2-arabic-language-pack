@@ -1,6 +1,6 @@
 import { GenericObject } from 'moleculer';
 
-import { I18nText } from './i18ntext.type';
+import { I18nText, MetaParams } from './i18ntext.type';
 
 /**
  * Product Type definition
@@ -61,4 +61,36 @@ export interface Variation {
 export interface Attribute {
   name: { [key: string]: string };
   option: { [key: string]: string };
+}
+
+/**
+ * multiple Products definition
+ *
+ * @export
+ * @interface Products
+ */
+export interface Products {
+  products: [
+    {
+      sku: string;
+    }
+  ];
+  productInstances?: [
+    {
+      sku: string;
+    }
+  ];
+}
+
+/**
+ * UpdateProductParams definition
+ * @export
+ * @interface UpdateProductParams
+ */
+export interface UpdateProductParams extends Product {
+  error: string;
+}
+
+export interface ProductSearchParams {
+  storeKey: string;
 }

@@ -3,7 +3,7 @@ import ESService from 'moleculer-elasticsearch';
 import { v1 as uuidv1 } from 'uuid';
 
 import { LogsOpenapi } from '../utilities/mixins/openapi';
-import { Log } from '../utilities/types';
+import { Log, LogRequestParams, LogMetaParams } from '../utilities/types';
 import { LogsValidation } from '../utilities/mixins/validation';
 
 const TheService: ServiceSchema = {
@@ -22,25 +22,7 @@ const TheService: ServiceSchema = {
   actions: {
     add: {
       auth: ['Basic', 'Bearer'],
-      handler(
-        ctx: Context<
-          {
-            topic: string;
-            topicId: string;
-            logLevel: string;
-            storeId: string;
-            message: string;
-            payload: any;
-            code: number;
-          },
-          {
-            user: any;
-            storeId: string;
-            $statusCode: number;
-            $statusMessage: string;
-          }
-        >
-      ) {
+      handler(ctx: Context<LogRequestParams, LogMetaParams>) {
         const date = new Date();
         const {
           topic,
@@ -104,23 +86,7 @@ const TheService: ServiceSchema = {
       cache: {
         ttl: 60 * 60 * 24,
       },
-      handler(
-        ctx: Context<
-          {
-            limit: string;
-            sort: string;
-            topic: string;
-            topicId: string;
-            storeId: string;
-            page: string;
-            logLevel: string;
-          },
-          {
-            $statusCode: number;
-            $statusMessage: string;
-          }
-        >
-      ) {
+      handler(ctx: Context<LogRequestParams, LogMetaParams>) {
         const body: {
           size?: number;
           from?: number;

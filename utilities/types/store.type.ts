@@ -1,5 +1,6 @@
 import { Subscription } from './subscription.type';
 import { OrderAddress } from './order.type';
+import { MetaParams } from './i18ntext.type';
 
 /**
  * Store Type definition
@@ -52,4 +53,73 @@ export interface StoreUser {
 export interface ShippingMethod {
   name: string;
   sort: number;
+}
+
+/**
+ * Store Request
+ *
+ * @export
+ * @interface StoreRequest
+ */
+export interface StoreRequest {
+  customerId: string;
+  storeId?: string;
+  id?: string;
+  consumerKey?: string;
+  consumerSecret?: string;
+  withoutBalance?: string;
+  filter?: string;
+  perPage?: number;
+  page?: number;
+  query?: string;
+  url?: string;
+}
+
+/**
+ * create customer request Definition
+ *
+ * @export
+ * @interface CreateCustomerRequest
+ */
+export interface CreateCustomerRequest {
+  url: string;
+  name: string;
+  users: any;
+  companyName: string;
+  status: string;
+  platform: string;
+  stockDate: Date;
+  stockStatus: string;
+  priceDate: Date;
+  priceStatus: string;
+  salePrice: number;
+  saleOperator: number;
+  comparedPrice: number;
+  comparedOperator: number;
+  currency: string;
+  languages: any;
+  shippingMethods: any;
+  billing: {
+    first_name: string;
+    last_name: string;
+    company: string;
+    address_1: string;
+    address_2: string;
+    city: string;
+    state: string;
+    postcode: string;
+    country: string;
+    email: string;
+    phone: string;
+  };
+}
+
+/**
+ * Store Meta Definition
+ *
+ * @export
+ * @interface StoreRequest
+ */
+export interface StoreMeta extends MetaParams {
+  token: string;
 }

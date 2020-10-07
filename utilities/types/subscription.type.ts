@@ -12,7 +12,7 @@ export interface Subscription {
   invoiceId: string;
   startDate: Date;
   expireDate: Date;
-  status: 'confirmed' | 'pending' | 'cancelled';
+  status: 'confirmed' | 'pending' | 'cancelled' | 'active';
   reference?: string;
   donor?: string;
   renewed?: string;
@@ -21,4 +21,12 @@ export interface Subscription {
   createdAt: Date;
   updatedAt: Date;
   coupon?: string;
+  sort?: {
+    field: string;
+    order: string;
+  };
+  perPage?: string;
+  page?: string;
+  afterDays?: number;
+  beforeDays?: number;
 }

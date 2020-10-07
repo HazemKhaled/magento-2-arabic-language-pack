@@ -82,22 +82,7 @@ const TheService: ServiceSchema = {
         ],
         ttl: 60 * 60 * 24,
       },
-      async handler(
-        ctx: Context<{
-          storeId: string;
-          membershipId: string;
-          status: string;
-          reference: string;
-          expireDate: string;
-          startDate: string;
-          sort: {
-            field: string;
-            order: string;
-          };
-          perPage: string;
-          page: string;
-        }>
-      ): Promise<Subscription | false> {
+      async handler(ctx: Context<Subscription>): Promise<Subscription | false> {
         const query: GenericObject = {};
         if (ctx.params.storeId) {
           query.storeId = ctx.params.storeId;
@@ -467,12 +452,7 @@ const TheService: ServiceSchema = {
     },
     getSubscriptionByExpireDate: {
       cache: false,
-      async handler(
-        ctx: Context<{
-          afterDays: number;
-          beforeDays: number;
-        }>
-      ) {
+      async handler(ctx: Context<Subscription>) {
         const minDate = new Date();
         minDate.setDate(minDate.getDate() - (ctx.params.afterDays || 0));
         const maxDate = new Date();
@@ -574,11 +554,7 @@ const TheService: ServiceSchema = {
       },
     },
     checkCurrentSubGradingStatus: {
-      async handler(
-        ctx: Context<{
-          id: string;
-        }>
-      ) {
+      async handler(ctx: Context<Subscription>) {
         const allSubBefore: any = await ctx.call('subscription.sList', {
           storeId: ctx.params.id,
           expireDate: {

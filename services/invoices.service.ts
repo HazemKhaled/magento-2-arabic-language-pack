@@ -1,7 +1,12 @@
 import { Context, Errors, ServiceSchema, GenericObject } from 'moleculer';
 
 import { InvoicesOpenapi } from '../utilities/mixins/openapi';
-import { Invoice } from '../utilities/types';
+import {
+  Invoice,
+  InvoiceRequestParams,
+  GetInvoiceRequestParams,
+  MetaParams,
+} from '../utilities/types';
 import { InvoicesValidation } from '../utilities/mixins/validation';
 import { InvoicePage } from '../utilities/mixins/invoicePage';
 import { Oms } from '../utilities/mixins/oms.mixin';
@@ -19,18 +24,7 @@ const TheService: ServiceSchema = {
         keys: ['#user', 'page', 'limit', 'reference_number', 'invoice_number'],
         ttl: 60,
       },
-      handler(
-        ctx: Context<
-          any,
-          {
-            store: {
-              internal_data: {
-                omsId: string;
-              };
-            };
-          }
-        >
-      ) {
+      handler(ctx: Context<GetInvoiceRequestParams, MetaParams>) {
         const { store } = ctx.meta;
 
         const keys: { [key: string]: string } = {
@@ -65,18 +59,7 @@ const TheService: ServiceSchema = {
     },
     create: {
       auth: ['Basic'],
-      async handler(
-        ctx: Context<{
-          storeId: string;
-          items: any;
-          discount: {
-            value: number;
-            type: string;
-          };
-          coupon: string;
-          dueDate: string;
-        }>
-      ) {
+      async handler(ctx: Context<InvoiceRequestParams>) {
         const instance: any = await ctx.call('stores.findInstance', {
           id: ctx.params.storeId,
         });
@@ -142,14 +125,7 @@ const TheService: ServiceSchema = {
     },
     applyCredits: {
       auth: ['Bearer'],
-      async handler(
-        ctx: Context<{
-          id: string;
-          useSavedPaymentMethods: string;
-          credit: number;
-          paymentAmount: number;
-        }>
-      ) {
+      async handler(ctx: Context<InvoiceRequestParams>) {
         const store: any = await ctx.call('stores.me');
 
         const { params } = ctx;
@@ -201,12 +177,7 @@ const TheService: ServiceSchema = {
       },
     },
     createOrderInvoice: {
-      async handler(
-        ctx: Context<{
-          storeId: string;
-          orderId: string;
-        }>
-      ) {
+      async handler(ctx: Context<InvoiceRequestParams>) {
         const instance: any = await ctx.call('stores.findInstance', {
           id: ctx.params.storeId,
         });
@@ -222,12 +193,7 @@ const TheService: ServiceSchema = {
       },
     },
     markInvoiceSent: {
-      handler(
-        ctx: Context<{
-          omsId: string;
-          invoiceId: string;
-        }>
-      ) {
+      handler(ctx: Context<InvoiceRequestParams>) {
         return ctx
           .call('oms.markInvoiceToSent', {
             customerId: ctx.params.omsId,
@@ -240,18 +206,7 @@ const TheService: ServiceSchema = {
     },
     renderInvoice: {
       params: {},
-      async handler(
-        ctx: Context<
-          {
-            storeId: string;
-            id: string;
-          },
-          {
-            user: string;
-            $responseType: string;
-          }
-        >
-      ) {
+      async handler(ctx: Context<InvoiceRequestParams, MetaParams>) {
         const store: any = await ctx.call('stores.findInstance', {
           id: ctx.params.storeId,
         });

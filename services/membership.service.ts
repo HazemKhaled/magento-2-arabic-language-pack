@@ -2,7 +2,11 @@ import { Context, Errors, ServiceSchema, GenericObject } from 'moleculer';
 
 import DbService from '../utilities/mixins/mongo.mixin';
 import { MembershipOpenapi } from '../utilities/mixins/openapi';
-import { Membership, Coupon } from '../utilities/types';
+import {
+  Membership,
+  Coupon,
+  MembershipRequestParams,
+} from '../utilities/types';
 import { MembershipValidation } from '../utilities/mixins/validation';
 import { TaxCheck } from '../utilities/mixins/tax.mixin';
 
@@ -20,13 +24,7 @@ const TheService: ServiceSchema = {
     create: {
       auth: ['Basic'],
       async handler(
-        ctx: Context<{
-          createdAt: Date;
-          updatedAt: Date;
-          id: string;
-          _id: string;
-          isDefault: boolean;
-        }>
+        ctx: Context<MembershipRequestParams>
       ): Promise<Membership> {
         const { params } = ctx;
 
@@ -67,14 +65,7 @@ const TheService: ServiceSchema = {
         keys: ['id', 'country', 'coupon', 'active'],
         ttl: 60 * 60 * 24,
       },
-      handler(
-        ctx: Context<{
-          id: string;
-          country: string;
-          active: boolean;
-          coupon: string;
-        }>
-      ): Promise<Membership> {
+      handler(ctx: Context<MembershipRequestParams>): Promise<Membership> {
         const { active, id, country } = ctx.params;
         const query: GenericObject = { _id: id };
         if (active !== undefined) {
@@ -140,9 +131,7 @@ const TheService: ServiceSchema = {
     update: {
       auth: ['Basic'],
       async handler(
-        ctx: Context<{
-          id: string;
-        }>
+        ctx: Context<MembershipRequestParams>
       ): Promise<Membership> {
         const { params } = ctx;
         const id = params.id;

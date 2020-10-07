@@ -21,11 +21,7 @@ const TheService: ServiceSchema = {
         keys: ['currencyCode'],
         ttl: 60 * 60,
       },
-      handler(
-        ctx: Context<{
-          currencyCode: string;
-        }>
-      ) {
+      handler(ctx: Context<Currency>) {
         return ctx.call('currencies.getCurrencies').then((currencies: any) => {
           const currency = currencies.find(
             (currencyObj: Currency) =>

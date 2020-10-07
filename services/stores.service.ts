@@ -7,7 +7,14 @@ import DbService from '../utilities/mixins/mongo.mixin';
 import { MpError } from '../utilities/adapters';
 import { StoresOpenapi } from '../utilities/mixins/openapi';
 import { Oms } from '../utilities/mixins/oms.mixin';
-import { Log, Store, StoreUser } from '../utilities/types';
+import {
+  Log,
+  Store,
+  StoreUser,
+  StoreRequest,
+  MetaParams,
+  StoreMeta,
+} from '../utilities/types';
 import { StoresValidation } from '../utilities/mixins/validation';
 import { GCPPubSub } from '../utilities/mixins';
 
@@ -63,12 +70,7 @@ const TheService: ServiceSchema = {
         keys: ['consumerKey', 'id'],
         ttl: 60 * 60 * 24,
       },
-      handler(
-        ctx: Context<{
-          id: string;
-          consumerKey: string;
-        }>
-      ) {
+      handler(ctx: Context<StoreRequest>) {
         let query: { _id?: string } | false = false;
         if (ctx.params.id) query = { _id: ctx.params.id };
         return this.adapter
@@ -93,7 +95,7 @@ const TheService: ServiceSchema = {
         keys: ['#user'],
         ttl: 60 * 60 * 24,
       },
-      handler(ctx: Context<unknown, { user: string }>) {
+      handler(ctx: Context<unknown, MetaParams>) {
         return this.adapter
           .findOne({ consumer_key: ctx.meta.user })
           .then(async (res: Store | null) => {
@@ -132,12 +134,7 @@ const TheService: ServiceSchema = {
         keys: ['id', 'withoutBalance'],
         ttl: 60 * 60 * 24,
       },
-      handler(
-        ctx: Context<{
-          id: string;
-          withoutBalance: string;
-        }>
-      ) {
+      handler(ctx: Context<StoreRequest>) {
         return this.adapter
           .findById(ctx.params.id)
           .then(async (res: Store | null) => {
@@ -185,11 +182,7 @@ const TheService: ServiceSchema = {
         keys: ['filter'],
         ttl: 60 * 60 * 24,
       },
-      handler(
-        ctx: Context<{
-          filter: string;
-        }>
-      ) {
+      handler(ctx: Context<StoreRequest>) {
         let params: {
           where?: GenericObject;
           limit?: number;
@@ -236,13 +229,7 @@ const TheService: ServiceSchema = {
         keys: ['id', 'page', 'perPage'],
         ttl: 60 * 60 * 24,
       },
-      handler(
-        ctx: Context<{
-          id: string;
-          perPage: number;
-          page: number;
-        }>
-      ) {
+      handler(ctx: Context<StoreRequest>) {
         const query: GenericObject = {};
         if (ctx.params.id) {
           query._id = { $regex: new RegExp(`.*${ctx.params.id}.*`, 'i') };
@@ -276,11 +263,7 @@ const TheService: ServiceSchema = {
         keys: ['key'],
         ttl: 60 * 60 * 24,
       },
-      handler(
-        ctx: Context<{
-          query: string;
-        }>
-      ) {
+      handler(ctx: Context<StoreRequest>) {
         return this.adapter.count({ query: ctx.params.query });
       },
     },
@@ -292,11 +275,7 @@ const TheService: ServiceSchema = {
      */
     create: {
       auth: ['Basic'],
-      async handler(
-        ctx: Context<{
-          url: string;
-        }>
-      ) {
+      async handler(ctx: Context<StoreRequest>) {
         // Clear cache
         this.broker.cacher.clean(`stores.sGet:${ctx.params.url}**`);
 
@@ -334,19 +313,7 @@ const TheService: ServiceSchema = {
      */
     update: {
       auth: ['Basic'],
-      async handler(
-        ctx: Context<
-          {
-            id: string;
-            internal_data: string;
-            external_data: string;
-          },
-          {
-            $statusMessage: string;
-            $statusCode: number;
-          }
-        >
-      ) {
+      async handler(ctx: Context<Store, MetaParams>) {
         // Save the ID separate into variable to use it to find the store
         const { id } = ctx.params;
         delete ctx.params.id;
@@ -547,19 +514,7 @@ const TheService: ServiceSchema = {
      * @returns {Object} Logged in user with token
      */
     login: {
-      handler(
-        ctx: Context<
-          {
-            consumerKey: string;
-            consumerSecret: string;
-          },
-          {
-            $statusCode: number;
-            $statusMessage: string;
-            token: string;
-          }
-        >
-      ) {
+      handler(ctx: Context<StoreRequest, StoreMeta>) {
         const { consumerKey, consumerSecret } = ctx.params;
 
         return this.broker

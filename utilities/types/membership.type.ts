@@ -23,3 +23,15 @@ export interface Membership {
   createdAt: Date;
   updatedAt: Date;
 }
+
+/**
+ * Membership Request Params definition
+ *
+ * @exports
+ * @interface MembershipRequestParams
+ */
+export interface MembershipRequestParams extends Membership {
+  _id?: string;
+  isDefault: boolean;
+  coupon?: string;
+}

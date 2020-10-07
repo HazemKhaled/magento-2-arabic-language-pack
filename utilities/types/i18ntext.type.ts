@@ -16,3 +16,22 @@ export interface I18n {
   en: string;
   ar: string;
 }
+
+/**
+ * MetaParams
+ * @exports
+ * @interface MetaParams
+ */
+export interface MetaParams {
+  store: {
+    internal_data?: {
+      omsId?: string;
+    };
+    consumer_key?: string;
+    url?: string;
+  };
+  $statusCode?: number;
+  $statusMessage?: string;
+  $responseType?: string;
+  user?: any;
+}

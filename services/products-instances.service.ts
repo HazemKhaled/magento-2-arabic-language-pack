@@ -10,7 +10,13 @@ import {
   GCPPubSub,
 } from '../utilities/mixins';
 import { MpError } from '../utilities/adapters';
-import { Product } from '../utilities/types/product.type';
+import {
+  Product,
+  Products,
+  UpdateProductParams,
+  ProductSearchParams,
+  MetaParams,
+} from '../utilities/types';
 
 module.exports = {
   name: 'products-instances',
@@ -72,14 +78,7 @@ module.exports = {
         keys: ['#user'],
         ttl: 60 * 60,
       },
-      handler(
-        ctx: Context<
-          unknown,
-          {
-            user: string;
-          }
-        >
-      ) {
+      handler(ctx: Context<unknown, MetaParams>) {
         return ctx
           .call('products.count', {
             index: 'products-instances',
@@ -163,19 +162,7 @@ module.exports = {
      */
     deleteInstanceProduct: {
       auth: ['Bearer'],
-      handler(
-        ctx: Context<
-          {
-            sku: string;
-          },
-          {
-            user: string;
-            store: {
-              url: string;
-            };
-          }
-        >
-      ) {
+      handler(ctx: Context<Product, MetaParams>) {
         const { sku } = ctx.params;
 
         return this.deleteProduct(sku, ctx.meta.user)
@@ -221,20 +208,7 @@ module.exports = {
      */
     import: {
       auth: ['Bearer'],
-      handler(
-        ctx: Context<
-          {
-            products: any;
-          },
-          {
-            store: {
-              consumer_key: string;
-              url: string;
-            };
-            user: string;
-          }
-        >
-      ) {
+      handler(ctx: Context<Products, MetaParams>) {
         const skus = ctx.params.products.map((i: { sku: string }) => i.sku);
         return ctx
           .call('products.getProductsBySku', {
@@ -361,20 +335,7 @@ module.exports = {
      */
     instanceUpdate: {
       auth: ['Bearer'],
-      handler(
-        ctx: Context<
-          {
-            externalUrl: string;
-            externalId: string;
-            variations: string;
-            error: string;
-            sku: string;
-          },
-          {
-            user: string;
-          }
-        >
-      ) {
+      handler(ctx: Context<UpdateProductParams, MetaParams>) {
         const body: { [key: string]: any } = {};
         if (ctx.params.externalUrl) body.externalUrl = ctx.params.externalUrl;
         if (ctx.params.externalId) body.externalId = ctx.params.externalId;
@@ -428,16 +389,7 @@ module.exports = {
      */
     bulkProductInstance: {
       auth: ['Bearer'],
-      handler(
-        ctx: Context<
-          {
-            productInstances: any[];
-          },
-          {
-            user: string;
-          }
-        >
-      ) {
+      handler(ctx: Context<Products, MetaParams>) {
         const bulk: any[] = [];
         ctx.params.productInstances.forEach((pi: any) => {
           bulk.push({
@@ -476,18 +428,7 @@ module.exports = {
 
     pSearch: {
       auth: ['Bearer'],
-      handler(
-        ctx: Context<
-          {
-            storeKey: string;
-          },
-          {
-            store: {
-              consumer_key: string;
-            };
-          }
-        >
-      ) {
+      handler(ctx: Context<ProductSearchParams, MetaParams>) {
         ctx.params.storeKey = ctx.meta.store.consumer_key;
         return this.search(ctx.params);
       },
