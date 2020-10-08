@@ -2,7 +2,7 @@ import { Context, ServiceSchema, GenericObject } from 'moleculer';
 import ApiGateway from 'moleculer-web';
 import compression from 'compression';
 
-import { Log, Store, AuthorizeMeta } from '../utilities/types';
+import { Log, Store, AuthorizeMeta, IncomingRequest } from '../utilities/types';
 import { OpenApiMixin } from '../utilities/mixins/openapi.mixin';
 import { hmacMiddleware, webpackMiddlewares } from '../utilities/middleware';
 
@@ -272,7 +272,7 @@ const TheService: ServiceSchema = {
     authorize(
       ctx: Context<unknown, AuthorizeMeta>,
       route: GenericObject,
-      req: any
+      req: IncomingRequest
     ): Promise<Store | boolean> {
       // Pass if no auth required
       if (!req.$endpoint.action.auth) {
