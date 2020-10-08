@@ -22,6 +22,7 @@ export interface Membership {
   attributes: { [key: string]: any };
   createdAt: Date;
   updatedAt: Date;
+  isDefault?: boolean;
 }
 
 /**
@@ -32,6 +33,5 @@ export interface Membership {
  */
 export interface MembershipRequestParams extends Membership {
   _id?: string;
-  isDefault: boolean;
   coupon?: string;
 }

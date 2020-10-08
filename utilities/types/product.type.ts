@@ -79,6 +79,10 @@ export interface Products {
   productInstances?: [
     {
       sku: string;
+      externalUrl: string;
+      externalId: string;
+      error: any[];
+      variations: any[];
     }
   ];
 }

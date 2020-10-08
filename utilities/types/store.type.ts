@@ -1,7 +1,8 @@
+import { Context, GenericObject } from 'moleculer';
+
 import { Subscription } from './subscription.type';
 import { OrderAddress } from './order.type';
 import { MetaParams } from './i18ntext.type';
-
 /**
  * Store Type definition
  *
@@ -134,4 +135,15 @@ export interface CrmData extends Store {
   last_order_date?: string;
   membership_id?: string;
   subscription_expiration?: string;
+}
+
+/**
+ * Event Arguments
+ *
+ * @export
+ * @interface EventArguments
+ */
+export interface EventArguments extends Context {
+  storeId?: string;
+  res?: GenericObject;
 }

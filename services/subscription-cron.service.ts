@@ -1,6 +1,8 @@
 import { Context, ServiceSchema } from 'moleculer';
 import * as Cron from 'moleculer-cron';
 
+import { Store, Subscription } from '../utilities/types';
+
 const TheService: ServiceSchema = {
   name: 'subscription-cron',
   /**
@@ -41,7 +43,7 @@ const TheService: ServiceSchema = {
           return null;
         }
 
-        const store: any = await ctx.call('stores.findInstance', {
+        const store: Store = await ctx.call('stores.findInstance', {
           id: subscription.storeId,
         });
 
@@ -50,10 +52,13 @@ const TheService: ServiceSchema = {
         }
 
         try {
-          const createSubResponse: any = await ctx.call('subscription.create', {
-            storeId: subscription.storeId,
-            membership: subscription.membershipId,
-          });
+          const createSubResponse: Subscription = await ctx.call(
+            'subscription.create',
+            {
+              storeId: subscription.storeId,
+              membership: subscription.membershipId,
+            }
+          );
           if (createSubResponse.id) {
             ctx.call('subscription.updateSubscription', {
               id: String(subscription.id),

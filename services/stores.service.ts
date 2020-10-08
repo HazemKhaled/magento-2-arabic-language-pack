@@ -14,14 +14,11 @@ import {
   StoreRequest,
   MetaParams,
   StoreMeta,
+  EventArguments,
 } from '../utilities/types';
 import { StoresValidation } from '../utilities/mixins/validation';
 import { GCPPubSub } from '../utilities/mixins';
 
-interface EventArguments extends Context {
-  storeId?: string;
-  res?: any;
-}
 const MoleculerError = Errors.MoleculerError;
 const { MoleculerClientError } = Errors;
 

@@ -52,7 +52,7 @@ const TheService: ServiceSchema = {
             expireDate: { $gte: new Date() },
             startDate: { $lte: new Date() },
           })) || {};
-        const membership: any = await ctx.call('membership.mGet', {
+        const membership: Membership = await ctx.call('membership.mGet', {
           id: subscription.membershipId || 'free',
         });
         return {
@@ -335,7 +335,7 @@ const TheService: ServiceSchema = {
           startDate = new Date(ctx.params.date.start);
           expireDate = new Date(ctx.params.date.expire);
         } else {
-          const storeOldSubscription: any = await ctx.call(
+          const storeOldSubscription: GenericObject = await ctx.call(
             'subscription.sList',
             {
               storeId: ctx.params.grantTo || ctx.params.storeId,
@@ -445,7 +445,7 @@ const TheService: ServiceSchema = {
         maxDate.setDate(maxDate.getDate() + (ctx.params.beforeDays || 0));
         const lastRetryDay = new Date();
         lastRetryDay.setUTCHours(0, 0, 0, 0);
-        const query: any = {
+        const query: GenericObject = {
           expireDate: {
             $gte: minDate,
             $lte: maxDate,
@@ -473,9 +473,12 @@ const TheService: ServiceSchema = {
           sort: { expireDate: -1 },
         });
         expiredSubscription._id = expiredSubscription._id.toString();
-        const currentSubscription: any = await ctx.call('subscription.sGet', {
-          id: expiredSubscription.storeId,
-        });
+        const currentSubscription: Subscription = await ctx.call(
+          'subscription.sGet',
+          {
+            id: expiredSubscription.storeId,
+          }
+        );
         if (currentSubscription.id !== -1) {
           await ctx.call('subscription.updateSubscription', {
             id: expiredSubscription._id,
@@ -524,7 +527,7 @@ const TheService: ServiceSchema = {
         return this.adapter
           .updateById(ctx.params.id, { $set })
           .then(async (subscription: Subscription) => {
-            const store: any = await ctx.call('stores.findInstance', {
+            const store: Store = await ctx.call('stores.findInstance', {
               id: subscription.storeId,
             });
 

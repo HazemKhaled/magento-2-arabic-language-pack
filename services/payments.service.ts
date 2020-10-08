@@ -97,7 +97,7 @@ const TheService: ServiceSchema = {
               ...queryParams,
             })
             .then(
-              (res: any) => ({
+              (res: GenericObject) => ({
                 payments: res.payments.map(this.sanitizePayment),
               }),
               err => {

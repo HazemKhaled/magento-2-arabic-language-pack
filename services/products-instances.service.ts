@@ -391,7 +391,7 @@ module.exports = {
       auth: ['Bearer'],
       handler(ctx: Context<Products, MetaParams>) {
         const bulk: any[] = [];
-        ctx.params.productInstances.forEach((pi: any) => {
+        ctx.params.productInstances.forEach((pi: GenericObject) => {
           bulk.push({
             update: {
               _index: 'products-instances',
