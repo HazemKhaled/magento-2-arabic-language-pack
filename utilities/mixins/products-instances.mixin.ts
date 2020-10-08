@@ -167,6 +167,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
             }
 
             // In case product not found at products instance
+            // TODO:: Remove it The only case for that is the PI have a product that is not in ES
             const blankProduct: Partial<Product> & { created: Date } = {
               sku: pi._source.sku,
               images: [],
