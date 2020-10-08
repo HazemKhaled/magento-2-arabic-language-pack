@@ -2,6 +2,7 @@ import FormData from 'form-data';
 import { Context, Errors, GenericObject, ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
 
+import { CRMOpenapi } from '../utilities/mixins/openapi';
 import { CrmStore, OrderAddress, Store } from '../utilities/types';
 import { CrmValidation } from '../utilities/mixins/validation';
 
@@ -15,7 +16,7 @@ interface CrmData extends Store {
 
 const TheService: ServiceSchema = {
   name: 'crm',
-  mixins: [CrmValidation],
+  mixins: [CrmValidation, CRMOpenapi],
   settings: {
     accessToken: '',
   },
