@@ -11,6 +11,7 @@ import {
   OrderItem,
   Product,
   Store,
+  OrderMetaParams,
 } from '../utilities/types';
 import {
   Mail,
@@ -69,7 +70,7 @@ const TheService: ServiceSchema = {
                 params: ctx.params,
               },
             });
-            const orders: any = await ctx.call('orders.list', {
+            const orders: GenericObject = await ctx.call('orders.list', {
               externalId: ctx.params.id,
             });
             return {
@@ -179,9 +180,12 @@ const TheService: ServiceSchema = {
           ) + (data.isInclusiveTax ? 0 : taxTotal);
 
         // Getting the current user subscription
-        const subscription: any = await ctx.call('subscription.sGet', {
-          id: store.url,
-        });
+        const subscription: GenericObject = await ctx.call(
+          'subscription.sGet',
+          {
+            id: store.url,
+          }
+        );
         switch (subscription.attributes.orderProcessingType) {
           case '$':
             data.adjustment = Number(
@@ -375,9 +379,12 @@ const TheService: ServiceSchema = {
         let warnings: { code: number; message: string }[] = [];
         const { store } = ctx.meta;
 
-        const orderBeforeUpdate: any = await ctx.call('orders.getOrder', {
-          order_id: ctx.params.id,
-        });
+        const orderBeforeUpdate: GenericObject = await ctx.call(
+          'orders.getOrder',
+          {
+            order_id: ctx.params.id,
+          }
+        );
 
         // Send received log
         this.sendReceiveLog(
@@ -477,9 +484,12 @@ const TheService: ServiceSchema = {
               ) + (data.isInclusiveTax ? 0 : taxTotal);
 
             // Getting the current user subscription
-            const subscription: any = await ctx.call('subscription.sGet', {
-              id: store.url,
-            });
+            const subscription: GenericObject = await ctx.call(
+              'subscription.sGet',
+              {
+                id: store.url,
+              }
+            );
             if (subscription.attributes.orderProcessingType === '%') {
               subscription.adjustment =
                 (subscription.attributes.orderProcessingFees / 100) * total;
@@ -629,7 +639,7 @@ const TheService: ServiceSchema = {
           };
         }
 
-        const order: any = await ctx.call('oms.getOrderById', {
+        const order: GenericObject = await ctx.call('oms.getOrderById', {
           customerId: store.internal_data.omsId,
           orderId: ctx.params.order_id,
         });
@@ -694,7 +704,7 @@ const TheService: ServiceSchema = {
           if (!keys.includes(key)) return;
           queryParams[key] = ctx.params[key];
         });
-        const orders: any = await ctx.call('oms.listOrders', {
+        const orders: GenericObject = await ctx.call('oms.listOrders', {
           customerId: store.internal_data.omsId,
           ...queryParams,
         });
@@ -704,9 +714,12 @@ const TheService: ServiceSchema = {
     deleteOrder: {
       auth: ['Bearer'],
       async handler(ctx) {
-        const orderBeforeUpdate: any = await ctx.call('orders.getOrder', {
-          order_id: ctx.params.id,
-        });
+        const orderBeforeUpdate: GenericObject = await ctx.call(
+          'orders.getOrder',
+          {
+            order_id: ctx.params.id,
+          }
+        );
 
         // Check cancel possibility
         this.checkUpdateStatus(orderBeforeUpdate, ctx.params);
@@ -723,7 +736,7 @@ const TheService: ServiceSchema = {
             customerId: store.internal_data?.omsId,
             orderId: ctx.params.id,
           })
-          .then(async (result: any) => {
+          .then(async (result: GenericObject) => {
             if (result.salesorder) {
               // Clean list cache
               this.broker.cacher.clean(
@@ -756,11 +769,11 @@ const TheService: ServiceSchema = {
     payOrder: {
       auth: ['Bearer'],
       async handler(ctx: Context<OrderRequestParams, MetaParams>) {
-        const store: any = await ctx.call('stores.sGet', {
+        const store: Store = await ctx.call('stores.sGet', {
           id: ctx.meta.store.url,
         });
 
-        const order: any = await ctx.call('orders.getOrder', {
+        const order: Order = await ctx.call('orders.getOrder', {
           order_id: ctx.params.id,
         });
 
@@ -827,17 +840,10 @@ const TheService: ServiceSchema = {
         keys: ['order_id'],
         ttl: 60 * 6,
       },
-      async handler(
-        ctx: Context<
-          OrderRequestParams,
-          {
-            store: any;
-          }
-        >
-      ) {
+      async handler(ctx: Context<OrderRequestParams, OrderMetaParams>) {
         const { order_id } = ctx.params;
         const { store: instance } = ctx.meta;
-        const order: any = await ctx.call('orders.getOrder', { order_id });
+        const order: Order = await ctx.call('orders.getOrder', { order_id });
         const { outOfStock, notEnoughStock } = await this.stockProducts(
           order.items
         );

@@ -73,6 +73,7 @@ export interface StoreRequest {
   page?: number;
   query?: string;
   url?: string;
+  token?: string;
 }
 
 /**
@@ -122,4 +123,15 @@ export interface CreateCustomerRequest {
  */
 export interface StoreMeta extends MetaParams {
   token: string;
+}
+
+/**
+ * CrmData Definition
+ * @export
+ * @interface CrmData
+ */
+export interface CrmData extends Store {
+  last_order_date?: string;
+  membership_id?: string;
+  subscription_expiration?: string;
 }

@@ -1,4 +1,4 @@
-import { Context, Errors, ServiceSchema } from 'moleculer';
+import { Context, Errors, ServiceSchema, GenericObject } from 'moleculer';
 
 import { PaymentsOpenapi } from '../utilities/mixins/openapi';
 import {
@@ -20,7 +20,7 @@ const TheService: ServiceSchema = {
     add: {
       auth: ['Basic'],
       async handler(ctx: Context<PaymentRequestParams>) {
-        const instance: any = await ctx.call('stores.findInstance', {
+        const instance: GenericObject = await ctx.call('stores.findInstance', {
           id: ctx.params.id,
         });
 
@@ -29,7 +29,7 @@ const TheService: ServiceSchema = {
           await this.setOmsId(instance);
         }
 
-        const paymentBody: any = {
+        const paymentBody: GenericObject = {
           customerId: instance?.internal_data?.omsId,
           paymentMode: ctx.params.payment_mode,
           amount: ctx.params.amount,
@@ -58,7 +58,7 @@ const TheService: ServiceSchema = {
         }
 
         return ctx.call('oms.createPayment', paymentBody).then(
-          (res: any) => {
+          (res: GenericObject) => {
             // Store balance
             this.broker.cacher.clean(`payments.get:${instance.consumer_key}**`);
             this.broker.cacher.clean(`invoices.get:${instance.consumer_key}**`);

@@ -1,3 +1,4 @@
+import { GenericObject } from 'moleculer';
 /**
  * Invoice type
  *
@@ -44,16 +45,6 @@ export interface Invoice {
   lastModifiedTime: Date;
   shippingCharge: number;
   adjustment: number;
-}
-
-/**
- * Get Invoice Request Params
- *
- * @export
- * @interface GetInvoiceRequestParams
- */
-export interface GetInvoiceRequestParams {
-  [key: string]: string;
 }
 
 /**

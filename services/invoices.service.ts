@@ -4,8 +4,10 @@ import { InvoicesOpenapi } from '../utilities/mixins/openapi';
 import {
   Invoice,
   InvoiceRequestParams,
-  GetInvoiceRequestParams,
+  DynamicRequestParams,
   MetaParams,
+  Store,
+  Order,
 } from '../utilities/types';
 import { InvoicesValidation } from '../utilities/mixins/validation';
 import { InvoicePage } from '../utilities/mixins/invoicePage';
@@ -24,7 +26,7 @@ const TheService: ServiceSchema = {
         keys: ['#user', 'page', 'limit', 'reference_number', 'invoice_number'],
         ttl: 60,
       },
-      handler(ctx: Context<GetInvoiceRequestParams, MetaParams>) {
+      handler(ctx: Context<DynamicRequestParams, MetaParams>) {
         const { store } = ctx.meta;
 
         const keys: { [key: string]: string } = {
@@ -44,7 +46,7 @@ const TheService: ServiceSchema = {
             ...queryParams,
           })
           .then(
-            async (response: any) => {
+            async (response: GenericObject) => {
               return {
                 invoices: response.invoices.map((invoice: Invoice) =>
                   this.invoiceSanitize(invoice)
@@ -60,7 +62,7 @@ const TheService: ServiceSchema = {
     create: {
       auth: ['Basic'],
       async handler(ctx: Context<InvoiceRequestParams>) {
-        const instance: any = await ctx.call('stores.findInstance', {
+        const instance: GenericObject = await ctx.call('stores.findInstance', {
           id: ctx.params.storeId,
         });
 
@@ -105,7 +107,7 @@ const TheService: ServiceSchema = {
         }
 
         return ctx.call('oms.createInvoice', invoiceParams).then(
-          async (res: any) => {
+          async (res: GenericObject) => {
             await this.broker.cacher.clean(
               `invoices.get:${instance.consumer_key}**`
             );
@@ -126,7 +128,7 @@ const TheService: ServiceSchema = {
     applyCredits: {
       auth: ['Bearer'],
       async handler(ctx: Context<InvoiceRequestParams>) {
-        const store: any = await ctx.call('stores.me');
+        const store: Store = await ctx.call('stores.me');
 
         const { params } = ctx;
         if (
@@ -178,7 +180,7 @@ const TheService: ServiceSchema = {
     },
     createOrderInvoice: {
       async handler(ctx: Context<InvoiceRequestParams>) {
-        const instance: any = await ctx.call('stores.findInstance', {
+        const instance: Store = await ctx.call('stores.findInstance', {
           id: ctx.params.storeId,
         });
 
@@ -207,11 +209,11 @@ const TheService: ServiceSchema = {
     renderInvoice: {
       params: {},
       async handler(ctx: Context<InvoiceRequestParams, MetaParams>) {
-        const store: any = await ctx.call('stores.findInstance', {
+        const store: Store = await ctx.call('stores.findInstance', {
           id: ctx.params.storeId,
         });
         ctx.meta.user = store.consumer_key;
-        const orders: any = await ctx.call('orders.list', {
+        const orders: GenericObject = await ctx.call('orders.list', {
           externalId: ctx.params.id,
         });
         const order = await ctx.call('orders.getOrder', {

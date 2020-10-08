@@ -61,7 +61,7 @@ const TheService: ServiceSchema = {
               code,
             },
           })
-          .then((res: any) => {
+          .then((res: GenericObject) => {
             if (res.result === 'created') {
               this.broker.cacher.clean('log*');
               return {
@@ -127,7 +127,7 @@ const TheService: ServiceSchema = {
             index: 'logsmp-*',
             body,
           })
-          .then((res: any) => {
+          .then((res: GenericObject) => {
             if (res.hits.total.value > 0)
               return res.hits.hits.map(
                 (item: { _id: string; _source: Log }) => {

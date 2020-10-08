@@ -1,4 +1,4 @@
-import { Context } from 'moleculer';
+import { Context, GenericObject } from 'moleculer';
 import ESService from 'moleculer-elasticsearch';
 
 import {
@@ -108,7 +108,7 @@ module.exports = {
               },
             },
           })
-          .then((res: any) => {
+          .then((res: GenericObject) => {
             if (typeof res.count !== 'number') {
               throw new MpError(
                 'Products Instance',
@@ -214,7 +214,7 @@ module.exports = {
           .call('products.getProductsBySku', {
             skus,
           })
-          .then(async (res: any) => {
+          .then(async (res: GenericObject) => {
             const newSKUs = res.map((product: Product) => product.sku);
             const outOfStock = skus.filter(
               (sku: string) => !newSKUs.includes(sku)
@@ -260,7 +260,7 @@ module.exports = {
                 index: 'products-instances',
                 body: bulk,
               })
-              .then(async (response: any) => {
+              .then(async (response: GenericObject) => {
                 // Update products import quantity
                 if (response.items) {
                   const firstImport = response.items
@@ -351,7 +351,7 @@ module.exports = {
             },
           })
           .then(
-            async (res: any) => {
+            async (res: GenericObject) => {
               if (res.result === 'updated' || res.result === 'noop') {
                 await this.broker.cacher.clean(
                   `products-instances.list:${ctx.meta.user}**`
@@ -435,10 +435,7 @@ module.exports = {
     },
   },
   methods: {
-    deletePublish(
-      ctx: Context<unknown, { storeId: string }>,
-      res: Product
-    ): Product {
+    deletePublish(ctx: Context<unknown, MetaParams>, res: Product): Product {
       this.publishMessage('products.delete', {
         storeId: ctx.meta.storeId,
         data: res,
@@ -446,7 +443,7 @@ module.exports = {
       return res;
     },
     importPublish(
-      ctx: Context<unknown, { storeId: string }>,
+      ctx: Context<unknown, MetaParams>,
       res: {
         success: string[];
         outOfStock: string[];
@@ -462,13 +459,7 @@ module.exports = {
       return res;
     },
     pushPublish(
-      ctx: Context<
-        {
-          sku: string;
-          productInstances: any;
-        },
-        { storeId: string }
-      >,
+      ctx: Context<Products, MetaParams>,
       res: { success: string }
     ): { success: string } {
       this.publishMessage('products.push', {

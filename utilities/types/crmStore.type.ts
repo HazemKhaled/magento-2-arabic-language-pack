@@ -29,4 +29,11 @@ export interface CrmStore {
   Last_Order_Date: string;
   Subscription_Name: string;
   Subscription_Expiration: string;
+  tag?: string;
+  module?: string;
+  data?: string;
+  criteria?: string;
+  email?: string;
+  phone?: string;
+  word?: string;
 }

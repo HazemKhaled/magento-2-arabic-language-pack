@@ -318,7 +318,9 @@ const TheService: ServiceSchema = {
         const { id } = ctx.params;
         delete ctx.params.id;
         // storeBefore
-        const storeBefore: any = await ctx.call('stores.findInstance', { id });
+        const storeBefore: Store = await ctx.call('stores.findInstance', {
+          id,
+        });
 
         // Sanitize request params
         const store: Store = this.sanitizeStoreParams(ctx.params);
@@ -423,14 +425,14 @@ const TheService: ServiceSchema = {
       },
       async handler(ctx) {
         const storeId = ctx.params.id;
-        const instance: any = await ctx.call('stores.findInstance', {
+        const instance: Store = await ctx.call('stores.findInstance', {
           id: storeId,
         });
         try {
           const omsStore = await ctx
             .call('oms.getCustomerByUrl', { storeId })
             .then(
-              (response: any) => response.store,
+              (response: GenericObject) => response.store,
               err => {
                 if (err.code !== 404) {
                   throw new MoleculerError(err.message, err.code || 500);
@@ -577,11 +579,7 @@ const TheService: ServiceSchema = {
         keys: ['token'],
         ttl: 60 * 60 * 24 * 30,
       },
-      handler(
-        ctx: Context<{
-          token: string;
-        }>
-      ) {
+      handler(ctx: Context<Partial<StoreRequest>>) {
         return new this.Promise((resolve: any, reject: any) => {
           jwt.verify(
             ctx.params.token,
@@ -626,11 +624,7 @@ const TheService: ServiceSchema = {
         keys: ['token'],
         ttl: 60 * 60 * 24,
       },
-      handler(
-        ctx: Context<{
-          token: string;
-        }>
-      ) {
+      handler(ctx: Context<Partial<StoreRequest>>) {
         return fetch(`${process.env.AUTH_BASEURL}/login`, {
           headers: {
             Authorization: `Basic ${ctx.params.token}`,

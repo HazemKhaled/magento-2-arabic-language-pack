@@ -1,4 +1,4 @@
-import { Context, ServiceSchema } from 'moleculer';
+import { Context, ServiceSchema, GenericObject } from 'moleculer';
 import fetch from 'node-fetch';
 
 import { CurrenciesValidation, CurrenciesOpenapi } from '../utilities/mixins';
@@ -22,20 +22,22 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60,
       },
       handler(ctx: Context<Currency>) {
-        return ctx.call('currencies.getCurrencies').then((currencies: any) => {
-          const currency = currencies.find(
-            (currencyObj: Currency) =>
-              currencyObj.currencyCode === ctx.params.currencyCode
-          );
-          if (currency === undefined) {
-            throw new MpError(
-              'Currencies Service',
-              'Currency code could not be found!',
-              404
+        return ctx
+          .call('currencies.getCurrencies')
+          .then((currencies: GenericObject) => {
+            const currency = currencies.find(
+              (currencyObj: Currency) =>
+                currencyObj.currencyCode === ctx.params.currencyCode
             );
-          }
-          return currency;
-        });
+            if (currency === undefined) {
+              throw new MpError(
+                'Currencies Service',
+                'Currency code could not be found!',
+                404
+              );
+            }
+            return currency;
+          });
       },
     },
     /**

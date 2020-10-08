@@ -10,6 +10,7 @@ import {
   StoreRequest,
   CreateCustomerRequest,
   TaxRequestParams,
+  DynamicRequestParams,
 } from '../utilities/types';
 import DbService from '../utilities/mixins/mongo.mixin';
 import { OmsValidation } from '../utilities/mixins/validation';
@@ -117,7 +118,7 @@ const TheService: ServiceSchema = {
       },
     },
     listOrders: {
-      handler(ctx: Context<any>) {
+      handler(ctx: Context<DynamicRequestParams>) {
         const params: { [key: string]: string } = { ...ctx.params };
         delete params.customerId;
         return this.request({
@@ -137,7 +138,7 @@ const TheService: ServiceSchema = {
 
     // Payments
     createPayment: {
-      handler(ctx: Context<any>) {
+      handler(ctx: Context<DynamicRequestParams>) {
         const body: GenericObject = { ...ctx.params, customerId: undefined };
         return this.request({
           path: `payments/${ctx.params.customerId}`,
@@ -147,7 +148,7 @@ const TheService: ServiceSchema = {
       },
     },
     listPayments: {
-      handler(ctx: Context<any>) {
+      handler(ctx: Context<DynamicRequestParams>) {
         const params: { [key: string]: string } = { ...ctx.params };
         delete params.customerId;
         return this.request({

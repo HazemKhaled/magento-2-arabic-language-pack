@@ -75,6 +75,7 @@ export interface Products {
       sku: string;
     }
   ];
+  sku?: string;
   productInstances?: [
     {
       sku: string;

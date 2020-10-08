@@ -4,7 +4,13 @@ import { Context, Errors, GenericObject, ServiceSchema } from 'moleculer';
 
 import DbService from '../utilities/mixins/mongo.mixin';
 import { SubscriptionOpenapi } from '../utilities/mixins/openapi';
-import { Coupon, Membership, Subscription, Store } from '../utilities/types';
+import {
+  Coupon,
+  Membership,
+  Subscription,
+  Store,
+  MetaParams,
+} from '../utilities/types';
 import { SubscriptionValidation } from '../utilities/mixins/validation';
 import { TaxCheck } from '../utilities/mixins/tax.mixin';
 import { MpError } from '../utilities/adapters';
@@ -154,27 +160,7 @@ const TheService: ServiceSchema = {
     },
     create: {
       auth: ['Basic'],
-      async handler(
-        ctx: Context<
-          {
-            coupon: string;
-            membership: string;
-            storeId: string;
-            grantTo: string;
-            postpaid: string;
-            dueDate: string;
-            date: {
-              start: string;
-              expire: string;
-            };
-            autoRenew: string;
-            reference: string;
-          },
-          {
-            user: string;
-          }
-        >
-      ) {
+      async handler(ctx: Context<Subscription, MetaParams>) {
         let coupon: Coupon = null;
         if (ctx.params.coupon) {
           coupon = await ctx
@@ -555,17 +541,20 @@ const TheService: ServiceSchema = {
     },
     checkCurrentSubGradingStatus: {
       async handler(ctx: Context<Subscription>) {
-        const allSubBefore: any = await ctx.call('subscription.sList', {
-          storeId: ctx.params.id,
-          expireDate: {
-            operation: 'gte',
-            date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7),
-          },
-          status: 'active',
-          sort: { field: 'expireDate', order: -1 },
-          perPage: 2,
-        });
-        const memberships: any = await ctx.call('membership.list');
+        const allSubBefore: GenericObject = await ctx.call(
+          'subscription.sList',
+          {
+            storeId: ctx.params.id,
+            expireDate: {
+              operation: 'gte',
+              date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7),
+            },
+            status: 'active',
+            sort: { field: 'expireDate', order: -1 },
+            perPage: 2,
+          }
+        );
+        const memberships: GenericObject = await ctx.call('membership.list');
         if (allSubBefore.length === 0) return;
         if (allSubBefore.length === 1) {
           return ctx.call('crm.addTagsByUrl', {
@@ -599,7 +588,7 @@ const TheService: ServiceSchema = {
         return this.adapter
           .updateById(ctx.params.id, { $set: { status: 'cancelled' } })
           .then(async (res: any) => {
-            const instance: any = await ctx.call('stores.findInstance', {
+            const instance: Store = await ctx.call('stores.findInstance', {
               id: res.storeId,
             });
 

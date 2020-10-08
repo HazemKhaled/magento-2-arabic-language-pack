@@ -34,4 +34,15 @@ export interface MetaParams {
   $statusMessage?: string;
   $responseType?: string;
   user?: any;
+  storeId?: string;
+}
+
+/**
+ * Dynamic Request Params
+ *
+ * @export
+ * @interface DynamicRequestParams
+ */
+export interface DynamicRequestParams {
+  [key: string]: string;
 }

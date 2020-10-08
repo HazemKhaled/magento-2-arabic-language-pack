@@ -279,3 +279,13 @@ export interface OrderRequestParams extends Order {
   order_id?: string;
   limit?: number;
 }
+
+/**
+ * Order MetaParams Definition
+ *
+ * @exports
+ * @interface OrderMetaParams
+ */
+export interface OrderMetaParams {
+  store: GenericObject;
+}

@@ -29,4 +29,12 @@ export interface Subscription {
   page?: string;
   afterDays?: number;
   beforeDays?: number;
+  membership?: string;
+  grantTo?: string;
+  postpaid?: string;
+  dueDate?: string;
+  date?: {
+    start: string;
+    expire: string;
+  };
 }
