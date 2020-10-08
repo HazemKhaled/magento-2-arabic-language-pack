@@ -79,6 +79,7 @@
     "@google-cloud/tasks": "^2.1.1",
     "bluebird": "^3.7.2",
     "compression": "^1.7.4",
+    "elastic-apm-node": "^3.7.0",
     "elasticsearch": "^16.7.1",
     "form-data": "^2.5.1",
     "ioredis": "^4.17.3",
