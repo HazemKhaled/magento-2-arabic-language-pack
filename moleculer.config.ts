@@ -164,7 +164,9 @@ const brokerConfig: BrokerOptions = {
     },
   },
 
+  // Watch the loaded services and hot reload if they changed. You can also enable it in Moleculer Runner with `--hot` argument
   hotReload: true,
+
   // Enable built-in tracing function. More info: https://moleculer.services/docs/0.14/tracing.html
   tracing: {
     enabled: Boolean(process.env.isTracingEnabled) || false,
