@@ -40,11 +40,7 @@ const TheService: ServiceSchema = {
         keys: ['id'],
         ttl: 60 * 60 * 24,
       },
-      async handler(
-        ctx: Context<{
-          id: string;
-        }>
-      ): Promise<any | false> {
+      async handler(ctx: Context<Subscription>): Promise<any | false> {
         const subscription =
           (await this.adapter.findOne({
             storeId: ctx.params.id,
