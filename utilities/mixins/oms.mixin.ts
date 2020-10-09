@@ -98,8 +98,6 @@ export const Oms: ServiceSchema = {
           });
         })
         .catch((err: Error) => {
-          console.log(err);
-          console.log("Can't create oms contact!");
           throw new MpError(
             'InvoicesError',
             err.message,
