@@ -221,6 +221,7 @@ const CRMGetOpenapi = {
       required: true,
       schema: {
         type: 'string',
+        enum: ['Contacts', 'Leads'],
       },
     },
     {
@@ -229,6 +230,7 @@ const CRMGetOpenapi = {
       schema: {
         type: 'string',
       },
+      example: 'Company:starts_with:M',
     },
     {
       name: 'email',
@@ -280,8 +282,9 @@ const CRMGetOpenapi = {
         },
       },
     },
-    401: { $ref: '#/components/responses/UnauthorizedErrorToken' },
+    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
   },
+  security: [{ basicAuth: [] as any[] }],
 };
 
 const CRMPostOpenapi = {
@@ -301,8 +304,9 @@ const CRMPostOpenapi = {
   requestBody: { $ref: '#/components/requestBodies/CrmCreate' },
   responses: {
     200: CRMResponse,
-    401: { $ref: '#/components/responses/UnauthorizedErrorToken' },
+    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
   },
+  security: [{ basicAuth: [] as any[] }],
 };
 
 const CRMPutOpenapi = {
@@ -330,8 +334,9 @@ const CRMPutOpenapi = {
   requestBody: { $ref: '#/components/requestBodies/CrmUpdate' },
   responses: {
     200: CRMResponse,
-    401: { $ref: '#/components/responses/UnauthorizedErrorToken' },
+    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
   },
+  security: [{ basicAuth: [] as any[] }],
 };
 
 const AddTagToRecord = {
@@ -370,8 +375,9 @@ const AddTagToRecord = {
   },
   responses: {
     200: CRMTagResponse,
-    401: { $ref: '#/components/responses/UnauthorizedErrorToken' },
+    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
   },
+  security: [{ basicAuth: [] as any[] }],
 };
 
 const RemoveTagFromRecord = {
@@ -431,8 +437,9 @@ const RemoveTagFromRecord = {
         },
       },
     },
-    401: { $ref: '#/components/responses/UnauthorizedErrorToken' },
+    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
   },
+  security: [{ basicAuth: [] as any[] }],
 };
 
 export const CRMOpenapi: ServiceSchema = {
