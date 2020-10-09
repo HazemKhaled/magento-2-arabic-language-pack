@@ -172,6 +172,44 @@ const CRMResponse = {
   },
 };
 
+const CRMTagResponse = {
+  description: 'Status 200',
+  content: {
+    'application/json': {
+      schema: {
+        type: 'object',
+        properties: {
+          tags: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                Modified_Time: { type: 'string' },
+                Modified_By: {
+                  type: 'object',
+                  properties: {
+                    name: { type: 'string' },
+                    id: { type: 'string' },
+                  },
+                },
+                Created_Time: { type: 'string' },
+                id: { type: 'string' },
+                Created_By: {
+                  type: 'object',
+                  properties: {
+                    name: { type: 'string' },
+                    id: { type: 'string' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
 const CRMGetOpenapi = {
   $path: 'get /crm/{module}',
   summary: 'Search CRM records',
@@ -226,6 +264,15 @@ const CRMGetOpenapi = {
                 type: 'array',
                 items: {
                   $ref: '#/components/schemas/CRM',
+                },
+              },
+              info: {
+                type: 'object',
+                properties: {
+                  per_page: { type: 'number' },
+                  count: { type: 'number' },
+                  page: { type: 'number' },
+                  more_records: { type: 'boolean' },
                 },
               },
             },
@@ -322,7 +369,7 @@ const AddTagToRecord = {
     },
   },
   responses: {
-    200: CRMResponse,
+    200: CRMTagResponse,
     401: { $ref: '#/components/responses/UnauthorizedErrorToken' },
   },
 };
@@ -348,21 +395,42 @@ const RemoveTagFromRecord = {
         type: 'string',
       },
     },
+    {
+      name: 'tag',
+      in: 'query',
+      required: true,
+      schema: {
+        type: 'staring',
+      },
+    },
   ],
-  requestBody: {
-    content: {
-      'application/json': {
-        schema: {
-          type: 'object',
-          properties: {
-            tag: { type: 'string', required: true },
+  responses: {
+    200: {
+      description: 'Status 200',
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: {
+              tags: {
+                type: 'object',
+                properties: {
+                  code: { type: 'string' },
+                  details: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'string' },
+                    },
+                  },
+                  message: { type: 'string' },
+                  status: { type: 'string' },
+                },
+              },
+            },
           },
         },
       },
     },
-  },
-  responses: {
-    200: CRMResponse,
     401: { $ref: '#/components/responses/UnauthorizedErrorToken' },
   },
 };
