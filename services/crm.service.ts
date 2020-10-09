@@ -86,6 +86,7 @@ const TheService: ServiceSchema = {
       },
     },
     createRecord: {
+      auth: ['Basic'],
       handler(ctx: Context): Promise<GenericObject> {
         const { module, data } = ctx.params;
 
@@ -98,6 +99,7 @@ const TheService: ServiceSchema = {
       },
     },
     updateRecord: {
+      auth: ['Basic'],
       handler(ctx: Context): Promise<GenericObject> {
         const { module, id, data } = ctx.params;
 
@@ -110,6 +112,7 @@ const TheService: ServiceSchema = {
       },
     },
     findRecords: {
+      auth: ['Basic'],
       handler(ctx: Context): Promise<GenericObject> {
         const { module, criteria, email, phone, word } = ctx.params;
 
@@ -121,6 +124,7 @@ const TheService: ServiceSchema = {
       },
     },
     addTagsToRecord: {
+      auth: ['Basic'],
       handler(ctx: Context): Promise<GenericObject> {
         const { module, id, tag } = ctx.params;
 
@@ -132,6 +136,7 @@ const TheService: ServiceSchema = {
       },
     },
     removeTagsFromRecord: {
+      auth: ['Basic'],
       handler(ctx: Context): Promise<GenericObject> {
         const { module, id, tag } = ctx.params;
 
