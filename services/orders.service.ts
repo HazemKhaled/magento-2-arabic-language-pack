@@ -667,7 +667,7 @@ const TheService: ServiceSchema = {
       async handler(ctx) {
         const { store } = ctx.meta;
 
-        if (store.internal_data?.omsId) {
+        if (!store.internal_data?.omsId) {
           return [];
         }
         const queryParams: GenericObject = {};
