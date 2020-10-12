@@ -257,7 +257,7 @@ const TheService: ServiceSchema = {
               },
             },
           })
-          .then(response => {
+          .then((response: any) => {
             return {
               products: response.hits.hits.map(
                 ({ _source }: { _source: Product }) => _source

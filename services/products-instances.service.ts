@@ -72,7 +72,14 @@ module.exports = {
         keys: ['#user'],
         ttl: 60 * 60,
       },
-      handler(ctx: Context) {
+      handler(
+        ctx: Context<
+          unknown,
+          {
+            user: string;
+          }
+        >
+      ) {
         return ctx
           .call('products.count', {
             index: 'products-instances',
@@ -156,7 +163,19 @@ module.exports = {
      */
     deleteInstanceProduct: {
       auth: ['Bearer'],
-      handler(ctx: Context) {
+      handler(
+        ctx: Context<
+          {
+            sku: string;
+          },
+          {
+            user: string;
+            store: {
+              url: string;
+            };
+          }
+        >
+      ) {
         const { sku } = ctx.params;
 
         return this.deleteProduct(sku, ctx.meta.user)
@@ -202,13 +221,26 @@ module.exports = {
      */
     import: {
       auth: ['Bearer'],
-      handler(ctx: Context) {
+      handler(
+        ctx: Context<
+          {
+            products: any;
+          },
+          {
+            store: {
+              consumer_key: string;
+              url: string;
+            };
+            user: string;
+          }
+        >
+      ) {
         const skus = ctx.params.products.map((i: { sku: string }) => i.sku);
         return ctx
           .call('products.getProductsBySku', {
             skus,
           })
-          .then(async res => {
+          .then(async (res: any) => {
             const newSKUs = res.map((product: Product) => product.sku);
             const outOfStock = skus.filter(
               (sku: string) => !newSKUs.includes(sku)
@@ -254,7 +286,7 @@ module.exports = {
                 index: 'products-instances',
                 body: bulk,
               })
-              .then(async response => {
+              .then(async (response: any) => {
                 // Update products import quantity
                 if (response.items) {
                   const firstImport = response.items
@@ -329,7 +361,20 @@ module.exports = {
      */
     instanceUpdate: {
       auth: ['Bearer'],
-      handler(ctx: Context) {
+      handler(
+        ctx: Context<
+          {
+            externalUrl: string;
+            externalId: string;
+            variations: string;
+            error: string;
+            sku: string;
+          },
+          {
+            user: string;
+          }
+        >
+      ) {
         const body: { [key: string]: any } = {};
         if (ctx.params.externalUrl) body.externalUrl = ctx.params.externalUrl;
         if (ctx.params.externalId) body.externalId = ctx.params.externalId;
@@ -345,7 +390,7 @@ module.exports = {
             },
           })
           .then(
-            async res => {
+            async (res: any) => {
               if (res.result === 'updated' || res.result === 'noop') {
                 await this.broker.cacher.clean(
                   `products-instances.list:${ctx.meta.user}**`
@@ -383,7 +428,16 @@ module.exports = {
      */
     bulkProductInstance: {
       auth: ['Bearer'],
-      handler(ctx: Context) {
+      handler(
+        ctx: Context<
+          {
+            productInstances: any[];
+          },
+          {
+            user: string;
+          }
+        >
+      ) {
         const bulk: any[] = [];
         ctx.params.productInstances.forEach((pi: any) => {
           bulk.push({
@@ -422,14 +476,28 @@ module.exports = {
 
     pSearch: {
       auth: ['Bearer'],
-      handler(ctx: Context) {
+      handler(
+        ctx: Context<
+          {
+            storeKey: string;
+          },
+          {
+            store: {
+              consumer_key: string;
+            };
+          }
+        >
+      ) {
         ctx.params.storeKey = ctx.meta.store.consumer_key;
         return this.search(ctx.params);
       },
     },
   },
   methods: {
-    deletePublish(ctx: Context, res: Product): Product {
+    deletePublish(
+      ctx: Context<unknown, { storeId: string }>,
+      res: Product
+    ): Product {
       this.publishMessage('products.delete', {
         storeId: ctx.meta.storeId,
         data: res,
@@ -437,7 +505,7 @@ module.exports = {
       return res;
     },
     importPublish(
-      ctx: Context,
+      ctx: Context<unknown, { storeId: string }>,
       res: {
         success: string[];
         outOfStock: string[];
@@ -452,7 +520,16 @@ module.exports = {
       });
       return res;
     },
-    pushPublish(ctx: Context, res: { success: string }): { success: string } {
+    pushPublish(
+      ctx: Context<
+        {
+          sku: string;
+          productInstances: any;
+        },
+        { storeId: string }
+      >,
+      res: { success: string }
+    ): { success: string } {
       this.publishMessage('products.push', {
         storeId: ctx.meta.storeId,
         data: {

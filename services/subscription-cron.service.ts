@@ -27,7 +27,7 @@ const TheService: ServiceSchema = {
     run: {
       cache: false,
       async handler(ctx: Context) {
-        const subscription = await ctx
+        const subscription: any = await ctx
           .call('subscription.getSubscriptionByExpireDate', {
             afterDays: 6 * 30,
             beforeDays: 1,
@@ -43,7 +43,7 @@ const TheService: ServiceSchema = {
           return null;
         }
 
-        const store = await ctx.call('stores.findInstance', {
+        const store: any = await ctx.call('stores.findInstance', {
           id: subscription.storeId,
         });
 
@@ -52,7 +52,7 @@ const TheService: ServiceSchema = {
         }
 
         try {
-          const createSubResponse = await ctx.call('subscription.create', {
+          const createSubResponse: any = await ctx.call('subscription.create', {
             storeId: subscription.storeId,
             membership: subscription.membershipId,
           });

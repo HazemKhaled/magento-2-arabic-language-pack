@@ -1,4 +1,4 @@
-import { Context, ServiceSchema } from 'moleculer';
+import { Context, ServiceSchema, GenericObject } from 'moleculer';
 import ApiGateway from 'moleculer-web';
 import compression from 'compression';
 
@@ -275,7 +275,19 @@ const TheService: ServiceSchema = {
      * @param {IncomingRequest} req
      * @returns {Promise}
      */
-    authorize(ctx: Context, route: any, req: any): Promise<any> {
+    authorize(
+      ctx: Context<
+        unknown,
+        {
+          user: string;
+          token: string;
+          storeId: string;
+          store: Store;
+        }
+      >,
+      route: any,
+      req: any
+    ): Promise<Store | boolean> {
       // Pass if no auth required
       if (!req.$endpoint.action.auth) {
         return this.Promise.resolve();
@@ -328,7 +340,7 @@ const TheService: ServiceSchema = {
           if (type === 'Basic') {
             return ctx
               .call('stores.resolveBasicToken', { token })
-              .then((user: any) => {
+              .then((user: Store) => {
                 if (user) {
                   ctx.meta.token = token;
                 }
@@ -336,7 +348,7 @@ const TheService: ServiceSchema = {
               });
           }
         })
-        .then((user: any) => {
+        .then((user: Store) => {
           if (!user) {
             return this.Promise.reject(
               new UnAuthorizedError(

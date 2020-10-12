@@ -23,6 +23,7 @@ export const SubscriptionValidation: ServiceSchema = {
         expireDate: [
           {
             type: 'object',
+            strict: true,
             optional: true,
             props: {
               operation: {
@@ -34,7 +35,6 @@ export const SubscriptionValidation: ServiceSchema = {
                 convert: true,
                 optional: true,
               },
-              $$strict: true,
             },
           },
           {
@@ -44,6 +44,7 @@ export const SubscriptionValidation: ServiceSchema = {
             min: 1,
             items: {
               type: 'object',
+              strict: true,
               props: {
                 operation: {
                   type: 'enum',
@@ -53,7 +54,6 @@ export const SubscriptionValidation: ServiceSchema = {
                   type: 'date',
                   convert: true,
                 },
-                $$strict: true,
               },
             },
           },
@@ -61,6 +61,7 @@ export const SubscriptionValidation: ServiceSchema = {
         startDate: [
           {
             type: 'object',
+            strict: true,
             optional: true,
             props: {
               operation: {
@@ -72,7 +73,6 @@ export const SubscriptionValidation: ServiceSchema = {
                 convert: true,
                 optional: true,
               },
-              $$strict: true,
             },
           },
           {
@@ -82,6 +82,7 @@ export const SubscriptionValidation: ServiceSchema = {
             min: 1,
             items: {
               type: 'object',
+              strict: true,
               props: {
                 operation: {
                   type: 'enum',
@@ -91,7 +92,6 @@ export const SubscriptionValidation: ServiceSchema = {
                   type: 'date',
                   convert: true,
                 },
-                $$strict: true,
               },
             },
           },
@@ -152,6 +152,8 @@ export const SubscriptionValidation: ServiceSchema = {
         },
         date: {
           type: 'object',
+          strict: true,
+          optional: true,
           props: {
             start: {
               type: 'string',
@@ -161,9 +163,7 @@ export const SubscriptionValidation: ServiceSchema = {
               type: 'string',
               pattern: /^(20[1-9][0-9])-((0[1-9])|(1(0|1|2)))-(((0[1-9])|(1|2)[0-9])|3(0|1))$/,
             },
-            $$strict: true,
           },
-          optional: true,
         },
         coupon: {
           type: 'string',

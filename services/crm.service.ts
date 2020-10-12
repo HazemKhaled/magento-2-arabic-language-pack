@@ -48,8 +48,12 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 * 24,
         keys: ['id'],
       },
-      async handler(ctx: Context): Promise<GenericObject> {
-        const res = await ctx.call('crm.findRecords', {
+      async handler(
+        ctx: Context<{
+          id: string;
+        }>
+      ): Promise<GenericObject> {
+        const res: any = await ctx.call('crm.findRecords', {
           module: 'accounts',
           criteria: `((Account_Name:equals:${ctx.params.id}))`,
         });
@@ -61,7 +65,11 @@ const TheService: ServiceSchema = {
       },
     },
     updateStoreById: {
-      async handler(ctx: Context): Promise<GenericObject> {
+      async handler(
+        ctx: Context<{
+          id: string;
+        }>
+      ): Promise<GenericObject> {
         const { id: crmStoreId } = await ctx.call('crm.findStoreByUrl', {
           id: ctx.params.id,
         });
@@ -74,7 +82,12 @@ const TheService: ServiceSchema = {
       },
     },
     addTagsByUrl: {
-      async handler(ctx: Context): Promise<GenericObject> {
+      async handler(
+        ctx: Context<{
+          id: string;
+          tag: string;
+        }>
+      ): Promise<GenericObject> {
         const { id, tag } = ctx.params;
         const { id: crmStoreId } = await ctx.call('crm.findStoreByUrl', { id });
 
@@ -87,7 +100,12 @@ const TheService: ServiceSchema = {
     },
     createRecord: {
       auth: ['Basic'],
-      handler(ctx: Context): Promise<GenericObject> {
+      handler(
+        ctx: Context<{
+          module: string;
+          data: string;
+        }>
+      ): Promise<GenericObject> {
         const { module, data } = ctx.params;
 
         return this.request({
@@ -100,7 +118,13 @@ const TheService: ServiceSchema = {
     },
     updateRecord: {
       auth: ['Basic'],
-      handler(ctx: Context): Promise<GenericObject> {
+      handler(
+        ctx: Context<{
+          module: string;
+          id: string;
+          data: string;
+        }>
+      ): Promise<GenericObject> {
         const { module, id, data } = ctx.params;
 
         return this.request({
@@ -113,7 +137,15 @@ const TheService: ServiceSchema = {
     },
     findRecords: {
       auth: ['Basic'],
-      handler(ctx: Context): Promise<GenericObject> {
+      handler(
+        ctx: Context<{
+          module: string;
+          criteria: string;
+          email: string;
+          phone: string;
+          word: string;
+        }>
+      ): Promise<GenericObject> {
         const { module, criteria, email, phone, word } = ctx.params;
 
         return this.request({
@@ -125,7 +157,13 @@ const TheService: ServiceSchema = {
     },
     addTagsToRecord: {
       auth: ['Basic'],
-      handler(ctx: Context): Promise<GenericObject> {
+      handler(
+        ctx: Context<{
+          module: string;
+          id: string;
+          tag: string;
+        }>
+      ): Promise<GenericObject> {
         const { module, id, tag } = ctx.params;
 
         return this.request({
@@ -137,7 +175,13 @@ const TheService: ServiceSchema = {
     },
     removeTagsFromRecord: {
       auth: ['Basic'],
-      handler(ctx: Context): Promise<GenericObject> {
+      handler(
+        ctx: Context<{
+          module: string;
+          id: string;
+          tag: string;
+        }>
+      ): Promise<GenericObject> {
         const { module, id, tag } = ctx.params;
 
         return this.request({

@@ -22,7 +22,25 @@ const TheService: ServiceSchema = {
   actions: {
     add: {
       auth: ['Basic', 'Bearer'],
-      handler(ctx: Context) {
+      handler(
+        ctx: Context<
+          {
+            topic: string;
+            topicId: string;
+            logLevel: string;
+            storeId: string;
+            message: string;
+            payload: any;
+            code: number;
+          },
+          {
+            user: any;
+            storeId: string;
+            $statusCode: number;
+            $statusMessage: string;
+          }
+        >
+      ) {
         const date = new Date();
         const {
           topic,
@@ -61,7 +79,7 @@ const TheService: ServiceSchema = {
               code,
             },
           })
-          .then(res => {
+          .then((res: any) => {
             if (res.result === 'created') {
               this.broker.cacher.clean('log*');
               return {
@@ -86,7 +104,23 @@ const TheService: ServiceSchema = {
       cache: {
         ttl: 60 * 60 * 24,
       },
-      handler(ctx: Context) {
+      handler(
+        ctx: Context<
+          {
+            limit: string;
+            sort: string;
+            topic: string;
+            topicId: string;
+            storeId: string;
+            page: string;
+            logLevel: string;
+          },
+          {
+            $statusCode: number;
+            $statusMessage: string;
+          }
+        >
+      ) {
         const body: {
           size?: number;
           from?: number;
@@ -127,7 +161,7 @@ const TheService: ServiceSchema = {
             index: 'logsmp-*',
             body,
           })
-          .then(res => {
+          .then((res: any) => {
             if (res.hits.total.value > 0)
               return res.hits.hits.map(
                 (item: { _id: string; _source: Log }) => {

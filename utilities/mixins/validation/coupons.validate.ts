@@ -15,35 +15,35 @@ export const CouponsValidation: ServiceSchema = {
         },
         discount: {
           type: 'object',
+          strict: true,
           props: {
             tax: {
               type: 'object',
+              strict: true,
               optional: true,
               props: {
                 value: { type: 'number', integer: true },
                 type: { type: 'enum', values: ['%', '$'] },
-                $$strict: true,
               },
             },
             shipping: {
               type: 'object',
+              strict: true,
               optional: true,
               props: {
                 value: { type: 'number', integer: true },
                 type: { type: 'enum', values: ['%', '$'] },
-                $$strict: true,
               },
             },
             total: {
               type: 'object',
+              strict: true,
               optional: true,
               props: {
                 value: { type: 'number', integer: true },
                 type: { type: 'enum', values: ['%', '$'] },
-                $$strict: true,
               },
             },
-            $$strict: true,
           },
         },
         startDate: {
@@ -162,37 +162,37 @@ export const CouponsValidation: ServiceSchema = {
         },
         discount: {
           type: 'object',
+          strict: true,
+          optional: true,
           props: {
             tax: {
               type: 'object',
+              strict: true,
               optional: true,
               props: {
                 value: { type: 'number', integer: true },
                 type: { type: 'enum', values: ['%', '$'] },
-                $$strict: true,
               },
             },
             shipping: {
               type: 'object',
+              strict: true,
               optional: true,
               props: {
                 value: { type: 'number', integer: true },
                 type: { type: 'enum', values: ['%', '$'] },
-                $$strict: true,
               },
             },
             total: {
               type: 'object',
+              strict: true,
               optional: true,
               props: {
                 value: { type: 'number', integer: true },
                 type: { type: 'enum', values: ['%', '$'] },
-                $$strict: true,
               },
             },
-            $$strict: true,
           },
-          optional: true,
         },
         startDate: {
           type: 'date',
