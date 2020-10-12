@@ -97,11 +97,10 @@ export const Oms: ServiceSchema = {
             internal_data: instance.internal_data,
           });
         })
-        .catch((err: unknown) => {
-          console.log(err);
+        .catch((err: Error) => {
           throw new MpError(
             'InvoicesError',
-            "Can't create oms contact!",
+            err.message,
             503,
             err.toString(),
             err

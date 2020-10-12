@@ -403,13 +403,15 @@ const TheService: ServiceSchema = {
         data.status = this.normalizeUpdateRequestStatus(data.status);
         // Change
         if (data.status === 'cancelled' || data.status === 'void') {
-          return ctx.call('orders.delete', { id: data.id }).then(res => {
-            this.broker.cacher.clean(
-              `orders.list:undefined|${ctx.meta.user}**`
-            );
-            this.broker.cacher.clean(`orders.getOrder:${ctx.params.id}**`);
-            return res;
-          });
+          return ctx
+            .call('orders.deleteOrder', { id: ctx.params.id })
+            .then(res => {
+              this.broker.cacher.clean(
+                `orders.list:undefined|${ctx.meta.user}**`
+              );
+              this.broker.cacher.clean(`orders.getOrder:${ctx.params.id}**`);
+              return res;
+            });
         }
 
         const message: {
@@ -679,7 +681,7 @@ const TheService: ServiceSchema = {
       async handler(ctx) {
         const { store } = ctx.meta;
 
-        if (store.internal_data?.omsId) {
+        if (!store.internal_data?.omsId) {
           return [];
         }
         const queryParams: GenericObject = {};

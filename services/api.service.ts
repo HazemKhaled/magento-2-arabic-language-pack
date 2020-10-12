@@ -92,6 +92,12 @@ const TheService: ServiceSchema = {
           'POST invoices/:id/credits': 'invoices.applyCredits',
           'GET invoice/:storeId/external/:id': 'invoices.renderInvoice',
 
+          // Cards
+          'POST cards': 'cards.create',
+          'PUT cards/:id': 'cards.update',
+          'GET cards/:id': 'cards.get',
+          'DELETE cards/:id': 'cards.delete',
+
           // paymentGateway
           'POST paymentGateway/:type/transaction': 'paymentGateway.transaction',
 
