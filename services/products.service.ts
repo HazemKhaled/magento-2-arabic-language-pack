@@ -219,11 +219,6 @@ const TheService: ServiceSchema = {
                         sku: ctx.params.skus,
                       },
                     },
-                    {
-                      term: {
-                        archive: false,
-                      },
-                    },
                   ],
                 },
               },

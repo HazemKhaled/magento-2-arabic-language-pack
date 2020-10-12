@@ -1,6 +1,7 @@
 export * from './categories.openapi.mixin';
 export * from './coupons.openapi.mixin';
 export * from './currencies.openapi.mixin';
+export * from './crm.openapi.mixin';
 export * from './invoices.openapi.mixin';
 export * from './membership.openapi.mixin';
 export * from './logs.openapi.mixin';
