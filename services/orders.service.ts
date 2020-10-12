@@ -271,11 +271,21 @@ const TheService: ServiceSchema = {
           );
         }
 
-        const result: OrderOMSResponse = await ctx.call(
-          'oms.createNewOrder',
-          data
-        );
-        if (!result.salesorder) {
+        const result: OrderOMSResponse = await ctx
+          .call('oms.createNewOrder', data)
+          .then(async result => {
+            if (result.salesorder) {
+              // Clearing order list action(API) cache
+              await this.broker.cacher.clean(
+                `orders.list:undefined|${ctx.meta.user}**`
+              );
+              this.cacheUpdate(result.salesorder, store);
+            }
+
+            return result;
+          });
+
+        if (result.error) {
           this.sendLogs({
             topicId: data.externalId,
             message: result.error.message,
@@ -298,7 +308,10 @@ const TheService: ServiceSchema = {
             ],
           };
         }
-        if (result.salesorder && !store.internal_data?.omsId) {
+
+        const order = result.salesorder;
+
+        if (order && !store.internal_data?.omsId) {
           ctx
             .call('stores.update', {
               id: store.url,
@@ -330,15 +343,6 @@ const TheService: ServiceSchema = {
             attribute: 'sales_qty',
           })),
         });
-
-        /* Prepare the response message in case of success or warnings */
-        const order = result.salesorder;
-
-        // Clearing order list action(API) cache
-        await this.broker.cacher.clean(
-          `orders.list:undefined|${ctx.meta.user}**`
-        );
-        this.cacheUpdate(order, store);
 
         const message: {
           status?: string;
