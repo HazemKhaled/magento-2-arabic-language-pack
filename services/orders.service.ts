@@ -46,11 +46,13 @@ const TheService: ServiceSchema = {
         // Get the Store instance
         const { store } = ctx.meta;
 
+        // TODO: Move to hook before create order, invoice or payment, and write this code into OMS service
         // create OMS contact if no oms ID
         if (!store.internal_data?.omsId) {
           await this.setOmsId(store);
         }
 
+        // De-duplicate
         if (ctx.params.id) {
           const isCreated = await this.broker.cacher.get(
             `createOrder_${store.consumer_key}|${ctx.params.id}`
@@ -67,15 +69,18 @@ const TheService: ServiceSchema = {
                 params: ctx.params,
               },
             });
+
             const orders = await ctx.call('orders.list', {
               externalId: ctx.params.id,
             });
+
             return {
               status: 'success',
               message: 'We already received this order before!',
               data: orders?.[0],
             };
           }
+
           this.broker.cacher.set(
             `createOrder_${store.consumer_key}|${ctx.params.id}`,
             1,
@@ -304,11 +309,13 @@ const TheService: ServiceSchema = {
             .then(r => this.logger.info(r));
         }
 
+        // TODO: Move to hook after create, and write this code into coupon service
         // If coupon used update quantity
         if (data.coupon) {
           ctx.call('coupons.updateCount', { id: data.coupon });
         }
 
+        // TODO: Move to hook after create, and write this code into CRM service
         // Update CRM last update
         ctx.call('crm.updateStoreById', {
           id: store.url,
@@ -345,6 +352,7 @@ const TheService: ServiceSchema = {
         };
 
         if (warnings.length) {
+          // TODO: Move to hook after create, and write this code into notifications service
           this.sendMail({
             to: process.env.SUPPORT_MAIL,
             subject: 'Order Warnings',
@@ -353,9 +361,11 @@ const TheService: ServiceSchema = {
               `OrderID: ${order.id}\n`
             )}`,
           });
+
+          // Return in the response
+          message.warnings = warnings;
         }
 
-        if (warnings.length > 0) message.warnings = warnings;
         this.sendLogs({
           topicId: data.externalId,
           message: 'Order created successfully',
