@@ -155,10 +155,10 @@ const brokerConfig: BrokerOptions = {
 
   // Enable/disable built-in metrics function. More info: https://moleculer.services/docs/0.14/metrics.html
   metrics: {
-    enabled: Boolean(process.env.isMetricsEnabled) || false,
+    enabled: Boolean(process.env.METRICS_ENABLED) || false,
     // Available built-in reporters: "Console", "CSV", "Event", "Prometheus", "Datadog", "StatsD"
     reporter: {
-      type: process.env.metricsReportType || 'Console',
+      type: process.env.METRICS_TYPE || 'Console',
       options: {
         // HTTP port
         port: 3030,
@@ -178,10 +178,10 @@ const brokerConfig: BrokerOptions = {
 
   // Enable built-in tracing function. More info: https://moleculer.services/docs/0.14/tracing.html
   tracing: {
-    enabled: Boolean(process.env.isTracingEnabled) || false,
+    enabled: Boolean(process.env.TRACING_ENABLED) || false,
     // Available built-in exporters: "Console", "Datadog", "Event", "EventLegacy", "Jaeger", "Zipkin"
     exporter: {
-      type: process.env.tracingType || 'Console',
+      type: process.env.TRACING_TYPE || 'Console',
       options: {
         // Custom logger
         logger: null,
