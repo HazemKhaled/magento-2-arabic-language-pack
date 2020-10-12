@@ -158,7 +158,7 @@ const brokerConfig: BrokerOptions = {
     enabled: Boolean(process.env.isMetricsEnabled) || false,
     // Available built-in reporters: "Console", "CSV", "Event", "Prometheus", "Datadog", "StatsD"
     reporter: {
-      type: process.env.metricsReportType || 'Prometheus',
+      type: process.env.metricsReportType || 'Console',
       options: {
         // HTTP port
         port: 3030,
@@ -172,6 +172,9 @@ const brokerConfig: BrokerOptions = {
       },
     },
   },
+
+  // Watch the loaded services and hot reload if they changed. You can also enable it in Moleculer Runner with `--hot` argument
+  hotReload: true,
 
   // Enable built-in tracing function. More info: https://moleculer.services/docs/0.14/tracing.html
   tracing: {
