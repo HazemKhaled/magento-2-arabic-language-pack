@@ -8,6 +8,8 @@ import {
   MetaParams,
   Store,
   Order,
+  OrderRequestParams,
+  StoreRequest,
 } from '../utilities/types';
 import { InvoicesValidation } from '../utilities/mixins/validation';
 import { InvoicePage } from '../utilities/mixins/invoicePage';
@@ -41,10 +43,13 @@ const TheService: ServiceSchema = {
         });
 
         return ctx
-          .call('oms.listInvoice', {
-            omsId: store?.internal_data?.omsId,
-            ...queryParams,
-          })
+          .call<GenericObject, Partial<InvoiceRequestParams>>(
+            'oms.listInvoice',
+            {
+              omsId: store?.internal_data?.omsId,
+              ...queryParams,
+            }
+          )
           .then(
             async (response: GenericObject) => {
               return {
@@ -62,7 +67,10 @@ const TheService: ServiceSchema = {
     create: {
       auth: ['Basic'],
       async handler(ctx: Context<InvoiceRequestParams>) {
-        const instance: GenericObject = await ctx.call('stores.findInstance', {
+        const instance: GenericObject = await ctx.call<
+          GenericObject,
+          Partial<Store>
+        >('stores.findInstance', {
           id: ctx.params.storeId,
         });
 
@@ -106,29 +114,37 @@ const TheService: ServiceSchema = {
           invoiceParams.dueDate = ctx.params.dueDate;
         }
 
-        return ctx.call('oms.createInvoice', invoiceParams).then(
-          async (res: GenericObject) => {
-            await this.broker.cacher.clean(
-              `invoices.get:${instance.consumer_key}**`
-            );
-            this.cacheUpdate(res.invoice, instance);
-            return res;
-          },
-          err => {
-            throw new MoleculerError(err.message, err.code || 500);
-          }
-        );
+        return ctx
+          .call<GenericObject, Partial<InvoiceRequestParams>>(
+            'oms.createInvoice',
+            invoiceParams
+          )
+          .then(
+            async (res: GenericObject) => {
+              await this.broker.cacher.clean(
+                `invoices.get:${instance.consumer_key}**`
+              );
+              this.cacheUpdate(res.invoice, instance);
+              return res;
+            },
+            err => {
+              throw new MoleculerError(err.message, err.code || 500);
+            }
+          );
       },
     },
     updateInvoiceStatus: {
-      handler(ctx: Context) {
-        return ctx.call('oms.updateInvoiceStatus', ctx.params);
+      handler(ctx: Context<Partial<InvoiceRequestParams>>) {
+        return ctx.call<GenericObject, Partial<InvoiceRequestParams>>(
+          'oms.updateInvoiceStatus',
+          ctx.params
+        );
       },
     },
     applyCredits: {
       auth: ['Bearer'],
-      async handler(ctx: Context<InvoiceRequestParams>) {
-        const store: Store = await ctx.call('stores.me');
+      async handler(ctx: Context<Partial<InvoiceRequestParams>>) {
+        const store: Store = await ctx.call<Store>('stores.me');
 
         const { params } = ctx;
         if (
@@ -137,10 +153,13 @@ const TheService: ServiceSchema = {
         ) {
           if (process.env.PAYMENT_AUTO_CHARGE_CC_INVOICE) {
             await ctx
-              .call('paymentGateway.charge', {
-                storeId: store.url,
-                amount: params.paymentAmount - store.credit,
-              })
+              .call<GenericObject, Partial<StoreRequest>>(
+                'paymentGateway.charge',
+                {
+                  storeId: store.url,
+                  amount: params.paymentAmount - store.credit,
+                }
+              )
               .then(null, err => {
                 if (err.type === 'SERVICE_NOT_FOUND')
                   throw new MpError(
@@ -156,10 +175,13 @@ const TheService: ServiceSchema = {
         }
 
         return ctx
-          .call('oms.applyInvoiceCredits', {
-            customerId: store?.internal_data?.omsId,
-            invoiceId: ctx.params.id,
-          })
+          .call<GenericObject, Partial<InvoiceRequestParams>>(
+            'oms.applyInvoiceCredits',
+            {
+              customerId: store?.internal_data?.omsId,
+              invoiceId: ctx.params.id,
+            }
+          )
           .then(
             res => {
               this.broker.cacher.clean(`invoices.get:${store.consumer_key}*`);
@@ -180,15 +202,21 @@ const TheService: ServiceSchema = {
     },
     createOrderInvoice: {
       async handler(ctx: Context<InvoiceRequestParams>) {
-        const instance: Store = await ctx.call('stores.findInstance', {
-          id: ctx.params.storeId,
-        });
+        const instance: Store = await ctx.call<Store, Partial<Store>>(
+          'stores.findInstance',
+          {
+            id: ctx.params.storeId,
+          }
+        );
 
         return ctx
-          .call('oms.createSalesOrderInvoice', {
-            customerId: instance?.internal_data?.omsId,
-            orderId: ctx.params.orderId,
-          })
+          .call<null, Partial<InvoiceRequestParams>>(
+            'oms.createSalesOrderInvoice',
+            {
+              customerId: instance?.internal_data?.omsId,
+              orderId: ctx.params.orderId,
+            }
+          )
           .then(null, err => {
             throw new MoleculerError(err.message, err.code || 500);
           });
@@ -197,10 +225,13 @@ const TheService: ServiceSchema = {
     markInvoiceSent: {
       handler(ctx: Context<InvoiceRequestParams>) {
         return ctx
-          .call('oms.markInvoiceToSent', {
-            customerId: ctx.params.omsId,
-            invoiceId: ctx.params.invoiceId,
-          })
+          .call<GenericObject, Partial<InvoiceRequestParams>>(
+            'oms.markInvoiceToSent',
+            {
+              customerId: ctx.params.omsId,
+              invoiceId: ctx.params.invoiceId,
+            }
+          )
           .then(null, err => {
             throw new MoleculerError(err.message, err.code || 500);
           });
@@ -209,16 +240,25 @@ const TheService: ServiceSchema = {
     renderInvoice: {
       params: {},
       async handler(ctx: Context<InvoiceRequestParams, MetaParams>) {
-        const store: Store = await ctx.call('stores.findInstance', {
-          id: ctx.params.storeId,
-        });
+        const store: Store = await ctx.call<Store, Partial<Store>>(
+          'stores.findInstance',
+          {
+            id: ctx.params.storeId,
+          }
+        );
         ctx.meta.user = store.consumer_key;
-        const orders: GenericObject = await ctx.call('orders.list', {
+        const orders: GenericObject = await ctx.call<
+          GenericObject,
+          Partial<Order>
+        >('orders.list', {
           externalId: ctx.params.id,
         });
-        const order = await ctx.call('orders.getOrder', {
-          order_id: orders[0].id,
-        });
+        const order: Order = await ctx.call<Order, Partial<OrderRequestParams>>(
+          'orders.getOrder',
+          {
+            order_id: orders[0].id,
+          }
+        );
         ctx.meta.$responseType = 'text/html';
         return this.renderInvoice(store, order);
       },

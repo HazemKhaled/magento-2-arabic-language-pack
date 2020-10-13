@@ -23,7 +23,7 @@ const TheService: ServiceSchema = {
       },
       handler(ctx: Context<Currency>) {
         return ctx
-          .call('currencies.getCurrencies')
+          .call<GenericObject>('currencies.getCurrencies')
           .then((currencies: GenericObject) => {
             const currency = currencies.find(
               (currencyObj: Currency) =>

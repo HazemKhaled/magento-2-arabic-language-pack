@@ -147,7 +147,10 @@ const TheService: ServiceSchema = {
             if (!res) {
               throw new MoleculerError('Membership not found', 404);
             }
-            return ctx.call('membership.mGet', { id });
+            return ctx.call<Membership, Partial<Membership>>(
+              'membership.mGet',
+              { id }
+            );
           })
           .catch((err: any) => {
             if (err.name === 'MoleculerError') {

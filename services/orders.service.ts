@@ -12,6 +12,14 @@ import {
   Product,
   Store,
   OrderMetaParams,
+  Coupon,
+  CrmStore,
+  SubscriptionType,
+  updateOderRequestParams,
+  DynamicRequestParams,
+  InvoiceResponse,
+  InvoiceRequestParams,
+  Invoice,
 } from '../utilities/types';
 import {
   Mail,
@@ -70,7 +78,10 @@ const TheService: ServiceSchema = {
                 params: ctx.params,
               },
             });
-            const orders: GenericObject = await ctx.call('orders.list', {
+            const orders: GenericObject = await ctx.call<
+              GenericObject,
+              Partial<Order>
+            >('orders.list', {
               externalId: ctx.params.id,
             });
             return {
@@ -180,12 +191,12 @@ const TheService: ServiceSchema = {
           ) + (data.isInclusiveTax ? 0 : taxTotal);
 
         // Getting the current user subscription
-        const subscription: GenericObject = await ctx.call(
-          'subscription.sGet',
-          {
-            id: store.url,
-          }
-        );
+        const subscription: GenericObject = await ctx.call<
+          GenericObject,
+          Partial<Store>
+        >('subscription.sGet', {
+          id: store.url,
+        });
         switch (subscription.attributes.orderProcessingType) {
           case '$':
             data.adjustment = Number(
@@ -272,10 +283,10 @@ const TheService: ServiceSchema = {
           );
         }
 
-        const result: OrderOMSResponse = await ctx.call(
-          'oms.createNewOrder',
-          data
-        );
+        const result: OrderOMSResponse = await ctx.call<
+          OrderOMSResponse,
+          Partial<Order>
+        >('oms.createNewOrder', data);
         if (!result.salesorder) {
           this.sendLogs({
             topicId: data.externalId,
@@ -301,34 +312,38 @@ const TheService: ServiceSchema = {
         }
         if (result.salesorder && !store.internal_data?.omsId) {
           ctx
-            .call('stores.update', {
+            .call<GenericObject, Partial<Store>>('stores.update', {
               id: store.url,
-              internal_data: {
-                omsId: result.salesorder.store.id,
-              },
+              internal_data: { omsId: result.salesorder.store.id },
             })
-            .then(r => this.logger.info(r));
+            .then(r => this.logger.info(r))
+            .catch(err => this.logger.error(err));
         }
 
         // If coupon used update quantity
         if (data.coupon) {
-          ctx.call('coupons.updateCount', { id: data.coupon });
+          ctx.call<GenericObject, Partial<Coupon>>('coupons.updateCount', {
+            id: data.coupon,
+          });
         }
 
         // Update CRM last update
-        ctx.call('crm.updateStoreById', {
+        ctx.call<GenericObject, Partial<CrmStore>>('crm.updateStoreById', {
           id: store.url,
           last_order_date: Date.now(),
         });
 
         // Update products sales quantity
-        ctx.call('products.updateQuantityAttributes', {
-          products: stock.products.map((product: Product) => ({
-            id: product.sku,
-            qty: product.sales_qty + 1 || 1,
-            attribute: 'sales_qty',
-          })),
-        });
+        ctx.call<GenericObject, GenericObject>(
+          'products.updateQuantityAttributes',
+          {
+            products: stock.products.map((product: Product) => ({
+              id: product.sku,
+              qty: product.sales_qty + 1 || 1,
+              attribute: 'sales_qty',
+            })),
+          }
+        );
 
         /* Prepare the response message in case of success or warnings */
         const order = result.salesorder;
@@ -379,12 +394,12 @@ const TheService: ServiceSchema = {
         let warnings: { code: number; message: string }[] = [];
         const { store } = ctx.meta;
 
-        const orderBeforeUpdate: GenericObject = await ctx.call(
-          'orders.getOrder',
-          {
-            order_id: ctx.params.id,
-          }
-        );
+        const orderBeforeUpdate: GenericObject = await ctx.call<
+          Order,
+          Partial<OrderRequestParams>
+        >('orders.getOrder', {
+          order_id: ctx.params.id,
+        });
 
         // Send received log
         this.sendReceiveLog(
@@ -404,7 +419,9 @@ const TheService: ServiceSchema = {
         // Change
         if (data.status === 'cancelled' || data.status === 'void') {
           return ctx
-            .call('orders.deleteOrder', { id: ctx.params.id })
+            .call<GenericObject, Partial<Order>>('orders.deleteOrder', {
+              id: ctx.params.id,
+            })
             .then(res => {
               this.broker.cacher.clean(
                 `orders.list:undefined|${ctx.meta.user}**`
@@ -486,12 +503,12 @@ const TheService: ServiceSchema = {
               ) + (data.isInclusiveTax ? 0 : taxTotal);
 
             // Getting the current user subscription
-            const subscription: GenericObject = await ctx.call(
-              'subscription.sGet',
-              {
-                id: store.url,
-              }
-            );
+            const subscription: GenericObject = await ctx.call<
+              GenericObject,
+              Partial<SubscriptionType>
+            >('subscription.sGet', {
+              id: store.url,
+            });
             if (subscription.attributes.orderProcessingType === '%') {
               subscription.adjustment =
                 (subscription.attributes.orderProcessingFees / 100) * total;
@@ -550,14 +567,14 @@ const TheService: ServiceSchema = {
             ? this.normalizeStatus(data.status)
             : data.status;
           // Update order
-          const result: OrderOMSResponse = await ctx.call(
-            'oms.updateOrderById',
-            {
-              customerId: store.internal_data.omsId,
-              orderId: ctx.params.id,
-              ...data,
-            }
-          );
+          const result: OrderOMSResponse = await ctx.call<
+            OrderOMSResponse,
+            updateOderRequestParams
+          >('oms.updateOrderById', {
+            customerId: store.internal_data.omsId,
+            orderId: ctx.params.id,
+            ...data,
+          });
 
           if (!result.salesorder) {
             this.sendLogs({
@@ -641,7 +658,10 @@ const TheService: ServiceSchema = {
           };
         }
 
-        const order: GenericObject = await ctx.call('oms.getOrderById', {
+        const order: GenericObject = await ctx.call<
+          GenericObject,
+          Partial<OrderRequestParams>
+        >('oms.getOrderById', {
           customerId: store.internal_data.omsId,
           orderId: ctx.params.order_id,
         });
@@ -706,7 +726,10 @@ const TheService: ServiceSchema = {
           if (!keys.includes(key)) return;
           queryParams[key] = ctx.params[key];
         });
-        const orders: GenericObject = await ctx.call('oms.listOrders', {
+        const orders: GenericObject = await ctx.call<
+          GenericObject,
+          DynamicRequestParams
+        >('oms.listOrders', {
           customerId: store.internal_data.omsId,
           ...queryParams,
         });
@@ -716,12 +739,12 @@ const TheService: ServiceSchema = {
     deleteOrder: {
       auth: ['Bearer'],
       async handler(ctx) {
-        const orderBeforeUpdate: GenericObject = await ctx.call(
-          'orders.getOrder',
-          {
-            order_id: ctx.params.id,
-          }
-        );
+        const orderBeforeUpdate: GenericObject = await ctx.call<
+          GenericObject,
+          Partial<OrderRequestParams>
+        >('orders.getOrder', {
+          order_id: ctx.params.id,
+        });
 
         // Check cancel possibility
         this.checkUpdateStatus(orderBeforeUpdate, ctx.params);
@@ -734,10 +757,13 @@ const TheService: ServiceSchema = {
         this.sendReceiveLog('Cancel', ctx.params.id, store, ctx.params);
 
         return ctx
-          .call('oms.deleteOrderById', {
-            customerId: store.internal_data?.omsId,
-            orderId: ctx.params.id,
-          })
+          .call<GenericObject, Partial<OrderRequestParams>>(
+            'oms.deleteOrderById',
+            {
+              customerId: store.internal_data?.omsId,
+              orderId: ctx.params.id,
+            }
+          )
           .then(async (result: GenericObject) => {
             if (result.salesorder) {
               // Clean list cache
@@ -771,13 +797,19 @@ const TheService: ServiceSchema = {
     payOrder: {
       auth: ['Bearer'],
       async handler(ctx: Context<OrderRequestParams, MetaParams>) {
-        const store: Store = await ctx.call('stores.sGet', {
-          id: ctx.meta.store.url,
-        });
+        const store: Store = await ctx.call<Store, Partial<Store>>(
+          'stores.sGet',
+          {
+            id: ctx.meta.store.url,
+          }
+        );
 
-        const order: Order = await ctx.call('orders.getOrder', {
-          order_id: ctx.params.id,
-        });
+        const order: Order = await ctx.call<Order, Partial<OrderRequestParams>>(
+          'orders.getOrder',
+          {
+            order_id: ctx.params.id,
+          }
+        );
 
         if (order.financialStatus === 'paid') {
           return {
@@ -798,24 +830,36 @@ const TheService: ServiceSchema = {
           if (order.status === 'invoiced') {
             ({
               invoices: [{ invoice_id: invoiceId }],
-            } = await ctx.call('invoices.get', {
-              reference_number: order.orderNumber,
-            }));
+            } = await ctx.call<InvoiceResponse, Partial<InvoiceRequestParams>>(
+              'invoices.get',
+              {
+                reference_number: order.orderNumber,
+              }
+            ));
           } else {
             ({
               invoice: { invoiceId },
-            } = await ctx.call('invoices.createOrderInvoice', {
-              storeId: store.url,
-              orderId: order.id,
-            }));
+            } = await ctx.call<InvoiceResponse, Partial<InvoiceRequestParams>>(
+              'invoices.createOrderInvoice',
+              {
+                storeId: store.url,
+                orderId: order.id,
+              }
+            ));
           }
 
-          await ctx.call('invoices.markInvoiceSent', {
-            omsId: ctx.meta.store.internal_data.omsId,
-            invoiceId,
-          });
+          await ctx.call<GenericObject, Partial<InvoiceRequestParams>>(
+            'invoices.markInvoiceSent',
+            {
+              omsId: ctx.meta.store.internal_data.omsId,
+              invoiceId,
+            }
+          );
 
-          const applyCreditRes = await ctx.call('invoices.applyCredits', {
+          const applyCreditRes = await ctx.call<
+            GenericObject,
+            Partial<InvoiceRequestParams>
+          >('invoices.applyCredits', {
             id: invoiceId,
           });
 
@@ -845,7 +889,10 @@ const TheService: ServiceSchema = {
       async handler(ctx: Context<OrderRequestParams, OrderMetaParams>) {
         const { order_id } = ctx.params;
         const { store: instance } = ctx.meta;
-        const order: Order = await ctx.call('orders.getOrder', { order_id });
+        const order: Order = await ctx.call<Order, Partial<OrderRequestParams>>(
+          'orders.getOrder',
+          { order_id }
+        );
         const { outOfStock, notEnoughStock } = await this.stockProducts(
           order.items
         );
@@ -868,15 +915,19 @@ const TheService: ServiceSchema = {
         );
 
         ctx
-          .call('oms.updateOrderById', {
-            orderId: order_id,
-            customerId: instance.internal_data?.omsId,
-            warnings: warningsStr,
-            warningsSnippet,
-          })
+          .call<GenericObject, Partial<OrderRequestParams>>(
+            'oms.updateOrderById',
+            {
+              orderId: order_id,
+              customerId: instance.internal_data?.omsId,
+              warnings: warningsStr,
+              warningsSnippet,
+            }
+          )
           .then(({ salesorder }) => {
             this.cacheUpdate(salesorder, instance);
-          });
+          })
+          .catch(err => this.logger.error(err));
 
         return warnings;
       },

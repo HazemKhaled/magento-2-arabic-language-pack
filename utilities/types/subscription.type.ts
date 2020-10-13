@@ -6,7 +6,7 @@
  */
 export interface Subscription {
   _id?: number;
-  id?: number;
+  id?: number | string;
   membershipId: number;
   storeId: string;
   invoiceId: string;
@@ -38,3 +38,5 @@ export interface Subscription {
     expire: string;
   };
 }
+
+export interface SubscriptionType extends Subscription {}

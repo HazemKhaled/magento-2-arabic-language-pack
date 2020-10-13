@@ -21,6 +21,8 @@ export interface InvoiceResponse {
   last_modified_time: Date;
   shipping_charge: number;
   adjustment: number;
+  invoices?: [{ invoice_id: string }];
+  invoice?: { invoiceId?: string };
 }
 
 /**
@@ -72,4 +74,5 @@ export interface InvoiceRequestParams {
   omsId?: string;
   invoiceId?: string;
   status?: string;
+  reference_number?: string;
 }

@@ -43,7 +43,10 @@ const TheService: ServiceSchema = {
         keys: ['id'],
       },
       async handler(ctx: Context<CrmStore>): Promise<GenericObject> {
-        const res: GenericObject = await ctx.call('crm.findRecords', {
+        const res: GenericObject = await ctx.call<
+          GenericObject,
+          Partial<CrmStore>
+        >('crm.findRecords', {
           module: 'accounts',
           criteria: `((Account_Name:equals:${ctx.params.id}))`,
         });
@@ -56,11 +59,14 @@ const TheService: ServiceSchema = {
     },
     updateStoreById: {
       async handler(ctx: Context<CrmStore>): Promise<GenericObject> {
-        const { id: crmStoreId } = await ctx.call('crm.findStoreByUrl', {
+        const { id: crmStoreId } = await ctx.call<
+          GenericObject,
+          Partial<CrmStore>
+        >('crm.findStoreByUrl', {
           id: ctx.params.id,
         });
 
-        return ctx.call('crm.updateRecord', {
+        return ctx.call<GenericObject, Partial<CrmStore>>('crm.updateRecord', {
           module: 'accounts',
           id: crmStoreId,
           data: [this.transformStoreParams(ctx.params)],
@@ -70,13 +76,19 @@ const TheService: ServiceSchema = {
     addTagsByUrl: {
       async handler(ctx: Context<CrmStore>): Promise<GenericObject> {
         const { id, tag } = ctx.params;
-        const { id: crmStoreId } = await ctx.call('crm.findStoreByUrl', { id });
+        const { id: crmStoreId } = await ctx.call<
+          GenericObject,
+          Partial<CrmStore>
+        >('crm.findStoreByUrl', { id });
 
-        return ctx.call('crm.addTagsToRecord', {
-          module: 'accounts',
-          id: crmStoreId,
-          tag,
-        });
+        return ctx.call<GenericObject, Partial<CrmStore>>(
+          'crm.addTagsToRecord',
+          {
+            module: 'accounts',
+            id: crmStoreId,
+            tag,
+          }
+        );
       },
     },
     createRecord: {

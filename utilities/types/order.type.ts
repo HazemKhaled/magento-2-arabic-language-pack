@@ -30,7 +30,7 @@ export interface Order {
   taxTotal?: number;
   adjustment?: number;
   storeLogo?: string;
-  warnings?: OrderWarnings;
+  warnings?: OrderWarnings | string;
   warningsSnippet?: string;
   financialStatus?:
     | 'unpaid'

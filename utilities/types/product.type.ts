@@ -94,6 +94,11 @@ export interface Products {
  */
 export interface UpdateProductParams extends Product {
   error: string;
+  products: {
+    id: string;
+    qty: number;
+    attribute: string;
+  };
 }
 
 export interface ProductSearchParams {

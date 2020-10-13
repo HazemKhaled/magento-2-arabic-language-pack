@@ -65,6 +65,7 @@ export interface ShippingMethod {
 export interface StoreRequest {
   customerId: string;
   storeId?: string;
+  amount?: number;
   id?: string;
   consumerKey?: string;
   consumerSecret?: string;

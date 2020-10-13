@@ -7,6 +7,7 @@ import {
   PaymentRequestParams,
   GetPaymentRequestParams,
   MetaParams,
+  Store,
 } from '../utilities/types';
 import { PaymentsValidation } from '../utilities/mixins/validation';
 import { Oms } from '../utilities/mixins/oms.mixin';
@@ -20,7 +21,10 @@ const TheService: ServiceSchema = {
     add: {
       auth: ['Basic'],
       async handler(ctx: Context<PaymentRequestParams>) {
-        const instance: GenericObject = await ctx.call('stores.findInstance', {
+        const instance: GenericObject = await ctx.call<
+          GenericObject,
+          Partial<Store>
+        >('stores.findInstance', {
           id: ctx.params.id,
         });
 
