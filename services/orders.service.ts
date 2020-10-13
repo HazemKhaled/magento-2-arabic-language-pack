@@ -46,11 +46,13 @@ const TheService: ServiceSchema = {
         // Get the Store instance
         const { store } = ctx.meta;
 
+        // TODO: Move to hook before create order, invoice or payment, and write this code into OMS service
         // create OMS contact if no oms ID
         if (!store.internal_data?.omsId) {
           await this.setOmsId(store);
         }
 
+        // De-duplicate
         if (ctx.params.id) {
           const isCreated = await this.broker.cacher.get(
             `createOrder_${store.consumer_key}|${ctx.params.id}`
@@ -67,15 +69,18 @@ const TheService: ServiceSchema = {
                 params: ctx.params,
               },
             });
+
             const orders = await ctx.call('orders.list', {
               externalId: ctx.params.id,
             });
+
             return {
               status: 'success',
               message: 'We already received this order before!',
               data: orders?.[0],
             };
           }
+
           this.broker.cacher.set(
             `createOrder_${store.consumer_key}|${ctx.params.id}`,
             1,
@@ -266,11 +271,21 @@ const TheService: ServiceSchema = {
           );
         }
 
-        const result: OrderOMSResponse = await ctx.call(
-          'oms.createNewOrder',
-          data
-        );
-        if (!result.salesorder) {
+        const result: OrderOMSResponse = await ctx
+          .call('oms.createNewOrder', data)
+          .then(async result => {
+            if (result.salesorder) {
+              // Clearing order list action(API) cache
+              await this.broker.cacher.clean(
+                `orders.list:undefined|${ctx.meta.user}**`
+              );
+              this.cacheUpdate(result.salesorder, store);
+            }
+
+            return result;
+          });
+
+        if (result.error) {
           this.sendLogs({
             topicId: data.externalId,
             message: result.error.message,
@@ -293,7 +308,10 @@ const TheService: ServiceSchema = {
             ],
           };
         }
-        if (result.salesorder && !store.internal_data?.omsId) {
+
+        const order = result.salesorder;
+
+        if (order && !store.internal_data?.omsId) {
           ctx
             .call('stores.update', {
               id: store.url,
@@ -304,11 +322,13 @@ const TheService: ServiceSchema = {
             .then(r => this.logger.info(r));
         }
 
+        // TODO: Move to hook after create, and write this code into coupon service
         // If coupon used update quantity
         if (data.coupon) {
           ctx.call('coupons.updateCount', { id: data.coupon });
         }
 
+        // TODO: Move to hook after create, and write this code into CRM service
         // Update CRM last update
         ctx.call('crm.updateStoreById', {
           id: store.url,
@@ -324,15 +344,6 @@ const TheService: ServiceSchema = {
           })),
         });
 
-        /* Prepare the response message in case of success or warnings */
-        const order = result.salesorder;
-
-        // Clearing order list action(API) cache
-        await this.broker.cacher.clean(
-          `orders.list:undefined|${ctx.meta.user}**`
-        );
-        this.cacheUpdate(order, store);
-
         const message: {
           status?: string;
           // Remove any later
@@ -345,6 +356,7 @@ const TheService: ServiceSchema = {
         };
 
         if (warnings.length) {
+          // TODO: Move to hook after create, and write this code into notifications service
           this.sendMail({
             to: process.env.SUPPORT_MAIL,
             subject: 'Order Warnings',
@@ -353,9 +365,11 @@ const TheService: ServiceSchema = {
               `OrderID: ${order.id}\n`
             )}`,
           });
+
+          // Return in the response
+          message.warnings = warnings;
         }
 
-        if (warnings.length > 0) message.warnings = warnings;
         this.sendLogs({
           topicId: data.externalId,
           message: 'Order created successfully',
