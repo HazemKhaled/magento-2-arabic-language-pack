@@ -2,7 +2,12 @@ import { Context, Errors, GenericObject, ServiceSchema } from 'moleculer';
 
 import DbService from '../utilities/mixins/mongo.mixin';
 import { TaxOpenapi } from '../utilities/mixins/openapi';
-import { DbTax, RTax, TaxRequestParams } from '../utilities/types/tax.type';
+import {
+  DbTax,
+  RTax,
+  TaxRequestParams,
+  DynamicRequestParams,
+} from '../utilities/types';
 import { TaxesValidation } from '../utilities/mixins/validation';
 
 const MoleculerError = Errors.MoleculerError;
@@ -19,7 +24,10 @@ const TaxesService: ServiceSchema = {
           createdAt: new Date(),
           updatedAt: new Date(),
         };
-        const omsTax: any = await ctx.call('oms.createTax', {
+        const omsTax: GenericObject = await ctx.call<
+          GenericObject,
+          Partial<DbTax>
+        >('oms.createTax', {
           name: taxBody.name,
           percentage: taxBody.percentage,
           type: 'tax',
@@ -71,7 +79,7 @@ const TaxesService: ServiceSchema = {
             );
           });
         if (taxUpdateData.tax) {
-          ctx.call(
+          ctx.call<GenericObject, DynamicRequestParams>(
             'oms.updateTax',
             ['name', 'percentage'].reduce(
               (acc: GenericObject, key: string) => {
@@ -142,7 +150,12 @@ const TaxesService: ServiceSchema = {
           .find({ limit, offset, query })
           .then(async (res: DbTax[]) => ({
             taxes: res.map(tax => this.sanitizer(tax)),
-            total: await ctx.call('taxes.tCount', { query }),
+            total: await ctx.call<number, Partial<TaxRequestParams>>(
+              'taxes.tCount',
+              {
+                query,
+              }
+            ),
           }))
           .catch((err: any) => {
             throw new MoleculerError(
@@ -179,7 +192,9 @@ const TaxesService: ServiceSchema = {
           });
 
         if (taxDeleteData.tax) {
-          ctx.call('oms.deleteTax', { id: taxDeleteData.tax.omsId });
+          ctx.call<GenericObject, Partial<TaxRequestParams>>('oms.deleteTax', {
+            id: taxDeleteData.tax.omsId,
+          });
         }
 
         return taxDeleteData;

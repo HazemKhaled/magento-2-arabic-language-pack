@@ -1,8 +1,8 @@
-import { ServiceSchema } from 'moleculer';
+import { ServiceSchema, GenericObject } from 'moleculer';
 import ESService from 'moleculer-elasticsearch';
 
+import { Product, ElasticSearchType } from '../utilities/types';
 import { MpError } from '../utilities/adapters/mpError';
-import { Product } from '../utilities/types/product.type';
 import {
   ProductTransformation,
   I18nService,
@@ -165,7 +165,7 @@ const TheService: ServiceSchema = {
       },
       handler(ctx) {
         return ctx
-          .call('products.search', {
+          .call<GenericObject, Partial<ElasticSearchType>>('products.search', {
             index: 'products',
             type: '_doc',
             body: {
@@ -206,7 +206,7 @@ const TheService: ServiceSchema = {
       },
       handler(ctx) {
         return ctx
-          .call('products.search', {
+          .call<GenericObject, Partial<ElasticSearchType>>('products.search', {
             index: 'products',
             type: '_doc',
             body: {
@@ -237,7 +237,7 @@ const TheService: ServiceSchema = {
       },
       handler(ctx) {
         return ctx
-          .call('products.search', {
+          .call<GenericObject, Partial<ElasticSearchType>>('products.search', {
             index: 'products',
             size: 1000,
             body: {
@@ -287,21 +287,24 @@ const TheService: ServiceSchema = {
             return body;
           }
         );
-        await ctx.call('products.bulk', {
-          index: 'products',
-          type: '_doc',
-          body: ctx.params.products.reduce(
-            (
-              a: any[],
-              product: { id: string; attribute: string; qty: number }
-            ) => {
-              a.push({ update: { _id: product.id, _index: 'products' } });
-              a.push({ doc: { [product.attribute]: product.qty } });
-              return a;
-            },
-            []
-          ),
-        });
+        await ctx.call<GenericObject, Partial<ElasticSearchType>>(
+          'products.bulk',
+          {
+            index: 'products',
+            type: '_doc',
+            body: ctx.params.products.reduce(
+              (
+                a: any[],
+                product: { id: string; attribute: string; qty: number }
+              ) => {
+                a.push({ update: { _id: product.id, _index: 'products' } });
+                a.push({ doc: { [product.attribute]: product.qty } });
+                return a;
+              },
+              []
+            ),
+          }
+        );
         return this.updateDocuments(bulk);
       },
     },

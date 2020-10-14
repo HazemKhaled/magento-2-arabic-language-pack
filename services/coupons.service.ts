@@ -1,7 +1,7 @@
 import { Context, Errors, GenericObject, ServiceSchema } from 'moleculer';
 
 import DbService from '../utilities/mixins/mongo.mixin';
-import { Coupon } from '../utilities/types';
+import { Coupon, CommonError } from '../utilities/types';
 import { CouponsValidation, CouponsOpenapi } from '../utilities/mixins';
 import { MpError } from '../utilities/adapters';
 
@@ -23,7 +23,7 @@ const TheService: ServiceSchema = {
             this.broker.cacher.clean('coupons.list:**');
             return this.normalizeId(res);
           })
-          .catch((err: any) => {
+          .catch((err: CommonError) => {
             if (err.name === 'MoleculerError') {
               throw new MpError('Coupon Service', err.message, err.code);
             }
@@ -34,7 +34,7 @@ const TheService: ServiceSchema = {
                 422
               );
             }
-            throw new MpError('Coupon Service', err, 500);
+            throw new MpError('Coupon Service', err.toString(), 500);
           });
       },
     },
@@ -71,11 +71,11 @@ const TheService: ServiceSchema = {
             }
             return this.normalizeId(res);
           })
-          .catch((err: any) => {
+          .catch((err: CommonError) => {
             if (err.name === 'MoleculerError') {
               throw new MoleculerError(err.message, err.code);
             }
-            throw new MoleculerError(err, 500);
+            throw new MoleculerError(err.toString(), 500);
           });
       },
     },
@@ -114,11 +114,11 @@ const TheService: ServiceSchema = {
             if (res.length) return res.map(coupon => this.normalizeId(coupon));
             throw new MoleculerError('No Coupons found!', 404);
           })
-          .catch((err: any) => {
+          .catch((err: CommonError) => {
             if (err.name === 'MoleculerError') {
               throw new MoleculerError(err.message, err.code);
             }
-            throw new MoleculerError(err, 500);
+            throw new MoleculerError(err.toString(), 500);
           });
       },
     },
@@ -157,8 +157,8 @@ const TheService: ServiceSchema = {
             delete coupon._id;
             return coupon;
           })
-          .catch((err: any) => {
-            throw new MoleculerError(err, 500);
+          .catch((err: CommonError) => {
+            throw new MoleculerError(err.toString(), 500);
           });
       },
     },
@@ -179,8 +179,8 @@ const TheService: ServiceSchema = {
             this.broker.cacher.clean(`coupons.get:${ctx.params.id}*`);
             return coupon;
           })
-          .catch((err: any) => {
-            throw new MoleculerError(err, 500);
+          .catch((err: CommonError) => {
+            throw new MoleculerError(err.toString(), 500);
           });
       },
     },

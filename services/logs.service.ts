@@ -44,7 +44,7 @@ const TheService: ServiceSchema = {
           payload.error = error;
         }
         return ctx
-          .call<GenericObject, GenericObject>('logs.create', {
+          .call<GenericObject, Partial<Log>>('logs.create', {
             index: `logsmp-${date.getFullYear()}-${
               date.getMonth() < 9 ? 0 : ''
             }${date.getMonth() + 1}`,
@@ -123,7 +123,7 @@ const TheService: ServiceSchema = {
         }
         body.query = query;
         return ctx
-          .call<GenericObject, GenericObject>('logs.search', {
+          .call<GenericObject, Partial<Log>>('logs.search', {
             index: 'logsmp-*',
             body,
           })

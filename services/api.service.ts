@@ -303,7 +303,9 @@ const TheService: ServiceSchema = {
           // Verify JWT token
           if (type === 'Bearer') {
             return ctx
-              .call('stores.resolveBearerToken', { token })
+              .call<Store, { token: string }>('stores.resolveBearerToken', {
+                token,
+              })
               .then((user: Store) => {
                 if (!user) {
                   return this.Promise.reject(
@@ -331,7 +333,9 @@ const TheService: ServiceSchema = {
           // Verify Base64 Basic auth
           if (type === 'Basic') {
             return ctx
-              .call('stores.resolveBasicToken', { token })
+              .call<Store, { token: string }>('stores.resolveBasicToken', {
+                token,
+              })
               .then((user: Store) => {
                 if (user) {
                   ctx.meta.token = token;

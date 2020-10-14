@@ -1,3 +1,5 @@
+import { GenericObject } from 'moleculer';
+
 /**
  * I18nText Type definition
  *
@@ -45,4 +47,43 @@ export interface MetaParams {
  */
 export interface DynamicRequestParams {
   [key: string]: string;
+}
+
+/**
+ * Common Error interface
+ *
+ * @export
+ * @interface CommonError
+ */
+export interface CommonError extends Error {
+  code?: number;
+}
+
+/**
+ * Elastic Search Type
+ *
+ * @export
+ * @interface ElasticSearchType
+ */
+export interface ElasticSearchType {
+  index?: string;
+  size?: number;
+  type?: string;
+  body?: {
+    size?: number;
+    query?: {
+      nested?: {
+        path?: string;
+        query?: {
+          bool?: {
+            filter?: GenericObject;
+          };
+        };
+      };
+      bool?: {
+        filter?: GenericObject;
+        must_not?: GenericObject;
+      };
+    };
+  };
 }

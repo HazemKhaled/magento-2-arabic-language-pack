@@ -23,6 +23,7 @@ export interface Tax {
 export interface DbTax extends Tax {
   _id: string;
   id?: string;
+  type?: string;
   createdAt: Date;
   updatedAt: Date;
 }

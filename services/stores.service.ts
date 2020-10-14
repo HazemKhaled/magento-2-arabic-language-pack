@@ -15,6 +15,7 @@ import {
   MetaParams,
   StoreMeta,
   EventArguments,
+  Subscription,
 } from '../utilities/types';
 import { StoresValidation } from '../utilities/mixins/validation';
 import { GCPPubSub } from '../utilities/mixins';
@@ -99,13 +100,16 @@ const TheService: ServiceSchema = {
             let omsData: boolean | { store: Store } = false;
             if (res) {
               if (res.users) {
-                res.subscription = await ctx.call('subscription.sGet', {
+                res.subscription = await ctx.call<
+                  Partial<Subscription>,
+                  Partial<Subscription>
+                >('subscription.sGet', {
                   id: res._id,
                 });
               }
               if (res?.internal_data?.omsId) {
                 omsData = (await ctx
-                  .call('oms.getCustomer', {
+                  .call<null, Partial<Store>>('oms.getCustomer', {
                     customerId: res.internal_data.omsId,
                   })
                   .then(null, this.logger.error)) as { store: Store };
@@ -137,13 +141,16 @@ const TheService: ServiceSchema = {
           .then(async (res: Store | null) => {
             if (res) {
               if (res.users) {
-                res.subscription = await ctx.call('subscription.sGet', {
+                res.subscription = await ctx.call<
+                  Partial<Subscription>,
+                  Partial<Subscription>
+                >('subscription.sGet', {
                   id: ctx.params.id,
                 });
               }
               if (res?.internal_data?.omsId && !ctx.params.withoutBalance) {
                 const omsData = (await ctx
-                  .call('oms.getCustomer', {
+                  .call<null, Partial<Store>>('oms.getCustomer', {
                     customerId: res.internal_data.omsId,
                   })
                   .then(null, this.logger.error)) as { store: Store };
@@ -241,10 +248,13 @@ const TheService: ServiceSchema = {
           .then(async (res: Store[]) => {
             return {
               stores: res.map(store => this.sanitizeResponse(store)),
-              total: await ctx.call('stores.countStores', {
-                key: ctx.params.id,
-                query,
-              }),
+              total: await ctx.call<GenericObject, Partial<Store>>(
+                'stores.countStores',
+                {
+                  key: ctx.params.id,
+                  query,
+                }
+              ),
             };
           })
           .catch((err: any) => {
@@ -315,9 +325,12 @@ const TheService: ServiceSchema = {
         const { id } = ctx.params;
         delete ctx.params.id;
         // storeBefore
-        const storeBefore: Store = await ctx.call('stores.findInstance', {
-          id,
-        });
+        const storeBefore: Store = await ctx.call<Store, Partial<Store>>(
+          'stores.findInstance',
+          {
+            id,
+          }
+        );
 
         // Sanitize request params
         const store: Store = this.sanitizeStoreParams(ctx.params);
@@ -389,7 +402,10 @@ const TheService: ServiceSchema = {
 
         if (myStore?.internal_data?.omsId) {
           ctx
-            .call('crm.updateStoreById', { id, ...ctx.params })
+            .call<null, Partial<Store>>('crm.updateStoreById', {
+              id,
+              ...ctx.params,
+            })
             .then(null, (error: unknown) => {
               this.sendLogs({
                 topic: 'store',
@@ -400,7 +416,8 @@ const TheService: ServiceSchema = {
                 code: 500,
                 payload: { error: error.toString(), params: ctx.params },
               });
-            });
+            })
+            .catch(err => this.logger.error(err));
         }
 
         // Profit update check
@@ -427,7 +444,12 @@ const TheService: ServiceSchema = {
         });
         try {
           const omsStore = await ctx
-            .call('oms.getCustomerByUrl', { storeId })
+            .call<GenericObject, Partial<StoreRequest>>(
+              'oms.getCustomerByUrl',
+              {
+                storeId,
+              }
+            )
             .then(
               (response: GenericObject) => response.store,
               err => {
@@ -453,7 +475,7 @@ const TheService: ServiceSchema = {
           this.broker.cacher.clean(`subscription.sGet:${instance.url}*`);
           this.broker.cacher.clean(`stores.sGet:${instance.url}**`);
           this.broker.cacher.clean(`stores.me:${instance.consumer_key}**`);
-          return ctx.call('stores.update', {
+          return ctx.call<GenericObject, Partial<Store>>('stores.update', {
             id: storeId,
             internal_data: instance.internal_data,
             stock_date: '2010-01-01T00:00:00.000Z',
@@ -498,7 +520,10 @@ const TheService: ServiceSchema = {
           );
         }
 
-        return ctx.call('stores.update', { ...ctx.params, id });
+        return ctx.call<Partial<Store>, Partial<Store>>('stores.update', {
+          ...ctx.params,
+          id,
+        });
       },
     },
 

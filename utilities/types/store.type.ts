@@ -10,7 +10,7 @@ import { MetaParams } from './i18ntext.type';
  * @interface Store
  */
 export interface Store {
-  id: string;
+  id: string | number;
   _id: string;
   name: string;
   logo?: string;
@@ -32,6 +32,18 @@ export interface Store {
   external_data?: { [key: string]: any };
   subscription?: Subscription;
   address: OrderAddress;
+  customerId?: string;
+  key?: string;
+  query?: GenericObject;
+  stock_date?: string;
+  price_date?: string;
+  stock_status?: string;
+  price_status?: string;
+  errors?: GenericObject;
+  message?: string;
+  code?: number;
+  membership_id?: string;
+  subscription_expiration?: number | string;
 }
 
 /**
@@ -135,7 +147,6 @@ export interface StoreMeta extends MetaParams {
 export interface CrmData extends Store {
   last_order_date?: string;
   membership_id?: string;
-  subscription_expiration?: string;
 }
 
 /**

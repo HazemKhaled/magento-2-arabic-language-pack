@@ -1,4 +1,6 @@
-import { MetaParams } from './i18ntext.type';
+import { GenericObject } from 'moleculer';
+
+import { MetaParams, I18nText } from './i18ntext.type';
 
 /**
  * Log Type definition
@@ -14,6 +16,22 @@ export interface Log {
   logLevel: 'info' | 'debug' | 'warn' | 'error';
   storeId: string;
   message: string;
+  index?: string;
+  type?: string;
+  body?: {
+    topic?: string;
+    topicId?: string;
+    '@timestamp'?: Date;
+    logLevel?: 'info' | 'debug' | 'warn' | 'error' | string;
+    storeId?: string;
+    message?: string;
+    payload?: string;
+    code?: number;
+    size?: number;
+    from?: number;
+    query?: { [key: string]: GenericObject };
+    sort?: { [key: string]: string };
+  };
 }
 
 /**

@@ -1,6 +1,6 @@
 import { GenericObject } from 'moleculer';
 
-import { I18nText, MetaParams } from './i18ntext.type';
+import { I18nText } from './i18ntext.type';
 
 /**
  * Product Type definition
@@ -29,6 +29,10 @@ export interface Product {
   createdAt?: Date;
   import_qty: number;
   ship_to: string[];
+  index?: string;
+  body?: GenericObject;
+  type?: string;
+  id?: string;
 }
 
 /**
@@ -72,10 +76,15 @@ export interface Attribute {
 export interface Products {
   products: [
     {
-      sku: string;
+      id?: string;
+      sku?: string;
+      qty?: number;
+      attribute?: string;
+      imported?: string;
     }
   ];
   sku?: string;
+  skus?: string[];
   productInstances?: [
     {
       sku: string;
@@ -100,7 +109,12 @@ export interface UpdateProductParams extends Product {
     attribute: string;
   };
 }
-
+/**
+ * Product search Params
+ *
+ * @export
+ * @interface ProductSearchParams
+ */
 export interface ProductSearchParams {
   storeKey: string;
 }

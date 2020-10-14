@@ -17,6 +17,8 @@ export interface Payment {
   referenceNumber?: string;
   date: Date;
   description?: string;
+  customerId?: string;
+  force?: boolean;
 }
 
 /**

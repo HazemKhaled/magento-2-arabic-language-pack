@@ -32,6 +32,7 @@ export interface InvoiceResponse {
  * @interface Invoice
  */
 export interface Invoice {
+  id?: string;
   invoiceId: string;
   customerName: string;
   customerId: string;
@@ -47,6 +48,12 @@ export interface Invoice {
   lastModifiedTime: Date;
   shippingCharge: number;
   adjustment: number;
+  message?: string;
+  code?: number;
+  invoice?: {
+    invoiceId?: string;
+  };
+  omsId?: string;
 }
 
 /**

@@ -7,7 +7,7 @@ import { GenericObject } from 'moleculer';
  * @interface CrmStore
  */
 export interface CrmStore {
-  id: string;
+  id: string | number;
   Store_Status: string;
   Platform?: string;
   Stock_Date?: string;

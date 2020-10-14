@@ -1,7 +1,7 @@
-import { Context, ServiceSchema } from 'moleculer';
+import { Context, ServiceSchema, GenericObject } from 'moleculer';
 import * as Cron from 'moleculer-cron';
 
-import { Store, Subscription } from '../utilities/types';
+import { Store, Subscription, CrmStore } from '../utilities/types';
 
 const TheService: ServiceSchema = {
   name: 'subscription-cron',
@@ -28,10 +28,13 @@ const TheService: ServiceSchema = {
       cache: false,
       async handler(ctx: Context) {
         const subscription: any = await ctx
-          .call('subscription.getSubscriptionByExpireDate', {
-            afterDays: 6 * 30,
-            beforeDays: 1,
-          })
+          .call<GenericObject, Partial<Subscription>>(
+            'subscription.getSubscriptionByExpireDate',
+            {
+              afterDays: 6 * 30,
+              beforeDays: 1,
+            }
+          )
           .then(null, err => {
             if (err.code === 422) {
               this.logger.info("No Store To Renew It's Subscription");
@@ -43,28 +46,34 @@ const TheService: ServiceSchema = {
           return null;
         }
 
-        const store: Store = await ctx.call('stores.findInstance', {
-          id: subscription.storeId,
-        });
+        const store: Store = await ctx.call<Store, Partial<Subscription>>(
+          'stores.findInstance',
+          {
+            id: subscription.storeId,
+          }
+        );
 
         if (store?.status !== 'confirmed') {
           return null;
         }
 
         try {
-          const createSubResponse: Subscription = await ctx.call(
-            'subscription.create',
-            {
-              storeId: subscription.storeId,
-              membership: subscription.membershipId,
-            }
-          );
+          const createSubResponse: Subscription = await ctx.call<
+            Subscription,
+            Partial<Subscription>
+          >('subscription.create', {
+            storeId: subscription.storeId,
+            membership: subscription.membershipId,
+          });
           if (createSubResponse.id) {
-            ctx.call('subscription.updateSubscription', {
-              id: String(subscription.id),
-              renewed: true,
-            });
-            ctx.call('crm.addTagsByUrl', {
+            ctx.call<GenericObject, Partial<Subscription>>(
+              'subscription.updateSubscription',
+              {
+                id: String(subscription.id),
+                renewed: true,
+              }
+            );
+            ctx.call<GenericObject, Partial<CrmStore>>('crm.addTagsByUrl', {
               id: subscription.storeId,
               tag: 'subscription-renew',
             });

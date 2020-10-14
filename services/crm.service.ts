@@ -242,7 +242,7 @@ const TheService: ServiceSchema = {
     },
     transformStoreParams(params: CrmData): GenericObject {
       const newObj: { [key: string]: string } = {
-        id: params.id,
+        id: String(params.id),
       };
       const crmParams: { [key: string]: string } = {
         type: 'Platform',

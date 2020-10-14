@@ -16,6 +16,9 @@ import {
   UpdateProductParams,
   ProductSearchParams,
   MetaParams,
+  ElasticSearchType,
+  DynamicRequestParams,
+  CommonError,
 } from '../utilities/types';
 
 module.exports = {
@@ -80,7 +83,7 @@ module.exports = {
       },
       handler(ctx: Context<unknown, MetaParams>) {
         return ctx
-          .call('products.count', {
+          .call<GenericObject, Partial<ElasticSearchType>>('products.count', {
             index: 'products-instances',
             body: {
               query: {
@@ -177,16 +180,19 @@ module.exports = {
               );
               if (index >= 0) {
                 appSearchProduct.imported.splice(index, 1);
-                await ctx.call('products.updateQuantityAttributes', {
-                  products: [
-                    {
-                      id: product.sku,
-                      qty: appSearchProduct.imported.length,
-                      attribute: 'import_qty',
-                      imported: appSearchProduct.imported,
-                    },
-                  ],
-                });
+                await ctx.call<GenericObject, Partial<Products>>(
+                  'products.updateQuantityAttributes',
+                  {
+                    products: [
+                      {
+                        id: product.sku,
+                        qty: appSearchProduct.imported.length,
+                        attribute: 'import_qty',
+                        imported: appSearchProduct.imported,
+                      },
+                    ],
+                  }
+                );
               }
             }
             return { product };
@@ -211,7 +217,7 @@ module.exports = {
       handler(ctx: Context<Products, MetaParams>) {
         const skus = ctx.params.products.map((i: { sku: string }) => i.sku);
         return ctx
-          .call('products.getProductsBySku', {
+          .call<GenericObject, Partial<Products>>('products.getProductsBySku', {
             skus,
           })
           .then(async (res: GenericObject) => {
@@ -256,7 +262,7 @@ module.exports = {
             });
 
             return ctx
-              .call('products.bulk', {
+              .call<GenericObject, Partial<Product>>('products.bulk', {
                 index: 'products-instances',
                 body: bulk,
               })
@@ -299,9 +305,12 @@ module.exports = {
                     }
                   });
                   for (let i = 0; i < updateArr.length; i += 100) {
-                    await ctx.call('products.updateQuantityAttributes', {
-                      products: updateArr.slice(i, i + 100),
-                    });
+                    await ctx.call<GenericObject, GenericObject>(
+                      'products.updateQuantityAttributes',
+                      {
+                        products: updateArr.slice(i, i + 100),
+                      }
+                    );
                   }
                   this.broker.cacher.clean(
                     `products-instances.list:${ctx.meta.user}**`
@@ -342,7 +351,7 @@ module.exports = {
         if (ctx.params.variations) body.variations = ctx.params.variations;
         if (ctx.params.error) body.error = ctx.params.error;
         return ctx
-          .call('products.update', {
+          .call<GenericObject, Partial<Product>>('products.update', {
             index: 'products-instances',
             type: '_doc',
             id: `${ctx.meta.user}-${ctx.params.sku}`,
@@ -368,7 +377,7 @@ module.exports = {
                 500
               );
             },
-            (err: any) => {
+            (err: CommonError) => {
               if (err.message.includes('document_missing_exception')) {
                 throw new MpError('Products Instance', 'Not Found!', 404);
               }
