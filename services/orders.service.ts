@@ -19,7 +19,7 @@ import {
   DynamicRequestParams,
   InvoiceResponse,
   InvoiceRequestParams,
-  Invoice,
+  CommonError,
 } from '../utilities/types';
 import {
   Mail,
@@ -317,7 +317,7 @@ const TheService: ServiceSchema = {
               internal_data: { omsId: result.salesorder.store.id },
             })
             .then(r => this.logger.info(r))
-            .catch(err => this.logger.error(err));
+            .catch((err: CommonError) => this.logger.error(err));
         }
 
         // If coupon used update quantity

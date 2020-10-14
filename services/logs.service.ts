@@ -37,7 +37,7 @@ const TheService: ServiceSchema = {
           let error = payload.error || payload.errors;
           try {
             error = JSON.stringify(error);
-          } catch (e) {
+          } catch (err) {
             error = error.toString();
           }
           delete payload.errors;
@@ -114,10 +114,13 @@ const TheService: ServiceSchema = {
           switch (ctx.params.logLevel) {
             case 'debug':
               logLevel.push('debug');
+              break;
             case 'info':
               logLevel.push('info');
+              break;
             case 'warn':
               logLevel.push('warn');
+              break;
           }
           query.bool.filter.push({ terms: { logLevel } });
         }

@@ -6,6 +6,7 @@ import {
   Membership,
   Coupon,
   MembershipRequestParams,
+  CommonError,
 } from '../utilities/types';
 import { MembershipValidation } from '../utilities/mixins/validation';
 import { TaxCheck } from '../utilities/mixins/tax.mixin';
@@ -51,11 +52,11 @@ const TheService: ServiceSchema = {
             this.broker.cacher.clean('membership.list:**');
             return this.normalize(res);
           })
-          .catch((err: any) => {
+          .catch((err: CommonError) => {
             if (err.name === 'MoleculerError') {
               throw new MoleculerError(err.message, err.code);
             }
-            throw new MoleculerError(err, 500);
+            throw new MoleculerError(String(err), 500);
           });
       },
     },
@@ -87,11 +88,11 @@ const TheService: ServiceSchema = {
 
             return this.normalize(res, country);
           })
-          .catch((err: any) => {
+          .catch((err: CommonError) => {
             if (err.name === 'MoleculerError') {
               throw new MoleculerError(err.message, err.code);
             }
-            throw new MoleculerError(err, 500);
+            throw new MoleculerError(String(err), 500);
           });
       },
     },
@@ -120,11 +121,11 @@ const TheService: ServiceSchema = {
               country
             );
           })
-          .catch((err: any) => {
+          .catch((err: CommonError) => {
             if (err.name === 'MoleculerError') {
               throw new MoleculerError(err.message, err.code);
             }
-            throw new MoleculerError(err, 500);
+            throw new MoleculerError(String(err), 500);
           });
       },
     },
@@ -152,11 +153,11 @@ const TheService: ServiceSchema = {
               { id }
             );
           })
-          .catch((err: any) => {
+          .catch((err: CommonError) => {
             if (err.name === 'MoleculerError') {
               throw new MoleculerError(err.message, err.code);
             }
-            throw new MoleculerError(err, 500);
+            throw new MoleculerError(String(err), 500);
           });
       },
     },

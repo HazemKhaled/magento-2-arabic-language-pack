@@ -11,6 +11,7 @@ import {
   CreateCustomerRequest,
   TaxRequestParams,
   DynamicRequestParams,
+  CommonError,
 } from '../utilities/types';
 import DbService from '../utilities/mixins/mongo.mixin';
 import { OmsValidation } from '../utilities/mixins/validation';
@@ -265,7 +266,7 @@ const TheService: ServiceSchema = {
           }
           return parsedRes;
         })
-        .catch(err => {
+        .catch((err: CommonError) => {
           throw new MoleculerError(err.message, err.code);
         });
     },

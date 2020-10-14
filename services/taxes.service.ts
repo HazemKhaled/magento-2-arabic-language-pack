@@ -7,6 +7,7 @@ import {
   RTax,
   TaxRequestParams,
   DynamicRequestParams,
+  CommonError,
 } from '../utilities/types';
 import { TaxesValidation } from '../utilities/mixins/validation';
 
@@ -40,8 +41,8 @@ const TaxesService: ServiceSchema = {
             this.broker.cacher.clean('taxes.tCount:*');
             return { tax: this.sanitizer(tax) };
           })
-          .catch((err: any) => {
-            throw new MoleculerError(err, 500);
+          .catch((err: CommonError) => {
+            throw new MoleculerError(String(err), 500);
           });
       },
     },
@@ -72,7 +73,7 @@ const TaxesService: ServiceSchema = {
               tax: this.sanitizer(tax),
             };
           })
-          .catch((err: any) => {
+          .catch((err: CommonError) => {
             throw new MoleculerError(
               err.message ? err.message : 'Something went wrong.',
               err.code < 500 ? err.code : 500
@@ -115,7 +116,7 @@ const TaxesService: ServiceSchema = {
             }
             throw new MoleculerError('There is no tax with that ID', 404);
           })
-          .catch((err: any) => {
+          .catch((err: CommonError) => {
             throw new MoleculerError(
               err.message ? err.message : 'Something went wrong.',
               err.code < 500 ? err.code : 500
@@ -157,7 +158,7 @@ const TaxesService: ServiceSchema = {
               }
             ),
           }))
-          .catch((err: any) => {
+          .catch((err: CommonError) => {
             throw new MoleculerError(
               err.message ? err.message : 'Something went wrong.',
               err.code < 500 ? err.code : 500
@@ -184,7 +185,7 @@ const TaxesService: ServiceSchema = {
               message: 'Tax deleted successfully!',
             };
           })
-          .catch((err: any) => {
+          .catch((err: CommonError) => {
             throw new MoleculerError(
               err.message ? err.message : 'Something went wrong.',
               err.code < 500 ? err.code : 500

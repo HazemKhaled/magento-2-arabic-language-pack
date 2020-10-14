@@ -16,6 +16,7 @@ import {
   StoreMeta,
   EventArguments,
   Subscription,
+  CommonError,
 } from '../utilities/types';
 import { StoresValidation } from '../utilities/mixins/validation';
 import { GCPPubSub } from '../utilities/mixins';
@@ -257,11 +258,11 @@ const TheService: ServiceSchema = {
               ),
             };
           })
-          .catch((err: any) => {
+          .catch((err: CommonError) => {
             if (err.name === 'MoleculerError') {
               throw new MoleculerError(err.message, err.code);
             }
-            throw new MoleculerError(err, 500);
+            throw new MoleculerError(String(err), 500);
           });
       },
     },

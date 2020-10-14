@@ -2,7 +2,12 @@ import FormData from 'form-data';
 import { Context, Errors, GenericObject, ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
 
-import { CrmStore, OrderAddress, CrmData } from '../utilities/types';
+import {
+  CrmStore,
+  OrderAddress,
+  CrmData,
+  CommonError,
+} from '../utilities/types';
 import { CRMOpenapi } from '../utilities/mixins/openapi';
 import { CrmValidation } from '../utilities/mixins/validation';
 
@@ -236,7 +241,7 @@ const TheService: ServiceSchema = {
           }
           return parsedRes;
         })
-        .catch(err => {
+        .catch((err: CommonError) => {
           throw this.errorFactory(err.message, err.code);
         });
     },

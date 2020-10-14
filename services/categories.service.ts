@@ -7,7 +7,7 @@ import {
   CategoriesOpenapi,
   CategoriesValidation,
 } from '../utilities/mixins';
-import { Category } from '../utilities/types';
+import { Category, CommonError } from '../utilities/types';
 
 const { MoleculerClientError } = Errors;
 
@@ -131,7 +131,7 @@ const TheService: ServiceSchema = {
             return response;
           }
         )
-        .catch((error: any) => new MoleculerClientError(error));
+        .catch((error: CommonError) => new MoleculerClientError(String(error)));
     },
   },
 };

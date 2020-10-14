@@ -13,6 +13,7 @@ import {
   Payment,
   Invoice,
   CrmStore,
+  CommonError,
 } from '../utilities/types';
 import { SubscriptionValidation } from '../utilities/mixins/validation';
 import { TaxCheck } from '../utilities/mixins/tax.mixin';
@@ -152,11 +153,11 @@ const TheService: ServiceSchema = {
           .then((res: Subscription[]) => {
             return res;
           })
-          .catch((err: any) => {
+          .catch((err: CommonError) => {
             if (err.name === 'MoleculerError') {
               throw new MoleculerError(err.message, err.code);
             }
-            throw new MoleculerError(err, 500);
+            throw new MoleculerError(String(err), 500);
           });
       },
     },
@@ -562,8 +563,8 @@ const TheService: ServiceSchema = {
             this.broker.cacher.clean(`stores.me:${store.consumer_key}**`);
             return subscription;
           })
-          .catch((err: any) => {
-            throw new MoleculerError(err, 500);
+          .catch((err: CommonError) => {
+            throw new MoleculerError(String(err), 500);
           });
       },
     },
