@@ -113,7 +113,7 @@ export interface CreateCustomerRequest {
   comparedOperator: number;
   currency: string;
   languages: any;
-  shippingMethods: any;
+  shippingMethods: GenericObject;
   billing: {
     first_name: string;
     last_name: string;

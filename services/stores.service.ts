@@ -249,7 +249,7 @@ const TheService: ServiceSchema = {
           .then(async (res: Store[]) => {
             return {
               stores: res.map(store => this.sanitizeResponse(store)),
-              total: await ctx.call<GenericObject, Partial<Store>>(
+              total: await ctx.call<number, Partial<Store>>(
                 'stores.countStores',
                 {
                   key: ctx.params.id,

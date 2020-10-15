@@ -1,7 +1,11 @@
 import { ServiceSchema, GenericObject } from 'moleculer';
 import ESService from 'moleculer-elasticsearch';
 
-import { Product, ElasticSearchType } from '../utilities/types';
+import {
+  Product,
+  ElasticSearchType,
+  ElasticSearchResponse,
+} from '../utilities/types';
 import { MpError } from '../utilities/adapters/mpError';
 import {
   ProductTransformation,
@@ -165,21 +169,24 @@ const TheService: ServiceSchema = {
       },
       handler(ctx) {
         return ctx
-          .call<GenericObject, Partial<ElasticSearchType>>('products.search', {
-            index: 'products',
-            type: '_doc',
-            body: {
-              query: {
-                bool: {
-                  filter: {
-                    term: {
-                      _id: ctx.params.sku,
+          .call<ElasticSearchResponse, Partial<ElasticSearchType>>(
+            'products.search',
+            {
+              index: 'products',
+              type: '_doc',
+              body: {
+                query: {
+                  bool: {
+                    filter: {
+                      term: {
+                        _id: ctx.params.sku,
+                      },
                     },
                   },
                 },
               },
-            },
-          })
+            }
+          )
           .then(
             ({
               hits: {
@@ -206,24 +213,27 @@ const TheService: ServiceSchema = {
       },
       handler(ctx) {
         return ctx
-          .call<GenericObject, Partial<ElasticSearchType>>('products.search', {
-            index: 'products',
-            type: '_doc',
-            body: {
-              size: 1000,
-              query: {
-                bool: {
-                  filter: [
-                    {
-                      terms: {
-                        sku: ctx.params.skus,
+          .call<ElasticSearchResponse, Partial<ElasticSearchType>>(
+            'products.search',
+            {
+              index: 'products',
+              type: '_doc',
+              body: {
+                size: 1000,
+                query: {
+                  bool: {
+                    filter: [
+                      {
+                        terms: {
+                          sku: ctx.params.skus,
+                        },
                       },
-                    },
-                  ],
+                    ],
+                  },
                 },
               },
-            },
-          })
+            }
+          )
           .then(({ hits: { hits: products } }) =>
             products.map((product: Product) => this.productSanitize(product))
           );
@@ -237,27 +247,30 @@ const TheService: ServiceSchema = {
       },
       handler(ctx) {
         return ctx
-          .call<GenericObject, Partial<ElasticSearchType>>('products.search', {
-            index: 'products',
-            size: 1000,
-            body: {
-              query: {
-                nested: {
-                  path: 'variations',
-                  query: {
-                    bool: {
-                      filter: {
-                        terms: {
-                          'variations.sku': ctx.params.skus,
+          .call<ElasticSearchResponse, Partial<ElasticSearchType>>(
+            'products.search',
+            {
+              index: 'products',
+              size: 1000,
+              body: {
+                query: {
+                  nested: {
+                    path: 'variations',
+                    query: {
+                      bool: {
+                        filter: {
+                          terms: {
+                            'variations.sku': ctx.params.skus,
+                          },
                         },
                       },
                     },
                   },
                 },
               },
-            },
-          })
-          .then((response: any) => {
+            }
+          )
+          .then((response: ElasticSearchResponse) => {
             return {
               products: response.hits.hits.map(
                 ({ _source }: { _source: Product }) => _source
@@ -287,7 +300,7 @@ const TheService: ServiceSchema = {
             return body;
           }
         );
-        await ctx.call<GenericObject, Partial<ElasticSearchType>>(
+        await ctx.call<ElasticSearchResponse, Partial<ElasticSearchType>>(
           'products.bulk',
           {
             index: 'products',

@@ -93,9 +93,10 @@ export interface ElasticSearchResponse {
     total: {
       value: number;
     };
-    hits: GenericObject;
+    hits: GenericObject[];
   };
   code?: number;
+  count?: number;
 }
 
 export interface MongoQueryType {

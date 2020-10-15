@@ -19,6 +19,7 @@ import {
   ElasticSearchType,
   DynamicRequestParams,
   CommonError,
+  ElasticSearchResponse,
 } from '../utilities/types';
 
 module.exports = {
@@ -83,35 +84,38 @@ module.exports = {
       },
       handler(ctx: Context<unknown, MetaParams>) {
         return ctx
-          .call<GenericObject, Partial<ElasticSearchType>>('products.count', {
-            index: 'products-instances',
-            body: {
-              query: {
-                bool: {
-                  filter: [
-                    {
-                      term: {
-                        'instanceId.keyword': ctx.meta.user,
+          .call<ElasticSearchResponse, Partial<ElasticSearchType>>(
+            'products.count',
+            {
+              index: 'products-instances',
+              body: {
+                query: {
+                  bool: {
+                    filter: [
+                      {
+                        term: {
+                          'instanceId.keyword': ctx.meta.user,
+                        },
                       },
-                    },
-                  ],
-                  must_not: [
-                    {
-                      term: {
-                        deleted: true,
+                    ],
+                    must_not: [
+                      {
+                        term: {
+                          deleted: true,
+                        },
                       },
-                    },
-                    {
-                      term: {
-                        archive: true,
+                      {
+                        term: {
+                          archive: true,
+                        },
                       },
-                    },
-                  ],
+                    ],
+                  },
                 },
               },
-            },
-          })
-          .then((res: GenericObject) => {
+            }
+          )
+          .then((res: ElasticSearchResponse) => {
             if (typeof res.count !== 'number') {
               throw new MpError(
                 'Products Instance',
@@ -180,7 +184,7 @@ module.exports = {
               );
               if (index >= 0) {
                 appSearchProduct.imported.splice(index, 1);
-                await ctx.call<GenericObject, Partial<Products>>(
+                await ctx.call<Product, Partial<Products>>(
                   'products.updateQuantityAttributes',
                   {
                     products: [
@@ -217,10 +221,10 @@ module.exports = {
       handler(ctx: Context<Products, MetaParams>) {
         const skus = ctx.params.products.map((i: { sku: string }) => i.sku);
         return ctx
-          .call<GenericObject, Partial<Products>>('products.getProductsBySku', {
+          .call<Product[], Partial<Products>>('products.getProductsBySku', {
             skus,
           })
-          .then(async (res: GenericObject) => {
+          .then(async (res: Product[]) => {
             const newSKUs = res.map((product: Product) => product.sku);
             const outOfStock = skus.filter(
               (sku: string) => !newSKUs.includes(sku)
