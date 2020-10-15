@@ -1,6 +1,6 @@
 import { GenericObject } from 'moleculer';
 
-import { MetaParams, I18nText } from './i18ntext.type';
+import { MetaParams } from './i18ntext.type';
 
 /**
  * Log Type definition
@@ -61,4 +61,10 @@ export interface LogRequestParams {
  */
 export interface LogMetaParams extends MetaParams {
   storeId: string;
+}
+
+export interface LogResponse {
+  result: string;
+  _id: string;
+  code: number;
 }

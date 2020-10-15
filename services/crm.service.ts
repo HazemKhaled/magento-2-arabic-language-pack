@@ -7,6 +7,7 @@ import {
   OrderAddress,
   CrmData,
   CommonError,
+  CrmResponse,
 } from '../utilities/types';
 import { CRMOpenapi } from '../utilities/mixins/openapi';
 import { CrmValidation } from '../utilities/mixins/validation';
@@ -22,7 +23,7 @@ const TheService: ServiceSchema = {
   actions: {
     refreshToken: {
       cache: false,
-      handler(): Promise<GenericObject> {
+      handler(): Promise<void> {
         return this.request({
           method: 'post',
           isAccountsUrl: true,
@@ -98,7 +99,7 @@ const TheService: ServiceSchema = {
     },
     createRecord: {
       auth: ['Basic'],
-      handler(ctx: Context<CrmStore>): Promise<GenericObject> {
+      handler(ctx: Context<CrmStore>): Promise<CrmResponse> {
         const { module, data } = ctx.params;
 
         return this.request({
@@ -111,7 +112,7 @@ const TheService: ServiceSchema = {
     },
     updateRecord: {
       auth: ['Basic'],
-      handler(ctx: Context<CrmStore>): Promise<GenericObject> {
+      handler(ctx: Context<CrmStore>): Promise<CrmResponse> {
         const { module, id, data } = ctx.params;
 
         return this.request({
@@ -124,7 +125,7 @@ const TheService: ServiceSchema = {
     },
     findRecords: {
       auth: ['Basic'],
-      handler(ctx: Context<CrmStore>): Promise<GenericObject> {
+      handler(ctx: Context<CrmStore>): Promise<CrmResponse> {
         const { module, criteria, email, phone, word } = ctx.params;
 
         return this.request({
@@ -136,7 +137,7 @@ const TheService: ServiceSchema = {
     },
     addTagsToRecord: {
       auth: ['Basic'],
-      handler(ctx: Context<CrmStore>): Promise<GenericObject> {
+      handler(ctx: Context<CrmStore>): Promise<CrmResponse> {
         const { module, id, tag } = ctx.params;
 
         return this.request({
@@ -148,7 +149,7 @@ const TheService: ServiceSchema = {
     },
     removeTagsFromRecord: {
       auth: ['Basic'],
-      handler(ctx: Context<CrmStore>): Promise<GenericObject> {
+      handler(ctx: Context<CrmStore>): Promise<CrmResponse> {
         const { module, id, tag } = ctx.params;
 
         return this.request({
@@ -246,10 +247,10 @@ const TheService: ServiceSchema = {
         });
     },
     transformStoreParams(params: CrmData): GenericObject {
-      const newObj: { [key: string]: string } = {
+      const newObj: GenericObject = {
         id: String(params.id),
       };
-      const crmParams: { [key: string]: string } = {
+      const crmParams: GenericObject = {
         type: 'Platform',
         status: 'Store_Status',
         stock_date: 'Stock_Date',

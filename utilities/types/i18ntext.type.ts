@@ -87,3 +87,24 @@ export interface ElasticSearchType {
     };
   };
 }
+
+export interface ElasticSearchResponse {
+  hits: {
+    total: {
+      value: number;
+    };
+    hits: GenericObject;
+  };
+  code?: number;
+}
+
+export interface MongoQueryType {
+  _id?: string;
+  startDate?: {
+    $lte?: Date;
+  };
+  endDate?: {
+    $gte?: Date;
+  };
+  type?: string;
+}

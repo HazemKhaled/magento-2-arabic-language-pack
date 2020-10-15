@@ -23,6 +23,25 @@ export interface InvoiceResponse {
   adjustment: number;
   invoices?: [{ invoice_id: string }];
   invoice?: { invoiceId?: string };
+  invoicePayments: [
+    {
+      invoicePaymentId: string;
+      paymentId: string;
+      invoiceId: string;
+      amountUsed: 0;
+    }
+  ];
+  creditNotes: [
+    {
+      creditNotesInvoiceId: string;
+      creditNoteId: string;
+      invoiceId: string;
+      amountApplied: 0;
+      date: string;
+    }
+  ];
+  code: number;
+  message: string;
 }
 
 /**

@@ -3,7 +3,13 @@ import ESService from 'moleculer-elasticsearch';
 import { v1 as uuidv1 } from 'uuid';
 
 import { LogsOpenapi } from '../utilities/mixins/openapi';
-import { Log, LogRequestParams, LogMetaParams } from '../utilities/types';
+import {
+  Log,
+  LogRequestParams,
+  LogMetaParams,
+  LogResponse,
+  ElasticSearchResponse,
+} from '../utilities/types';
 import { LogsValidation } from '../utilities/mixins/validation';
 
 const TheService: ServiceSchema = {
@@ -44,7 +50,7 @@ const TheService: ServiceSchema = {
           payload.error = error;
         }
         return ctx
-          .call<GenericObject, Partial<Log>>('logs.create', {
+          .call<LogResponse, Partial<Log>>('logs.create', {
             index: `logsmp-${date.getFullYear()}-${
               date.getMonth() < 9 ? 0 : ''
             }${date.getMonth() + 1}`,
@@ -61,7 +67,7 @@ const TheService: ServiceSchema = {
               code,
             },
           })
-          .then((res: GenericObject) => {
+          .then((res: LogResponse) => {
             if (res.result === 'created') {
               this.broker.cacher.clean('log*');
               return {
@@ -126,11 +132,11 @@ const TheService: ServiceSchema = {
         }
         body.query = query;
         return ctx
-          .call<GenericObject, Partial<Log>>('logs.search', {
+          .call<ElasticSearchResponse, Partial<Log>>('logs.search', {
             index: 'logsmp-*',
             body,
           })
-          .then((res: GenericObject) => {
+          .then((res: ElasticSearchResponse) => {
             if (res.hits.total.value > 0)
               return res.hits.hits.map(
                 (item: { _id: string; _source: Log }) => {

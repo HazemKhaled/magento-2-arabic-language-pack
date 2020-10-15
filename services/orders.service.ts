@@ -322,7 +322,7 @@ const TheService: ServiceSchema = {
 
         // If coupon used update quantity
         if (data.coupon) {
-          ctx.call<GenericObject, Partial<Coupon>>('coupons.updateCount', {
+          ctx.call<Coupon | boolean, Partial<Coupon>>('coupons.updateCount', {
             id: data.coupon,
           });
         }

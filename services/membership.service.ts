@@ -1,4 +1,4 @@
-import { Context, Errors, ServiceSchema, GenericObject } from 'moleculer';
+import { Context, Errors, ServiceSchema } from 'moleculer';
 
 import DbService from '../utilities/mixins/mongo.mixin';
 import { MembershipOpenapi } from '../utilities/mixins/openapi';
@@ -68,7 +68,7 @@ const TheService: ServiceSchema = {
       },
       handler(ctx: Context<MembershipRequestParams>): Promise<Membership> {
         const { active, id, country } = ctx.params;
-        const query: GenericObject = { _id: id };
+        const query: Partial<MembershipRequestParams> = { _id: id };
         if (active !== undefined) {
           query.active = active;
         }

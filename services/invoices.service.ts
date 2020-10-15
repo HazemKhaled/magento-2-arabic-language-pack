@@ -10,6 +10,7 @@ import {
   Order,
   OrderRequestParams,
   StoreRequest,
+  InvoiceResponse,
 } from '../utilities/types';
 import { InvoicesValidation } from '../utilities/mixins/validation';
 import { InvoicePage } from '../utilities/mixins/invoicePage';
@@ -43,13 +44,10 @@ const TheService: ServiceSchema = {
         });
 
         return ctx
-          .call<GenericObject, Partial<InvoiceRequestParams>>(
-            'oms.listInvoice',
-            {
-              omsId: store?.internal_data?.omsId,
-              ...queryParams,
-            }
-          )
+          .call<Invoice, Partial<InvoiceRequestParams>>('oms.listInvoice', {
+            omsId: store?.internal_data?.omsId,
+            ...queryParams,
+          })
           .then(
             async (response: GenericObject) => {
               return {
@@ -67,12 +65,12 @@ const TheService: ServiceSchema = {
     create: {
       auth: ['Basic'],
       async handler(ctx: Context<InvoiceRequestParams>) {
-        const instance: GenericObject = await ctx.call<
-          GenericObject,
-          Partial<Store>
-        >('stores.findInstance', {
-          id: ctx.params.storeId,
-        });
+        const instance: Store = await ctx.call<Store, Partial<Store>>(
+          'stores.findInstance',
+          {
+            id: ctx.params.storeId,
+          }
+        );
 
         if (instance.errors) {
           throw new MoleculerError('Store not found', 404);
@@ -81,7 +79,7 @@ const TheService: ServiceSchema = {
         const { items, discount } = ctx.params;
         // Total items cost
         const itemsCost = items.reduce(
-          (a: number, i: GenericObject) => (a += i.rate),
+          (a: number, i: { rate: number }) => (a += i.rate),
           0
         );
         const totalBeforeTax = itemsCost - (discount?.value || 0);
@@ -115,12 +113,12 @@ const TheService: ServiceSchema = {
         }
 
         return ctx
-          .call<GenericObject, Partial<InvoiceRequestParams>>(
+          .call<Invoice, Partial<InvoiceRequestParams>>(
             'oms.createInvoice',
             invoiceParams
           )
           .then(
-            async (res: GenericObject) => {
+            async (res: Invoice) => {
               await this.broker.cacher.clean(
                 `invoices.get:${instance.consumer_key}**`
               );
@@ -135,7 +133,7 @@ const TheService: ServiceSchema = {
     },
     updateInvoiceStatus: {
       handler(ctx: Context<Partial<InvoiceRequestParams>>) {
-        return ctx.call<GenericObject, Partial<InvoiceRequestParams>>(
+        return ctx.call<Invoice, Partial<InvoiceRequestParams>>(
           'oms.updateInvoiceStatus',
           ctx.params
         );
@@ -175,7 +173,7 @@ const TheService: ServiceSchema = {
         }
 
         return ctx
-          .call<GenericObject, Partial<InvoiceRequestParams>>(
+          .call<InvoiceResponse, Partial<InvoiceRequestParams>>(
             'oms.applyInvoiceCredits',
             {
               customerId: store?.internal_data?.omsId,
@@ -225,7 +223,7 @@ const TheService: ServiceSchema = {
     markInvoiceSent: {
       handler(ctx: Context<InvoiceRequestParams>) {
         return ctx
-          .call<GenericObject, Partial<InvoiceRequestParams>>(
+          .call<InvoiceResponse, Partial<InvoiceRequestParams>>(
             'oms.markInvoiceToSent',
             {
               customerId: ctx.params.omsId,
@@ -247,12 +245,12 @@ const TheService: ServiceSchema = {
           }
         );
         ctx.meta.user = store.consumer_key;
-        const orders: GenericObject = await ctx.call<
-          GenericObject,
-          Partial<Order>
-        >('orders.list', {
-          externalId: ctx.params.id,
-        });
+        const orders: Order[] = await ctx.call<Order[], Partial<Order>>(
+          'orders.list',
+          {
+            externalId: ctx.params.id,
+          }
+        );
         const order: Order = await ctx.call<Order, Partial<OrderRequestParams>>(
           'orders.getOrder',
           {

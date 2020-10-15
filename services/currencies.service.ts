@@ -1,4 +1,4 @@
-import { Context, ServiceSchema, GenericObject } from 'moleculer';
+import { Context, ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
 
 import { CurrenciesValidation, CurrenciesOpenapi } from '../utilities/mixins';
@@ -21,10 +21,10 @@ const TheService: ServiceSchema = {
         keys: ['currencyCode'],
         ttl: 60 * 60,
       },
-      handler(ctx: Context<Currency>) {
+      handler(ctx: Context<Currency>): Promise<Currency> {
         return ctx
-          .call<GenericObject>('currencies.getCurrencies')
-          .then((currencies: GenericObject) => {
+          .call<Currency[]>('currencies.getCurrencies')
+          .then((currencies: Currency[]) => {
             const currency = currencies.find(
               (currencyObj: Currency) =>
                 currencyObj.currencyCode === ctx.params.currencyCode

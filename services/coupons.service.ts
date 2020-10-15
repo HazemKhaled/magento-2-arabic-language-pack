@@ -1,7 +1,7 @@
-import { Context, Errors, GenericObject, ServiceSchema } from 'moleculer';
+import { Context, Errors, ServiceSchema } from 'moleculer';
 
 import DbService from '../utilities/mixins/mongo.mixin';
-import { Coupon, CommonError } from '../utilities/types';
+import { Coupon, CommonError, CouponQueryType } from '../utilities/types';
 import { CouponsValidation, CouponsOpenapi } from '../utilities/mixins';
 import { MpError } from '../utilities/adapters';
 
@@ -45,7 +45,7 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 * 24,
       },
       handler(ctx: Context<Coupon>): Promise<Coupon> {
-        const query: GenericObject = {
+        const query: CouponQueryType = {
           _id: ctx.params.id.toUpperCase(),
           startDate: { $lte: new Date() },
           endDate: { $gte: new Date() },
@@ -87,7 +87,7 @@ const TheService: ServiceSchema = {
       },
       handler(ctx: Context<Coupon>): Promise<Coupon[]> {
         this.couponListValidation(ctx.params);
-        const query: GenericObject = {};
+        const query: CouponQueryType = {};
         const isAuto = Number(ctx.params.isAuto);
         const isValid = Number(ctx.params.isValid);
         if (isValid) {
