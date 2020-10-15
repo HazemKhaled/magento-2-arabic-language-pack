@@ -8,16 +8,16 @@ services:
     restart: always
     env_file: .env
     environment:
-      SERVICES: api, tasks, sentry
+      SERVICES: api, tasks, apm
       PORT: 4040
     ports:
       - "4040:4040"
     labels:
-      - "traefik.enable=true"
-      - "traefik.backend=mp-development"
-      - "traefik.port=4040"
-      - "traefik.frontend.entryPoints=http,https"
-      - "traefik.frontend.rule=Host:dev.mp.knawat.io"
+      traefik.enable: "true"
+      traefik.backend: mp-development
+      traefik.port: 4040
+      traefik.frontend.entryPoints: "http,https"
+      traefik.frontend.rule: "Host:dev.mp.knawat.io"
 
   stores:
     build:
