@@ -48,6 +48,11 @@ export interface Order {
     | 'shipped'
     | 'delivered'
     | 'voided';
+  customerId?: string;
+  orderId?: string;
+  error?: {
+    statusCode: number;
+  };
 }
 
 /**
@@ -88,6 +93,31 @@ export interface OrderItem {
   ship_to?: string[];
 }
 
+export interface SalesOrder {
+  id?: string;
+  store?: {
+    id: string;
+    url: string;
+  };
+  status: string;
+  subStatuses?: [];
+  createDate: Date;
+  updateDate?: Date;
+  items: OrderItem[];
+  shipping: OrderAddress;
+  billing: OrderAddress;
+  shipping_charge?: number;
+  shipping_method: string;
+  discount?: number;
+  total: number;
+  hasQtyCancelled: boolean;
+  notes?: string;
+  adjustment: number;
+  adjustmentDescription: string;
+  orderNumber: string;
+  taxTotal: number;
+}
+
 /**
  * Definition for oms create order response
  *
@@ -95,30 +125,8 @@ export interface OrderItem {
  * @interface OMSResponse
  */
 export interface OrderOMSResponse {
-  salesorder: {
-    id?: string;
-    store?: {
-      id: string;
-      url: string;
-    };
-    status: string;
-    subStatuses?: [];
-    createDate: Date;
-    updateDate?: Date;
-    items: OrderItem[];
-    shipping: OrderAddress;
-    billing: OrderAddress;
-    shipping_charge?: number;
-    shipping_method: string;
-    discount?: number;
-    total: number;
-    hasQtyCancelled: boolean;
-    notes?: string;
-    adjustment: number;
-    adjustmentDescription: string;
-    orderNumber: string;
-    taxTotal: number;
-  };
+  salesorder?: SalesOrder;
+  salesorders?: SalesOrder;
   error?: { [key: string]: any };
 }
 

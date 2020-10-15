@@ -1,3 +1,5 @@
+import { GenericObject } from 'moleculer';
+
 /**
  * Payment
  *
@@ -40,6 +42,7 @@ export interface PaymentResponse {
   reference?: string;
   date: Date;
   description?: string;
+  payments?: [Payment];
 }
 
 /**

@@ -20,6 +20,7 @@ import {
   InvoiceResponse,
   InvoiceRequestParams,
   CommonError,
+  Subscription,
 } from '../utilities/types';
 import {
   Mail,
@@ -80,12 +81,12 @@ const TheService: ServiceSchema = {
                 params: ctx.params,
               },
             });
-            const orders: GenericObject = await ctx.call<
-              GenericObject,
-              Partial<Order>
-            >('orders.list', {
-              externalId: ctx.params.id,
-            });
+            const orders: Order[] = await ctx.call<Order[], Partial<Order>>(
+              'orders.list',
+              {
+                externalId: ctx.params.id,
+              }
+            );
 
             return {
               status: 'success',
@@ -195,8 +196,8 @@ const TheService: ServiceSchema = {
           ) + (data.isInclusiveTax ? 0 : taxTotal);
 
         // Getting the current user subscription
-        const subscription: GenericObject = await ctx.call<
-          GenericObject,
+        const subscription: Subscription = await ctx.call<
+          Subscription,
           Partial<Store>
         >('subscription.sGet', {
           id: store.url,
@@ -329,7 +330,7 @@ const TheService: ServiceSchema = {
 
         if (order && !store.internal_data?.omsId) {
           ctx
-            .call<GenericObject, Partial<Store>>('stores.update', {
+            .call<Store, Partial<Store>>('stores.update', {
               id: store.url,
               internal_data: { omsId: result.salesorder.store.id },
             })
@@ -347,7 +348,7 @@ const TheService: ServiceSchema = {
 
         // TODO: Move to hook after create, and write this code into CRM service
         // Update CRM last update
-        ctx.call<GenericObject, Partial<CrmStore>>('crm.updateStoreById', {
+        ctx.call<CrmStore, Partial<CrmStore>>('crm.updateStoreById', {
           id: store.url,
           last_order_date: Date.now(),
         });
@@ -516,8 +517,8 @@ const TheService: ServiceSchema = {
               ) + (data.isInclusiveTax ? 0 : taxTotal);
 
             // Getting the current user subscription
-            const subscription: GenericObject = await ctx.call<
-              GenericObject,
+            const subscription: Subscription = await ctx.call<
+              Subscription,
               Partial<SubscriptionType>
             >('subscription.sGet', {
               id: store.url,
@@ -671,8 +672,8 @@ const TheService: ServiceSchema = {
           };
         }
 
-        const order: GenericObject = await ctx.call<
-          GenericObject,
+        const order: OrderOMSResponse = await ctx.call<
+          OrderOMSResponse,
           Partial<OrderRequestParams>
         >('oms.getOrderById', {
           customerId: store.internal_data.omsId,
@@ -739,8 +740,8 @@ const TheService: ServiceSchema = {
           if (!keys.includes(key)) return;
           queryParams[key] = ctx.params[key];
         });
-        const orders: GenericObject = await ctx.call<
-          GenericObject,
+        const orders: OrderOMSResponse = await ctx.call<
+          OrderOMSResponse,
           DynamicRequestParams
         >('oms.listOrders', {
           customerId: store.internal_data.omsId,
@@ -752,8 +753,8 @@ const TheService: ServiceSchema = {
     deleteOrder: {
       auth: ['Bearer'],
       async handler(ctx) {
-        const orderBeforeUpdate: GenericObject = await ctx.call<
-          GenericObject,
+        const orderBeforeUpdate: Order = await ctx.call<
+          Order,
           Partial<OrderRequestParams>
         >('orders.getOrder', {
           order_id: ctx.params.id,

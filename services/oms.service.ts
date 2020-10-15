@@ -12,6 +12,7 @@ import {
   TaxRequestParams,
   DynamicRequestParams,
   CommonError,
+  Order,
 } from '../utilities/types';
 import DbService from '../utilities/mixins/mongo.mixin';
 import { OmsValidation } from '../utilities/mixins/validation';
@@ -99,7 +100,7 @@ const TheService: ServiceSchema = {
     },
     updateOrderById: {
       handler(ctx: Context<updateOderRequestParams>) {
-        const body: GenericObject = {
+        const body: Partial<updateOderRequestParams> = {
           ...ctx.params,
           customerId: undefined,
           orderId: undefined,
@@ -140,7 +141,10 @@ const TheService: ServiceSchema = {
     // Payments
     createPayment: {
       handler(ctx: Context<DynamicRequestParams>) {
-        const body: GenericObject = { ...ctx.params, customerId: undefined };
+        const body: DynamicRequestParams = {
+          ...ctx.params,
+          customerId: undefined,
+        };
         return this.request({
           path: `payments/${ctx.params.customerId}`,
           method: 'post',

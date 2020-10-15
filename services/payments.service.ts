@@ -8,6 +8,7 @@ import {
   GetPaymentRequestParams,
   MetaParams,
   Store,
+  PaymentResponse,
 } from '../utilities/types';
 import { PaymentsValidation } from '../utilities/mixins/validation';
 import { Oms } from '../utilities/mixins/oms.mixin';
@@ -21,12 +22,12 @@ const TheService: ServiceSchema = {
     add: {
       auth: ['Basic'],
       async handler(ctx: Context<PaymentRequestParams>) {
-        const instance: GenericObject = await ctx.call<
-          GenericObject,
-          Partial<Store>
-        >('stores.findInstance', {
-          id: ctx.params.id,
-        });
+        const instance: Store = await ctx.call<Store, Partial<Store>>(
+          'stores.findInstance',
+          {
+            id: ctx.params.id,
+          }
+        );
 
         // create OMS contact if no oms ID
         if (!instance?.internal_data?.omsId) {
@@ -109,12 +110,12 @@ const TheService: ServiceSchema = {
 
         if (store?.internal_data?.omsId) {
           return ctx
-            .call<GenericObject, Partial<Payment>>('oms.listPayments', {
+            .call<PaymentResponse, Partial<Payment>>('oms.listPayments', {
               customerId: store.internal_data.omsId,
               ...queryParams,
             })
             .then(
-              (res: GenericObject) => ({
+              (res: PaymentResponse) => ({
                 payments: res.payments.map(this.sanitizePayment),
               }),
               err => {

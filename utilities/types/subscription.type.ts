@@ -29,7 +29,7 @@ export interface Subscription {
   page?: string;
   afterDays?: number;
   beforeDays?: number;
-  membership?: string;
+  membership?: any;
   grantTo?: string;
   postpaid?: string;
   dueDate?: string;
@@ -38,6 +38,12 @@ export interface Subscription {
     expire: string;
   };
   length?: number;
+  attributes?: {
+    orderProcessingType?: string;
+    orderProcessingFees?: number;
+  };
+  adjustmentDescription?: string;
+  adjustment?: number;
 }
 
 export interface SubscriptionType extends Subscription {}
