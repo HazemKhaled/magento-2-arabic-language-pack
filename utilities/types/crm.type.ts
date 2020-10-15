@@ -1,4 +1,5 @@
 import { String } from 'lodash';
+import { GenericObject } from 'moleculer';
 
 import { I18nText } from './i18ntext.type';
 
@@ -9,6 +10,7 @@ import { I18nText } from './i18ntext.type';
  * @interface CrmResponse
  */
 export interface CrmResponse {
+  data?: GenericObject;
   Owner?: {
     name?: string;
     id?: string;

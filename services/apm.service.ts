@@ -1,4 +1,4 @@
-import { ServiceSchema } from 'moleculer';
+import { ServiceSchema, GenericObject } from 'moleculer';
 import apm from 'elastic-apm-node';
 
 const TheService: ServiceSchema = {
@@ -46,7 +46,7 @@ const TheService: ServiceSchema = {
      *
      * @param {Object} metric
      */
-    'metrics.trace.span.finish': function (metric) {
+    'metrics.trace.span.finish': function (metric: GenericObject) {
       // WTF!?
       /* if(metric.error) {
         let error = {};

@@ -48,14 +48,14 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 * 24,
         keys: ['id'],
       },
-      async handler(ctx: Context<CrmStore>): Promise<GenericObject> {
-        const res: GenericObject = await ctx.call<
-          GenericObject,
-          Partial<CrmStore>
-        >('crm.findRecords', {
-          module: 'accounts',
-          criteria: `((Account_Name:equals:${ctx.params.id}))`,
-        });
+      async handler(ctx: Context<CrmStore>): Promise<CrmResponse> {
+        const res = await ctx.call<CrmResponse, Partial<CrmStore>>(
+          'crm.findRecords',
+          {
+            module: 'accounts',
+            criteria: `((Account_Name:equals:${ctx.params.id}))`,
+          }
+        );
 
         if (!res.data?.[0]) {
           throw this.errorFactory('Store not found!', 404);
@@ -64,15 +64,15 @@ const TheService: ServiceSchema = {
       },
     },
     updateStoreById: {
-      async handler(ctx: Context<CrmStore>): Promise<GenericObject> {
-        const { id: crmStoreId } = await ctx.call<
-          GenericObject,
-          Partial<CrmStore>
-        >('crm.findStoreByUrl', {
-          id: ctx.params.id,
-        });
+      async handler(ctx: Context<CrmStore>): Promise<CrmResponse> {
+        const { id: crmStoreId } = await ctx.call<CrmStore, Partial<CrmStore>>(
+          'crm.findStoreByUrl',
+          {
+            id: ctx.params.id,
+          }
+        );
 
-        return ctx.call<GenericObject, Partial<CrmStore>>('crm.updateRecord', {
+        return ctx.call<CrmResponse, Partial<CrmStore>>('crm.updateRecord', {
           module: 'accounts',
           id: crmStoreId,
           data: [this.transformStoreParams(ctx.params)],
@@ -80,21 +80,18 @@ const TheService: ServiceSchema = {
       },
     },
     addTagsByUrl: {
-      async handler(ctx: Context<CrmStore>): Promise<GenericObject> {
+      async handler(ctx: Context<CrmStore>): Promise<Partial<CrmResponse>> {
         const { id, tag } = ctx.params;
-        const { id: crmStoreId } = await ctx.call<
-          GenericObject,
-          Partial<CrmStore>
-        >('crm.findStoreByUrl', { id });
-
-        return ctx.call<GenericObject, Partial<CrmStore>>(
-          'crm.addTagsToRecord',
-          {
-            module: 'accounts',
-            id: crmStoreId,
-            tag,
-          }
+        const { id: crmStoreId } = await ctx.call<CrmStore, Partial<CrmStore>>(
+          'crm.findStoreByUrl',
+          { id }
         );
+
+        return ctx.call<CrmResponse, Partial<CrmStore>>('crm.addTagsToRecord', {
+          module: 'accounts',
+          id: crmStoreId,
+          tag,
+        });
       },
     },
     createRecord: {
@@ -199,7 +196,7 @@ const TheService: ServiceSchema = {
         url = process.env.ZOHO_ACCOUNTS_URL;
         delete headers.Authorization;
       }
-      const fetchParams: any = {
+      const fetchParams: GenericObject = {
         method,
       };
       if (body && bodyType === 'formData') {

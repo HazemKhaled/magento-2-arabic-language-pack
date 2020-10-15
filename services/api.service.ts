@@ -306,7 +306,7 @@ const TheService: ServiceSchema = {
               .call<Store, { token: string }>('stores.resolveBearerToken', {
                 token,
               })
-              .then((user: Store) => {
+              .then(user => {
                 if (!user) {
                   return this.Promise.reject(
                     new UnAuthorizedError(
