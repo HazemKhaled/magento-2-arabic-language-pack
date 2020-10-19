@@ -33,6 +33,9 @@ export interface Product {
   body?: GenericObject;
   type?: string;
   id?: string;
+  handling_time?: {
+    to?: number;
+  };
 }
 
 /**
