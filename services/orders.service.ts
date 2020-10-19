@@ -106,7 +106,7 @@ const TheService: ServiceSchema = {
           handlingTimes: number[];
         } = await this.stockProducts(data.items);
 
-        if (stock.handlingTimes.length > 0) {
+        if (!stock.handlingTimes.length) {
           data.shipment_date = this.calculateWorkingDays(
             new Date(),
             Math.max.apply(null, stock.handlingTimes)
@@ -847,7 +847,7 @@ const TheService: ServiceSchema = {
               }
             });
 
-            if (handlingTimes.length > 0) {
+            if (!handlingTimes.length) {
               order.shipment_date = this.calculateWorkingDays(
                 new Date(),
                 Math.max.apply(null, handlingTimes)
@@ -1263,7 +1263,7 @@ const TheService: ServiceSchema = {
     calculateWorkingDays(fromDate: Date, days: number): string {
       const day = fromDate.getDay();
 
-      const newDate: Date = new Date(fromDate.getTime());
+      const newDate = new Date(fromDate.getTime());
       newDate.setDate(
         fromDate.getDate() +
           days +
