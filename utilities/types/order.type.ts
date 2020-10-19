@@ -50,6 +50,7 @@ export interface Order {
     | 'voided';
   customerId?: string;
   orderId?: string;
+  shipment_date?: string;
   error?: {
     statusCode: number;
   };

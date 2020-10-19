@@ -893,16 +893,16 @@ const TheService: ServiceSchema = {
             ctx.meta.user
           );
 
-          const productsRes = await ctx.call(
-            'products.getProductsByVariationSku',
-            {
-              skus: order.items.map((item: OrderItem) => item.sku),
-            }
-          );
+          const { products } = await ctx.call<
+            { products: Product[] },
+            { skus: string[] }
+          >('products.getProductsByVariationSku', {
+            skus: order.items.map((item: OrderItem) => item.sku),
+          });
 
-          if (productsRes.products.length > 0) {
+          if (products.length > 0) {
             const handlingTimes: number[] = [];
-            productsRes.products.filter((product: Product) => {
+            products.filter((product: Product) => {
               if (product.handling_time?.to) {
                 handlingTimes.push(product.handling_time.to);
               }
