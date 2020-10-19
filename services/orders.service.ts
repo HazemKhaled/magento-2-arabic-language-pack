@@ -1323,7 +1323,7 @@ const TheService: ServiceSchema = {
       }
     },
     /**
-     * Calculate Working Days Exculded saturday and sunday
+     * Calculate Working Days Excluded saturday and sunday
      *
      * @param fromDate
      * @param days

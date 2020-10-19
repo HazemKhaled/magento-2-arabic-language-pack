@@ -293,9 +293,7 @@ const TheService: ServiceSchema = {
       // If token or token type are missing, throw error
       const [type, reqToken] = req.headers.authorization.split(' ');
       if (!type || !reqToken || !req.$action.auth.includes(type)) {
-        return this.Promise.reject(
-          new UnAuthorizedError(ERR_NO_TOKEN, req.headers.authorization)
-        );
+        throw new UnAuthorizedError(ERR_NO_TOKEN, req.headers.authorization);
       }
 
       return this.Promise.resolve(reqToken)
@@ -336,7 +334,7 @@ const TheService: ServiceSchema = {
               .call<Store, { token: string }>('stores.resolveBasicToken', {
                 token,
               })
-              .then((user: Store) => {
+              .then(user => {
                 if (user) {
                   ctx.meta.token = token;
                 }
@@ -346,22 +344,22 @@ const TheService: ServiceSchema = {
         })
         .then((user: Store) => {
           if (!user) {
-            return this.Promise.reject(
-              new UnAuthorizedError(
-                ERR_INVALID_TOKEN,
-                req.headers.authorization
-              )
+            throw new UnAuthorizedError(
+              ERR_INVALID_TOKEN,
+              req.headers.authorization
             );
           }
+
+          return user;
         });
     },
     /**
      * Log order errors
      *
      * @param {Log} log
-     * @returns {ServiceSchema}
+     * @returns {Log} Created log
      */
-    sendLogs(log: Log): ServiceSchema {
+    sendLogs(log: Log): Log {
       return this.broker.call('logs.add', log);
     },
   },
