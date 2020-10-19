@@ -1,4 +1,4 @@
-import { Context, Errors, GenericObject, ServiceSchema } from 'moleculer';
+import { Context, Errors, ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
 
 import {

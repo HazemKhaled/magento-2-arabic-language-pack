@@ -1,4 +1,4 @@
-import { Context, Errors, ServiceSchema, GenericObject } from 'moleculer';
+import { Context, Errors, ServiceSchema } from 'moleculer';
 
 import { InvoicesOpenapi } from '../utilities/mixins/openapi';
 import {
@@ -44,14 +44,17 @@ const TheService: ServiceSchema = {
         });
 
         return ctx
-          .call<Invoice, Partial<InvoiceRequestParams>>('oms.listInvoice', {
+          .call<
+            { response: { invoices: Invoice[] } },
+            Partial<InvoiceRequestParams>
+          >('oms.listInvoice', {
             omsId: store?.internal_data?.omsId,
             ...queryParams,
           })
           .then(
-            async (response: GenericObject) => {
+            async ({ response: { invoices } }) => {
               return {
-                invoices: response.invoices.map((invoice: Invoice) =>
+                invoices: invoices.map((invoice: Invoice) =>
                   this.invoiceSanitize(invoice)
                 ),
               };
@@ -151,13 +154,10 @@ const TheService: ServiceSchema = {
         ) {
           if (process.env.PAYMENT_AUTO_CHARGE_CC_INVOICE) {
             await ctx
-              .call<GenericObject, Partial<StoreRequest>>(
-                'paymentGateway.charge',
-                {
-                  storeId: store.url,
-                  amount: params.paymentAmount - store.credit,
-                }
-              )
+              .call<void, Partial<StoreRequest>>('paymentGateway.charge', {
+                storeId: store.url,
+                amount: params.paymentAmount - store.credit,
+              })
               .then(null, err => {
                 if (err.type === 'SERVICE_NOT_FOUND')
                   throw new MpError(

@@ -31,6 +31,7 @@ import {
 } from '../utilities/mixins';
 import { MpError } from '../utilities/adapters';
 import { TaxCheck } from '../utilities/mixins/tax.mixin';
+import { SalesOrder } from '../utilities/types/order.type';
 
 const TheService: ServiceSchema = {
   name: 'orders',
@@ -362,10 +363,10 @@ const TheService: ServiceSchema = {
         });
 
         // Update products sales quantity
-        ctx.call<GenericObject, GenericObject>(
+        ctx.call<void, { products: GenericObject[] }>(
           'products.updateQuantityAttributes',
           {
-            products: stock.products.map((product: Product) => ({
+            products: stock.products.map(product => ({
               id: product.sku,
               qty: product.sales_qty + 1 || 1,
               attribute: 'sales_qty',
@@ -960,7 +961,7 @@ const TheService: ServiceSchema = {
         );
 
         ctx
-          .call<GenericObject, Partial<OrderRequestParams>>(
+          .call<{ salesorder: SalesOrder }, Partial<OrderRequestParams>>(
             'oms.updateOrderById',
             {
               orderId: order_id,

@@ -1,4 +1,4 @@
-import { Context, ServiceSchema, GenericObject } from 'moleculer';
+import { Context, ServiceSchema } from 'moleculer';
 import ApiGateway from 'moleculer-web';
 import compression from 'compression';
 
@@ -270,14 +270,14 @@ const TheService: ServiceSchema = {
     /**
      * Authorize the request
      *
-     * @param {Context} ctx
-     * @param {Object} route
+     * @param {Context<void, AuthorizeMeta>} ctx
+     * @param {unknown} route
      * @param {IncomingRequest} req
-     * @returns {Promise}
+     * @returns {(Promise<Store | boolean>)}
      */
     authorize(
-      ctx: Context<unknown, AuthorizeMeta>,
-      route: GenericObject,
+      ctx: Context<void, AuthorizeMeta>,
+      route: unknown,
       req: IncomingRequest
     ): Promise<Store | boolean> {
       // Pass if no auth required
