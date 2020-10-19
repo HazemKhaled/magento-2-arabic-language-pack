@@ -1,5 +1,7 @@
 import { IncomingMessage } from 'http';
 
+import { ActionSchema, GenericObject } from 'moleculer';
+
 import { Store } from './store.type';
 /**
  * Authorize meta Type definition
@@ -21,12 +23,11 @@ export interface AuthorizeMeta {
  * @interface IncomingRequest
  */
 export interface IncomingRequest extends IncomingMessage {
+  $params: GenericObject;
   $endpoint: {
     action: {
       auth: string;
     };
   };
-  $action: {
-    auth: string[];
-  };
+  $action: ActionSchema;
 }

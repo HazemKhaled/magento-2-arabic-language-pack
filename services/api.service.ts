@@ -192,7 +192,7 @@ const TheService: ServiceSchema = {
           },
         },
         async onError(
-          req: any,
+          req: IncomingRequest,
           res: any,
           err: {
             message: string;
