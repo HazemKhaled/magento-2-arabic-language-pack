@@ -1,25 +1,25 @@
 <template lang="pug">
 .checkout
-  form.checkout-form(
+  form.checkout__form(
     name='checkoutForm',
     action='https://www.paytr.com/odeme',
     method='post',
   )
-    .checkout-body
-      .checkout-header
+    .checkout__body
+      .checkout__header
         h2 {{ $t("checkout.payWith") }}
 
-      ul.checkout-cards-list
+      ul.checkout__cards-list
         template(v-if='isFetchingCards')
           li(v-for='card in 2', :key='card')
-            label.checkout-card
-              input(type='radio')
+            label.checkout__card
+              input.checkout__card-input(type='radio')
               CreditCardPlaceholder(:isLoading="true")
 
         template(v-else)
           li(v-for='card in cards', :key='card.payload.ctoken')
-            label.checkout-card
-              input(
+            label.checkout__card
+              input.checkout__card-input(
                 type='radio',
                 :id='`ctoken-${card.payload.ctoken}`',
                 name='payment_type',
@@ -28,8 +28,8 @@
               )
               CreditCardPlaceholder(:cardData='card', :canDelete='false')
 
-          li.checkout-card
-            input#ctoken-none(
+          li.checkout__card
+            input.checkout__card-input(
               type='radio',
               name='payment_type',
               value='',
@@ -43,30 +43,32 @@
             template(v-else)
               CreditCard(ref='creditCard', v-model='card')
 
-      .row
-        .col-xs-12(v-if='false')
-          .checkbox
-            label.checkbox-label
-              input.checkbox-input(type='checkbox', v-model='useSecurePayment')
-              span {{ $t("checkout.secure") }}
-        .col-xs-12(v-if='!ctoken')
-          .checkbox
-            label.checkbox-label
-              input.checkbox-input(
-                type='checkbox',
-                name='store_card',
-                v-model='saveCard'
-              )
-              span {{ $t("checkout.saveCard") }}
-        .col-xs-12(v-if='canUseBalance')
-          .checkbox
-            label.checkbox-label
-              input.checkbox-input(
-                type='checkbox',
-                name='use_balance',
-                v-model='useBalance'
-              )
-              span {{ $t("checkout.useBalance") }} ({{ currency }}{{ balance }})
+      .row(v-if='false')
+        .checkbox
+          label.checkbox__label
+            input.checkbox__input(type='checkbox', v-model='useSecurePayment')
+            span {{ $t("checkout.secure") }}
+
+      .row(v-if='!ctoken')
+        .checkbox
+          label.checkbox__label
+            input.checkbox__input(
+              type='checkbox',
+              name='store_card',
+              v-model='saveCard'
+            )
+            span {{ $t("checkout.saveCard") }}
+
+      .row(v-if='canUseBalance')
+        .checkbox
+          label.checkbox__label
+            input.checkbox__input(
+              type='checkbox',
+              name='use_balance',
+              v-model='useBalance'
+            )
+            span.checkbox__label
+              | {{ $t("checkout.useBalance") }} ({{ currency }} {{ balance }})
 
         template(v-if='paytr')
           input(
@@ -85,12 +87,12 @@
         template(v-if='ctoken')
           input(type='hidden', name='ctoken', :value='ctoken')
 
-    .checkout-footer
-      details.checkout-summary
+    .checkout__footer
+      details.checkout__summary
         summary {{ $t("checkout.summary") }}
-        .checkout-summary-list
+        .checkout__summary-list
           template(v-for="unit in purchaseUnites")
-            .checkout-summary-description {{ unit.description }}
+            .checkout__summary-description {{ unit.description }}
             template(v-if='unit.type === "order"')
               span {{ $t("checkout.orderId") }}
               span {{ unit.data.order }}
@@ -105,27 +107,27 @@
               span {{ $t("checkout.charge") }}
               span {{ unit.currency_code }}{{ unit.value }}
         hr
-        .checkout-summary-list
+        .checkout__summary-list
           span {{ $t("checkout.total") }}
           span {{ currency }}{{ amount }}
           template(v-if='useBalance')
             span {{ $t("checkout.balanceDeduction") }}
             span -{{ currency }}{{ fixed2(usedBalance) }}
 
-      .checkbox(v-if='!ctoken', :class='{ "has-errors": !hasAgreed && showErrors }')
-        label.checkbox-label(for='termsAgree')
-          input#termsAgree.checkbox-input(
+      .checkbox(v-if='!ctoken', :class='{ "checkbox--errors": !hasAgreed && showErrors }')
+        label.checkbox__label(for='termsAgree')
+          input#termsAgree.checkbox__input(
             type='checkbox',
             name='terms-agree',
             v-model='hasAgreed'
           )
           span(v-html='$t("checkout.agreePrivacyPolicy")')
 
-      dl.checkout-total
+      dl.checkout__total
         dt {{ $t("checkout.total") }} :
         dd {{ fixed2(paymentTotal) }} {{ currency }}
 
-      button.checkout-submit.btn.btn-block.btn-primary.btn-lg(
+      button.checkout__submit(
         type='submit',
         :class='{ "is-loading": submitting }',
         :disable='isFetchingData || submitting'
@@ -339,26 +341,28 @@ export default {
   border: 1px solid $gray
   border-radius: 8px
 
-.checkout-form
+.checkout__form
   display: flex
   flex-direction: column
   height: 100%
 
-.checkout-header
+.checkout__header
   display: flex
   justify-content: space-between
-  padding: 10px 20px
+  margin-bottom: 20px
+  h2
+    margin: 0
 
-.checkout-body
+.checkout__body
   flex: 1
   overflow: auto
-  padding: 0 20px 40px
+  padding: 20px
 
-.checkout-footer
-  padding: 10px 20px
+.checkout__footer
+  padding: 20px
   box-shadow: 0 -15px 20px -15px alpha($gray, 0.5)
 
-.checkout-total
+.checkout__total
   display: flex
   margin-top: 10px
   justify-content: space-between
@@ -368,12 +372,12 @@ export default {
   >dd
     align-self: flex-end
 
-.checkout-summary
+.checkout__summary
   border: 1px solid $gray
   padding: 10px
   border-radius: 10px
 
-.checkout-summary-list
+.checkout__summary-list
   display: flex
   justify-content: space-between
   flex-wrap: wrap
@@ -382,20 +386,24 @@ export default {
     align-self: flex-start
     width: 50%
 
-.checkout-card
+.checkout__card
   display: flex
   margin-bottom: 20px
-  >input
-    margin-top: 15px
-  .credit-card-wrapper
-    margin-bottom: 0
 
-.checkbox.has-errors
+.checkout__card-input,
+.checkbox__input
+  margin: 0
+  margin-inline-end: 10px
+
+.checkout__card-input
+  margin-top: 10px
+
+.checkbox--errors
   color: $red
-  .checkbox-input
+  .checkbox__input
     border-color: $red
 
-.checkout-cards-list
+.checkout__cards-list
   margin: 0
   padding: 0
   list-style: none
@@ -403,12 +411,11 @@ export default {
     display: flex
   label
     width: 100%
-  .credit-card-wrapper
-    margin: 0 10px
   .btn
-    margin: 0 10px
-    padding: 15px
+    padding: 10px
     width: 100%
     border: 1px solid $gray
+    background-color: $gray
+    color: $dark
     border-radius: 8px
 </style>

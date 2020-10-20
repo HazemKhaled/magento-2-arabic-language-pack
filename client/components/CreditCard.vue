@@ -53,9 +53,9 @@ form.vc-card(novalidate, autocomplete='on')
         required,
         autocomplete='off'
       )
-  .vc-row
+  .vc-row(v-if='errors.length')
     .vc-column
-      span.vc-errors(v-if='errors.length')
+      span.vc-errors
         | {{ $t("checkout.errors") }}
 </template>
 
@@ -177,7 +177,7 @@ const CardIcons = {
   position: relative
   display: flex
   flex-direction: column
-  margin: 0 10px 10px
+  margin-bottom: 10px
   padding: 20px
   border: 1px solid $gray
   border-radius: 8px

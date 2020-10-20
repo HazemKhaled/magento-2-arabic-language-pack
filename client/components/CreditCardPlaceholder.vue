@@ -1,16 +1,16 @@
 <template lang="pug">
-.credit-card-wrapper
+.cc__wrapper
   template(v-if='isLoading')
-    .credit-card-data
+    .cc__data
       .text-loader(v-for='n in 3', :key='n')
 
   template(v-else)
-    .credit-card-data
-      .credit-card-number
+    .cc__data
+      .cc__number
         span {{ cNumber }}
-      .credit-card-text
+      .cc__text
         | {{ $t('checkout.expires') }}: {{ cardData.payload.month }} / {{ cardData.payload.year }}
-      .credit-card-name
+      .cc__title
         | {{ cardData.title }}
 </template>
 
@@ -37,7 +37,7 @@ export default {
 <style lang="stylus">
 @import '../styles/colors.styl'
 
-.credit-card-wrapper
+.cc__wrapper
   position: relative
   flex: 1
   margin: 0 0 10px
@@ -50,12 +50,12 @@ export default {
   justify-content: space-between
   align-items: flex-start
 
-.credit-card-data
+.cc__data
   width: 100%
   display: flex
   flex-direction column
 
-.credit-card-number
+.cc__number
   font-size: 16px
   font-weight: bold
   line-height: 1.5
@@ -63,15 +63,9 @@ export default {
   margin-bottom: 10px
   text-align: center
 
-.credit-card-name
-.credit-card-text
+.cc__title
+.cc__text
   font-size: 12px
   line-height: 1.5
   text-transform: uppercase
-
-.credit-card-delete
-  background-color: transparent
-  padding: 0
-  &:hover
-    color: $red
 </style>
