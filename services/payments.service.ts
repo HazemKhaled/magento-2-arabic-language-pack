@@ -111,6 +111,7 @@ const TheService: ServiceSchema = {
     },
 
     checkout: {
+      auth: ['Hmac'],
       handler(ctx: Context): string {
         ctx.meta.$responseType = 'text/html';
         return this.renderCheckoutPage();

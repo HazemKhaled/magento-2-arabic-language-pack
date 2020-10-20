@@ -1,10 +1,11 @@
-import { Context, ServiceSchema } from 'moleculer';
+import { Context, GenericObject, ServiceSchema } from 'moleculer';
 import ApiGateway from 'moleculer-web';
 import compression from 'compression';
 
 import { Log, Store } from '../utilities/types';
 import { OpenApiMixin } from '../utilities/mixins/openapi.mixin';
-import { hmacMiddleware, webpackMiddlewares } from '../utilities/middleware';
+import { webpackMiddlewares } from '../utilities/middleware';
+import { authorizeHmac } from '../utilities/lib';
 
 const {
   UnAuthorizedError,
@@ -101,7 +102,7 @@ const TheService: ServiceSchema = {
           // paymentGateway
           'POST paymentGateway/:type/transaction': 'paymentGateway.transaction',
 
-          // Payments mp
+          // Payments p
           'POST payments/:id': 'payments.add',
           'GET payments': 'payments.get',
 
@@ -252,7 +253,7 @@ const TheService: ServiceSchema = {
       {
         path: '/',
 
-        authorization: false,
+        authorization: true,
         use: [
           compression(),
           // Webpack middleware
@@ -260,7 +261,7 @@ const TheService: ServiceSchema = {
           ApiGateway.serveStatic('public'),
         ],
         aliases: {
-          'GET checkout': [hmacMiddleware(), 'payments.checkout'],
+          'GET checkout': 'payments.checkout',
         },
       },
     ],
@@ -276,21 +277,27 @@ const TheService: ServiceSchema = {
      * @returns {Promise}
      */
     authorize(ctx: Context, route: any, req: any): Promise<any> {
+      const { $endpoint, $action, headers } = req as GenericObject;
+
       // Pass if no auth required
-      if (!req.$endpoint.action.auth) {
+      if (!$endpoint.action.auth) {
         return this.Promise.resolve();
       }
 
+      if ($endpoint.action.auth.includes('Hmac')) {
+        return authorizeHmac(req);
+      }
+
       // if no authorization in the header
-      if (!req.headers.authorization) {
-        throw new UnAuthorizedError(ERR_NO_TOKEN, req.headers);
+      if (!headers.authorization) {
+        throw new UnAuthorizedError(ERR_NO_TOKEN, headers);
       }
 
       // If token or token type are missing, throw error
-      const [type, reqToken] = req.headers.authorization.split(' ');
-      if (!type || !reqToken || !req.$action.auth.includes(type)) {
+      const [type, reqToken] = headers.authorization.split(' ');
+      if (!type || !reqToken || !$action.auth.includes(type)) {
         return this.Promise.reject(
-          new UnAuthorizedError(ERR_NO_TOKEN, req.headers.authorization)
+          new UnAuthorizedError(ERR_NO_TOKEN, headers.authorization)
         );
       }
 
@@ -305,7 +312,7 @@ const TheService: ServiceSchema = {
                   return this.Promise.reject(
                     new UnAuthorizedError(
                       ERR_INVALID_TOKEN,
-                      req.headers.authorization
+                      headers.authorization
                     )
                   );
                 }
@@ -335,14 +342,23 @@ const TheService: ServiceSchema = {
                 return user;
               });
           }
+
+          // Verify Base64 Basic auth
+          if (type === 'Hmac') {
+            return ctx
+              .call('stores.resolveBasicToken', { token })
+              .then((user: any) => {
+                if (user) {
+                  ctx.meta.token = token;
+                }
+                return user;
+              });
+          }
         })
         .then((user: any) => {
           if (!user) {
             return this.Promise.reject(
-              new UnAuthorizedError(
-                ERR_INVALID_TOKEN,
-                req.headers.authorization
-              )
+              new UnAuthorizedError(ERR_INVALID_TOKEN, headers.authorization)
             );
           }
         });
