@@ -9,6 +9,7 @@
     "expires": "Expires",
     "confirm": "Confirm",
     "secure": "Use 3D Secure",
+    "summary": "Summary",
     "charge": "Charge balance with",
     "balanceDeduction": "Balance deduction",
     "useBalance": "Use balance",

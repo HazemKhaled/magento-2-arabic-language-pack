@@ -87,12 +87,12 @@
 
     .checkout-footer
       details.checkout-summary
-        summary {{ $t("ledger.summary") }}
+        summary {{ $t("checkout.summary") }}
         .checkout-summary-list
           template(v-for="unit in purchaseUnites")
             .checkout-summary-description {{ unit.description }}
             template(v-if='unit.type === "order"')
-              span {{ $t("ledger.orderId") }}
+              span {{ $t("checkout.orderId") }}
               span {{ unit.data.order }}
 
             template(v-if='unit.type === "subscription"')
