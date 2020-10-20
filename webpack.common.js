@@ -67,10 +67,6 @@ module.exports = {
     new MiniCssExtractPlugin({
       filename: 'style.css',
     }),
-    new HtmlWebpackPlugin({
-      template: 'client/checkout.html',
-      filename: 'checkout.html',
-    }),
   ],
 
   resolve: {

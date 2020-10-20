@@ -285,7 +285,7 @@ const TheService: ServiceSchema = {
       }
 
       if ($endpoint.action.auth.includes('Hmac')) {
-        return authorizeHmac(req);
+        return authorizeHmac(ctx, req);
       }
 
       // if no authorization in the header

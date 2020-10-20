@@ -112,9 +112,12 @@ const TheService: ServiceSchema = {
 
     checkout: {
       auth: ['Hmac'],
-      handler(ctx: Context): string {
+      async handler(ctx: Context): Promise<string> {
+        const { store } = ctx.meta;
+        const res = await ctx.call('cards.list', { store: store.url });
+
         ctx.meta.$responseType = 'text/html';
-        return this.renderCheckoutPage();
+        return this.renderCheckoutPage({ cards: res.cards });
       },
     },
   },

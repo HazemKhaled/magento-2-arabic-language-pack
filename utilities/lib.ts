@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import qs, { ParsedQs } from 'qs';
 import { MoleculerRequest } from 'moleculer-express';
 import { Errors } from 'moleculer-web';
+import { Context } from 'moleculer';
 
 import { Store } from './types';
 
@@ -13,7 +14,10 @@ const {
   NotFoundError,
 } = Errors;
 
-export async function authorizeHmac(req: MoleculerRequest): Promise<void> {
+export async function authorizeHmac(
+  ctx: Context,
+  req: MoleculerRequest
+): Promise<void> {
   const { query, headers } = req;
   const { store: storeUrl, hmac } = query;
 
@@ -30,6 +34,9 @@ export async function authorizeHmac(req: MoleculerRequest): Promise<void> {
   if (!isValid) {
     throw new UnAuthorizedError(ERR_INVALID_TOKEN, headers.authorization);
   }
+
+  // Bind the store store into the meta data
+  ctx.meta.store = store;
 }
 
 /**
