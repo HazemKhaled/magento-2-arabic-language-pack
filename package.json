@@ -27,6 +27,7 @@
   },
   "devDependencies": {
     "@babel/plugin-proposal-optional-chaining": "^7.11.0",
+    "@mdi/js": "^5.7.55",
     "@shopify/eslint-plugin": "^39.0.0",
     "@types/bluebird": "^3.5.32",
     "@types/compression": "^1.7.0",

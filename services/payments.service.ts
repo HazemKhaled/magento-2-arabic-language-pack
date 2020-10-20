@@ -115,9 +115,19 @@ const TheService: ServiceSchema = {
       async handler(ctx: Context): Promise<string> {
         const { store } = ctx.meta;
         const res = await ctx.call('cards.list', { store: store.url });
+        const sanitizedStore = ['url', 'external_data', 'credit'].reduce(
+          (output: any, key: string) => {
+            output[key] = store[key];
+            return output;
+          },
+          {}
+        );
 
         ctx.meta.$responseType = 'text/html';
-        return this.renderCheckoutPage({ cards: res.cards });
+        return this.renderCheckoutPage({
+          cards: res.cards,
+          store: sanitizedStore,
+        });
       },
     },
   },

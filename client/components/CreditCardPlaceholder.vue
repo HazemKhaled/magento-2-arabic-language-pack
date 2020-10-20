@@ -9,11 +9,9 @@
       .credit-card-number
         span {{ cNumber }}
       .credit-card-text
-        | {{ $t('checkout.expires') }}: {{ cardData.month }} / {{ cardData.year }}
+        | {{ $t('checkout.expires') }}: {{ cardData.payload.month }} / {{ cardData.payload.year }}
       .credit-card-name
-        | {{ cardData.c_name }}
-    button.btn.credit-card-delete(v-if='canDelete', @click='deleteCard')
-      AppIcon(name='delete')
+        | {{ cardData.title }}
 </template>
 
 <script>
@@ -27,19 +25,10 @@ export default {
     isLoading: {
       type: Boolean,
     },
-    canDelete: {
-      type: Boolean,
-      default: true,
-    },
   },
   computed: {
     cNumber() {
-      return `${'*'.repeat(4)} `.repeat(3) + this.cardData.last_4;
-    },
-  },
-  methods: {
-    deleteCard() {
-      this.$emit('delete');
+      return this.cardData.number || `${'*'.repeat(4)} `.repeat(4);
     },
   },
 };

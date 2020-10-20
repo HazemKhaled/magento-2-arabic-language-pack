@@ -17,13 +17,13 @@
               CreditCardPlaceholder(:isLoading="true")
 
         template(v-else)
-          li(v-for='card in cardsList', :key='card.ctoken')
+          li(v-for='card in cards', :key='card.payload.ctoken')
             label.checkout-card
               input(
                 type='radio',
-                :id='`ctoken-${card.ctoken}`',
+                :id='`ctoken-${card.payload.ctoken}`',
                 name='payment_type',
-                :value='card.ctoken',
+                :value='card.payload.ctoken',
                 v-model='ctoken'
               )
               CreditCardPlaceholder(:cardData='card', :canDelete='false')
@@ -140,14 +140,17 @@
 import qs from 'qs';
 import CreditCardPlaceholder from '@/components/CreditCardPlaceholder';
 import CreditCard from '@/components/CreditCard';
+import AppIcon from '@/components/AppIcon';
 
 import { fixed2, round } from '../utils';
+import { isArray } from 'util';
 
 export default {
   name: 'Checkout',
   components: {
     CreditCardPlaceholder,
     CreditCard,
+    AppIcon,
   },
   data: () => ({
     useSecurePayment: true,
@@ -156,23 +159,24 @@ export default {
     saveCard: true,
     isLoading: true,
     isFetchingData: true,
-    isFetchingCards: true,
+    isFetchingCards: false,
     submitting: false,
     showErrors: false,
     currencyRate: 1,
     currency: '',
-    cardsList: [],
     ctoken: '',
     card: {},
     paytr: {},
     purchaseUnites: [],
+    cards: [],
+    store: {},
   }),
   computed: {
     utoken() {
-      return this.activeStore.external_data?.paytr?.utoken;
+      return this.store.external_data?.paytr?.utoken;
     },
     balance() {
-      return round((this.activeStore.credit || 0) * this.currencyRate);
+      return round((this.store.credit || 0) * this.currencyRate);
     },
     canUseBalance() {
       // TODO: handle charging balance
@@ -213,19 +217,8 @@ export default {
         gateway: 'paytr',
       };
     },
-    activeStore() {
-      // TODO: get current store
-
-      return {};
-    },
   },
   watch: {
-    utoken: {
-      handler() {
-        this.listCards();
-      },
-      immediate: true,
-    },
     canUseBalance: {
       handler(val) {
         this.useBalance = val;
@@ -242,6 +235,9 @@ export default {
       this.updatePaytr();
     },
   },
+  created() {
+    this.fetchInitialState();
+  },
   mounted() {
     const search = window.location.search?.substring(1);
     const queryParams = qs.parse(search);
@@ -253,6 +249,16 @@ export default {
     this.isLoading = false;
   },
   methods: {
+    fetchInitialState() {
+      if (!window.__INITIAL_STATE__) return;
+      Object.entries(window.__INITIAL_STATE__).forEach(([key, value]) =>
+        (this[key] = value)
+      );
+
+      if (this.cards.length) {
+        this.ctoken = this.cards[0]?.payload.ctoken;
+      }
+    },
     updatePaytr() {
       this.isFetchingData = true;
       const params = this.paytrParams;
@@ -304,7 +310,7 @@ export default {
         requestDateTime: new Date().toISOString(),
         amount: this.paymentTotal,
         purchase_units: this.purchaseUnits,
-        store: this.activeStore.url,
+        store: this.store.url,
         debug: this.debug,
         gateway: 'paytr',
         status: 0,
@@ -313,16 +319,6 @@ export default {
       opener?.dataLayer.push({ payment });
 
       // TODO: add transaction
-    },
-    listCards() {
-      if (!this.utoken) {
-        this.cardsList = [];
-        this.isFetchingCards = false;
-        return;
-      }
-      this.isFetchingCards = true;
-      
-      // TODO: List cards
     },
     fixed2,
   },
