@@ -2,7 +2,7 @@
 .checkout
   form.checkout__form(
     name='checkoutForm',
-    @submit="handleFormSubmit"
+    @submit.prevent="handleFormSubmit"
   )
     .checkout__body
       .checkout__header
@@ -111,7 +111,7 @@
 
       button.button.button--primary.button--block.checkout__submit(
         type='submit',
-        :class='{ "is-loading": isSubmitting }',
+        :class='{ "button--loading": isSubmitting }',
         :disable='isSubmitting'
       )
         template(v-if='useBalanceOnly')
@@ -230,15 +230,12 @@ export default {
     },
     handleFormSubmit(event) {
       // If from already submitted do nothing
-      if (this.isSubmitting) {
-        return event.preventDefault();
-      }
+      if (this.isSubmitting) return;
 
       // Handle paying from balance
       // If there is no remaining payment return
       if (this.useBalanceOnly) {
-        this.handlePayingFromBalance();
-        return event.preventDefault();
+        return this.handlePayingFromBalance();
       }
 
       // Handle paying from a new card
@@ -249,7 +246,7 @@ export default {
         // check if agreed to terms and conditions
         if (!this.hasAgreed || this.$refs.creditCard.errors.length) {
           this.showErrors = true;
-          return event.preventDefault();
+          return;
         }
       }
 
@@ -268,7 +265,21 @@ export default {
       // TODO: handle payment fail
     },
     handlePayment() {
-      // TODO: add transaction
+      const { origin, search } = window.location;
+      const url = `${origin}/api/paymentGateway/checkout${search}`;
+
+      return fetch(url, {
+        method: 'POST',
+        body: JSON.stringify({ card: 123 }),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+        .then(res => res.json())
+        .then(() => {
+          // TODO
+        })
+        .finally(() => (this.isSubmitting = false))
     },
     fixed2,
   },

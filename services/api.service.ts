@@ -101,6 +101,7 @@ const TheService: ServiceSchema = {
 
           // paymentGateway
           'POST paymentGateway/:type/transaction': 'paymentGateway.transaction',
+          'POST paymentGateway/checkout': 'paymentGateway.checkout',
 
           // Payments p
           'POST payments/:id': 'payments.add',
@@ -344,16 +345,16 @@ const TheService: ServiceSchema = {
           }
 
           // Verify Base64 Basic auth
-          if (type === 'Hmac') {
-            return ctx
-              .call('stores.resolveBasicToken', { token })
-              .then((user: any) => {
-                if (user) {
-                  ctx.meta.token = token;
-                }
-                return user;
-              });
-          }
+          // if (type === 'Hmac') {
+          //   return ctx
+          //     .call('stores.resolveBasicToken', { token })
+          //     .then((user: any) => {
+          //       if (user) {
+          //         ctx.meta.token = token;
+          //       }
+          //       return user;
+          //     });
+          // }
         })
         .then((user: any) => {
           if (!user) {
