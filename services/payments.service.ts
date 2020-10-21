@@ -1,4 +1,4 @@
-import { Context, Errors, ServiceSchema } from 'moleculer';
+import { Context, Errors, GenericObject, ServiceSchema } from 'moleculer';
 
 import { PaymentsOpenapi } from '../utilities/mixins/openapi';
 import { Payment, PaymentInvoice } from '../utilities/types';
@@ -6,6 +6,7 @@ import { PaymentsValidation } from '../utilities/mixins/validation';
 import { Oms } from '../utilities/mixins/oms.mixin';
 import { MpError } from '../utilities/adapters';
 import { CheckoutPage } from '../utilities/mixins';
+import { sanitizeData } from '../utilities/lib';
 
 const TheService: ServiceSchema = {
   name: 'payments',
@@ -112,20 +113,31 @@ const TheService: ServiceSchema = {
 
     checkout: {
       auth: ['Hmac'],
-      async handler(ctx: Context): Promise<string> {
+      async handler(
+        ctx: Context<{ gateway: string; }, GenericObject>
+      ): Promise<string> {
+        const { gateway } = ctx.params;
         const { store } = ctx.meta;
-        const res = await ctx.call('cards.list', { store: store.url });
-        const sanitizedStore = ['url', 'external_data', 'credit'].reduce(
-          (output: any, key: string) => {
-            output[key] = store[key];
-            return output;
-          },
-          {}
+
+        const res = await ctx.call('cards.list', { store: store.url, gateway });
+
+        // Clean store data
+        const sanitizedStore = sanitizeData(
+          ['url', 'external_data', 'credit'],
+          store
+        );
+
+        // Clean cards data
+        const sanitizedCards = res.cards.map((card: GenericObject) =>
+          sanitizeData(
+            ['_id', 'currency', 'number', 'primary', 'title', 'expires'],
+            card
+          )
         );
 
         ctx.meta.$responseType = 'text/html';
         return this.renderCheckoutPage({
-          cards: res.cards,
+          cards: sanitizedCards,
           store: sanitizedStore,
         });
       },
