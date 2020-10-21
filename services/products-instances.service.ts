@@ -82,7 +82,7 @@ module.exports = {
         keys: ['#user'],
         ttl: 60 * 60,
       },
-      handler(ctx: Context<unknown, MetaParams>) {
+      handler(ctx: Context<unknown, MetaParams>): Promise<{ total: number }> {
         return ctx
           .call<ElasticSearchResponse, Partial<ElasticSearchType>>(
             'products.count',
@@ -153,7 +153,9 @@ module.exports = {
         ttl: 60 * 60,
         monitor: true,
       },
-      async handler(ctx: Context) {
+      async handler(
+        ctx: Context
+      ): Promise<{ products: Product[]; total: number }> {
         const products = await this.findProducts(ctx);
 
         // Emit async Event
@@ -232,7 +234,7 @@ module.exports = {
 
             const { store } = ctx.meta;
 
-            const bulk: any[] = [];
+            const bulk: GenericObject[] = [];
             if (newSKUs.length === 0) {
               throw new MpError(
                 'Products Instance Service',
@@ -274,8 +276,8 @@ module.exports = {
                 // Update products import quantity
                 if (response.items) {
                   const firstImport = response.items
-                    .filter((item: any) => item.update._version === 1)
-                    .map((item: any) => item.update._id);
+                    .filter((item: GenericObject) => item.update._version === 1)
+                    .map((item: GenericObject) => item.update._id);
                   const update = res.filter((product: Product) =>
                     firstImport.includes(`${store.consumer_key}-${product.sku}`)
                   );
@@ -288,7 +290,7 @@ module.exports = {
                     );
                   }
 
-                  const updateArr: any[] = [];
+                  const updateArr: GenericObject[] = [];
                   appSearchProducts.forEach((product: Product) => {
                     if (product) {
                       let index = -1;
@@ -424,7 +426,7 @@ module.exports = {
                 type: '_doc',
                 body: bulk,
               })
-              .then((res: any) => {
+              .then((res: { errors: boolean }) => {
                 if (res.errors === false) {
                   return {
                     status: 'success',

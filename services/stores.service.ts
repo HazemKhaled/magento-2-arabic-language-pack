@@ -2,6 +2,7 @@ import { Context, Errors, GenericObject, ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
 import jwt from 'jsonwebtoken';
 import { v1 as uuidv1, v4 as uuidv4 } from 'uuid';
+import { String } from 'lodash';
 
 import DbService from '../utilities/mixins/mongo.mixin';
 import { MpError } from '../utilities/adapters';
@@ -69,7 +70,7 @@ const TheService: ServiceSchema = {
         keys: ['consumerKey', 'id'],
         ttl: 60 * 60 * 24,
       },
-      handler(ctx: Context<StoreRequest>) {
+      handler(ctx: Context<StoreRequest>): Promise<Store> {
         let query: { _id?: string } | false = false;
         if (ctx.params.id) query = { _id: ctx.params.id };
         return this.adapter
@@ -94,7 +95,7 @@ const TheService: ServiceSchema = {
         keys: ['#user'],
         ttl: 60 * 60 * 24,
       },
-      handler(ctx: Context<unknown, MetaParams>) {
+      handler(ctx: Context<unknown, MetaParams>): Promise<Store> {
         return this.adapter
           .findOne({ consumer_key: ctx.meta.user })
           .then(async (res: Store | null) => {
@@ -136,7 +137,7 @@ const TheService: ServiceSchema = {
         keys: ['id', 'withoutBalance'],
         ttl: 60 * 60 * 24,
       },
-      handler(ctx: Context<StoreRequest>) {
+      handler(ctx: Context<StoreRequest>): Promise<Store> {
         return this.adapter
           .findById(ctx.params.id)
           .then(async (res: Store | null) => {
@@ -187,7 +188,7 @@ const TheService: ServiceSchema = {
         keys: ['filter'],
         ttl: 60 * 60 * 24,
       },
-      handler(ctx: Context<StoreRequest>) {
+      handler(ctx: Context<StoreRequest>): string | Promise<Store[]> {
         let params: {
           where?: GenericObject;
           limit?: number;
@@ -234,12 +235,14 @@ const TheService: ServiceSchema = {
         keys: ['id', 'page', 'perPage'],
         ttl: 60 * 60 * 24,
       },
-      handler(ctx: Context<StoreRequest>) {
+      handler(
+        ctx: Context<StoreRequest>
+      ): Promise<{ stores: Store; total: number }> {
         const query: GenericObject = {};
         if (ctx.params.id) {
           query._id = { $regex: new RegExp(`.*${ctx.params.id}.*`, 'i') };
         }
-        const findBody: any = { query };
+        const findBody: GenericObject = { query };
         findBody.limit = Number(ctx.params.perPage) || 50;
         findBody.offset =
           (Number(ctx.params.perPage) || 50) *
@@ -271,7 +274,7 @@ const TheService: ServiceSchema = {
         keys: ['key'],
         ttl: 60 * 60 * 24,
       },
-      handler(ctx: Context<StoreRequest>) {
+      handler(ctx: Context<StoreRequest>): number {
         return this.adapter.count({ query: ctx.params.query });
       },
     },
@@ -283,14 +286,14 @@ const TheService: ServiceSchema = {
      */
     create: {
       auth: ['Basic'],
-      async handler(ctx: Context<StoreRequest>) {
+      async handler(ctx: Context<StoreRequest>): Promise<Store> {
         // Clear cache
         this.broker.cacher.clean(`stores.sGet:${ctx.params.url}**`);
 
         // Sanitize request params
         const store: Store = this.sanitizeStoreParams(ctx.params, true);
 
-        const myStore = await this.adapter
+        const myStore: Store = await this.adapter
           .insert(store)
           .then((res: Store) => this.sanitizeResponse(res))
           .catch((err: { code: number }) => {
@@ -321,7 +324,7 @@ const TheService: ServiceSchema = {
      */
     update: {
       auth: ['Basic'],
-      async handler(ctx: Context<Store, MetaParams>) {
+      async handler(ctx: Context<Store, MetaParams>): Promise<Store> {
         // Save the ID separate into variable to use it to find the store
         const { id } = ctx.params;
         delete ctx.params.id;
@@ -445,22 +448,21 @@ const TheService: ServiceSchema = {
         });
         try {
           const omsStore = await ctx
-            .call<GenericObject, Partial<StoreRequest>>(
-              'oms.getCustomerByUrl',
-              {
-                storeId,
-              }
-            )
+            .call<unknown, Partial<StoreRequest>>('oms.getCustomerByUrl', {
+              storeId,
+            })
             .then(
               (response: GenericObject) => response.store,
-              err => {
+              (err: CommonError) => {
                 if (err.code !== 404) {
                   throw new MoleculerError(err.message, err.code || 500);
                 }
                 if (err.code === 404) {
-                  return this.createOmsStore(instance).then((value: any) => {
-                    return value;
-                  });
+                  return this.createOmsStore(instance).then(
+                    (value: unknown) => {
+                      return value;
+                    }
+                  );
                 }
               }
             );
@@ -503,7 +505,7 @@ const TheService: ServiceSchema = {
 
     meUpdate: {
       auth: ['Bearer'],
-      handler(ctx) {
+      handler(ctx): Promise<Store> {
         const { store } = ctx.meta;
         const { url: id } = store;
         if (ctx.params.external_data) {
@@ -521,7 +523,7 @@ const TheService: ServiceSchema = {
           );
         }
 
-        return ctx.call<Partial<Store>, Partial<Store>>('stores.update', {
+        return ctx.call<Store, Partial<Store>>('stores.update', {
           ...ctx.params,
           id,
         });
@@ -539,7 +541,7 @@ const TheService: ServiceSchema = {
      * @returns {Object} Logged in user with token
      */
     login: {
-      handler(ctx: Context<StoreRequest, StoreMeta>) {
+      handler(ctx: Context<StoreRequest, StoreMeta>): Promise<GenericObject> {
         const { consumerKey, consumerSecret } = ctx.params;
 
         return this.broker
@@ -602,7 +604,7 @@ const TheService: ServiceSchema = {
         keys: ['token'],
         ttl: 60 * 60 * 24 * 30,
       },
-      handler(ctx: Context<Partial<StoreRequest>>) {
+      handler(ctx: Context<Partial<StoreRequest>>): Promise<GenericObject> {
         return new this.Promise((resolve: any, reject: any) => {
           jwt.verify(
             ctx.params.token,
@@ -616,7 +618,7 @@ const TheService: ServiceSchema = {
             }
           );
         })
-          .then(async (decoded: { id: any }) => {
+          .then(async (decoded: { id: string }) => {
             if (decoded.id) {
               // Get instance info
               const instance = await this.broker.call('stores.findInstance', {
@@ -647,7 +649,9 @@ const TheService: ServiceSchema = {
         keys: ['token'],
         ttl: 60 * 60 * 24,
       },
-      handler(ctx: Context<Partial<StoreRequest>>) {
+      handler(
+        ctx: Context<Partial<StoreRequest>>
+      ): Promise<GenericObject | boolean> {
         return fetch(`${process.env.AUTH_BASEURL}/login`, {
           headers: {
             Authorization: `Basic ${ctx.params.token}`,
@@ -674,7 +678,7 @@ const TheService: ServiceSchema = {
      * @param {boolean} [create=false]
      * @returns
      */
-    sanitizeStoreParams(params, create = false) {
+    sanitizeStoreParams(params, create = false): unknown {
       const store: Store | GenericObject = {};
       // Some initial data when creating store
       if (create) {
@@ -751,7 +755,7 @@ const TheService: ServiceSchema = {
      * @param {Store} store
      * @returns {Store}
      */
-    sanitizeResponse(store: Store, omsData = false) {
+    sanitizeResponse(store: Store, omsData = false): Store {
       store.url = store._id;
       delete store._id;
       if (omsData) {

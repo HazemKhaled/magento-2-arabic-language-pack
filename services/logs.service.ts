@@ -28,7 +28,12 @@ const TheService: ServiceSchema = {
   actions: {
     add: {
       auth: ['Basic', 'Bearer'],
-      handler(ctx: Context<LogRequestParams, LogMetaParams>) {
+      handler(
+        ctx: Context<LogRequestParams, LogMetaParams>
+      ): Promise<
+        | { status?: string; message: string; code?: undefined }
+        | { status?: string; message: string; code: number }
+      > {
         const date = new Date();
         const {
           topic,
@@ -92,14 +97,20 @@ const TheService: ServiceSchema = {
       cache: {
         ttl: 60 * 60 * 24,
       },
-      handler(ctx: Context<LogRequestParams, LogMetaParams>) {
+      handler(
+        ctx: Context<LogRequestParams, LogMetaParams>
+      ): Promise<
+        | Log[]
+        | { message: string; code?: undefined }
+        | { message: string; code: number }
+      > {
         const body: {
           size?: number;
           from?: number;
           query?: { [key: string]: GenericObject };
           sort?: { [key: string]: string };
         } = {};
-        const query: { bool?: { filter?: GenericObject[] } } = {
+        const query: { bool?: { filter?: unknown[] } } = {
           bool: { filter: [] },
         };
         if (ctx.params.limit) body.size = parseInt(ctx.params.limit, 10);

@@ -54,6 +54,7 @@ export interface Order {
   error?: {
     statusCode: number;
   };
+  coupon?: string;
 }
 
 /**
@@ -284,7 +285,6 @@ export interface updateOderRequestParams {
 export interface OrderRequestParams extends Order {
   customerId?: string;
   orderId?: string;
-  coupon?: string;
   order_id?: string;
   limit?: number;
 }

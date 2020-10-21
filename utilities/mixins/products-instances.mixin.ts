@@ -1,4 +1,4 @@
-import { ServiceSchema } from 'moleculer';
+import { ServiceSchema, GenericObject } from 'moleculer';
 
 import { Product, Variation } from '../types';
 import { MpError } from '../adapters';
@@ -16,7 +16,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
      * @returns {Object} Product
      * @memberof Products-instances Mixin
      */
-    async fetchProduct(ctx) {
+    async fetchProduct(ctx): Promise<Product> {
       const { sku, currency, _source } = ctx.params;
       const { store: instance } = ctx.meta;
 
@@ -43,7 +43,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
 
       return this.productInstanceSanitizer(product, instance, currency);
     },
-    checkProductInstance(sku, instanceKey, _source) {
+    checkProductInstance(sku, instanceKey, _source): boolean {
       return this.broker
         .call('products.search', {
           index: 'products-instances',
@@ -60,9 +60,16 @@ export const ProductsInstancesMixin: ServiceSchema = {
             },
           },
         })
-        .then((res: any) => res.hits.total?.value > 0);
+        .then(
+          (res: { hits: { total?: { value: number } } }) =>
+            res.hits.total?.value > 0
+        );
     },
-    async productInstanceSanitizer(product, instance, currency) {
+    async productInstanceSanitizer(
+      product,
+      instance,
+      currency
+    ): Promise<{ product: Product }> {
       const currencyRate = await this.broker.call('currencies.getCurrency', {
         currencyCode: currency || instance.currency,
       });
@@ -91,7 +98,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
      * @returns {Array} Products
      * @memberof Products-instances Mixin
      */
-    async findProducts(ctx) {
+    async findProducts(ctx): Promise<{ products: Product[]; total: number }> {
       const {
         page,
         limit: size = 10,
@@ -141,7 +148,8 @@ export const ProductsInstancesMixin: ServiceSchema = {
         const products = instanceProductsFull.page.map(
           (pi: { _source: Partial<Product> }) => {
             const product = results.find(
-              (p: Product) => String(p.sku) === String(pi._source.sku)
+              (product: Product) =>
+                String(product.sku) === String(pi._source.sku)
             );
             if (product) {
               return {
@@ -229,7 +237,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
       scrollId = false,
       maxScroll = 0,
       sort,
-    }) {
+    }): Promise<{ page: any; totalProducts: any }> {
       page = parseInt(page, 10) || 1;
       let search = [];
       const mustNot: { [key: string]: any } = [{ term: { deleted: true } }];
@@ -405,7 +413,10 @@ export const ProductsInstancesMixin: ServiceSchema = {
      * @returns {Object} Status of delete product
      * @memberof Products-instances Mixin
      */
-    deleteProduct(sku, id) {
+    deleteProduct(
+      sku,
+      id
+    ): Promise<{ status: string; message: string; sku: string }> {
       return this.broker
         .call('products.update', {
           index: 'products-instances',
@@ -416,7 +427,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
               'ctx._source.remove("externalId");ctx._source.deleted = true;ctx._source.delete_date = new Date()',
           },
         })
-        .then((response: any) => {
+        .then((response: GenericObject) => {
           if (response._shards.successful > 0)
             return {
               status: 'success',

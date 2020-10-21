@@ -36,6 +36,7 @@ export interface Product {
   handling_time?: {
     to?: number;
   };
+  supplier?: string;
 }
 
 /**

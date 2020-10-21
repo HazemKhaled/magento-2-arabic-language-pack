@@ -13,7 +13,7 @@ const TheService: ServiceSchema = {
       name: 'renewSubscriptions',
       // Every minute
       cronTime: process.env.SUBSCRIPTION_CRON || '* * * * *',
-      async onTick() {
+      async onTick(): Promise<void> {
         const job = this.getJob('renewSubscriptions');
         job.stop();
         await this.call('subscription-cron.run').catch(this.logger.error);

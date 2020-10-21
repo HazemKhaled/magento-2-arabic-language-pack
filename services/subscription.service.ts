@@ -163,7 +163,7 @@ const TheService: ServiceSchema = {
     },
     create: {
       auth: ['Basic'],
-      async handler(ctx: Context<Subscription, MetaParams>) {
+      async handler(ctx: Context<Subscription, MetaParams>): Promise<unknown> {
         let coupon: Coupon = null;
         if (ctx.params.coupon) {
           coupon = await ctx

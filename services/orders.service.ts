@@ -52,7 +52,9 @@ const TheService: ServiceSchema = {
   actions: {
     createOrder: {
       auth: ['Bearer'],
-      async handler(ctx: Context<OrderRequestParams, MetaParams>) {
+      async handler(
+        ctx: Context<OrderRequestParams, MetaParams>
+      ): Promise<unknown> {
         // Initialize warnings array
         let warnings: { code: number; message: string }[] = [];
 
@@ -296,7 +298,6 @@ const TheService: ServiceSchema = {
             ''
           );
         }
-
         const result: OrderOMSResponse = await ctx
           .call('oms.createNewOrder', data)
           .then(async (result: OrderOMSResponse) => {
@@ -343,7 +344,7 @@ const TheService: ServiceSchema = {
               id: store.url,
               internal_data: { omsId: result.salesorder.store.id },
             })
-            .then(r => this.logger.info(r))
+            .then((res: Store) => this.logger.info(res))
             .catch((err: CommonError) => this.logger.error(err));
         }
 
@@ -377,7 +378,7 @@ const TheService: ServiceSchema = {
         const message: {
           status?: string;
           // Remove any later
-          data?: OrderOMSResponse['salesorder'] | any;
+          data?: OrderOMSResponse['salesorder'] | unknown;
           warnings?: GenericObject[];
           errors?: GenericObject[];
         } = {
@@ -417,7 +418,7 @@ const TheService: ServiceSchema = {
         let warnings: { code: number; message: string }[] = [];
         const { store } = ctx.meta;
 
-        const orderBeforeUpdate: GenericObject = await ctx.call<
+        const orderBeforeUpdate: Order = await ctx.call<
           Order,
           Partial<OrderRequestParams>
         >('orders.getOrder', {
@@ -442,7 +443,11 @@ const TheService: ServiceSchema = {
         // Change
         if (data.status === 'cancelled' || data.status === 'void') {
           return ctx
-            .call<GenericObject, Partial<Order>>('orders.deleteOrder', {
+            .call<
+              | { status: string; data?: { order_id?: string } }
+              | { message: string },
+              Partial<Order>
+            >('orders.deleteOrder', {
               id: ctx.params.id,
             })
             .then(res => {
@@ -457,7 +462,7 @@ const TheService: ServiceSchema = {
         const message: {
           status?: string;
           // Remove any later
-          data?: OrderOMSResponse['salesorder'] | any;
+          data?: OrderOMSResponse['salesorder'] | unknown;
           warnings?: GenericObject[];
           errors?: GenericObject[];
         } = {};
@@ -721,7 +726,7 @@ const TheService: ServiceSchema = {
         ],
         ttl: 60 * 60 * 24,
       },
-      async handler(ctx) {
+      async handler(ctx): Promise<OrderOMSResponse | unknown> {
         const { store } = ctx.meta;
 
         if (!store.internal_data?.omsId) {
@@ -761,7 +766,11 @@ const TheService: ServiceSchema = {
     },
     deleteOrder: {
       auth: ['Bearer'],
-      async handler(ctx) {
+      async handler(
+        ctx
+      ): Promise<
+        { status: string; data?: { order_id?: string } } | { message: string }
+      > {
         const orderBeforeUpdate: Order = await ctx.call<
           Order,
           Partial<OrderRequestParams>
@@ -780,14 +789,14 @@ const TheService: ServiceSchema = {
         this.sendReceiveLog('Cancel', ctx.params.id, store, ctx.params);
 
         return ctx
-          .call<GenericObject, Partial<OrderRequestParams>>(
+          .call<OrderOMSResponse, Partial<OrderRequestParams>>(
             'oms.deleteOrderById',
             {
               customerId: store.internal_data?.omsId,
               orderId: ctx.params.id,
             }
           )
-          .then(async (result: GenericObject) => {
+          .then(async (result: OrderOMSResponse) => {
             if (result.salesorder) {
               // Clean list cache
               this.broker.cacher.clean(
@@ -871,7 +880,7 @@ const TheService: ServiceSchema = {
             ));
           }
 
-          await ctx.call<GenericObject, Partial<InvoiceRequestParams>>(
+          await ctx.call<unknown, Partial<InvoiceRequestParams>>(
             'invoices.markInvoiceSent',
             {
               omsId: ctx.meta.store.internal_data.omsId,
@@ -880,7 +889,7 @@ const TheService: ServiceSchema = {
           );
 
           const applyCreditRes = await ctx.call<
-            GenericObject,
+            unknown,
             Partial<InvoiceRequestParams>
           >('invoices.applyCredits', {
             id: invoiceId,
@@ -1067,7 +1076,7 @@ const TheService: ServiceSchema = {
       shipping,
       shipment,
       params
-    ) {
+    ): { message: string; code: number }[] {
       const warnings = [];
       try {
         if (outOfStock.length > 0) {
@@ -1228,8 +1237,16 @@ const TheService: ServiceSchema = {
       }
       return true;
     },
-    async setTaxIds(instance, items) {
-      const taxesMsg: GenericObject[] = [];
+    async setTaxIds(
+      instance,
+      items
+    ): Promise<{
+      items: unknown;
+      isInclusive: boolean;
+      msgs: unknown[];
+      taxTotal: number;
+    }> {
+      const taxesMsg: unknown[] = [];
       let isInclusive = false;
       let taxTotal = 0;
       const itemsAfterTaxes = await Promise.all(

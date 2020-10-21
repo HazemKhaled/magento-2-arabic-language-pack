@@ -165,7 +165,7 @@ const TheService: ServiceSchema = {
         date: payment.date,
       });
     },
-    async cacheUpdate(payment, instance) {
+    async cacheUpdate(payment, instance): Promise<void> {
       const store = await this.broker.call('stores.sGet', { id: instance.url });
       store.credit = (store.credit || 0) + payment.amount;
       this.broker.cacher.set(`stores.sGet:${store.url}|undefined`, store);

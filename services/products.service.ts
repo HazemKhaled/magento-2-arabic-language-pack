@@ -1,4 +1,4 @@
-import { ServiceSchema, GenericObject } from 'moleculer';
+import { ServiceSchema } from 'moleculer';
 import ESService from 'moleculer-elasticsearch';
 
 import {
@@ -167,7 +167,7 @@ const TheService: ServiceSchema = {
         keys: ['sku'],
         ttl: 60 * 60 * 5,
       },
-      handler(ctx) {
+      handler(ctx): Promise<Product> {
         return ctx
           .call<ElasticSearchResponse, Partial<ElasticSearchType>>(
             'products.search',
@@ -211,7 +211,7 @@ const TheService: ServiceSchema = {
         keys: ['skus'],
         ttl: 60 * 60 * 5,
       },
-      handler(ctx) {
+      handler(ctx): Promise<Product[]> {
         return ctx
           .call<ElasticSearchResponse, Partial<ElasticSearchType>>(
             'products.search',
@@ -245,7 +245,7 @@ const TheService: ServiceSchema = {
         keys: ['skus'],
         ttl: 60 * 60 * 5,
       },
-      handler(ctx) {
+      handler(ctx): Promise<{ products: Product[] }> {
         return ctx
           .call<ElasticSearchResponse, Partial<ElasticSearchType>>(
             'products.search',
@@ -337,7 +337,7 @@ const TheService: ServiceSchema = {
       scrollId = false,
       trace = 0,
       maxScroll = 0
-    ) {
+    ): Promise<{ products: Product[]; total: number }> {
       limit = limit ? parseInt(limit, 10) : 10;
       page = page ? parseInt(page, 10) : 1;
       let result = [];
@@ -396,7 +396,7 @@ const TheService: ServiceSchema = {
         total: result.hits.total.value,
       };
     },
-    productSanitize(product) {
+    productSanitize(product): Partial<Product> {
       return {
         sku: product._source.sku,
         name: this.formatI18nText(product._source.name),

@@ -186,7 +186,7 @@ const TheService: ServiceSchema = {
       body: { [key: string]: unknown };
       bodyType: 'json' | 'formData';
       params: { [key: string]: string };
-    }): Promise<GenericObject> {
+    }): Promise<unknown> {
       let url = process.env.ZOHO_CRM_URL;
       let queryString = '';
       const headers: { [key: string]: string } = {
@@ -243,7 +243,7 @@ const TheService: ServiceSchema = {
           throw this.errorFactory(err.message, err.code);
         });
     },
-    transformStoreParams(params: CrmData): GenericObject {
+    transformStoreParams(params: CrmData): unknown {
       const newObj: GenericObject = {
         id: String(params.id),
       };
