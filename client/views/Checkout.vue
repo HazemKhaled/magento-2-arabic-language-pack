@@ -2,29 +2,28 @@
 .checkout
   form.checkout__form(
     name='checkoutForm',
-    action='https://www.paytr.com/odeme',
-    method='post',
+    @submit="handleFormSubmit"
   )
     .checkout__body
       .checkout__header
         h2 {{ $t("checkout.payWith") }}
 
       ul.checkout__cards-list
-        template(v-if='isFetchingCards')
+        template(v-if='isLoading')
           li(v-for='card in 2', :key='card')
             label.checkout__card
               input.checkout__card-input(type='radio')
               CreditCardPlaceholder(:isLoading="true")
 
         template(v-else)
-          li(v-for='card in cards', :key='card.payload.ctoken')
+          li(v-for='card in cards', :key='card._id')
             label.checkout__card
               input.checkout__card-input(
                 type='radio',
-                :id='`ctoken-${card.payload.ctoken}`',
+                :id='`cardId-${card._id}`',
                 name='payment_type',
-                :value='card.payload.ctoken',
-                v-model='ctoken'
+                :value='card._id',
+                v-model='cardId'
               )
               CreditCardPlaceholder(:cardData='card', :canDelete='false')
 
@@ -33,11 +32,11 @@
               type='radio',
               name='payment_type',
               value='',
-              v-model='ctoken',
+              v-model='cardId',
               @change='handleCardFocus'
             )
-            template(v-if='ctoken')
-              button.btn(@click='ctoken = ""')
+            template(v-if='cardId')
+              button.btn(@click='cardId = ""')
                 AppIcon(name='plus')
                 | {{ $t("checkout.useNewCreditCard") }}
             template(v-else)
@@ -49,7 +48,7 @@
             input.checkbox__input(type='checkbox', v-model='useSecurePayment')
             span {{ $t("checkout.secure") }}
 
-      .row(v-if='!ctoken')
+      .row(v-if='!cardId')
         .checkbox
           label.checkbox__label
             input.checkbox__input(
@@ -69,23 +68,6 @@
             )
             span.checkbox__label
               | {{ $t("checkout.useBalance") }} ({{ currency }} {{ balance }})
-
-        template(v-if='paytr')
-          input(
-            type='hidden',
-            v-for='[name, value] in Object.entries(paytr)',
-            :name='name',
-            :value='value'
-          )
-        template(v-if='card')
-          input(
-            type='hidden',
-            v-for='[name, value] in Object.entries(card)',
-            :name='name',
-            :value='value'
-          )
-        template(v-if='ctoken')
-          input(type='hidden', name='ctoken', :value='ctoken')
 
     .checkout__footer
       details.checkout__summary
@@ -114,7 +96,7 @@
             span {{ $t("checkout.balanceDeduction") }}
             span -{{ currency }}{{ fixed2(usedBalance) }}
 
-      .checkbox(v-if='!ctoken', :class='{ "checkbox--errors": !hasAgreed && showErrors }')
+      .checkbox(v-if='!cardId', :class='{ "checkbox--errors": !hasAgreed && showErrors }')
         label.checkbox__label(for='termsAgree')
           input#termsAgree.checkbox__input(
             type='checkbox',
@@ -129,8 +111,8 @@
 
       button.button.button--primary.button--block.checkout__submit(
         type='submit',
-        :class='{ "is-loading": submitting }',
-        :disable='isFetchingData || submitting'
+        :class='{ "is-loading": isSubmitting }',
+        :disable='isSubmitting'
       )
         template(v-if='useBalanceOnly')
           | {{ $t("checkout.confirm") }}
@@ -160,29 +142,31 @@ export default {
     useBalance: false,
     saveCard: true,
     isLoading: true,
-    isFetchingData: true,
-    isFetchingCards: false,
-    submitting: false,
+    isSubmitting: false,
     showErrors: false,
     currencyRate: 1,
     currency: '',
-    ctoken: '',
+    cardId: '',
     card: {},
-    paytr: {},
+
+    // Will get it from query params
     purchaseUnites: [],
+
+    // Will fetched from the server
     cards: [],
     store: {},
   }),
   computed: {
-    utoken() {
-      return this.store.external_data?.paytr?.utoken;
-    },
     balance() {
       return round((this.store.credit || 0) * this.currencyRate);
     },
     canUseBalance() {
-      // TODO: handle charging balance
-      return this.balance;
+      // Can use balance only if there's no any charge unit
+      if (this.purchaseUnites.some(({ type }) => type === 'charge')) {
+        return false;
+      }
+
+      return this.balance > 0;
     },
     usedBalance() {
       return this.useBalance ? Math.min(this.balance, this.amount) : 0;
@@ -211,30 +195,13 @@ export default {
         originalPrice: `${this.currency}${fixed2(originalPrice)}`,
       });
     },
-    paytrParams() {
-      return {
-        amount: this.paymentTotal,
-        purchase_units: this.purchaseUnits,
-        useSecurePayment: this.useSecurePayment,
-        gateway: 'paytr',
-      };
-    },
   },
   watch: {
-    canUseBalance: {
-      handler(val) {
-        this.useBalance = val;
-      },
-      immediate: true,
-    },
-    ctoken(val) {
+    cardId(val) {
       this.useSecurePayment = true;
       if (!val) {
         this.$nextTick(this.handleCardFocus);
       }
-    },
-    paytrParams() {
-      this.updatePaytr();
     },
   },
   created() {
@@ -246,9 +213,9 @@ export default {
 
     this.purchaseUnites = queryParams['purchase_units'] || [];
     this.currency = this.purchaseUnites[0].amount.currency_code;
+    this.useBalance = !!this.balance;
 
-    this.updatePaytr();
-    this.isLoading = false;
+    this.$nextTick(() => (this.isLoading = false));
   },
   methods: {
     fetchInitialState() {
@@ -258,17 +225,12 @@ export default {
       );
 
       if (this.cards.length) {
-        this.ctoken = this.cards[0]?.payload.ctoken;
+        this.cardId = this.cards[0]?._id;
       }
-    },
-    updatePaytr() {
-      this.isFetchingData = true;
-      const params = this.paytrParams;
-      // TODO: get paytr params
     },
     handleFormSubmit(event) {
       // If from already submitted do nothing
-      if (this.submitting) {
+      if (this.isSubmitting) {
         return event.preventDefault();
       }
 
@@ -280,7 +242,7 @@ export default {
       }
 
       // Handle paying from a new card
-      if (!this.ctoken) {
+      if (!this.cardId) {
         // Validate the card data
         this.$refs.creditCard.validateAll();
 
@@ -292,34 +254,20 @@ export default {
       }
 
       // Submit the form
-      this.storePayment();
-      this.submitting = true;
+      this.handlePayment();
+      this.isSubmitting = true;
     },
     handleCardFocus() {
       this.$refs.creditCard?.$el.scrollIntoView({ behavior: 'smooth' });
     },
     handlePayingFromBalance() {
-      this.submitting = true;
+      this.isSubmitting = true;
 
       // TODO: handle paying purchase_units
 
       // TODO: handle payment fail
     },
-    storePayment() {
-      // Save transaction reference
-      const payment = {
-        id: this.paytr.merchant_oid,
-        requestDateTime: new Date().toISOString(),
-        amount: this.paymentTotal,
-        purchase_units: this.purchaseUnits,
-        store: this.store.url,
-        debug: this.debug,
-        gateway: 'paytr',
-        status: 0,
-      };
-
-      opener?.dataLayer.push({ payment });
-
+    handlePayment() {
       // TODO: add transaction
     },
     fixed2,

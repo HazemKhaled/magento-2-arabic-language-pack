@@ -1,5 +1,6 @@
 import { ServiceSchema } from 'moleculer';
 
+const availablePaymentGateways = ['paytr'];
 const checkoutValueProps = {
   currency_code: {
     type: 'enum',
@@ -104,6 +105,10 @@ export const PaymentsValidation: ServiceSchema = {
         hmac: {
           type: 'string',
         },
+        gateway: {
+          type: 'enum',
+          values: availablePaymentGateways,
+        },
         purchase_units: {
           type: 'array',
           items: {
@@ -117,7 +122,10 @@ export const PaymentsValidation: ServiceSchema = {
                 type: 'enum',
                 values: ['order', 'subscription', 'charge'],
               },
-              data: 'object',
+              data: {
+                type: 'object',
+                optional: true,
+              },
               amount: {
                 type: 'object',
                 props: {

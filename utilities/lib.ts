@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import qs, { ParsedQs } from 'qs';
 import { MoleculerRequest } from 'moleculer-express';
 import { Errors } from 'moleculer-web';
-import { Context } from 'moleculer';
+import { Context, GenericObject } from 'moleculer';
 
 import { Store } from './types';
 
@@ -64,4 +64,22 @@ export function compareHmac(
   }
 
   return generatedHash === hmac;
+}
+
+/**
+ * Sanitize date based on array of fields
+ * @param fields
+ * @param data
+ */
+export function sanitizeData(
+  fields: string[],
+  data: GenericObject
+): GenericObject {
+  return fields.reduce(
+    (output: GenericObject, field: string): GenericObject => {
+      if (data[field]) output[field] = data[field];
+      return output;
+    },
+    {}
+  );
 }

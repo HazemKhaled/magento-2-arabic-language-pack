@@ -9,7 +9,7 @@
       .cc__number
         span {{ cNumber }}
       .cc__text
-        | {{ $t('checkout.expires') }}: {{ cardData.payload.month }} / {{ cardData.payload.year }}
+        | {{ $t('checkout.expires') }}: {{ cardData.expires }}
       .cc__title
         | {{ cardData.title }}
 </template>
