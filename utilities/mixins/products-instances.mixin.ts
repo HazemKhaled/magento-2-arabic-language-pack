@@ -146,6 +146,12 @@ export const ProductsInstancesMixin: ServiceSchema = {
             if (product) {
               return {
                 sku: product.sku,
+                archive:
+                  product.archive !== undefined
+                    ? product.archive
+                    : product.variations.filter(
+                        (variation: Product) => variation.quantity > 0
+                      ).length === 0,
                 name: this.formatI18nText(product.name),
                 description: this.formatI18nText(product.description),
                 supplier: product.seller_id,
