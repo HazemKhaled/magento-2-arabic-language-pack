@@ -213,7 +213,7 @@ export default {
 
     this.purchaseUnites = queryParams['purchase_units'] || [];
     this.currency = this.purchaseUnites[0].amount.currency_code;
-    this.useBalance = !!this.balance;
+    this.useBalance = this.canUseBalance
 
     this.$nextTick(() => (this.isLoading = false));
   },
