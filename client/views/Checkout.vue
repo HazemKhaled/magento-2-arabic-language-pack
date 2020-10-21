@@ -127,7 +127,7 @@
         dt {{ $t("checkout.total") }} :
         dd {{ fixed2(paymentTotal) }} {{ currency }}
 
-      button.checkout__submit(
+      button.button.button--primary.button--block.checkout__submit(
         type='submit',
         :class='{ "is-loading": submitting }',
         :disable='isFetchingData || submitting'
@@ -360,7 +360,7 @@ export default {
 
 .checkout__footer
   padding: 20px
-  box-shadow: 0 -15px 20px -15px alpha($gray, 0.5)
+  box-shadow: 0 -15px 20px -15px $color-shadow
 
 .checkout__total
   display: flex

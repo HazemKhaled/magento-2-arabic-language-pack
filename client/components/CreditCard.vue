@@ -203,9 +203,9 @@ const CardIcons = {
   display: inline-block
   padding: 10px 20px
   width: 100%
-  border: 1px solid lighten($gray, 70%)
+  border: 1px solid $light
   border-radius: 6px
-  box-shadow: 0 0 5px alpha($gray, 0.3)
+  box-shadow: 0 0 5px $color-shadow
   direction: ltr
   .rtls &
     text-align: right
