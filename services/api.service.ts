@@ -343,18 +343,6 @@ const TheService: ServiceSchema = {
                 return user;
               });
           }
-
-          // Verify Base64 Basic auth
-          // if (type === 'Hmac') {
-          //   return ctx
-          //     .call('stores.resolveBasicToken', { token })
-          //     .then((user: any) => {
-          //       if (user) {
-          //         ctx.meta.token = token;
-          //       }
-          //       return user;
-          //     });
-          // }
         })
         .then((user: any) => {
           if (!user) {
