@@ -17,7 +17,6 @@ describe("Test 'api' endpoints", () => {
         return request(apiService.server)
             .get(`/api/stores/${encodeURI('https://yahoo.com')}`)
             .then(res => {
-              console.log(res.body)
                 expect(res.body).toEqual({ status: "Active" });
             });
     });
