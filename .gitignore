@@ -9,6 +9,7 @@ acme.json
 .env
 deployDev.sh
 *.js
+!*.spec.js
 *.js.map
 currency.db
 openapi.json

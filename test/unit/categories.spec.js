@@ -2,8 +2,8 @@ const { ServiceBroker } = require('moleculer');
 const { ValidationError } = require('moleculer').Errors;
 const TestService = require('../../services/categories.service');
 
-describe("Test 'categories.list' service", () => {
-  const broker = new ServiceBroker();
+describe("Test 'categories' service", () => {
+  const broker = new ServiceBroker({ logger: false });
   broker.createService(TestService);
 
   beforeAll(() => broker.start());
