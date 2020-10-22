@@ -1,4 +1,4 @@
-import { Errors, ServiceSchema } from 'moleculer';
+import { Errors, ServiceSchema, GenericObject } from 'moleculer';
 import ESService from 'moleculer-elasticsearch';
 
 import { MpError } from '../utilities/adapters';
@@ -58,7 +58,7 @@ const TheService: ServiceSchema = {
      * @returns {Category[]}
      */
     fetchCategories(params = {}): Category[] {
-      const query: any = {
+      const query: GenericObject = {
         bool: {
           filter: [],
           should: [],
@@ -101,7 +101,7 @@ const TheService: ServiceSchema = {
                 message: 'There are no categories at the moment.',
               };
             }
-            const response: any = {
+            const response: GenericObject = {
               count: result.hits.total.value,
               categories: result.hits.hits
                 .filter(cat => cat._id !== params.parentId)

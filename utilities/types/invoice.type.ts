@@ -73,6 +73,17 @@ export interface Invoice {
     invoiceId?: string;
   };
   omsId?: string;
+  invoice_id?: string;
+  customer_name?: string;
+  customer_id?: string;
+  invoice_number?: string;
+  reference_number?: string;
+  due_date?: string;
+  due_days?: string;
+  created_time?: string;
+  last_modified_time?: string;
+  shipping_charge?: number;
+  coupon?: string;
 }
 
 /**

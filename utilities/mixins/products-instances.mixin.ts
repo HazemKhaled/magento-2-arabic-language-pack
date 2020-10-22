@@ -445,7 +445,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
         });
     },
 
-    async search({ storeKey, fields, query, size }) {
+    async search({ storeKey, fields, query, size }): Promise<Product[]> {
       query.filter = query.filter || [];
       query.filter.push({
         term: {

@@ -48,7 +48,7 @@ const TaxesService: ServiceSchema = {
     },
     tUpdate: {
       auth: ['Basic'],
-      async handler(ctx: Context<any>): Promise<RTax> {
+      async handler(ctx: Context<GenericObject>): Promise<RTax> {
         const { id } = ctx.params;
         const $set = ctx.params;
         $set.updatedAt = new Date();
@@ -168,7 +168,9 @@ const TaxesService: ServiceSchema = {
     },
     tDelete: {
       auth: ['Basic'],
-      async handler(ctx: Context<RTax>) {
+      async handler(
+        ctx: Context<RTax>
+      ): Promise<{ tax: RTax; message: string }> {
         const taxDeleteData = await this.adapter
           .removeById(ctx.params.id)
           .then((tax: DbTax) => {
@@ -206,7 +208,7 @@ const TaxesService: ServiceSchema = {
         keys: ['query'],
         ttl: 60 * 60,
       },
-      handler(ctx: Context<TaxRequestParams>) {
+      handler(ctx: Context<TaxRequestParams>): Promise<number> {
         return this.adapter.count({ query: ctx.params.query }).catch(() => {
           throw new MoleculerError(
             'There is an error fetching the taxes total',

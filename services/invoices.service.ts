@@ -29,7 +29,9 @@ const TheService: ServiceSchema = {
         keys: ['#user', 'page', 'limit', 'reference_number', 'invoice_number'],
         ttl: 60,
       },
-      handler(ctx: Context<DynamicRequestParams, MetaParams>) {
+      handler(
+        ctx: Context<DynamicRequestParams, MetaParams>
+      ): Promise<{ invoices: Invoice[] }> {
         const { store } = ctx.meta;
 
         const keys: { [key: string]: string } = {
@@ -67,7 +69,7 @@ const TheService: ServiceSchema = {
     },
     create: {
       auth: ['Basic'],
-      async handler(ctx: Context<InvoiceRequestParams>) {
+      async handler(ctx: Context<InvoiceRequestParams>): Promise<unknown> {
         const instance: Store = await ctx.call<Store, Partial<Store>>(
           'stores.findInstance',
           {
@@ -135,16 +137,20 @@ const TheService: ServiceSchema = {
       },
     },
     updateInvoiceStatus: {
-      handler(ctx: Context<Partial<InvoiceRequestParams>>) {
-        return ctx.call<Invoice, Partial<InvoiceRequestParams>>(
-          'oms.updateInvoiceStatus',
-          ctx.params
-        );
+      handler(
+        ctx: Context<Partial<InvoiceRequestParams>>
+      ): Promise<{ code?: number; message: string }> {
+        return ctx.call<
+          { code?: number; message: string },
+          Partial<InvoiceRequestParams>
+        >('oms.updateInvoiceStatus', ctx.params);
       },
     },
     applyCredits: {
       auth: ['Bearer'],
-      async handler(ctx: Context<Partial<InvoiceRequestParams>>) {
+      async handler(
+        ctx: Context<Partial<InvoiceRequestParams>>
+      ): Promise<InvoiceResponse> {
         const store: Store = await ctx.call<Store>('stores.me');
 
         const { params } = ctx;
@@ -199,7 +205,9 @@ const TheService: ServiceSchema = {
       },
     },
     createOrderInvoice: {
-      async handler(ctx: Context<InvoiceRequestParams>) {
+      async handler(
+        ctx: Context<InvoiceRequestParams>
+      ): Promise<{ invoice: Invoice; code?: number; message?: string }> {
         const instance: Store = await ctx.call<Store, Partial<Store>>(
           'stores.findInstance',
           {
@@ -221,7 +229,9 @@ const TheService: ServiceSchema = {
       },
     },
     markInvoiceSent: {
-      handler(ctx: Context<InvoiceRequestParams>) {
+      handler(
+        ctx: Context<InvoiceRequestParams>
+      ): Promise<{ code: number; message: string }> {
         return ctx
           .call<InvoiceResponse, Partial<InvoiceRequestParams>>(
             'oms.markInvoiceToSent',
@@ -237,7 +247,9 @@ const TheService: ServiceSchema = {
     },
     renderInvoice: {
       params: {},
-      async handler(ctx: Context<InvoiceRequestParams, MetaParams>) {
+      async handler(
+        ctx: Context<InvoiceRequestParams, MetaParams>
+      ): Promise<unknown> {
         const store: Store = await ctx.call<Store, Partial<Store>>(
           'stores.findInstance',
           {
@@ -263,7 +275,7 @@ const TheService: ServiceSchema = {
     },
   },
   methods: {
-    invoiceSanitize(invoice) {
+    invoiceSanitize(invoice): Partial<Invoice> {
       return {
         invoice_id: invoice.invoiceId,
         customer_name: invoice.customerName,
@@ -283,7 +295,7 @@ const TheService: ServiceSchema = {
         coupon: invoice.coupon,
       };
     },
-    async cacheUpdate(invoice, instance) {
+    async cacheUpdate(invoice, instance): Promise<void> {
       const invoices = { invoices: [this.invoiceSanitize(invoice)] };
       this.broker.cacher.set(
         `invoices.get:${instance.consumer_key}|undefined|undefined|${invoice.referenceNumber}|undefined`,

@@ -1,4 +1,4 @@
-import { Context, Errors, ServiceSchema } from 'moleculer';
+import { Context, Errors, ServiceSchema, GenericObject } from 'moleculer';
 
 import DbService from '../utilities/mixins/mongo.mixin';
 import { Coupon, CommonError, CouponQueryType } from '../utilities/types';
@@ -192,7 +192,7 @@ const TheService: ServiceSchema = {
      * @param {({_id: string})} obj
      * @returns
      */
-    normalizeId(obj: { _id: string }) {
+    normalizeId(obj: { _id: string }): GenericObject {
       const newObj = {
         code: obj._id,
         ...obj,
@@ -206,7 +206,7 @@ const TheService: ServiceSchema = {
      * @param {*} params
      * @returns Coupon
      */
-    createCouponSanitize(params) {
+    createCouponSanitize(params): Coupon {
       const coupon: Coupon = {
         _id: params.code,
         // Coupon type 'salesorder | subscription'
@@ -235,7 +235,7 @@ const TheService: ServiceSchema = {
      *
      * @param {Coupon} params
      */
-    couponTypeCheck(params) {
+    couponTypeCheck(params): void {
       if (
         params.type === 'salesorder' &&
         (!params.discount || Object.keys(params.discount).length < 1)
@@ -292,7 +292,7 @@ const TheService: ServiceSchema = {
      *
      * @param {Coupon} params
      */
-    couponListValidation(params) {
+    couponListValidation(params): void {
       if (params.isValid && !params.totalAmount && params.totalAmount !== 0) {
         const error = new MoleculerError(
           'Parameters validation error!',

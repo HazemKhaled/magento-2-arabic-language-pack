@@ -17,7 +17,6 @@ import {
   ProductSearchParams,
   MetaParams,
   ElasticSearchType,
-  DynamicRequestParams,
   CommonError,
   ElasticSearchResponse,
 } from '../utilities/types';
@@ -66,7 +65,7 @@ module.exports = {
         keys: ['#user', 'sku', 'currency'],
         ttl: 60 * 60,
       },
-      handler(ctx: Context) {
+      handler(ctx: Context): Promise<Product> {
         return this.fetchProduct(ctx);
       },
     },
@@ -171,7 +170,7 @@ module.exports = {
      */
     deleteInstanceProduct: {
       auth: ['Bearer'],
-      handler(ctx: Context<Product, MetaParams>) {
+      handler(ctx: Context<Product, MetaParams>): Promise<Product> {
         const { sku } = ctx.params;
 
         return this.deleteProduct(sku, ctx.meta.user)
@@ -220,7 +219,7 @@ module.exports = {
      */
     import: {
       auth: ['Bearer'],
-      handler(ctx: Context<Products, MetaParams>) {
+      handler(ctx: Context<Products, MetaParams>): Promise<GenericObject> {
         const skus = ctx.params.products.map((i: { sku: string }) => i.sku);
         return ctx
           .call<Product[], Partial<Products>>('products.getProductsBySku', {
@@ -350,8 +349,10 @@ module.exports = {
      */
     instanceUpdate: {
       auth: ['Bearer'],
-      handler(ctx: Context<UpdateProductParams, MetaParams>) {
-        const body: { [key: string]: any } = {};
+      handler(
+        ctx: Context<UpdateProductParams, MetaParams>
+      ): Promise<{ status: string; message: string; sku: string }> {
+        const body: { [key: string]: unknown } = {};
         if (ctx.params.externalUrl) body.externalUrl = ctx.params.externalUrl;
         if (ctx.params.externalId) body.externalId = ctx.params.externalId;
         if (ctx.params.variations) body.variations = ctx.params.variations;
@@ -404,8 +405,8 @@ module.exports = {
      */
     bulkProductInstance: {
       auth: ['Bearer'],
-      handler(ctx: Context<Products, MetaParams>) {
-        const bulk: any[] = [];
+      handler(ctx: Context<Products, MetaParams>): Promise<{ status: string }> {
+        const bulk: GenericObject[] = [];
         ctx.params.productInstances.forEach((pi: GenericObject) => {
           bulk.push({
             update: {
@@ -443,7 +444,9 @@ module.exports = {
 
     pSearch: {
       auth: ['Bearer'],
-      handler(ctx: Context<ProductSearchParams, MetaParams>) {
+      handler(
+        ctx: Context<ProductSearchParams, MetaParams>
+      ): Promise<Product[]> {
         ctx.params.storeKey = ctx.meta.store.consumer_key;
         return this.search(ctx.params);
       },

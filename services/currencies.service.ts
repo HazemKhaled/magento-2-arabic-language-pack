@@ -50,7 +50,7 @@ const TheService: ServiceSchema = {
       cache: {
         ttl: 60 * 60,
       },
-      handler() {
+      handler(): Promise<Currency[]> {
         return fetch('https://openexchangerates.org/api/latest.json', {
           method: 'get',
           headers: { Authorization: `Token ${process.env.OPENEXCHANGE_TOKEN}` },

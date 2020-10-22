@@ -1,4 +1,4 @@
-import { Context, Errors, ServiceSchema } from 'moleculer';
+import { Context, Errors, ServiceSchema, GenericObject } from 'moleculer';
 
 import DbService from '../utilities/mixins/mongo.mixin';
 import { MembershipOpenapi } from '../utilities/mixins/openapi';
@@ -104,7 +104,7 @@ const TheService: ServiceSchema = {
       },
       handler(ctx): Promise<Membership[]> {
         const { country } = ctx.params;
-        let query: { [key: string]: any } = {};
+        let query: { [key: string]: GenericObject } = {};
         if (ctx.params.country) {
           query = {
             $or: [{ country }, { country: { $exists: false } }],
@@ -172,8 +172,8 @@ const TheService: ServiceSchema = {
     async normalize(
       obj: { _id: string; country?: string; cost: number },
       country: string
-    ) {
-      let taxData: any = { value: 0 };
+    ): Promise<GenericObject> {
+      let taxData: GenericObject = { value: 0 };
       if (country || obj.country) {
         taxData =
           (await this.getTaxWithCalc(country || obj.country, {
@@ -204,8 +204,8 @@ const TheService: ServiceSchema = {
     async listNormalize(
       objArr: { _id: string; country?: string; cost: number }[],
       country: string
-    ) {
-      let taxData: any = {};
+    ): Promise<GenericObject> {
+      let taxData: GenericObject = {};
       if (country || objArr[0].country) {
         taxData = await this.getItemTax(country || objArr[0].country, {
           taxClass: 'service',
@@ -233,14 +233,14 @@ const TheService: ServiceSchema = {
         return newObj;
       });
     },
-    async applyCouponDiscount(couponCode, membership) {
+    async applyCouponDiscount(couponCode, membership): Promise<void> {
       const coupon: Coupon = await this.broker
         .call('coupons.get', {
           id: couponCode,
           membership: membership.id,
           type: 'subscription',
         })
-        .then(null, (err: any) => err);
+        .then(null, (err: unknown) => err);
       if (coupon instanceof Error) {
         throw new MoleculerError(coupon.message, Number(coupon.code));
       }

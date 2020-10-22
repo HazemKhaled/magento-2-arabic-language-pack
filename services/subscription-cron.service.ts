@@ -26,7 +26,7 @@ const TheService: ServiceSchema = {
   actions: {
     run: {
       cache: false,
-      async handler(ctx: Context) {
+      async handler(ctx: Context): Promise<null | Subscription> {
         const subscription: any = await ctx
           .call<GenericObject, Partial<Subscription>>(
             'subscription.getSubscriptionByExpireDate',

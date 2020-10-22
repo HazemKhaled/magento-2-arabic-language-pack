@@ -2,7 +2,6 @@ import { Context, Errors, GenericObject, ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
 import jwt from 'jsonwebtoken';
 import { v1 as uuidv1, v4 as uuidv4 } from 'uuid';
-import { String } from 'lodash';
 
 import DbService from '../utilities/mixins/mongo.mixin';
 import { MpError } from '../utilities/adapters';
@@ -441,7 +440,7 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 * 3,
         keys: ['id', 'timestamp'],
       },
-      async handler(ctx) {
+      async handler(ctx): Promise<unknown> {
         const storeId = ctx.params.id;
         const instance: Store = await ctx.call('stores.findInstance', {
           id: storeId,
@@ -780,7 +779,7 @@ const TheService: ServiceSchema = {
      *
      * @param {Object} user
      */
-    generateJWT(user) {
+    generateJWT(user): string {
       const today = new Date();
       const exp = new Date(today);
       exp.setDate(today.getDate() + 60);
@@ -818,7 +817,7 @@ const TheService: ServiceSchema = {
       };
     },
 
-    async cacheUpdate(_myStore) {
+    async cacheUpdate(_myStore): Promise<void> {
       const store = await this.broker.call('stores.sGet', { id: _myStore.url });
       const myStore = {
         ...store,

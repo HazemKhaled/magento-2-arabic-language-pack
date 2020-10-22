@@ -1,4 +1,4 @@
-import { Context, ServiceSchema } from 'moleculer';
+import { Context, ServiceSchema, GenericObject } from 'moleculer';
 import ApiGateway from 'moleculer-web';
 import compression from 'compression';
 
@@ -193,13 +193,13 @@ const TheService: ServiceSchema = {
         },
         async onError(
           req: IncomingRequest,
-          res: any,
+          res: GenericObject,
           err: {
             message: string;
             code: number;
             name: string;
             type: string;
-            data: any[];
+            data: unknown[];
           }
         ): Promise<void> {
           res.setHeader('Content-Type', 'application/json; charset=utf-8');

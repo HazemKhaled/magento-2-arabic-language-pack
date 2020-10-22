@@ -1,4 +1,4 @@
-import { ServiceSchema } from 'moleculer';
+import { ServiceSchema, GenericObject } from 'moleculer';
 import ESService from 'moleculer-elasticsearch';
 
 import {
@@ -52,7 +52,7 @@ const TheService: ServiceSchema = {
         ],
         ttl: 30 * 60,
       },
-      handler(ctx) {
+      handler(ctx): Promise<{ products: Product[]; total: number }> {
         const filter = [];
         filter.push({
           term: {
@@ -102,7 +102,7 @@ const TheService: ServiceSchema = {
               'categories.id': parseInt(ctx.params.category_id, 10),
             },
           });
-        const sort: { [key: string]: any } = {};
+        const sort: { [key: string]: GenericObject } = {};
         switch (ctx.params.sortBy) {
           case 'salesDesc':
             sort.sales_qty = { order: 'desc' };
@@ -280,7 +280,7 @@ const TheService: ServiceSchema = {
       },
     },
     updateQuantityAttributes: {
-      async handler(ctx) {
+      async handler(ctx): Promise<GenericObject> {
         const bulk = ctx.params.products.map(
           (product: {
             id: string;

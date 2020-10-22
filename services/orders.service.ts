@@ -413,7 +413,9 @@ const TheService: ServiceSchema = {
     },
     updateOrder: {
       auth: ['Bearer'],
-      async handler(ctx: Context<OrderRequestParams, MetaParams>) {
+      async handler(
+        ctx: Context<OrderRequestParams, MetaParams>
+      ): Promise<unknown> {
         // Initialize warnings array
         let warnings: { code: number; message: string }[] = [];
         const { store } = ctx.meta;
@@ -675,7 +677,9 @@ const TheService: ServiceSchema = {
         keys: ['#user', 'order_id'],
         ttl: 60 * 60,
       },
-      async handler(ctx: Context<OrderRequestParams, MetaParams>) {
+      async handler(
+        ctx: Context<OrderRequestParams, MetaParams>
+      ): Promise<{ message: string } | SalesOrder> {
         const { store } = ctx.meta;
 
         if (!store.internal_data?.omsId) {
@@ -828,7 +832,9 @@ const TheService: ServiceSchema = {
     },
     payOrder: {
       auth: ['Bearer'],
-      async handler(ctx: Context<OrderRequestParams, MetaParams>) {
+      async handler(
+        ctx: Context<OrderRequestParams, MetaParams>
+      ): Promise<GenericObject> {
         const store: Store = await ctx.call<Store, Partial<Store>>(
           'stores.sGet',
           {
@@ -941,7 +947,9 @@ const TheService: ServiceSchema = {
         keys: ['order_id'],
         ttl: 60 * 6,
       },
-      async handler(ctx: Context<OrderRequestParams, OrderMetaParams>) {
+      async handler(
+        ctx: Context<OrderRequestParams, OrderMetaParams>
+      ): Promise<{ message: string; code: number }[]> {
         const { order_id } = ctx.params;
         const { store: instance } = ctx.meta;
         const order: Order = await ctx.call<Order, Partial<OrderRequestParams>>(

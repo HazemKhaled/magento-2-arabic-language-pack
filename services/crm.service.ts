@@ -323,7 +323,7 @@ const TheService: ServiceSchema = {
       }
       return newObj;
     },
-    errorFactory(msg, code) {
+    errorFactory(msg, code): CommonError {
       const error = new MoleculerError(msg, code);
       error.name = 'CRM Service';
       return error;

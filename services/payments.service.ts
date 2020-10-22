@@ -1,4 +1,4 @@
-import { Context, Errors, ServiceSchema, GenericObject } from 'moleculer';
+import { Context, ServiceSchema, GenericObject } from 'moleculer';
 
 import { PaymentsOpenapi } from '../utilities/mixins/openapi';
 import {
@@ -21,7 +21,9 @@ const TheService: ServiceSchema = {
   actions: {
     add: {
       auth: ['Basic'],
-      async handler(ctx: Context<PaymentRequestParams>) {
+      async handler(
+        ctx: Context<PaymentRequestParams>
+      ): Promise<PaymentResponse> {
         const instance: Store = await ctx.call<Store, Partial<Store>>(
           'stores.findInstance',
           {
@@ -95,7 +97,9 @@ const TheService: ServiceSchema = {
         keys: ['#user', 'page', 'limit', 'reference_number', 'payment_mode'],
         ttl: 60 * 60 * 24,
       },
-      async handler(ctx: Context<GetPaymentRequestParams, MetaParams>) {
+      async handler(
+        ctx: Context<GetPaymentRequestParams, MetaParams>
+      ): Promise<{ payments: Payment[] }> {
         const { store } = ctx.meta;
         const keys: { [key: string]: string } = {
           page: 'page',

@@ -452,7 +452,7 @@ const TheService: ServiceSchema = {
     },
     getSubscriptionByExpireDate: {
       cache: false,
-      async handler(ctx: Context<Subscription>) {
+      async handler(ctx: Context<Subscription>): Promise<Subscription> {
         const minDate = new Date();
         minDate.setDate(minDate.getDate() - (ctx.params.afterDays || 0));
         const maxDate = new Date();
@@ -533,7 +533,7 @@ const TheService: ServiceSchema = {
     },
     updateSubscription: {
       auth: ['Basic'],
-      handler(ctx: Context<any>) {
+      handler(ctx: Context<any>): Promise<Subscription> {
         let $set: Partial<Subscription> = {};
         const { params } = ctx;
         if (ctx.params.retries) {
@@ -624,7 +624,7 @@ const TheService: ServiceSchema = {
     },
     cancel: {
       auth: ['Basic'],
-      handler(ctx) {
+      handler(ctx): Promise<Subscription> {
         return this.adapter
           .updateById(ctx.params.id, { $set: { status: 'cancelled' } })
           .then(async (res: any) => {
