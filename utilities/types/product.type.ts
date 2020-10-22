@@ -29,9 +29,14 @@ export interface Product {
   createdAt?: Date;
   import_qty: number;
   ship_to: string[];
+  index?: string;
+  body?: GenericObject;
+  type?: string;
+  id?: string;
   handling_time?: {
     to?: number;
   };
+  supplier?: string;
 }
 
 /**
@@ -64,4 +69,56 @@ export interface Variation {
 export interface Attribute {
   name: { [key: string]: string };
   option: { [key: string]: string };
+}
+
+/**
+ * multiple Products definition
+ *
+ * @export
+ * @interface Products
+ */
+export interface Products {
+  products: [
+    {
+      id?: string;
+      sku?: string;
+      qty?: number;
+      attribute?: string;
+      imported?: string;
+    }
+  ];
+  sku?: string;
+  skus?: string[];
+  productInstances?: [
+    {
+      sku: string;
+      externalUrl: string;
+      externalId: string;
+      error: any[];
+      variations: any[];
+    }
+  ];
+}
+
+/**
+ * UpdateProductParams definition
+ * @export
+ * @interface UpdateProductParams
+ */
+export interface UpdateProductParams extends Product {
+  error: string;
+  products: {
+    id: string;
+    qty: number;
+    attribute: string;
+  };
+}
+/**
+ * Product search Params
+ *
+ * @export
+ * @interface ProductSearchParams
+ */
+export interface ProductSearchParams {
+  storeKey: string;
 }

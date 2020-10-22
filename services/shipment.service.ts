@@ -1,4 +1,4 @@
-import { Context, GenericObject, ServiceSchema } from 'moleculer';
+import { Context, ServiceSchema } from 'moleculer';
 
 import DbService from '../utilities/mixins/mongo.mixin';
 import { ShipmentOpenapi } from '../utilities/mixins/openapi';
@@ -18,11 +18,7 @@ const Shipment: ServiceSchema = {
     getShipments: {
       auth: ['Basic'],
       cache: { keys: ['id'], ttl: 60 * 60 * 24 * 30 },
-      handler(
-        ctx: Context<{
-          id: string;
-        }>
-      ): ShipmentPolicy | ShipmentPolicy[] {
+      handler(ctx: Context<ShipmentPolicy>): ShipmentPolicy | ShipmentPolicy[] {
         return (ctx.params.id
           ? this.adapter.findById(ctx.params.id)
           : this.adapter.find()
@@ -37,13 +33,7 @@ const Shipment: ServiceSchema = {
      */
     insertShipment: {
       auth: ['Basic'],
-      handler(
-        ctx: Context<{
-          name: string;
-          countries: string;
-          rules: string;
-        }>
-      ): ShipmentPolicy {
+      handler(ctx: Context<ShipmentPolicy>): ShipmentPolicy {
         // insert to DB
         return this.adapter
           .insert({
@@ -68,13 +58,7 @@ const Shipment: ServiceSchema = {
      */
     updateShipment: {
       auth: ['Basic'],
-      handler(
-        ctx: Context<{
-          id: string;
-          countries: string;
-          rules: string;
-        }>
-      ): ShipmentPolicy {
+      handler(ctx: Context<ShipmentPolicy>): ShipmentPolicy {
         // update DB
         return this.adapter
           .updateMany(
@@ -103,12 +87,7 @@ const Shipment: ServiceSchema = {
     ruleByCountry: {
       auth: ['Basic'],
       cache: { keys: ['country', 'weight', 'price'], ttl: 60 * 60 * 24 * 30 },
-      handler(
-        ctx: Context<{
-          country: string;
-          weight: number;
-        }>
-      ): Rule[] {
+      handler(ctx: Context<ShipmentPolicy>): Rule[] {
         // find policies with matched rules
         return this.adapter
           .find({
@@ -157,11 +136,7 @@ const Shipment: ServiceSchema = {
     getCouriers: {
       auth: ['Basic'],
       cache: { keys: ['country'], ttl: 60 * 60 * 24 * 30 },
-      handler(
-        ctx: Context<{
-          country: string;
-        }>
-      ): string[] {
+      handler(ctx: Context<ShipmentPolicy>): string[] {
         const query = ctx.params.country
           ? { countries: ctx.params.country }
           : {};
@@ -192,7 +167,7 @@ const Shipment: ServiceSchema = {
      */
     shipmentTransform(
       data: ShipmentPolicy[] | ShipmentPolicy
-    ): ShipmentPolicy[] | GenericObject {
+    ): ShipmentPolicy[] | unknown {
       if (data === null) {
         return { message: 'No Shipment Policy with This ID Found' };
       }

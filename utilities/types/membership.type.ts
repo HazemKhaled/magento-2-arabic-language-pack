@@ -22,4 +22,16 @@ export interface Membership {
   attributes: { [key: string]: any };
   createdAt: Date;
   updatedAt: Date;
+  isDefault?: boolean;
+}
+
+/**
+ * Membership Request Params definition
+ *
+ * @exports
+ * @interface MembershipRequestParams
+ */
+export interface MembershipRequestParams extends Membership {
+  _id?: string;
+  coupon?: string;
 }

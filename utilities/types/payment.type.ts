@@ -1,3 +1,5 @@
+import { GenericObject } from 'moleculer';
+
 /**
  * Payment
  *
@@ -17,6 +19,8 @@ export interface Payment {
   referenceNumber?: string;
   date: Date;
   description?: string;
+  customerId?: string;
+  force?: boolean;
 }
 
 /**
@@ -38,6 +42,7 @@ export interface PaymentResponse {
   reference?: string;
   date: Date;
   description?: string;
+  payments?: [Payment];
 }
 
 /**
@@ -58,4 +63,30 @@ export interface PaymentInvoice {
 export interface PaymentInvoiceResponse {
   amount_applied: number;
   invoice_id: string;
+}
+
+/**
+ * PaymentRequestParams
+ *
+ * @interface PaymentRequestParams
+ */
+export interface PaymentRequestParams {
+  id: string;
+  payment_mode: string;
+  amount: number;
+  account_id: string;
+  invoices: [{ [key: string]: string }];
+  bank_charges: number;
+  reference: string;
+  description: string;
+}
+
+/**
+ * Get Invoice Request Params
+ *
+ * @export
+ * @interface GetPaymentRequestParams
+ */
+export interface GetPaymentRequestParams {
+  [key: string]: string;
 }

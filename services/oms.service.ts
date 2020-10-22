@@ -1,6 +1,19 @@
-import { Context, Errors, GenericObject, ServiceSchema } from 'moleculer';
+import { Context, Errors, ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
 
+import {
+  OmsRequestParams,
+  CreateOrderRequestParams,
+  OrderRequestParams,
+  InvoiceRequestParams,
+  updateOderRequestParams,
+  StoreRequest,
+  CreateCustomerRequest,
+  TaxRequestParams,
+  DynamicRequestParams,
+  CommonError,
+  Order,
+} from '../utilities/types';
 import DbService from '../utilities/mixins/mongo.mixin';
 import { OmsValidation } from '../utilities/mixins/validation';
 
@@ -18,7 +31,7 @@ const TheService: ServiceSchema = {
   actions: {
     // Invoices
     listInvoice: {
-      handler(ctx: Context<any>) {
+      handler(ctx: Context<OmsRequestParams>) {
         const params = { ...ctx.params };
 
         if (!params.omsId) {
@@ -33,7 +46,7 @@ const TheService: ServiceSchema = {
       },
     },
     createInvoice: {
-      handler(ctx: Context) {
+      handler(ctx: Context<OmsRequestParams>) {
         return this.request({
           path: 'invoices',
           method: 'post',
@@ -42,13 +55,7 @@ const TheService: ServiceSchema = {
       },
     },
     updateInvoiceStatus: {
-      handler(
-        ctx: Context<{
-          omsId: string;
-          invoiceId: string;
-          status: string;
-        }>
-      ) {
+      handler(ctx: Context<InvoiceRequestParams>) {
         const { omsId, invoiceId, status } = ctx.params;
         return this.request({
           path: `invoices/${omsId}/${invoiceId}/status/${status}`,
@@ -57,12 +64,7 @@ const TheService: ServiceSchema = {
       },
     },
     applyInvoiceCredits: {
-      handler(
-        ctx: Context<{
-          customerId: string;
-          invoiceId: string;
-        }>
-      ) {
+      handler(ctx: Context<InvoiceRequestParams>) {
         return this.request({
           path: `invoices/${ctx.params.customerId}/${ctx.params.invoiceId}/credits`,
           method: 'post',
@@ -70,12 +72,7 @@ const TheService: ServiceSchema = {
       },
     },
     createSalesOrderInvoice: {
-      handler(
-        ctx: Context<{
-          customerId: string;
-          orderId: string;
-        }>
-      ) {
+      handler(ctx: Context<InvoiceRequestParams>) {
         return this.request({
           path: `invoices/${ctx.params.customerId}/${ctx.params.orderId}`,
           method: 'post',
@@ -83,12 +80,7 @@ const TheService: ServiceSchema = {
       },
     },
     markInvoiceToSent: {
-      handler(
-        ctx: Context<{
-          customerId: string;
-          invoiceId: string;
-        }>
-      ) {
+      handler(ctx: Context<InvoiceRequestParams>) {
         return this.request({
           path: `invoices/${ctx.params.customerId}/${ctx.params.invoiceId}/sent`,
           method: 'post',
@@ -98,7 +90,7 @@ const TheService: ServiceSchema = {
 
     // Orders
     createNewOrder: {
-      handler(ctx: Context) {
+      handler(ctx: Context<CreateOrderRequestParams>) {
         return this.request({
           path: 'orders',
           method: 'post',
@@ -107,8 +99,8 @@ const TheService: ServiceSchema = {
       },
     },
     updateOrderById: {
-      handler(ctx: Context<any>) {
-        const body: GenericObject = {
+      handler(ctx: Context<updateOderRequestParams>) {
+        const body: Partial<updateOderRequestParams> = {
           ...ctx.params,
           customerId: undefined,
           orderId: undefined,
@@ -121,19 +113,14 @@ const TheService: ServiceSchema = {
       },
     },
     getOrderById: {
-      handler(
-        ctx: Context<{
-          customerId: string;
-          orderId: string;
-        }>
-      ) {
+      handler(ctx: Context<OrderRequestParams>) {
         return this.request({
           path: `orders/${ctx.params.customerId}/${ctx.params.orderId}`,
         });
       },
     },
     listOrders: {
-      handler(ctx: Context<any>) {
+      handler(ctx: Context<DynamicRequestParams>) {
         const params: { [key: string]: string } = { ...ctx.params };
         delete params.customerId;
         return this.request({
@@ -143,12 +130,7 @@ const TheService: ServiceSchema = {
       },
     },
     deleteOrderById: {
-      handler(
-        ctx: Context<{
-          customerId: string;
-          orderId: string;
-        }>
-      ) {
+      handler(ctx: Context<OrderRequestParams>) {
         return this.request({
           path: `orders/${ctx.params.customerId}/${ctx.params.orderId}`,
           method: 'delete',
@@ -158,8 +140,11 @@ const TheService: ServiceSchema = {
 
     // Payments
     createPayment: {
-      handler(ctx: Context<any>) {
-        const body: GenericObject = { ...ctx.params, customerId: undefined };
+      handler(ctx: Context<DynamicRequestParams>) {
+        const body: DynamicRequestParams = {
+          ...ctx.params,
+          customerId: undefined,
+        };
         return this.request({
           path: `payments/${ctx.params.customerId}`,
           method: 'post',
@@ -168,7 +153,7 @@ const TheService: ServiceSchema = {
       },
     },
     listPayments: {
-      handler(ctx: Context<any>) {
+      handler(ctx: Context<DynamicRequestParams>) {
         const params: { [key: string]: string } = { ...ctx.params };
         delete params.customerId;
         return this.request({
@@ -180,29 +165,21 @@ const TheService: ServiceSchema = {
 
     // Stores
     getCustomer: {
-      handler(
-        ctx: Context<{
-          customerId: string;
-        }>
-      ) {
+      handler(ctx: Context<StoreRequest>) {
         return this.request({
           path: `stores/${ctx.params.customerId}`,
         });
       },
     },
     getCustomerByUrl: {
-      handler(
-        ctx: Context<{
-          storeId: string;
-        }>
-      ) {
+      handler(ctx: Context<StoreRequest>) {
         return this.request({
           path: `stores?url=${encodeURIComponent(ctx.params.storeId)}`,
         });
       },
     },
     createCustomer: {
-      handler(ctx: Context) {
+      handler(ctx: Context<CreateCustomerRequest>) {
         return this.request({
           path: 'stores',
           method: 'post',
@@ -212,7 +189,7 @@ const TheService: ServiceSchema = {
     },
     // Taxes
     createTax: {
-      handler(ctx: Context) {
+      handler(ctx: Context<TaxRequestParams>) {
         return this.request({
           path: 'tax',
           method: 'post',
@@ -221,11 +198,7 @@ const TheService: ServiceSchema = {
       },
     },
     updateTax: {
-      handler(
-        ctx: Context<{
-          id: string;
-        }>
-      ) {
+      handler(ctx: Context<TaxRequestParams>) {
         const { id } = ctx.params;
         const body = ctx.params;
         delete body.id;
@@ -237,11 +210,7 @@ const TheService: ServiceSchema = {
       },
     },
     deleteTax: {
-      handler(
-        ctx: Context<{
-          id: string;
-        }>
-      ) {
+      handler(ctx: Context<TaxRequestParams>) {
         return this.request({
           path: `tax/${ctx.params.id}`,
           method: 'delete',
@@ -301,7 +270,7 @@ const TheService: ServiceSchema = {
           }
           return parsedRes;
         })
-        .catch(err => {
+        .catch((err: CommonError) => {
           throw new MoleculerError(err.message, err.code);
         });
     },

@@ -6,11 +6,14 @@
  */
 export interface ShipmentPolicy {
   _id: string;
+  id?: string;
   name?: string;
   countries: string[];
   rules: Rule[];
   createdAt: Date;
   updatedAt: Date;
+  country?: string;
+  weight?: number;
 }
 
 /**

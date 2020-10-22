@@ -2,7 +2,7 @@ import { Context, ServiceSchema, GenericObject } from 'moleculer';
 import ApiGateway from 'moleculer-web';
 import compression from 'compression';
 
-import { Log, Store } from '../utilities/types';
+import { Log, Store, AuthorizeMeta, IncomingRequest } from '../utilities/types';
 import { OpenApiMixin } from '../utilities/mixins/openapi.mixin';
 import { hmacMiddleware, webpackMiddlewares } from '../utilities/middleware';
 
@@ -192,14 +192,14 @@ const TheService: ServiceSchema = {
           },
         },
         async onError(
-          req: any,
-          res: any,
+          req: IncomingRequest,
+          res: GenericObject,
           err: {
             message: string;
             code: number;
             name: string;
             type: string;
-            data: any[];
+            data: unknown[];
           }
         ): Promise<void> {
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -270,23 +270,15 @@ const TheService: ServiceSchema = {
     /**
      * Authorize the request
      *
-     * @param {Context} ctx
-     * @param {Object} route
+     * @param {Context<void, AuthorizeMeta>} ctx
+     * @param {unknown} route
      * @param {IncomingRequest} req
-     * @returns {Promise}
+     * @returns {(Promise<Store | boolean>)}
      */
     authorize(
-      ctx: Context<
-        unknown,
-        {
-          user: string;
-          token: string;
-          storeId: string;
-          store: Store;
-        }
-      >,
-      route: any,
-      req: any
+      ctx: Context<void, AuthorizeMeta>,
+      route: unknown,
+      req: IncomingRequest
     ): Promise<Store | boolean> {
       // Pass if no auth required
       if (!req.$endpoint.action.auth) {
@@ -301,9 +293,7 @@ const TheService: ServiceSchema = {
       // If token or token type are missing, throw error
       const [type, reqToken] = req.headers.authorization.split(' ');
       if (!type || !reqToken || !req.$action.auth.includes(type)) {
-        return this.Promise.reject(
-          new UnAuthorizedError(ERR_NO_TOKEN, req.headers.authorization)
-        );
+        throw new UnAuthorizedError(ERR_NO_TOKEN, req.headers.authorization);
       }
 
       return this.Promise.resolve(reqToken)
@@ -311,8 +301,10 @@ const TheService: ServiceSchema = {
           // Verify JWT token
           if (type === 'Bearer') {
             return ctx
-              .call('stores.resolveBearerToken', { token })
-              .then((user: Store) => {
+              .call<Store, { token: string }>('stores.resolveBearerToken', {
+                token,
+              })
+              .then(user => {
                 if (!user) {
                   return this.Promise.reject(
                     new UnAuthorizedError(
@@ -339,8 +331,10 @@ const TheService: ServiceSchema = {
           // Verify Base64 Basic auth
           if (type === 'Basic') {
             return ctx
-              .call('stores.resolveBasicToken', { token })
-              .then((user: Store) => {
+              .call<Store, { token: string }>('stores.resolveBasicToken', {
+                token,
+              })
+              .then(user => {
                 if (user) {
                   ctx.meta.token = token;
                 }
@@ -350,22 +344,22 @@ const TheService: ServiceSchema = {
         })
         .then((user: Store) => {
           if (!user) {
-            return this.Promise.reject(
-              new UnAuthorizedError(
-                ERR_INVALID_TOKEN,
-                req.headers.authorization
-              )
+            throw new UnAuthorizedError(
+              ERR_INVALID_TOKEN,
+              req.headers.authorization
             );
           }
+
+          return user;
         });
     },
     /**
      * Log order errors
      *
      * @param {Log} log
-     * @returns {ServiceSchema}
+     * @returns {Log} Created log
      */
-    sendLogs(log: Log): ServiceSchema {
+    sendLogs(log: Log): Log {
       return this.broker.call('logs.add', log);
     },
   },

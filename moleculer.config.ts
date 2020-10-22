@@ -1,9 +1,4 @@
-import {
-  BrokerOptions,
-  Errors,
-  MetricRegistry,
-  ServiceBroker,
-} from 'moleculer';
+import { BrokerOptions, Errors, MetricRegistry } from 'moleculer';
 
 /**
  * Moleculer ServiceBroker configuration file
@@ -55,10 +50,6 @@ const brokerConfig: BrokerOptions = {
   },
   // Log level for built-in console logger. Available values: trace, debug, info, warn, error, fatal
   logLevel: 'info',
-  // Log formatter for built-in console logger. Available values: default, simple, short. It can be also a `Function`.
-  // logFormatter: 'default',
-  // Custom object & array printer for built-in console logger.
-  // logObjectPrinter: null,
 
   // Define transporter.
   // More info: https://moleculer.services/docs/0.14/networking.html

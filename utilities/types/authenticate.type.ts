@@ -1,0 +1,33 @@
+import { IncomingMessage } from 'http';
+
+import { ActionSchema, GenericObject } from 'moleculer';
+
+import { Store } from './store.type';
+/**
+ * Authorize meta Type definition
+ *
+ * @export
+ * @interface AuthorizeMeta
+ */
+export interface AuthorizeMeta {
+  user: string;
+  token: string;
+  storeId: string;
+  store: Store;
+}
+
+/**
+ *  Incoming Request Definition
+ *
+ * @exports
+ * @interface IncomingRequest
+ */
+export interface IncomingRequest extends IncomingMessage {
+  $params: GenericObject;
+  $endpoint: {
+    action: {
+      auth: string;
+    };
+  };
+  $action: ActionSchema;
+}

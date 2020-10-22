@@ -1,4 +1,4 @@
-import { Context } from 'moleculer';
+import { Context, GenericObject } from 'moleculer';
 import ESService from 'moleculer-elasticsearch';
 
 import {
@@ -10,7 +10,16 @@ import {
   GCPPubSub,
 } from '../utilities/mixins';
 import { MpError } from '../utilities/adapters';
-import { Product } from '../utilities/types/product.type';
+import {
+  Product,
+  Products,
+  UpdateProductParams,
+  ProductSearchParams,
+  MetaParams,
+  ElasticSearchType,
+  CommonError,
+  ElasticSearchResponse,
+} from '../utilities/types';
 
 module.exports = {
   name: 'products-instances',
@@ -56,7 +65,7 @@ module.exports = {
         keys: ['#user', 'sku', 'currency'],
         ttl: 60 * 60,
       },
-      handler(ctx: Context) {
+      handler(ctx: Context): Promise<Product> {
         return this.fetchProduct(ctx);
       },
     },
@@ -72,44 +81,40 @@ module.exports = {
         keys: ['#user'],
         ttl: 60 * 60,
       },
-      handler(
-        ctx: Context<
-          unknown,
-          {
-            user: string;
-          }
-        >
-      ) {
+      handler(ctx: Context<unknown, MetaParams>): Promise<{ total: number }> {
         return ctx
-          .call('products.count', {
-            index: 'products-instances',
-            body: {
-              query: {
-                bool: {
-                  filter: [
-                    {
-                      term: {
-                        'instanceId.keyword': ctx.meta.user,
+          .call<ElasticSearchResponse, Partial<ElasticSearchType>>(
+            'products.count',
+            {
+              index: 'products-instances',
+              body: {
+                query: {
+                  bool: {
+                    filter: [
+                      {
+                        term: {
+                          'instanceId.keyword': ctx.meta.user,
+                        },
                       },
-                    },
-                  ],
-                  must_not: [
-                    {
-                      term: {
-                        deleted: true,
+                    ],
+                    must_not: [
+                      {
+                        term: {
+                          deleted: true,
+                        },
                       },
-                    },
-                    {
-                      term: {
-                        archive: true,
+                      {
+                        term: {
+                          archive: true,
+                        },
                       },
-                    },
-                  ],
+                    ],
+                  },
                 },
               },
-            },
-          })
-          .then((res: any) => {
+            }
+          )
+          .then((res: ElasticSearchResponse) => {
             if (typeof res.count !== 'number') {
               throw new MpError(
                 'Products Instance',
@@ -147,7 +152,9 @@ module.exports = {
         ttl: 60 * 60,
         monitor: true,
       },
-      async handler(ctx: Context) {
+      async handler(
+        ctx: Context
+      ): Promise<{ products: Product[]; total: number }> {
         const products = await this.findProducts(ctx);
 
         // Emit async Event
@@ -163,19 +170,7 @@ module.exports = {
      */
     deleteInstanceProduct: {
       auth: ['Bearer'],
-      handler(
-        ctx: Context<
-          {
-            sku: string;
-          },
-          {
-            user: string;
-            store: {
-              url: string;
-            };
-          }
-        >
-      ) {
+      handler(ctx: Context<Product, MetaParams>): Promise<Product> {
         const { sku } = ctx.params;
 
         return this.deleteProduct(sku, ctx.meta.user)
@@ -190,16 +185,19 @@ module.exports = {
               );
               if (index >= 0) {
                 appSearchProduct.imported.splice(index, 1);
-                await ctx.call('products.updateQuantityAttributes', {
-                  products: [
-                    {
-                      id: product.sku,
-                      qty: appSearchProduct.imported.length,
-                      attribute: 'import_qty',
-                      imported: appSearchProduct.imported,
-                    },
-                  ],
-                });
+                await ctx.call<Product, Partial<Products>>(
+                  'products.updateQuantityAttributes',
+                  {
+                    products: [
+                      {
+                        id: product.sku,
+                        qty: appSearchProduct.imported.length,
+                        attribute: 'import_qty',
+                        imported: appSearchProduct.imported,
+                      },
+                    ],
+                  }
+                );
               }
             }
             return { product };
@@ -221,26 +219,13 @@ module.exports = {
      */
     import: {
       auth: ['Bearer'],
-      handler(
-        ctx: Context<
-          {
-            products: any;
-          },
-          {
-            store: {
-              consumer_key: string;
-              url: string;
-            };
-            user: string;
-          }
-        >
-      ) {
+      handler(ctx: Context<Products, MetaParams>): Promise<GenericObject> {
         const skus = ctx.params.products.map((i: { sku: string }) => i.sku);
         return ctx
-          .call('products.getProductsBySku', {
+          .call<Product[], Partial<Products>>('products.getProductsBySku', {
             skus,
           })
-          .then(async (res: any) => {
+          .then(async (res: Product[]) => {
             const newSKUs = res.map((product: Product) => product.sku);
             const outOfStock = skus.filter(
               (sku: string) => !newSKUs.includes(sku)
@@ -248,7 +233,7 @@ module.exports = {
 
             const { store } = ctx.meta;
 
-            const bulk: any[] = [];
+            const bulk: GenericObject[] = [];
             if (newSKUs.length === 0) {
               throw new MpError(
                 'Products Instance Service',
@@ -282,16 +267,16 @@ module.exports = {
             });
 
             return ctx
-              .call('products.bulk', {
+              .call<GenericObject, Partial<Product>>('products.bulk', {
                 index: 'products-instances',
                 body: bulk,
               })
-              .then(async (response: any) => {
+              .then(async (response: GenericObject) => {
                 // Update products import quantity
                 if (response.items) {
                   const firstImport = response.items
-                    .filter((item: any) => item.update._version === 1)
-                    .map((item: any) => item.update._id);
+                    .filter((item: GenericObject) => item.update._version === 1)
+                    .map((item: GenericObject) => item.update._id);
                   const update = res.filter((product: Product) =>
                     firstImport.includes(`${store.consumer_key}-${product.sku}`)
                   );
@@ -304,7 +289,7 @@ module.exports = {
                     );
                   }
 
-                  const updateArr: any[] = [];
+                  const updateArr: GenericObject[] = [];
                   appSearchProducts.forEach((product: Product) => {
                     if (product) {
                       let index = -1;
@@ -325,9 +310,12 @@ module.exports = {
                     }
                   });
                   for (let i = 0; i < updateArr.length; i += 100) {
-                    await ctx.call('products.updateQuantityAttributes', {
-                      products: updateArr.slice(i, i + 100),
-                    });
+                    await ctx.call<GenericObject, GenericObject>(
+                      'products.updateQuantityAttributes',
+                      {
+                        products: updateArr.slice(i, i + 100),
+                      }
+                    );
                   }
                   this.broker.cacher.clean(
                     `products-instances.list:${ctx.meta.user}**`
@@ -362,26 +350,15 @@ module.exports = {
     instanceUpdate: {
       auth: ['Bearer'],
       handler(
-        ctx: Context<
-          {
-            externalUrl: string;
-            externalId: string;
-            variations: string;
-            error: string;
-            sku: string;
-          },
-          {
-            user: string;
-          }
-        >
-      ) {
-        const body: { [key: string]: any } = {};
+        ctx: Context<UpdateProductParams, MetaParams>
+      ): Promise<{ status: string; message: string; sku: string }> {
+        const body: { [key: string]: unknown } = {};
         if (ctx.params.externalUrl) body.externalUrl = ctx.params.externalUrl;
         if (ctx.params.externalId) body.externalId = ctx.params.externalId;
         if (ctx.params.variations) body.variations = ctx.params.variations;
         if (ctx.params.error) body.error = ctx.params.error;
         return ctx
-          .call('products.update', {
+          .call<GenericObject, Partial<Product>>('products.update', {
             index: 'products-instances',
             type: '_doc',
             id: `${ctx.meta.user}-${ctx.params.sku}`,
@@ -390,7 +367,7 @@ module.exports = {
             },
           })
           .then(
-            async (res: any) => {
+            async (res: GenericObject) => {
               if (res.result === 'updated' || res.result === 'noop') {
                 await this.broker.cacher.clean(
                   `products-instances.list:${ctx.meta.user}**`
@@ -407,7 +384,7 @@ module.exports = {
                 500
               );
             },
-            (err: any) => {
+            (err: CommonError) => {
               if (err.message.includes('document_missing_exception')) {
                 throw new MpError('Products Instance', 'Not Found!', 404);
               }
@@ -428,18 +405,9 @@ module.exports = {
      */
     bulkProductInstance: {
       auth: ['Bearer'],
-      handler(
-        ctx: Context<
-          {
-            productInstances: any[];
-          },
-          {
-            user: string;
-          }
-        >
-      ) {
-        const bulk: any[] = [];
-        ctx.params.productInstances.forEach((pi: any) => {
+      handler(ctx: Context<Products, MetaParams>): Promise<{ status: string }> {
+        const bulk: GenericObject[] = [];
+        ctx.params.productInstances.forEach((pi: GenericObject) => {
           bulk.push({
             update: {
               _index: 'products-instances',
@@ -459,7 +427,7 @@ module.exports = {
                 type: '_doc',
                 body: bulk,
               })
-              .then((res: any) => {
+              .then((res: { errors: boolean }) => {
                 if (res.errors === false) {
                   return {
                     status: 'success',
@@ -477,27 +445,15 @@ module.exports = {
     pSearch: {
       auth: ['Bearer'],
       handler(
-        ctx: Context<
-          {
-            storeKey: string;
-          },
-          {
-            store: {
-              consumer_key: string;
-            };
-          }
-        >
-      ) {
+        ctx: Context<ProductSearchParams, MetaParams>
+      ): Promise<Product[]> {
         ctx.params.storeKey = ctx.meta.store.consumer_key;
         return this.search(ctx.params);
       },
     },
   },
   methods: {
-    deletePublish(
-      ctx: Context<unknown, { storeId: string }>,
-      res: Product
-    ): Product {
+    deletePublish(ctx: Context<unknown, MetaParams>, res: Product): Product {
       this.publishMessage('products.delete', {
         storeId: ctx.meta.storeId,
         data: res,
@@ -505,7 +461,7 @@ module.exports = {
       return res;
     },
     importPublish(
-      ctx: Context<unknown, { storeId: string }>,
+      ctx: Context<unknown, MetaParams>,
       res: {
         success: string[];
         outOfStock: string[];
@@ -521,13 +477,7 @@ module.exports = {
       return res;
     },
     pushPublish(
-      ctx: Context<
-        {
-          sku: string;
-          productInstances: any;
-        },
-        { storeId: string }
-      >,
+      ctx: Context<Products, MetaParams>,
       res: { success: string }
     ): { success: string } {
       this.publishMessage('products.push', {
