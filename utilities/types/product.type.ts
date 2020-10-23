@@ -32,6 +32,7 @@ export interface Product {
   handling_time?: {
     to?: number;
   };
+  ship_from?: ShipFrom[];
 }
 
 /**
@@ -64,4 +65,9 @@ export interface Variation {
 export interface Attribute {
   name: { [key: string]: string };
   option: { [key: string]: string };
+}
+
+interface ShipFrom {
+  city: string;
+  country: string;
 }
