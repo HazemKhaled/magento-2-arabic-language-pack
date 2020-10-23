@@ -221,13 +221,13 @@ const TheService: ServiceSchema = {
           }
           if (err.code === 500 || !err.code) {
             const log = await this.sendLogs({
-              topic: req.$action.service?.name
-                ? `${String(req.$action.service?.name)}`
-                : `${String(req.$params?.topic)}`,
+              topic: `${String(req.$params?.topic)}`
+                ? `${String(req.$params?.topic)}`
+                : `${String(req.$action.service?.name)}`,
               topicId: `${req.$action.name}`,
               message: 'Something went wrong fetching the data',
-              storeId: req.$params?.storeId
-                ? `${String(req.$params.storeId)}`
+              storeId: req.$meta?.storeId
+                ? `${String(req.$meta.storeId)}`
                 : 'Unknown',
               logLevel: 'error',
               code: 500,
