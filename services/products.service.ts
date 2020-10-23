@@ -392,9 +392,7 @@ const TheService: ServiceSchema = {
         categories: this.formatCategories(product._source.categories),
         attributes: product._source.attributes,
         variations: product._source.variations,
-        ship_from: product._source?.ship_from
-          ? product._source.ship_from
-          : null,
+        ship_from: product._source?.ship_from,
       };
     },
   },
