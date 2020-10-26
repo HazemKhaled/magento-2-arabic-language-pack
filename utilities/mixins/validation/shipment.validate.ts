@@ -60,6 +60,25 @@ export const ShipmentValidation: ServiceSchema = {
             },
           },
         },
+        ship_from: {
+          type: 'array',
+          items: {
+            type: 'object',
+            props: {
+              city: {
+                type: 'string',
+                min: 2,
+                pattern: /([A-Za-z* ])$/,
+              },
+              country: {
+                type: 'string',
+                max: 2,
+                min: 2,
+                pattern: '[A-Z]',
+              },
+            },
+          },
+        },
       },
     },
     updateShipment: {
@@ -107,6 +126,25 @@ export const ShipmentValidation: ServiceSchema = {
               cost: {
                 type: 'number',
                 convert: true,
+              },
+            },
+          },
+        },
+        ship_from: {
+          type: 'array',
+          items: {
+            type: 'object',
+            props: {
+              city: {
+                type: 'string',
+                min: 2,
+                pattern: /([A-Za-z* ])$/,
+              },
+              country: {
+                type: 'string',
+                max: 2,
+                min: 2,
+                pattern: '[A-Z]',
               },
             },
           },

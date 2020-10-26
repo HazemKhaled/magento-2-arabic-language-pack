@@ -4,6 +4,7 @@ import DbService from '../utilities/mixins/mongo.mixin';
 import { ShipmentOpenapi } from '../utilities/mixins/openapi';
 import { Rule, ShipmentPolicy } from '../utilities/types';
 import { ShipmentValidation } from '../utilities/mixins/validation';
+import { MpError } from '../utilities/adapters';
 
 const Shipment: ServiceSchema = {
   name: 'shipment',
@@ -40,6 +41,7 @@ const Shipment: ServiceSchema = {
             _id: ctx.params.name,
             countries: ctx.params.countries,
             rules: ctx.params.rules,
+            ship_from: ctx.params.ship_from,
             createdAt: new Date(),
             updatedAt: new Date(),
           })
@@ -47,7 +49,16 @@ const Shipment: ServiceSchema = {
             this.broker.cacher.clean('shipment.**');
             return this.adapter.findById(ctx.params.name);
           })
-          .then((data: ShipmentPolicy) => this.shipmentTransform(data));
+          .then((data: ShipmentPolicy) => this.shipmentTransform(data))
+          .catch((err: any) => {
+            if (err.name === 'MoleculerError') {
+              throw new MpError('Shipment Service', err.message, err.code);
+            }
+            if (err.name === 'MongoError' && err.code === 11000) {
+              throw new MpError('Shipment Service', 'Duplicate name!', 422);
+            }
+            throw new MpError('Shipment Service', err, 500);
+          });
       },
     },
     /**
@@ -67,6 +78,7 @@ const Shipment: ServiceSchema = {
               $set: {
                 countries: ctx.params.countries,
                 rules: ctx.params.rules,
+                ship_from: ctx.params.ship_from,
                 updatedAt: new Date(),
               },
             }
@@ -75,7 +87,13 @@ const Shipment: ServiceSchema = {
             this.broker.cacher.clean('shipment.**');
             return this.adapter.findById(ctx.params.id);
           })
-          .then((data: ShipmentPolicy) => this.shipmentTransform(data));
+          .then((data: ShipmentPolicy) => this.shipmentTransform(data))
+          .catch((err: any) => {
+            if (err.name === 'MoleculerError') {
+              throw new MpError('Shipment Service', err.message, err.code);
+            }
+            throw new MpError('Shipment Service', err, 500);
+          });
       },
     },
     /**
@@ -120,6 +138,12 @@ const Shipment: ServiceSchema = {
                 }))
                 .sort((a, b) => a.cost - b.cost)
             );
+          })
+          .catch((err: any) => {
+            if (err.name === 'MoleculerError') {
+              throw new MpError('Shipment Service', err.message, err.code);
+            }
+            throw new MpError('Shipment Service', err, 500);
           });
       },
     },
@@ -136,21 +160,29 @@ const Shipment: ServiceSchema = {
         const query = ctx.params.country
           ? { countries: ctx.params.country }
           : {};
-        return this.adapter.find({ query }).then(
-          // Get couriers and filter repeated couriers
-          (polices: ShipmentPolicy[]) =>
-            Array.from(
-              new Set(
-                polices.reduceRight(
-                  (accumulator: string[], policy: ShipmentPolicy): string[] =>
-                    accumulator.concat(
-                      policy.rules.map((rule: Rule) => rule.courier)
-                    ),
-                  []
+        return this.adapter
+          .find({ query })
+          .then(
+            // Get couriers and filter repeated couriers
+            (polices: ShipmentPolicy[]) =>
+              Array.from(
+                new Set(
+                  polices.reduceRight(
+                    (accumulator: string[], policy: ShipmentPolicy): string[] =>
+                      accumulator.concat(
+                        policy.rules.map((rule: Rule) => rule.courier)
+                      ),
+                    []
+                  )
                 )
               )
-            )
-        );
+          )
+          .catch((err: any) => {
+            if (err.name === 'MoleculerError') {
+              throw new MpError('Shipment Service', err.message, err.code);
+            }
+            throw new MpError('Shipment Service', err, 500);
+          });
       },
     },
   },

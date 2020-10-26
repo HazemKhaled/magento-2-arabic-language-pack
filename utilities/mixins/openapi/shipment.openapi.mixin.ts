@@ -2,7 +2,7 @@ import { ServiceSchema } from 'moleculer';
 
 const ShipmentPolicySchema = {
   type: 'object',
-  required: ['countries', 'name', 'rules'],
+  required: ['countries', 'name', 'rules', 'ship_from'],
   properties: {
     name: {
       type: 'string',
@@ -50,6 +50,21 @@ const ShipmentPolicySchema = {
           },
           cost: {
             type: 'number',
+          },
+        },
+      },
+    },
+    ship_from: {
+      type: 'array',
+      items: {
+        required: ['country'],
+        type: 'object',
+        properties: {
+          city: {
+            type: 'string',
+          },
+          country: {
+            type: 'string',
           },
         },
       },
