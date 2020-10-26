@@ -24,7 +24,7 @@ export interface AuthorizeMeta {
  */
 export interface IncomingRequest extends IncomingMessage {
   $params: GenericObject;
-  $meta?: { storeId: string };
+  $meta?: GenericObject;
   $endpoint: {
     action: {
       auth: string;
