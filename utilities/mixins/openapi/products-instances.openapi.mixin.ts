@@ -282,6 +282,7 @@ const I18nStringSchema = {
 };
 
 const ShipFromSchema = {
+  required: ['country'],
   description: '',
   type: 'object',
   properties: {
