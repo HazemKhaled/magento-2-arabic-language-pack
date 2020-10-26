@@ -1,5 +1,6 @@
 <template lang="pug">
 .checkout
+  .spinner(v-if="isSubmitting")
   form.checkout__form(
     name='checkoutForm',
     @submit.prevent="handleFormSubmit"
@@ -111,7 +112,6 @@
 
       button.button.button--primary.button--block.checkout__submit(
         type='submit',
-        :class='{ "button--loading": isSubmitting }',
         :disable='isSubmitting'
       )
         template(v-if='useBalanceOnly')
@@ -268,9 +268,15 @@ export default {
       const { origin, search } = window.location;
       const url = `${origin}/api/paymentGateway/checkout${search}`;
 
+      const payload = {
+        cardId: this.cardId,
+        newCard: !this.cardId && this.card ? { ...this.card } : null,
+        saveCard: this.saveCard
+      };
+
       return fetch(url, {
         method: 'POST',
-        body: JSON.stringify({ card: 123 }),
+        body: JSON.stringify(payload),
         headers: {
           'Content-Type': 'application/json'
         }
