@@ -1,4 +1,4 @@
-import { ServiceSchema } from 'moleculer';
+import { ServiceSchema, GenericObject } from 'moleculer';
 
 import { OrderItem, Product, Store, Variation, OrderWarnings } from '../types';
 import { Rule } from '../types/shipment.type';
@@ -83,6 +83,7 @@ export const OrdersOperations: ServiceSchema = {
                   ),
                 ''
               )}`,
+              ship_from: product?.ship_from,
             }))
         );
       });
@@ -173,6 +174,7 @@ export const OrdersOperations: ServiceSchema = {
       warnings: OrderWarnings;
     }> {
       const warnings: OrderWarnings = [];
+      let shipmentRules: Partial<Rule[]> = [];
       const shipmentWeight =
         items.reduce((accumulator, item) => {
           if (
@@ -187,15 +189,40 @@ export const OrdersOperations: ServiceSchema = {
           }
           return accumulator + item.weight * item.quantity;
         }, 0) * 1000;
-      const shipmentRules: Rule[] = await this.broker
-        .call('shipment.ruleByCountry', {
+
+      for (const item of items) {
+        const ruleQuery: GenericObject = {
           country,
           weight: shipmentWeight,
           price: 1,
-        })
-        .then((rules: Rule[]) =>
-          rules.sort((a: Rule, b: Rule) => a.cost - b.cost)
-        );
+        };
+        if (item?.ship_from) {
+          const cityAr: string[] = [];
+          const countryAr: string[] = [];
+          item.ship_from.map(res => {
+            cityAr.push(res.city);
+            countryAr.push(res.country);
+          });
+          ruleQuery.ship_from_city = cityAr.join(',');
+          ruleQuery.ship_from_country = countryAr.join(',');
+        } else {
+          delete ruleQuery.ship_from_city;
+          delete ruleQuery.ship_from_country;
+        }
+        const shipment_rule: Partial<Rule[]> = await this.broker
+          .call('shipment.ruleByCountry', ruleQuery)
+          .then((rules: Partial<Rule[]>) =>
+            rules.sort((a: Rule, b: Rule) => a.cost - b.cost)
+          );
+        if (shipment_rule.length) {
+          shipmentRules = [...shipment_rule];
+        } else {
+          warnings.push({
+            message: 'ship_from_city_country_not_available',
+            sku: item.sku,
+          });
+        }
+      }
 
       // find shipment policy according to store priorities
       let shipment: Rule;

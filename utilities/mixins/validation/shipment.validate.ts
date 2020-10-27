@@ -67,7 +67,6 @@ export const ShipmentValidation: ServiceSchema = {
             props: {
               city: {
                 type: 'string',
-                min: 2,
                 pattern: /([A-Za-z* ])$/,
               },
               country: {
@@ -137,7 +136,6 @@ export const ShipmentValidation: ServiceSchema = {
             props: {
               city: {
                 type: 'string',
-                min: 2,
                 pattern: /([A-Za-z* ])$/,
               },
               country: {
@@ -163,6 +161,14 @@ export const ShipmentValidation: ServiceSchema = {
         price: {
           type: 'number',
           convert: true,
+        },
+        ship_from_city: {
+          type: 'string',
+          optional: true,
+        },
+        ship_from_country: {
+          type: 'string',
+          optional: true,
         },
       },
     },

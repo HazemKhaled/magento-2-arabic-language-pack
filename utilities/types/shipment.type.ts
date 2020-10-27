@@ -27,4 +27,5 @@ export interface Rule {
   units_max: number;
   type: string;
   cost: number;
+  duration?: string;
 }

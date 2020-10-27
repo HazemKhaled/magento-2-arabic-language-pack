@@ -104,16 +104,41 @@ const Shipment: ServiceSchema = {
      */
     ruleByCountry: {
       auth: ['Basic'],
-      cache: { keys: ['country', 'weight', 'price'], ttl: 60 * 60 * 24 * 30 },
+      cache: {
+        keys: [
+          'country',
+          'weight',
+          'price',
+          'ship_from_city',
+          'ship_from_country',
+        ],
+        ttl: 60 * 60 * 24 * 30,
+      },
       handler(ctx: Context): Rule[] {
         // find policies with matched rules
+        const query: GenericObject = {
+          countries: ctx.params.country,
+          'rules.units_max': { $gte: parseInt(ctx.params.weight, 10) },
+          'rules.units_min': { $lte: parseInt(ctx.params.weight, 10) },
+        };
+        if (ctx.params.ship_from_city && ctx.params.ship_from_country) {
+          const cityAr = ctx.params.ship_from_city
+            .split(',')
+            .filter((city: string) => city.trim().length > 0);
+
+          // If getting * in city then allow to all city
+          if (!cityAr.includes('*')) {
+            query['ship_from.city'] = { $in: cityAr };
+          }
+          query['ship_from.country'] = {
+            $in: ctx.params.ship_from_country
+              .split(',')
+              .filter((country: string) => country.trim().length > 0),
+          };
+        }
         return this.adapter
           .find({
-            query: {
-              countries: ctx.params.country,
-              'rules.units_max': { $gte: parseInt(ctx.params.weight, 10) },
-              'rules.units_min': { $lte: parseInt(ctx.params.weight, 10) },
-            },
+            query,
           })
           .then((policies: ShipmentPolicy[]) => {
             // Get all rules

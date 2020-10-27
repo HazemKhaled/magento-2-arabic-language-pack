@@ -203,6 +203,22 @@ const ShipmentRuleByCountryOpenapi = {
         type: 'number',
       },
     },
+    {
+      name: 'ship_from_city',
+      in: 'query',
+      schema: {
+        type: 'string',
+        example: 'Fethiye,Cesme',
+      },
+    },
+    {
+      name: 'ship_from_country',
+      in: 'query',
+      schema: {
+        type: 'string',
+        example: 'TR,IR',
+      },
+    },
   ],
   responses: {
     200: {
