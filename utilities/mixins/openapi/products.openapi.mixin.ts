@@ -5,7 +5,25 @@ const ProductsListListOpenapi = {
   summary: 'Get all Knawat Products',
   tags: ['Products'],
   responses: {
-    200: { $ref: '#/components/responses/200' },
+    200: {
+      description: 'Status 200',
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: {
+              products: {
+                type: 'array',
+                items: { $ref: '#/components/schemas/Product' },
+              },
+              total: {
+                type: 'number',
+              },
+            },
+          },
+        },
+      },
+    },
     401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
   },
   security: [{ basicAuth: [] as any[] }],
@@ -59,7 +77,22 @@ const ProductsByVariationOpenapi = {
   summary: 'Get Product by Variation SKU',
   tags: ['Products'],
   responses: {
-    200: { $ref: '#/components/responses/200' },
+    200: {
+      description: 'Status 200',
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: {
+              products: {
+                type: 'array',
+                items: { $ref: '#/components/schemas/Product' },
+              },
+            },
+          },
+        },
+      },
+    },
     401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
   },
   security: [{ basicAuth: [] as any[] }],

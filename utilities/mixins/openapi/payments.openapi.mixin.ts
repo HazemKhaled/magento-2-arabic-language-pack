@@ -216,14 +216,18 @@ const PaymentsCheckoutOpenapi = {
     {
       name: 'store',
       in: 'query',
-      type: 'string',
       required: true,
+      schema: {
+        type: 'string',
+      },
     },
     {
       name: 'hmac',
       in: 'query',
-      type: 'string',
       required: true,
+      schema: {
+        type: 'string',
+      },
     },
     {
       name: 'purchase_units',

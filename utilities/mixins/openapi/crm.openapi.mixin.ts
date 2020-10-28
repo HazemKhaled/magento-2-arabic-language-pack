@@ -366,8 +366,9 @@ const AddTagToRecord = {
       'application/json': {
         schema: {
           type: 'object',
+          required: ['tag'],
           properties: {
-            tag: { type: 'string', required: true },
+            tag: { type: 'string' },
           },
         },
       },
@@ -406,7 +407,7 @@ const RemoveTagFromRecord = {
       in: 'query',
       required: true,
       schema: {
-        type: 'staring',
+        type: 'string',
       },
     },
   ],
