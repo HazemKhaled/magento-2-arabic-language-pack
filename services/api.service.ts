@@ -18,6 +18,28 @@ const TheService: ServiceSchema = {
   settings: {
     port: process.env.PORT || 3000,
 
+    rateLimit: {
+      // How long to keep record of requests in memory (in milliseconds).
+      // Defaults to 60000 (1 min)
+      window: process.env.RATE_LIMIT_TIME || 60 * 1000,
+
+      // Max number of requests during window. Defaults to 30
+      limit: process.env.RATE_LIMIT || 30,
+
+      // Set rate limit headers to response. Defaults to false
+      headers: process.env.RATE_LIMIT_HEADER || true,
+
+      // Function used to generate keys. Defaults to:
+      key: (req: GenericObject) => {
+        return (
+          req.headers['x-forwarded-for'] ||
+          req.connection.remoteAddress ||
+          req.socket.remoteAddress ||
+          req.connection.socket.remoteAddress
+        );
+      },
+    },
+
     routes: [
       {
         path: '/api',
