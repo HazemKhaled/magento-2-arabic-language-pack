@@ -131,8 +131,15 @@ const TheService: ServiceSchema = {
           if (process.env.PAYMENT_AUTO_CHARGE_CC_INVOICE) {
             await ctx
               .call('paymentGateway.charge', {
-                storeId: store.url,
-                amount: params.paymentAmount - store.credit,
+                store: store.url,
+                purchase_units: [
+                  {
+                    amount: {
+                      value: params.paymentAmount - store.credit,
+                      currency: 'USD',
+                    },
+                  },
+                ],
               })
               .then(null, err => {
                 if (err.type === 'SERVICE_NOT_FOUND')
