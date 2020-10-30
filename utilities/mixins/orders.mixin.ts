@@ -1,7 +1,14 @@
-import { ServiceSchema, GenericObject } from 'moleculer';
+import { ServiceSchema, GenericObject, Context } from 'moleculer';
 
-import { OrderItem, Product, Store, Variation, OrderWarnings } from '../types';
-import { Rule } from '../types/shipment.type';
+import {
+  OrderItem,
+  Product,
+  Store,
+  Variation,
+  OrderWarnings,
+  Rule,
+  RuleParms,
+} from '../types';
 
 export const OrdersOperations: ServiceSchema = {
   name: 'orders-operations',
@@ -165,14 +172,18 @@ export const OrdersOperations: ServiceSchema = {
      * @returns {Promise<Rule>}
      */
     async shipment(
+      ctx: Context<
+        { shipping: { country: string }; shipping_method?: string },
+        GenericObject
+      >,
       items: OrderItem[],
-      country: string,
-      instance: Store,
-      providedMethod?: string
+      instance: Store
     ): Promise<{
       shipment: Rule;
       warnings: OrderWarnings;
     }> {
+      const country = ctx.params.shipping.country;
+      const providedMethod = ctx.params?.shipping_method;
       const warnings: OrderWarnings = [];
       let shipmentRules: Partial<Rule[]> = [];
       const shipmentWeight =
@@ -191,7 +202,7 @@ export const OrdersOperations: ServiceSchema = {
         }, 0) * 1000;
 
       for (const item of items) {
-        const ruleQuery: GenericObject = {
+        const ruleQuery: RuleParms = {
           country,
           weight: shipmentWeight,
           price: 1,
@@ -209,11 +220,9 @@ export const OrdersOperations: ServiceSchema = {
           delete ruleQuery.ship_from_city;
           delete ruleQuery.ship_from_country;
         }
-        const shipment_rule: Partial<Rule[]> = await this.broker
-          .call('shipment.ruleByCountry', ruleQuery)
-          .then((rules: Partial<Rule[]>) =>
-            rules.sort((a: Rule, b: Rule) => a.cost - b.cost)
-          );
+        const shipment_rule = await ctx
+          .call<Rule[], RuleParms>('shipment.ruleByCountry', ruleQuery)
+          .then(rules => rules.sort((a: Rule, b: Rule) => a.cost - b.cost));
         if (shipment_rule.length) {
           shipmentRules = [...shipment_rule];
         } else {
