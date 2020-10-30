@@ -200,11 +200,9 @@ const PaymentsGetOpenapi = {
 const checkoutValueProps = {
   currency_code: {
     type: 'string',
-    min: 3,
   },
   value: {
     type: 'number',
-    convert: true,
   },
 };
 
@@ -232,38 +230,39 @@ const PaymentsCheckoutOpenapi = {
     {
       name: 'purchase_units',
       in: 'query',
-      type: 'array',
       required: true,
-      items: {
-        type: 'object',
-        properties: {
-          ...checkoutValueProps,
-          description: {
-            type: 'string',
-          },
-          type: {
-            type: 'enum',
-            values: ['order', 'subscription', 'charge'],
-            required: true,
-          },
-          data: {
-            type: 'object',
-            required: true,
-          },
-          breakdown: {
-            type: 'object',
-            properties: {
-              item_total: {
-                type: 'object',
-                properties: checkoutValueProps,
-              },
-              shipping: {
-                type: 'object',
-                properties: checkoutValueProps,
-              },
-              tax_total: {
-                type: 'object',
-                properties: checkoutValueProps,
+      schema: {
+        type: 'array',
+        items: {
+          type: 'object',
+          required: ['type', 'data'],
+          properties: {
+            ...checkoutValueProps,
+            description: {
+              type: 'string',
+            },
+            type: {
+              type: 'string',
+              enum: ['order', 'subscription', 'charge'],
+            },
+            data: {
+              type: 'object',
+            },
+            breakdown: {
+              type: 'object',
+              properties: {
+                item_total: {
+                  type: 'object',
+                  properties: checkoutValueProps,
+                },
+                shipping: {
+                  type: 'object',
+                  properties: checkoutValueProps,
+                },
+                tax_total: {
+                  type: 'object',
+                  properties: checkoutValueProps,
+                },
               },
             },
           },
@@ -286,7 +285,6 @@ const PaymentsCheckoutOpenapi = {
     422: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
     500: { $ref: '#/components/responses/500' },
   },
-  security: [{ hmac: [] as any[] }],
 };
 
 export const PaymentsOpenapi: ServiceSchema = {
