@@ -1,5 +1,81 @@
 # Changelog
 
+## v1.10.0
+
+### 🚀 Features
+
+- Added shipment date based on working days on create and pay order
+- Added product search endpoint
+- Added CRM endpoint in open-api
+- Added cards endpoints
+- Added Elastic APM
+- Added checkout page
+- Added payment checkout endpoint
+- Added OpenAPI Logo
+- Added check hmac middleware
+
+### 🐛 Fixes
+
+- Clean cache directly after create the order
+- GCS_KEYFILE to GCP
+- Updated confirmed status orders
+- Delete publish payload
+- Categories add list to basic
+- Update order cache bu ID
+- Delete order cache
+- Added Proper Error message when failed to create an OMS contact
+- Resolved empty sales order issue
+- Fixed products outofstock empty body
+- Fixed zero product issue
+- Datadog can't read label
+- traefik hooked to v1.7
+- Fixed mail mixin method to return Promise
+- Fixed list invoices validation
+- Fixed linting issues
+- Fixed date string issue
+- Returned array in find invoices if no omdId
+
+### ✨ Enhancements
+
+- Enhance checkout style
+- Split apm in seperate service
+- Publisher Add Events
+- Pi changed from index to upsert update
+- Added push events to GCP
+- Update payment schema
+- Added google key env var.
+- Added update profit hook in store
+- Docker move tasks service to api container
+- product instance added search end-point
+- bump node-fetch from 2.6.0 to 2.6.1
+- Added validation for ; char in address add order
+- Cleared the order list cache when update the order
+- Optional chaining omsId Get instance from meta instead of db
+- Updated packages
+- moleculer-web rollback
+- categories list basic
+- remove es update service
+- create order status draft by default
+- docker add gdpr
+- ship_to order warnings
+- Add sentery
+- Add sentry service
+- pi list add updated & created fields 4 outofstock products
+- add pi list sort param
+- Setup webpack for dev and prod
+- Dev process enhancments
+- Upgrade node vesrion
+- Changed docker configs
+- Added datadog metrics
+- Added datadog docker configs
+- Docker Auto dicovery collect logs
+- Collect redis logs
+- Added node.js logs file
+- Removed Sentry
+- Removed datadog
+- add apm docker
+- change apm app name
+
 ## 1.9.0
 
 ### 🚀 Features

@@ -28,7 +28,12 @@ export interface Product {
   imported: string[];
   createdAt?: Date;
   import_qty: number;
+  quantity?: number;
   ship_to: string[];
+  handling_time?: {
+    to?: number;
+  };
+  ship_from?: ShipFrom[];
 }
 
 /**
@@ -61,4 +66,9 @@ export interface Variation {
 export interface Attribute {
   name: { [key: string]: string };
   option: { [key: string]: string };
+}
+
+interface ShipFrom {
+  city: string;
+  country: string;
 }
