@@ -32,6 +32,7 @@ export const OrdersOperations: ServiceSchema = {
       outOfStock: OrderItem[];
       notEnoughStock: OrderItem[];
       notKnawat: OrderItem[];
+      handlingTimes: number[];
     }> {
       const orderItems = items.map(item => item.sku);
 
@@ -44,9 +45,13 @@ export const OrdersOperations: ServiceSchema = {
       );
 
       const found: OrderItem[] = [];
+      const handlingTimes: number[] = [];
 
       // Filter Knawat products and reformat the items data
       products.forEach(product => {
+        if (product?.handling_time?.to) {
+          handlingTimes.push(product.handling_time.to);
+        }
         found.push(
           ...product.variations
             .filter((variation: Variation) =>
@@ -145,6 +150,7 @@ export const OrdersOperations: ServiceSchema = {
         outOfStock,
         notEnoughStock,
         notKnawat,
+        handlingTimes,
       };
     },
 

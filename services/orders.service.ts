@@ -103,7 +103,15 @@ const TheService: ServiceSchema = {
           outOfStock: OrderItem[];
           notEnoughStock: OrderItem[];
           notKnawat: OrderItem[];
+          handlingTimes: number[];
         } = await this.stockProducts(data.items);
+
+        if (stock.handlingTimes.length) {
+          data.shipment_date = this.calculateWorkingDays(
+            new Date(),
+            Math.max.apply(null, stock.handlingTimes)
+          );
+        }
 
         // Return warning response if no Item available
         if (stock.items.length === 0) {
@@ -824,6 +832,29 @@ const TheService: ServiceSchema = {
             ctx.meta.user
           );
 
+          const productsRes = await ctx.call(
+            'products.getProductsByVariationSku',
+            {
+              skus: order.items.map((item: OrderItem) => item.sku),
+            }
+          );
+
+          if (productsRes.products.length > 0) {
+            const handlingTimes: number[] = [];
+            productsRes.products.filter((product: Product) => {
+              if (product.handling_time?.to) {
+                handlingTimes.push(product.handling_time.to);
+              }
+            });
+
+            if (handlingTimes.length) {
+              order.shipment_date = this.calculateWorkingDays(
+                new Date(),
+                Math.max.apply(null, handlingTimes)
+              );
+            }
+          }
+
           order.status = 'paid';
           order.financialStatus = 'paid';
           order.fulfillmentStatus = 'processing';
@@ -1222,6 +1253,24 @@ const TheService: ServiceSchema = {
           405
         );
       }
+    },
+    /**
+     * Calculate Working Days Exculded saturday and sunday
+     *
+     * @param fromDate
+     * @param days
+     */
+    calculateWorkingDays(fromDate: Date, days: number): string {
+      const day = fromDate.getDay();
+
+      const newDate = new Date(fromDate.getTime());
+      newDate.setDate(
+        fromDate.getDate() +
+          days +
+          (day === 6 ? 2 : Number(!day)) +
+          Math.floor((days - 1 + (day % 6 || 1)) / 5) * 2
+      );
+      return newDate.toISOString();
     },
   },
 };
