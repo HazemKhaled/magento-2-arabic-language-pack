@@ -272,7 +272,7 @@ export default {
         card: !this.cardId ?
           {
             isNew: true,
-            store_card: this.saveCard,
+            store_card: this.saveCard ? 1 : 0,
             ...this.card,
           } : {
             isNew: false,
