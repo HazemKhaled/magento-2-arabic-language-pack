@@ -269,9 +269,15 @@ export default {
       const url = `${origin}/api/paymentGateway/checkout${search}`;
 
       const payload = {
-        cardId: this.cardId,
-        newCard: !this.cardId && this.card ? { ...this.card } : null,
-        saveCard: this.saveCard
+        card: !this.cardId ?
+          {
+            isNew: true,
+            store_card: this.saveCard,
+            ...this.card,
+          } : {
+            isNew: false,
+            id: this.cardId,
+          },
       };
 
       return fetch(url, {
