@@ -271,11 +271,11 @@ export default {
       const payload = {
         card: !this.cardId ?
           {
-            isNew: true,
+            is_new: true,
             store_card: this.saveCard ? 1 : 0,
             ...this.card,
           } : {
-            isNew: false,
+            is_new: false,
             id: this.cardId,
           },
       };

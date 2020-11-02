@@ -6,7 +6,7 @@ import { PaymentsValidation } from '../utilities/mixins/validation';
 import { Oms } from '../utilities/mixins/oms.mixin';
 import { MpError } from '../utilities/adapters';
 import { CheckoutPage } from '../utilities/mixins';
-import { sanitizeData } from '../utilities/lib';
+import { encodeCardNumber, sanitizeData } from '../utilities/lib';
 
 const TheService: ServiceSchema = {
   name: 'payments',
@@ -128,12 +128,14 @@ const TheService: ServiceSchema = {
         );
 
         // Clean cards data
-        const sanitizedCards = res.cards.map((card: GenericObject) =>
-          sanitizeData(
+        const sanitizedCards = res.cards.map((card: GenericObject) => {
+          const data = sanitizeData(
             ['_id', 'currency', 'number', 'primary', 'title', 'expires'],
             card
-          )
-        );
+          );
+          data.number = encodeCardNumber(data.number);
+          return data;
+        });
 
         ctx.meta.$responseType = 'text/html';
         return this.renderCheckoutPage({
