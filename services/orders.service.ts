@@ -148,10 +148,10 @@ const TheService: ServiceSchema = {
 
         // Shipping
         const { shipment, warnings: shipmentWarnings } = await this.shipment(
+          ctx,
           stock.items,
-          ctx.params.shipping.country,
           store,
-          ctx.params.shipping_method
+          ctx.params.shipping_method,
         );
 
         warnings = warnings.concat(shipmentWarnings);

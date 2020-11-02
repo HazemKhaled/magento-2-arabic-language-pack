@@ -68,7 +68,13 @@ export interface Attribute {
   option: { [key: string]: string };
 }
 
-interface ShipFrom {
+/**
+ * Ship From definition
+ *
+ * @export
+ * @interface ShipFrom
+ */
+export interface ShipFrom {
   city: string;
   country: string;
 }
