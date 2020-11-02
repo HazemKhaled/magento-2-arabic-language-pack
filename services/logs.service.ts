@@ -62,8 +62,8 @@ const TheService: ServiceSchema = {
             type: '_doc',
             id: uuidv1(),
             body: {
-              topic,
-              topicId,
+              topic: String(topic),
+              topicId: String(topicId),
               '@timestamp': date,
               logLevel,
               storeId: ctx.meta?.user ? ctx.meta.storeId : storeId,
