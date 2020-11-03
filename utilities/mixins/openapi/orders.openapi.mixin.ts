@@ -633,8 +633,9 @@ const GetOrderWarnings = {
             type: 'array',
             items: {
               type: 'object',
+              required: ['message'],
               properties: {
-                message: { type: 'string', required: true },
+                message: { type: 'string' },
                 sku: { type: 'string' },
                 data: {
                   type: 'object',
