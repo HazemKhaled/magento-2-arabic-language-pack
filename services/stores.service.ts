@@ -95,14 +95,14 @@ const TheService: ServiceSchema = {
                   id: res._id,
                 });
               }
-              if (res.internal_data && res.internal_data.omsId) {
+              if (res?.internal_data?.omsId) {
                 omsData = (await ctx
                   .call('oms.getCustomer', {
                     customerId: res.internal_data.omsId,
                   })
                   .then(null, this.logger.error)) as { store: Store };
                 // If the DB response not null will return the data
-                return this.sanitizeResponse(res, omsData && omsData.store);
+                return this.sanitizeResponse(res, omsData && omsData?.store);
               }
               return this.sanitizeResponse(res);
             }
@@ -723,8 +723,8 @@ const TheService: ServiceSchema = {
       store.url = store._id;
       delete store._id;
       if (omsData) {
-        store.debit = omsData.debit;
-        store.credit = omsData.credit;
+        store.debit = parseFloat(omsData.debit.toFixed(2));
+        store.credit = parseFloat(omsData.credit.toFixed(2));
       }
       return store;
     },
