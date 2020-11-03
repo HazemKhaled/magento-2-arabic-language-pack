@@ -102,7 +102,7 @@ const TheService: ServiceSchema = {
                   })
                   .then(null, this.logger.error)) as { store: Store };
                 // If the DB response not null will return the data
-                return this.sanitizeResponse(res, Boolean(omsData?.store));
+                return this.sanitizeResponse(res, omsData && omsData?.store);
               }
               return this.sanitizeResponse(res);
             }
@@ -715,12 +715,12 @@ const TheService: ServiceSchema = {
      * @param {Store} store
      * @returns {Store}
      */
-    sanitizeResponse(store: Store, omsData = false) {
+    sanitizeResponse(store: Store, omsData = false): Store {
       store.url = store._id;
       delete store._id;
       if (omsData) {
-        store.debit = omsData.debit;
-        store.credit = omsData.credit;
+        store.debit = parseFloat(omsData.debit.toFixed(2));
+        store.credit = parseFloat(omsData.credit.toFixed(2));
       }
       return store;
     },
