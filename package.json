@@ -101,25 +101,5 @@
     "vue": "^2.6.12",
     "vue-i18n": "^8.21.1",
     "vue-router": "^3.4.5"
-  },
-  "jest": {
-    "coverageDirectory": "<rootDir>/coverage",
-    "testEnvironment": "node",
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js"
-    ],
-    "transform": {
-      "^.+\\.(ts|tsx)$": "ts-jest"
-    },
-    "testMatch": [
-      "**/*.spec.(ts|js)"
-    ],
-    "globals": {
-      "ts-jest": {
-        "tsConfig": "tsconfig.json"
-      }
-    }
   }
 }
