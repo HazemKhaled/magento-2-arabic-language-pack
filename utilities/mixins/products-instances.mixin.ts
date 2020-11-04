@@ -1,4 +1,4 @@
-import { ServiceSchema } from 'moleculer';
+import { ServiceSchema, GenericObject } from 'moleculer';
 
 import { Product, Variation } from '../types';
 import { MpError } from '../adapters';
@@ -402,6 +402,44 @@ export const ProductsInstancesMixin: ServiceSchema = {
               ).total,
       };
     },
+    /**
+     * Get product-instance sku using externalId
+     *
+     * @param {*} externalId
+     * @returns sku
+     */
+    getProductSKUByExternalId(externalId): string {
+      return this.broker
+        .call('products.search', {
+          index: 'products-instances',
+          type: '_doc',
+          body: {
+            query: {
+              bool: {
+                must: {
+                  match: {
+                    externalId,
+                  },
+                },
+              },
+            },
+          },
+        })
+        .then((response: GenericObject) => {
+          if (response._shards.successful > 0 && response._shards.total > 0) {
+            const sku = response.hits.hits[0]._source.sku;
+            return sku;
+          }
+          throw new MpError(
+            'Products Instance',
+            `Product not found ${externalId} (getProductByExternalId)!`,
+            404
+          );
+        })
+        .catch((err: unknown) => {
+          throw new MpError('Products Instance', err.toString(), 500);
+        });
+    },
 
     /**
      * Delete Product By SKU
@@ -459,7 +497,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
             },
           },
         })
-        .then(({ hits }: { hits: { hits: { _source: Product }[] } }) =>
+        .then(({ hits }: { hits: { hits: Array<{ _source: Product }> } }) =>
           hits.hits.map(({ _source }: { _source: Product }) => _source)
         );
     },

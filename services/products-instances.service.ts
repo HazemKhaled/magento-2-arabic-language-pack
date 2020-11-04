@@ -156,9 +156,16 @@ module.exports = {
      */
     deleteInstanceProduct: {
       auth: ['Bearer'],
-      handler(ctx: Context) {
-        const { sku } = ctx.params;
-
+      async handler(ctx: Context) {
+        let { sku } = ctx.params;
+        const { externalId } = ctx.params;
+        if (externalId) {
+          const productSku = await this.getProductSKUByExternalId(externalId);
+          sku = productSku;
+        }
+        if (!sku) {
+          throw new MpError('Products Instance', 'SKU Required!', 422);
+        }
         return this.deleteProduct(sku, ctx.meta.user)
           .then(async (product: Product) => {
             this.broker.cacher.clean(

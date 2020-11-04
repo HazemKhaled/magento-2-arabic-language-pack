@@ -100,6 +100,11 @@ export const ProductsInstancesValidation: ServiceSchema = {
       params: {
         sku: {
           type: 'string',
+          optional: true,
+        },
+        externalID: {
+          type: 'string',
+          optional: true,
         },
       },
     },
