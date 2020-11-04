@@ -496,7 +496,7 @@ const ProductsList = {
 };
 
 export const DeleteInstanceProduct = {
-  $path: 'delete /catalog/products',
+  $path: 'delete /catalog/products/{sku}',
   summary: 'Delete product by SKU',
   tags: ['My Products'],
   description:
@@ -527,7 +527,8 @@ export const DeleteInstanceProduct = {
   parameters: [
     {
       name: 'sku',
-      in: 'query',
+      in: 'path',
+      required: true,
       schema: {
         type: 'string',
       },
