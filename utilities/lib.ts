@@ -83,3 +83,12 @@ export function sanitizeData(
     {}
   );
 }
+
+/**
+ * Encode the credit card number
+ * @param number
+ */
+export function encodeCardNumber(number: string): string {
+  const lastDigits = number.slice(-4);
+  return `${'*'.repeat(4)} `.repeat(3) + lastDigits;
+}
