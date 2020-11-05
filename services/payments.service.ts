@@ -5,12 +5,15 @@ import { Payment, PaymentInvoice } from '../utilities/types';
 import { PaymentsValidation } from '../utilities/mixins/validation';
 import { Oms } from '../utilities/mixins/oms.mixin';
 import { MpError } from '../utilities/adapters';
-import { CheckoutPage } from '../utilities/mixins';
-import { encodeCardNumber, sanitizeData } from '../utilities/lib';
+import {
+  encodeCardNumber,
+  sanitizeData,
+  renderCheckoutPage,
+} from '../utilities/lib';
 
 const TheService: ServiceSchema = {
   name: 'payments',
-  mixins: [PaymentsValidation, PaymentsOpenapi, Oms, CheckoutPage],
+  mixins: [PaymentsValidation, PaymentsOpenapi, Oms],
   actions: {
     add: {
       auth: ['Basic'],
@@ -138,7 +141,7 @@ const TheService: ServiceSchema = {
         });
 
         ctx.meta.$responseType = 'text/html';
-        return this.renderCheckoutPage({
+        return renderCheckoutPage({
           cards: sanitizedCards,
           store: sanitizedStore,
         });

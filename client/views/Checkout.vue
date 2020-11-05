@@ -1,7 +1,15 @@
 <template lang="pug">
-.checkout
+.checkout(:class="{'has-errors': error}")
   .spinner(v-if="isSubmitting")
+  .checkout-errors(v-if="error")
+    .checkout-errors-image
+      img(:src="getErrorImage()")
+    .checkout-errors-code
+      | {{ error.code }}
+    .checkout-errors-message
+      | {{ error.message }}
   form.checkout__form(
+    v-else
     name='checkoutForm',
     @submit.prevent="handleFormSubmit"
   )
@@ -148,6 +156,7 @@ export default {
     currency: '',
     cardId: '',
     card: {},
+    error: null,
 
     // Will get it from query params
     purchaseUnites: [],
@@ -208,6 +217,11 @@ export default {
     this.fetchInitialState();
   },
   mounted() {
+    if (this.error) {
+      this.isLoading = false;
+      console.error({ ...this.error });
+      return;
+    }
     const search = window.location.search?.substring(1);
     const queryParams = qs.parse(search);
 
@@ -293,6 +307,15 @@ export default {
         })
         .finally(() => (this.isSubmitting = false))
     },
+    getErrorImage() {
+      const { code } = this.error;
+      const mapper = {
+        401: 'not_found',
+        422: 'notify',
+      }
+
+      return `/img/${mapper[code] || 'online_payments'}.svg`
+    },
     fixed2,
   },
 }
@@ -311,6 +334,11 @@ export default {
   height: 650px
   border: 1px solid $gray
   border-radius: 8px
+  &.has-errors
+    border-color: $red
+    display: flex
+    justify-content: center
+    align-items: center
 
 .checkout__form
   display: flex
@@ -389,4 +417,19 @@ export default {
     background-color: $gray
     color: $dark
     border-radius: 8px
+
+// Errors
+.checkout-errors-image
+  padding: 50px
+  img
+    max-width: 100%
+
+.checkout-errors-code
+  text-align: center
+  color: $red
+  font-size: 40px
+  margin-bottom: 20px
+
+.checkout-errors-message
+  text-align: center
 </style>

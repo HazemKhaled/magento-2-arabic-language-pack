@@ -5,7 +5,7 @@ import compression from 'compression';
 import { Log, Store } from '../utilities/types';
 import { OpenApiMixin } from '../utilities/mixins/openapi.mixin';
 import { webpackMiddlewares } from '../utilities/middleware';
-import { authorizeHmac } from '../utilities/lib';
+import { authorizeHmac, renderCheckoutPage } from '../utilities/lib';
 
 const {
   UnAuthorizedError,
@@ -255,6 +255,19 @@ const TheService: ServiceSchema = {
         path: '/',
 
         authorization: true,
+        // Route error handler
+        onError(req: any, res: any, err: any) {
+          const output = renderCheckoutPage({
+            error: {
+              code: err.code,
+              message: err.message,
+              data: err.data,
+            },
+          });
+
+          res.setHeader('Content-Type', 'text/html');
+          res.end(output);
+        },
         use: [
           compression(),
           // Webpack middleware
