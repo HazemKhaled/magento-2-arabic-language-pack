@@ -40,15 +40,16 @@ export default {
       })
     );
 
-    return h(
+    h(
       'svg',
       {
         style: data.style,
         staticStyle: data.staticStyle,
         attrs: {
           ...data.attrs,
-          class: `icon icon-${props.name} ${data.staticClass || ''} ${data.class || ''
-            }`,
+          class: `icon icon-${props.name} ${data.staticClass || ''} ${
+            data.class || ''
+          }`,
           viewBox: '0 0 24 24',
         },
       },

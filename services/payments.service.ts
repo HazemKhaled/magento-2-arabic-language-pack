@@ -114,7 +114,7 @@ const TheService: ServiceSchema = {
     checkout: {
       auth: ['Hmac'],
       async handler(
-        ctx: Context<{ gateway: string; }, GenericObject>
+        ctx: Context<{ gateway: string }, GenericObject>
       ): Promise<string> {
         const { gateway } = ctx.params;
         const { store } = ctx.meta;
