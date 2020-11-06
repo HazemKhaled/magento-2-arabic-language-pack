@@ -1,7 +1,7 @@
-import { Context, Errors, GenericObject, ServiceSchema } from 'moleculer';
+import { Context, Errors, ServiceSchema, GenericObject } from 'moleculer';
 
 import DbService from '../utilities/mixins/mongo.mixin';
-import { Coupon } from '../utilities/types';
+import { Coupon, CommonError, CouponQueryType } from '../utilities/types';
 import { CouponsValidation, CouponsOpenapi } from '../utilities/mixins';
 import { MpError } from '../utilities/adapters';
 
@@ -13,7 +13,7 @@ const TheService: ServiceSchema = {
   actions: {
     create: {
       auth: ['Basic'],
-      handler(ctx: Context): Promise<Coupon> {
+      handler(ctx: Context<Coupon>): Promise<Coupon> {
         // Different coupon types validation
         this.couponTypeCheck(ctx.params);
 
@@ -23,7 +23,7 @@ const TheService: ServiceSchema = {
             this.broker.cacher.clean('coupons.list:**');
             return this.normalizeId(res);
           })
-          .catch((err: any) => {
+          .catch((err: CommonError) => {
             if (err.name === 'MoleculerError') {
               throw new MpError('Coupon Service', err.message, err.code);
             }
@@ -34,7 +34,7 @@ const TheService: ServiceSchema = {
                 422
               );
             }
-            throw new MpError('Coupon Service', err, 500);
+            throw new MpError('Coupon Service', String(err), 500);
           });
       },
     },
@@ -44,8 +44,8 @@ const TheService: ServiceSchema = {
         keys: ['id', 'membership'],
         ttl: 60 * 60 * 24,
       },
-      handler(ctx: Context): Promise<Coupon> {
-        const query: GenericObject = {
+      handler(ctx: Context<Coupon>): Promise<Coupon> {
+        const query: CouponQueryType = {
           _id: ctx.params.id.toUpperCase(),
           startDate: { $lte: new Date() },
           endDate: { $gte: new Date() },
@@ -71,11 +71,11 @@ const TheService: ServiceSchema = {
             }
             return this.normalizeId(res);
           })
-          .catch((err: any) => {
+          .catch((err: CommonError) => {
             if (err.name === 'MoleculerError') {
               throw new MoleculerError(err.message, err.code);
             }
-            throw new MoleculerError(err, 500);
+            throw new MoleculerError(String(err), 500);
           });
       },
     },
@@ -85,9 +85,9 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 * 24,
         keys: ['id', 'membership', 'type', 'isValid', 'isAuto'],
       },
-      handler(ctx): Promise<Coupon[]> {
+      handler(ctx: Context<Coupon>): Promise<Coupon[]> {
         this.couponListValidation(ctx.params);
-        const query: GenericObject = {};
+        const query: CouponQueryType = {};
         const isAuto = Number(ctx.params.isAuto);
         const isValid = Number(ctx.params.isValid);
         if (isValid) {
@@ -114,17 +114,17 @@ const TheService: ServiceSchema = {
             if (res.length) return res.map(coupon => this.normalizeId(coupon));
             throw new MoleculerError('No Coupons found!', 404);
           })
-          .catch((err: any) => {
+          .catch((err: CommonError) => {
             if (err.name === 'MoleculerError') {
               throw new MoleculerError(err.message, err.code);
             }
-            throw new MoleculerError(err, 500);
+            throw new MoleculerError(String(err), 500);
           });
       },
     },
     update: {
       auth: ['Basic'],
-      async handler(ctx: Context): Promise<Coupon> {
+      async handler(ctx: Context<Coupon>): Promise<Coupon> {
         this.couponTypeCheck(ctx.params);
 
         const id = ctx.params.id.toUpperCase();
@@ -157,14 +157,14 @@ const TheService: ServiceSchema = {
             delete coupon._id;
             return coupon;
           })
-          .catch((err: any) => {
-            throw new MoleculerError(err, 500);
+          .catch((err: CommonError) => {
+            throw new MoleculerError(String(err), 500);
           });
       },
     },
     updateCount: {
       auth: ['Basic'],
-      async handler(ctx: Context) {
+      async handler(ctx: Context<Coupon>): Promise<Coupon | boolean> {
         return this.adapter
           .updateMany(
             { _id: ctx.params.id.toUpperCase() },
@@ -179,8 +179,8 @@ const TheService: ServiceSchema = {
             this.broker.cacher.clean(`coupons.get:${ctx.params.id}*`);
             return coupon;
           })
-          .catch((err: any) => {
-            throw new MoleculerError(err, 500);
+          .catch((err: CommonError) => {
+            throw new MoleculerError(String(err), 500);
           });
       },
     },
@@ -192,7 +192,7 @@ const TheService: ServiceSchema = {
      * @param {({_id: string})} obj
      * @returns
      */
-    normalizeId(obj: { _id: string }) {
+    normalizeId(obj: { _id: string }): GenericObject {
       const newObj = {
         code: obj._id,
         ...obj,
@@ -206,7 +206,7 @@ const TheService: ServiceSchema = {
      * @param {*} params
      * @returns Coupon
      */
-    createCouponSanitize(params) {
+    createCouponSanitize(params): Coupon {
       const coupon: Coupon = {
         _id: params.code,
         // Coupon type 'salesorder | subscription'
@@ -235,7 +235,7 @@ const TheService: ServiceSchema = {
      *
      * @param {Coupon} params
      */
-    couponTypeCheck(params) {
+    couponTypeCheck(params): void {
       if (
         params.type === 'salesorder' &&
         (!params.discount || Object.keys(params.discount).length < 1)
@@ -292,7 +292,7 @@ const TheService: ServiceSchema = {
      *
      * @param {Coupon} params
      */
-    couponListValidation(params) {
+    couponListValidation(params): void {
       if (params.isValid && !params.totalAmount && params.totalAmount !== 0) {
         const error = new MoleculerError(
           'Parameters validation error!',

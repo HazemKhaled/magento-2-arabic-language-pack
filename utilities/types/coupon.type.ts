@@ -1,3 +1,4 @@
+import { MongoQueryType } from './i18ntext.type';
 /**
  * Coupon type
  *
@@ -24,9 +25,24 @@ export interface Coupon {
   updatedAt: Date;
   campaignName?: string;
   minAppliedAmount: number;
+  membership?: string;
+  isAuto?: boolean;
+  isValid?: boolean;
+  totalAmount?: number;
 }
 
 interface Discount {
   value: number;
   type: '$' | '%';
+}
+
+export interface CouponQueryType extends MongoQueryType {
+  appliedMemberships?: string;
+  minAppliedAmount?: {
+    $lte: number;
+  };
+  $expr?: {
+    $gt: string[];
+  };
+  auto?: boolean;
 }

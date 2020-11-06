@@ -19,7 +19,7 @@
     "start": "moleculer-runner --config build/moleculer.config.js",
     "deps": "npm-check -u",
     "ci": "jest --watch",
-    "test": "jest --coverage",
+    "test": "env $(cat ./docker/development/.env) jest --coverage",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "openapi": "node ./utilities/scripts/docs-checker.script.js",
@@ -42,15 +42,14 @@
     "@types/webpack": "^4.41.22",
     "@types/webpack-dev-middleware": "^3.7.2",
     "@types/webpack-hot-middleware": "^2.25.3",
-    "@typescript-eslint/parser": "^4.2.0",
     "awesome-typescript-loader": "^5.2.1",
     "babel-loader": "^8.1.0",
     "css-loader": "^4.3.0",
     "dotenv": "^8.2.0",
     "eslint": "^7.9.0",
     "html-webpack-plugin": "^4.5.0",
-    "jest": "^24.9.0",
-    "jest-cli": "^24.8.0",
+    "jest": "^26.6.0",
+    "jest-cli": "^26.6.0",
     "mini-css-extract-plugin": "^0.11.2",
     "moleculer-repl": "^0.6.4",
     "optimize-css-assets-webpack-plugin": "^5.0.4",
@@ -60,6 +59,7 @@
     "serviceworker-webpack-plugin": "^1.0.1",
     "stylus": "^0.54.8",
     "stylus-loader": "^3.0.2",
+    "supertest": "^5.0.0",
     "ts-jest": "^26.4.0",
     "ts-node": "^8.10.1",
     "tsc-watch": "^4.2.9",
@@ -84,41 +84,22 @@
     "form-data": "^2.5.1",
     "ioredis": "^4.17.3",
     "jsonwebtoken": "^8.5.1",
-    "lodash": "^4.17.19",
+    "lodash": "^4.17.20",
     "mkdirp": "^0.5.1",
-    "moleculer": "^0.13.13",
+    "moleculer": "^0.14.11",
     "moleculer-cron": "0.0.2",
-    "moleculer-db": "^0.8.9",
-    "moleculer-db-adapter-mongo": "^0.4.9",
+    "moleculer-db": "^0.8.10",
+    "moleculer-db-adapter-mongo": "^0.4.10",
     "moleculer-elasticsearch": "^1.1.5",
     "moleculer-web": "^0.8.5",
     "node-fetch": "^2.6.1",
     "nodemailer": "^6.4.11",
+    "openapi-types": "^7.0.1",
     "payment": "^2.4.0",
     "qs": "^6.9.4",
     "uuid": "^3.4.0",
     "vue": "^2.6.12",
     "vue-i18n": "^8.21.1",
     "vue-router": "^3.4.5"
-  },
-  "jest": {
-    "coverageDirectory": "<rootDir>/coverage",
-    "testEnvironment": "node",
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js"
-    ],
-    "transform": {
-      "^.+\\.(ts|tsx)$": "ts-jest"
-    },
-    "testMatch": [
-      "**/*.spec.(ts|js)"
-    ],
-    "globals": {
-      "ts-jest": {
-        "tsConfig": "tsconfig.json"
-      }
-    }
   }
 }

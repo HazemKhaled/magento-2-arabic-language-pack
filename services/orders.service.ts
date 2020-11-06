@@ -5,10 +5,22 @@ import {
   Log,
   OrderOMSResponse,
   Order,
+  OrderRequestParams,
+  MetaParams,
   OrderAddress,
   OrderItem,
   Product,
   Store,
+  OrderMetaParams,
+  Coupon,
+  CrmStore,
+  SubscriptionType,
+  updateOderRequestParams,
+  DynamicRequestParams,
+  InvoiceResponse,
+  InvoiceRequestParams,
+  CommonError,
+  Subscription,
 } from '../utilities/types';
 import {
   Mail,
@@ -19,6 +31,7 @@ import {
 } from '../utilities/mixins';
 import { MpError } from '../utilities/adapters';
 import { TaxCheck } from '../utilities/mixins/tax.mixin';
+import { SalesOrder } from '../utilities/types/order.type';
 
 const TheService: ServiceSchema = {
   name: 'orders',
@@ -39,7 +52,9 @@ const TheService: ServiceSchema = {
   actions: {
     createOrder: {
       auth: ['Bearer'],
-      async handler(ctx: Context) {
+      async handler(
+        ctx: Context<OrderRequestParams, MetaParams>
+      ): Promise<unknown> {
         // Initialize warnings array
         let warnings: { code: number; message: string }[] = [];
 
@@ -69,10 +84,12 @@ const TheService: ServiceSchema = {
                 params: ctx.params,
               },
             });
-
-            const orders = await ctx.call('orders.list', {
-              externalId: ctx.params.id,
-            });
+            const orders: Order[] = await ctx.call<Order[], Partial<Order>>(
+              'orders.list',
+              {
+                externalId: ctx.params.id,
+              }
+            );
 
             return {
               status: 'success',
@@ -190,7 +207,10 @@ const TheService: ServiceSchema = {
           ) + (data.isInclusiveTax ? 0 : taxTotal);
 
         // Getting the current user subscription
-        const subscription = await ctx.call('subscription.sGet', {
+        const subscription: Subscription = await ctx.call<
+          Subscription,
+          Partial<Store>
+        >('subscription.sGet', {
           id: store.url,
         });
         switch (subscription.attributes.orderProcessingType) {
@@ -278,10 +298,9 @@ const TheService: ServiceSchema = {
             ''
           );
         }
-
         const result: OrderOMSResponse = await ctx
           .call('oms.createNewOrder', data)
-          .then(async result => {
+          .then(async (result: OrderOMSResponse) => {
             if (result.salesorder) {
               // Clearing order list action(API) cache
               await this.broker.cacher.clean(
@@ -321,41 +340,45 @@ const TheService: ServiceSchema = {
 
         if (order && !store.internal_data?.omsId) {
           ctx
-            .call('stores.update', {
+            .call<Store, Partial<Store>>('stores.update', {
               id: store.url,
-              internal_data: {
-                omsId: result.salesorder.store.id,
-              },
+              internal_data: { omsId: result.salesorder.store.id },
             })
-            .then(r => this.logger.info(r));
+            .then((res: Store) => this.logger.info(res))
+            .catch((err: CommonError) => this.logger.error(err));
         }
 
         // TODO: Move to hook after create, and write this code into coupon service
         // If coupon used update quantity
         if (data.coupon) {
-          ctx.call('coupons.updateCount', { id: data.coupon });
+          ctx.call<Coupon | boolean, Partial<Coupon>>('coupons.updateCount', {
+            id: data.coupon,
+          });
         }
 
         // TODO: Move to hook after create, and write this code into CRM service
         // Update CRM last update
-        ctx.call('crm.updateStoreById', {
+        ctx.call<CrmStore, Partial<CrmStore>>('crm.updateStoreById', {
           id: store.url,
           last_order_date: Date.now(),
         });
 
         // Update products sales quantity
-        ctx.call('products.updateQuantityAttributes', {
-          products: stock.products.map((product: Product) => ({
-            id: product.sku,
-            qty: product.sales_qty + 1 || 1,
-            attribute: 'sales_qty',
-          })),
-        });
+        ctx.call<void, { products: GenericObject[] }>(
+          'products.updateQuantityAttributes',
+          {
+            products: stock.products.map(product => ({
+              id: product.sku,
+              qty: product.sales_qty + 1 || 1,
+              attribute: 'sales_qty',
+            })),
+          }
+        );
 
         const message: {
           status?: string;
           // Remove any later
-          data?: OrderOMSResponse['salesorder'] | any;
+          data?: OrderOMSResponse['salesorder'] | unknown;
           warnings?: GenericObject[];
           errors?: GenericObject[];
         } = {
@@ -390,12 +413,17 @@ const TheService: ServiceSchema = {
     },
     updateOrder: {
       auth: ['Bearer'],
-      async handler(ctx) {
+      async handler(
+        ctx: Context<OrderRequestParams, MetaParams>
+      ): Promise<unknown> {
         // Initialize warnings array
         let warnings: { code: number; message: string }[] = [];
         const { store } = ctx.meta;
 
-        const orderBeforeUpdate = await ctx.call('orders.getOrder', {
+        const orderBeforeUpdate: Order = await ctx.call<
+          Order,
+          Partial<OrderRequestParams>
+        >('orders.getOrder', {
           order_id: ctx.params.id,
         });
 
@@ -417,7 +445,13 @@ const TheService: ServiceSchema = {
         // Change
         if (data.status === 'cancelled' || data.status === 'void') {
           return ctx
-            .call('orders.deleteOrder', { id: ctx.params.id })
+            .call<
+              | { status: string; data?: { order_id?: string } }
+              | { message: string },
+              Partial<Order>
+            >('orders.deleteOrder', {
+              id: ctx.params.id,
+            })
             .then(res => {
               this.broker.cacher.clean(
                 `orders.list:undefined|${ctx.meta.user}**`
@@ -430,7 +464,7 @@ const TheService: ServiceSchema = {
         const message: {
           status?: string;
           // Remove any later
-          data?: OrderOMSResponse['salesorder'] | any;
+          data?: OrderOMSResponse['salesorder'] | unknown;
           warnings?: GenericObject[];
           errors?: GenericObject[];
         } = {};
@@ -499,7 +533,10 @@ const TheService: ServiceSchema = {
               ) + (data.isInclusiveTax ? 0 : taxTotal);
 
             // Getting the current user subscription
-            const subscription = await ctx.call('subscription.sGet', {
+            const subscription: Subscription = await ctx.call<
+              Subscription,
+              Partial<SubscriptionType>
+            >('subscription.sGet', {
               id: store.url,
             });
             if (subscription.attributes.orderProcessingType === '%') {
@@ -560,14 +597,14 @@ const TheService: ServiceSchema = {
             ? this.normalizeStatus(data.status)
             : data.status;
           // Update order
-          const result: OrderOMSResponse = await ctx.call(
-            'oms.updateOrderById',
-            {
-              customerId: store.internal_data.omsId,
-              orderId: ctx.params.id,
-              ...data,
-            }
-          );
+          const result: OrderOMSResponse = await ctx.call<
+            OrderOMSResponse,
+            updateOderRequestParams
+          >('oms.updateOrderById', {
+            customerId: store.internal_data.omsId,
+            orderId: ctx.params.id,
+            ...data,
+          });
 
           if (!result.salesorder) {
             this.sendLogs({
@@ -640,7 +677,9 @@ const TheService: ServiceSchema = {
         keys: ['#user', 'order_id'],
         ttl: 60 * 60,
       },
-      async handler(ctx) {
+      async handler(
+        ctx: Context<OrderRequestParams, MetaParams>
+      ): Promise<{ message: string } | SalesOrder> {
         const { store } = ctx.meta;
 
         if (!store.internal_data?.omsId) {
@@ -651,7 +690,10 @@ const TheService: ServiceSchema = {
           };
         }
 
-        const order = await ctx.call('oms.getOrderById', {
+        const order: OrderOMSResponse = await ctx.call<
+          OrderOMSResponse,
+          Partial<OrderRequestParams>
+        >('oms.getOrderById', {
           customerId: store.internal_data.omsId,
           orderId: ctx.params.order_id,
         });
@@ -688,7 +730,7 @@ const TheService: ServiceSchema = {
         ],
         ttl: 60 * 60 * 24,
       },
-      async handler(ctx) {
+      async handler(ctx): Promise<OrderOMSResponse | unknown> {
         const { store } = ctx.meta;
 
         if (!store.internal_data?.omsId) {
@@ -716,7 +758,10 @@ const TheService: ServiceSchema = {
           if (!keys.includes(key)) return;
           queryParams[key] = ctx.params[key];
         });
-        const orders = await ctx.call('oms.listOrders', {
+        const orders: OrderOMSResponse = await ctx.call<
+          OrderOMSResponse,
+          DynamicRequestParams
+        >('oms.listOrders', {
           customerId: store.internal_data.omsId,
           ...queryParams,
         });
@@ -725,8 +770,15 @@ const TheService: ServiceSchema = {
     },
     deleteOrder: {
       auth: ['Bearer'],
-      async handler(ctx) {
-        const orderBeforeUpdate = await ctx.call('orders.getOrder', {
+      async handler(
+        ctx
+      ): Promise<
+        { status: string; data?: { order_id?: string } } | { message: string }
+      > {
+        const orderBeforeUpdate: Order = await ctx.call<
+          Order,
+          Partial<OrderRequestParams>
+        >('orders.getOrder', {
           order_id: ctx.params.id,
         });
 
@@ -741,11 +793,14 @@ const TheService: ServiceSchema = {
         this.sendReceiveLog('Cancel', ctx.params.id, store, ctx.params);
 
         return ctx
-          .call('oms.deleteOrderById', {
-            customerId: store.internal_data?.omsId,
-            orderId: ctx.params.id,
-          })
-          .then(async result => {
+          .call<OrderOMSResponse, Partial<OrderRequestParams>>(
+            'oms.deleteOrderById',
+            {
+              customerId: store.internal_data?.omsId,
+              orderId: ctx.params.id,
+            }
+          )
+          .then(async (result: OrderOMSResponse) => {
             if (result.salesorder) {
               // Clean list cache
               this.broker.cacher.clean(
@@ -777,12 +832,22 @@ const TheService: ServiceSchema = {
     },
     payOrder: {
       auth: ['Bearer'],
-      async handler(ctx: Context) {
-        const store = await ctx.call('stores.sGet', { id: ctx.meta.store.url });
+      async handler(
+        ctx: Context<OrderRequestParams, MetaParams>
+      ): Promise<GenericObject> {
+        const store: Store = await ctx.call<Store, Partial<Store>>(
+          'stores.sGet',
+          {
+            id: ctx.meta.store.url,
+          }
+        );
 
-        const order = await ctx.call('orders.getOrder', {
-          order_id: ctx.params.id,
-        });
+        const order: Order = await ctx.call<Order, Partial<OrderRequestParams>>(
+          'orders.getOrder',
+          {
+            order_id: ctx.params.id,
+          }
+        );
 
         if (order.financialStatus === 'paid') {
           return {
@@ -803,24 +868,36 @@ const TheService: ServiceSchema = {
           if (order.status === 'invoiced') {
             ({
               invoices: [{ invoice_id: invoiceId }],
-            } = await ctx.call('invoices.get', {
-              reference_number: order.orderNumber,
-            }));
+            } = await ctx.call<InvoiceResponse, Partial<InvoiceRequestParams>>(
+              'invoices.get',
+              {
+                reference_number: order.orderNumber,
+              }
+            ));
           } else {
             ({
               invoice: { invoiceId },
-            } = await ctx.call('invoices.createOrderInvoice', {
-              storeId: store.url,
-              orderId: order.id,
-            }));
+            } = await ctx.call<InvoiceResponse, Partial<InvoiceRequestParams>>(
+              'invoices.createOrderInvoice',
+              {
+                storeId: store.url,
+                orderId: order.id,
+              }
+            ));
           }
 
-          await ctx.call('invoices.markInvoiceSent', {
-            omsId: ctx.meta.store.internal_data.omsId,
-            invoiceId,
-          });
+          await ctx.call<unknown, Partial<InvoiceRequestParams>>(
+            'invoices.markInvoiceSent',
+            {
+              omsId: ctx.meta.store.internal_data.omsId,
+              invoiceId,
+            }
+          );
 
-          const applyCreditRes = await ctx.call('invoices.applyCredits', {
+          const applyCreditRes = await ctx.call<
+            unknown,
+            Partial<InvoiceRequestParams>
+          >('invoices.applyCredits', {
             id: invoiceId,
           });
 
@@ -832,16 +909,16 @@ const TheService: ServiceSchema = {
             ctx.meta.user
           );
 
-          const productsRes = await ctx.call(
-            'products.getProductsByVariationSku',
-            {
-              skus: order.items.map((item: OrderItem) => item.sku),
-            }
-          );
+          const { products } = await ctx.call<
+            { products: Product[] },
+            { skus: string[] }
+          >('products.getProductsByVariationSku', {
+            skus: order.items.map((item: OrderItem) => item.sku),
+          });
 
-          if (productsRes.products.length > 0) {
+          if (products.length > 0) {
             const handlingTimes: number[] = [];
-            productsRes.products.filter((product: Product) => {
+            products.filter((product: Product) => {
               if (product.handling_time?.to) {
                 handlingTimes.push(product.handling_time.to);
               }
@@ -870,10 +947,15 @@ const TheService: ServiceSchema = {
         keys: ['order_id'],
         ttl: 60 * 6,
       },
-      async handler(ctx: Context) {
+      async handler(
+        ctx: Context<OrderRequestParams, OrderMetaParams>
+      ): Promise<{ message: string; code: number }[]> {
         const { order_id } = ctx.params;
         const { store: instance } = ctx.meta;
-        const order = await ctx.call('orders.getOrder', { order_id });
+        const order: Order = await ctx.call<Order, Partial<OrderRequestParams>>(
+          'orders.getOrder',
+          { order_id }
+        );
         const { outOfStock, notEnoughStock } = await this.stockProducts(
           order.items
         );
@@ -896,15 +978,19 @@ const TheService: ServiceSchema = {
         );
 
         ctx
-          .call('oms.updateOrderById', {
-            orderId: order_id,
-            customerId: instance.internal_data?.omsId,
-            warnings: warningsStr,
-            warningsSnippet,
-          })
+          .call<{ salesorder: SalesOrder }, Partial<OrderRequestParams>>(
+            'oms.updateOrderById',
+            {
+              orderId: order_id,
+              customerId: instance.internal_data?.omsId,
+              warnings: warningsStr,
+              warningsSnippet,
+            }
+          )
           .then(({ salesorder }) => {
             this.cacheUpdate(salesorder, instance);
-          });
+          })
+          .catch(err => this.logger.error(err));
 
         return warnings;
       },
@@ -998,7 +1084,7 @@ const TheService: ServiceSchema = {
       shipping,
       shipment,
       params
-    ) {
+    ): { message: string; code: number }[] {
       const warnings = [];
       try {
         if (outOfStock.length > 0) {
@@ -1159,8 +1245,16 @@ const TheService: ServiceSchema = {
       }
       return true;
     },
-    async setTaxIds(instance, items) {
-      const taxesMsg: GenericObject[] = [];
+    async setTaxIds(
+      instance,
+      items
+    ): Promise<{
+      items: unknown;
+      isInclusive: boolean;
+      msgs: unknown[];
+      taxTotal: number;
+    }> {
+      const taxesMsg: unknown[] = [];
       let isInclusive = false;
       let taxTotal = 0;
       const itemsAfterTaxes = await Promise.all(
@@ -1255,7 +1349,7 @@ const TheService: ServiceSchema = {
       }
     },
     /**
-     * Calculate Working Days Exculded saturday and sunday
+     * Calculate Working Days Excluded saturday and sunday
      *
      * @param fromDate
      * @param days

@@ -2,7 +2,12 @@ import { Context, Errors, ServiceSchema, GenericObject } from 'moleculer';
 
 import DbService from '../utilities/mixins/mongo.mixin';
 import { MembershipOpenapi } from '../utilities/mixins/openapi';
-import { Membership, Coupon } from '../utilities/types';
+import {
+  Membership,
+  Coupon,
+  MembershipRequestParams,
+  CommonError,
+} from '../utilities/types';
 import { MembershipValidation } from '../utilities/mixins/validation';
 import { TaxCheck } from '../utilities/mixins/tax.mixin';
 
@@ -19,7 +24,9 @@ const TheService: ServiceSchema = {
   actions: {
     create: {
       auth: ['Basic'],
-      async handler(ctx: Context): Promise<Membership> {
+      async handler(
+        ctx: Context<MembershipRequestParams>
+      ): Promise<Membership> {
         const { params } = ctx;
 
         // Add created and updated dates of the coupon
@@ -45,11 +52,11 @@ const TheService: ServiceSchema = {
             this.broker.cacher.clean('membership.list:**');
             return this.normalize(res);
           })
-          .catch((err: any) => {
+          .catch((err: CommonError) => {
             if (err.name === 'MoleculerError') {
               throw new MoleculerError(err.message, err.code);
             }
-            throw new MoleculerError(err, 500);
+            throw new MoleculerError(String(err), 500);
           });
       },
     },
@@ -59,9 +66,9 @@ const TheService: ServiceSchema = {
         keys: ['id', 'country', 'coupon', 'active'],
         ttl: 60 * 60 * 24,
       },
-      handler(ctx: Context): Promise<Membership> {
+      handler(ctx: Context<MembershipRequestParams>): Promise<Membership> {
         const { active, id, country } = ctx.params;
-        const query: GenericObject = { _id: id };
+        const query: Partial<MembershipRequestParams> = { _id: id };
         if (active !== undefined) {
           query.active = active;
         }
@@ -81,11 +88,11 @@ const TheService: ServiceSchema = {
 
             return this.normalize(res, country);
           })
-          .catch((err: any) => {
+          .catch((err: CommonError) => {
             if (err.name === 'MoleculerError') {
               throw new MoleculerError(err.message, err.code);
             }
-            throw new MoleculerError(err, 500);
+            throw new MoleculerError(String(err), 500);
           });
       },
     },
@@ -97,7 +104,7 @@ const TheService: ServiceSchema = {
       },
       handler(ctx): Promise<Membership[]> {
         const { country } = ctx.params;
-        let query: { [key: string]: any } = {};
+        let query: { [key: string]: GenericObject } = {};
         if (ctx.params.country) {
           query = {
             $or: [{ country }, { country: { $exists: false } }],
@@ -114,17 +121,19 @@ const TheService: ServiceSchema = {
               country
             );
           })
-          .catch((err: any) => {
+          .catch((err: CommonError) => {
             if (err.name === 'MoleculerError') {
               throw new MoleculerError(err.message, err.code);
             }
-            throw new MoleculerError(err, 500);
+            throw new MoleculerError(String(err), 500);
           });
       },
     },
     update: {
       auth: ['Basic'],
-      async handler(ctx: Context): Promise<Membership> {
+      async handler(
+        ctx: Context<MembershipRequestParams>
+      ): Promise<Membership> {
         const { params } = ctx;
         const id = params.id;
         delete params.id;
@@ -139,13 +148,16 @@ const TheService: ServiceSchema = {
             if (!res) {
               throw new MoleculerError('Membership not found', 404);
             }
-            return ctx.call('membership.mGet', { id });
+            return ctx.call<Membership, Partial<Membership>>(
+              'membership.mGet',
+              { id }
+            );
           })
-          .catch((err: any) => {
+          .catch((err: CommonError) => {
             if (err.name === 'MoleculerError') {
               throw new MoleculerError(err.message, err.code);
             }
-            throw new MoleculerError(err, 500);
+            throw new MoleculerError(String(err), 500);
           });
       },
     },
@@ -160,8 +172,8 @@ const TheService: ServiceSchema = {
     async normalize(
       obj: { _id: string; country?: string; cost: number },
       country: string
-    ) {
-      let taxData: any = { value: 0 };
+    ): Promise<GenericObject> {
+      let taxData: GenericObject = { value: 0 };
       if (country || obj.country) {
         taxData =
           (await this.getTaxWithCalc(country || obj.country, {
@@ -192,8 +204,8 @@ const TheService: ServiceSchema = {
     async listNormalize(
       objArr: { _id: string; country?: string; cost: number }[],
       country: string
-    ) {
-      let taxData: any = {};
+    ): Promise<GenericObject> {
+      let taxData: GenericObject = {};
       if (country || objArr[0].country) {
         taxData = await this.getItemTax(country || objArr[0].country, {
           taxClass: 'service',
@@ -221,14 +233,14 @@ const TheService: ServiceSchema = {
         return newObj;
       });
     },
-    async applyCouponDiscount(couponCode, membership) {
+    async applyCouponDiscount(couponCode, membership): Promise<void> {
       const coupon: Coupon = await this.broker
         .call('coupons.get', {
           id: couponCode,
           membership: membership.id,
           type: 'subscription',
         })
-        .then(null, (err: any) => err);
+        .then(null, (err: unknown) => err);
       if (coupon instanceof Error) {
         throw new MoleculerError(coupon.message, Number(coupon.code));
       }

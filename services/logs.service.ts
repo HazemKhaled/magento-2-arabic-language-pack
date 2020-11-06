@@ -3,7 +3,13 @@ import ESService from 'moleculer-elasticsearch';
 import { v1 as uuidv1 } from 'uuid';
 
 import { LogsOpenapi } from '../utilities/mixins/openapi';
-import { Log } from '../utilities/types';
+import {
+  Log,
+  LogRequestParams,
+  LogMetaParams,
+  LogResponse,
+  ElasticSearchResponse,
+} from '../utilities/types';
 import { LogsValidation } from '../utilities/mixins/validation';
 
 const TheService: ServiceSchema = {
@@ -22,7 +28,12 @@ const TheService: ServiceSchema = {
   actions: {
     add: {
       auth: ['Basic', 'Bearer'],
-      handler(ctx: Context) {
+      handler(
+        ctx: Context<LogRequestParams, LogMetaParams>
+      ): Promise<
+        | { status?: string; message: string; code?: undefined }
+        | { status?: string; message: string; code: number }
+      > {
         const date = new Date();
         const {
           topic,
@@ -37,22 +48,22 @@ const TheService: ServiceSchema = {
           let error = payload.error || payload.errors;
           try {
             error = JSON.stringify(error);
-          } catch (e) {
+          } catch (err) {
             error = error.toString();
           }
           delete payload.errors;
           payload.error = error;
         }
         return ctx
-          .call('logs.create', {
+          .call<LogResponse, Partial<Log>>('logs.create', {
             index: `logsmp-${date.getFullYear()}-${
               date.getMonth() < 9 ? 0 : ''
             }${date.getMonth() + 1}`,
             type: '_doc',
             id: uuidv1(),
             body: {
-              topic,
-              topicId,
+              topic: String(topic),
+              topicId: String(topicId),
               '@timestamp': date,
               logLevel,
               storeId: ctx.meta?.user ? ctx.meta.storeId : storeId,
@@ -61,7 +72,7 @@ const TheService: ServiceSchema = {
               code,
             },
           })
-          .then(res => {
+          .then((res: LogResponse) => {
             if (res.result === 'created') {
               this.broker.cacher.clean('log*');
               return {
@@ -86,14 +97,20 @@ const TheService: ServiceSchema = {
       cache: {
         ttl: 60 * 60 * 24,
       },
-      handler(ctx: Context) {
+      handler(
+        ctx: Context<LogRequestParams, LogMetaParams>
+      ): Promise<
+        | Log[]
+        | { message: string; code?: undefined }
+        | { message: string; code: number }
+      > {
         const body: {
           size?: number;
           from?: number;
           query?: { [key: string]: GenericObject };
           sort?: { [key: string]: string };
         } = {};
-        const query: { bool?: { filter?: GenericObject[] } } = {
+        const query: { bool?: { filter?: unknown[] } } = {
           bool: { filter: [] },
         };
         if (ctx.params.limit) body.size = parseInt(ctx.params.limit, 10);
@@ -114,20 +131,23 @@ const TheService: ServiceSchema = {
           switch (ctx.params.logLevel) {
             case 'debug':
               logLevel.push('debug');
+              break;
             case 'info':
               logLevel.push('info');
+              break;
             case 'warn':
               logLevel.push('warn');
+              break;
           }
           query.bool.filter.push({ terms: { logLevel } });
         }
         body.query = query;
         return ctx
-          .call('logs.search', {
+          .call<ElasticSearchResponse, Partial<Log>>('logs.search', {
             index: 'logsmp-*',
             body,
           })
-          .then(res => {
+          .then((res: ElasticSearchResponse) => {
             if (res.hits.total.value > 0)
               return res.hits.hits.map(
                 (item: { _id: string; _source: Log }) => {

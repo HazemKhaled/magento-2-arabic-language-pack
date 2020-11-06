@@ -454,12 +454,12 @@ const ProductsList = {
         properties: {
           field: {
             type: 'string',
-            enums: ['updated', 'created'],
+            enum: ['updated', 'created'],
             default: 'created',
           },
           order: {
             type: 'string',
-            enums: ['asc', 'desc'],
+            enum: ['asc', 'desc'],
             default: 'asc',
           },
         },

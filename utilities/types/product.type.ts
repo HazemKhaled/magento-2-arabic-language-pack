@@ -30,10 +30,15 @@ export interface Product {
   import_qty: number;
   quantity?: number;
   ship_to: string[];
+  index?: string;
+  body?: GenericObject;
+  type?: string;
+  id?: string;
   handling_time?: {
     to?: number;
   };
   ship_from?: ShipFrom[];
+  supplier?: string;
 }
 
 /**
@@ -77,4 +82,55 @@ export interface Attribute {
 export interface ShipFrom {
   city: string;
   country: string;
+}
+
+/** multiple Products definition
+ *
+ * @export
+ * @interface Products
+ */
+export interface Products {
+  products: [
+    {
+      id?: string;
+      sku?: string;
+      qty?: number;
+      attribute?: string;
+      imported?: string;
+    }
+  ];
+  sku?: string;
+  skus?: string[];
+  productInstances?: [
+    {
+      sku: string;
+      externalUrl: string;
+      externalId: string;
+      error: any[];
+      variations: any[];
+    }
+  ];
+}
+
+/**
+ * UpdateProductParams definition
+ * @export
+ * @interface UpdateProductParams
+ */
+export interface UpdateProductParams extends Product {
+  error: string;
+  products: {
+    id: string;
+    qty: number;
+    attribute: string;
+  };
+}
+/**
+ * Product search Params
+ *
+ * @export
+ * @interface ProductSearchParams
+ */
+export interface ProductSearchParams {
+  storeKey: string;
 }

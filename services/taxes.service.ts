@@ -2,7 +2,13 @@ import { Context, Errors, GenericObject, ServiceSchema } from 'moleculer';
 
 import DbService from '../utilities/mixins/mongo.mixin';
 import { TaxOpenapi } from '../utilities/mixins/openapi';
-import { DbTax, RTax } from '../utilities/types/tax.type';
+import {
+  DbTax,
+  RTax,
+  TaxRequestParams,
+  DynamicRequestParams,
+  CommonError,
+} from '../utilities/types';
 import { TaxesValidation } from '../utilities/mixins/validation';
 
 const MoleculerError = Errors.MoleculerError;
@@ -13,13 +19,16 @@ const TaxesService: ServiceSchema = {
   actions: {
     tCreate: {
       auth: ['Basic'],
-      async handler(ctx: Context): Promise<RTax> {
+      async handler(ctx: Context<Partial<DbTax>>): Promise<RTax> {
         const taxBody: Partial<DbTax> = {
           ...ctx.params,
           createdAt: new Date(),
           updatedAt: new Date(),
         };
-        const omsTax = await ctx.call('oms.createTax', {
+        const omsTax: GenericObject = await ctx.call<
+          GenericObject,
+          Partial<DbTax>
+        >('oms.createTax', {
           name: taxBody.name,
           percentage: taxBody.percentage,
           type: 'tax',
@@ -32,14 +41,14 @@ const TaxesService: ServiceSchema = {
             this.broker.cacher.clean('taxes.tCount:*');
             return { tax: this.sanitizer(tax) };
           })
-          .catch((err: any) => {
-            throw new MoleculerError(err, 500);
+          .catch((err: CommonError) => {
+            throw new MoleculerError(String(err), 500);
           });
       },
     },
     tUpdate: {
       auth: ['Basic'],
-      async handler(ctx: Context): Promise<RTax> {
+      async handler(ctx: Context<GenericObject>): Promise<RTax> {
         const { id } = ctx.params;
         const $set = ctx.params;
         $set.updatedAt = new Date();
@@ -64,14 +73,14 @@ const TaxesService: ServiceSchema = {
               tax: this.sanitizer(tax),
             };
           })
-          .catch((err: any) => {
+          .catch((err: CommonError) => {
             throw new MoleculerError(
               err.message ? err.message : 'Something went wrong.',
               err.code < 500 ? err.code : 500
             );
           });
         if (taxUpdateData.tax) {
-          ctx.call(
+          ctx.call<GenericObject, DynamicRequestParams>(
             'oms.updateTax',
             ['name', 'percentage'].reduce(
               (acc: GenericObject, key: string) => {
@@ -98,7 +107,7 @@ const TaxesService: ServiceSchema = {
         // 1 day
         ttl: 60 * 60 * 24,
       },
-      handler(ctx: Context): RTax {
+      handler(ctx: Context<RTax>): RTax {
         return this.adapter
           .findById(ctx.params.id)
           .then((tax: DbTax) => {
@@ -107,7 +116,7 @@ const TaxesService: ServiceSchema = {
             }
             throw new MoleculerError('There is no tax with that ID', 404);
           })
-          .catch((err: any) => {
+          .catch((err: CommonError) => {
             throw new MoleculerError(
               err.message ? err.message : 'Something went wrong.',
               err.code < 500 ? err.code : 500
@@ -122,7 +131,7 @@ const TaxesService: ServiceSchema = {
         // 1 day
         ttl: 60 * 60 * 24,
       },
-      handler(ctx: Context): RTax[] {
+      handler(ctx: Context<TaxRequestParams>): RTax[] {
         const { country } = ctx.params;
         const classes = ctx.params.class;
         const query: any = {};
@@ -142,9 +151,14 @@ const TaxesService: ServiceSchema = {
           .find({ limit, offset, query })
           .then(async (res: DbTax[]) => ({
             taxes: res.map(tax => this.sanitizer(tax)),
-            total: await ctx.call('taxes.tCount', { query }),
+            total: await ctx.call<number, Partial<TaxRequestParams>>(
+              'taxes.tCount',
+              {
+                query,
+              }
+            ),
           }))
-          .catch((err: any) => {
+          .catch((err: CommonError) => {
             throw new MoleculerError(
               err.message ? err.message : 'Something went wrong.',
               err.code < 500 ? err.code : 500
@@ -154,7 +168,9 @@ const TaxesService: ServiceSchema = {
     },
     tDelete: {
       auth: ['Basic'],
-      async handler(ctx: Context) {
+      async handler(
+        ctx: Context<RTax>
+      ): Promise<{ tax: RTax; message: string }> {
         const taxDeleteData = await this.adapter
           .removeById(ctx.params.id)
           .then((tax: DbTax) => {
@@ -171,7 +187,7 @@ const TaxesService: ServiceSchema = {
               message: 'Tax deleted successfully!',
             };
           })
-          .catch((err: any) => {
+          .catch((err: CommonError) => {
             throw new MoleculerError(
               err.message ? err.message : 'Something went wrong.',
               err.code < 500 ? err.code : 500
@@ -179,7 +195,9 @@ const TaxesService: ServiceSchema = {
           });
 
         if (taxDeleteData.tax) {
-          ctx.call('oms.deleteTax', { id: taxDeleteData.tax.omsId });
+          ctx.call<GenericObject, Partial<TaxRequestParams>>('oms.deleteTax', {
+            id: taxDeleteData.tax.omsId,
+          });
         }
 
         return taxDeleteData;
@@ -190,7 +208,7 @@ const TaxesService: ServiceSchema = {
         keys: ['query'],
         ttl: 60 * 60,
       },
-      handler(ctx: Context) {
+      handler(ctx: Context<TaxRequestParams>): Promise<number> {
         return this.adapter.count({ query: ctx.params.query }).catch(() => {
           throw new MoleculerError(
             'There is an error fetching the taxes total',

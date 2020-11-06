@@ -1,3 +1,5 @@
+import { GenericObject } from 'moleculer';
+
 /**
  * Crm Store Type
  *
@@ -5,7 +7,7 @@
  * @interface CrmStore
  */
 export interface CrmStore {
-  id: string;
+  id: string | number;
   Store_Status: string;
   Platform?: string;
   Stock_Date?: string;
@@ -29,4 +31,12 @@ export interface CrmStore {
   Last_Order_Date: string;
   Subscription_Name: string;
   Subscription_Expiration: string;
+  tag?: string;
+  module?: string;
+  data?: GenericObject;
+  criteria?: string;
+  email?: string;
+  phone?: string;
+  word?: string;
+  last_order_date?: number;
 }

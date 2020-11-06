@@ -4,13 +4,13 @@ const { MoleculerClientError } = require('moleculer').Errors;
 const TestService = require('../../services/orders.service');
 
 describe("Test 'orders' service", () => {
-  const broker = new ServiceBroker();
+  const broker = new ServiceBroker({ logger: false });
   broker.createService(TestService);
 
   beforeAll(() => broker.start());
   afterAll(() => broker.stop());
 
-  describe("Test 'orders.create' action", () => {
+  describe("Test 'orders' action", () => {
     it('should reject an ValidationError', () => {
       expect(broker.call('orders.create')).rejects.toBeInstanceOf(ValidationError);
     });

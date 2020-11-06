@@ -59,45 +59,54 @@ const InvoiceResponse = {
 };
 
 const InvoiceSchema = {
-  type: 'object',
-  properties: {
-    storeId: { type: 'string' },
-    discount: {
-      type: 'object',
-      properties: {
-        value: { type: 'number', positive: true, required: true },
-        type: { type: 'string', enum: ['entity_level'], required: true },
-      },
-    },
-    coupon: { type: 'string', required: false },
-    items: {
-      type: 'array',
-      items: {
+  content: {
+    'application/json': {
+      schema: {
         type: 'object',
+        required: ['discount', 'items'],
         properties: {
-          sku: { type: 'string', required: true },
-          barcode: { type: 'string', required: false },
-          name: { type: 'string', required: true },
-          description: { type: 'string', required: false },
-          url: { type: 'string', required: false },
-          image: { type: 'string', required: false },
-          weight: { type: 'number', required: false },
-          rate: { type: 'number', required: true },
-          quantity: { type: 'number', required: true },
-          accountId: { type: 'string', required: false },
-          purchaseRate: { type: 'number', required: false },
-          vendorId: { type: 'number', required: false },
-          taxId: { type: 'string', required: false },
-          taxName: { type: 'string', required: false },
-          taxType: { type: 'string', required: false },
-          taxPercentage: { type: 'number', required: false },
+          storeId: { type: 'string' },
+          discount: {
+            type: 'object',
+            required: ['value', 'type'],
+            properties: {
+              value: { type: 'number' },
+              type: { type: 'string', enum: ['entity_level'] },
+            },
+          },
+          coupon: { type: 'string' },
+          items: {
+            type: 'array',
+            items: {
+              type: 'object',
+              required: ['sku', 'name', 'rate', 'quantity'],
+              properties: {
+                sku: { type: 'string' },
+                barcode: { type: 'string' },
+                name: { type: 'string' },
+                description: { type: 'string' },
+                url: { type: 'string' },
+                image: { type: 'string' },
+                weight: { type: 'number' },
+                rate: { type: 'number' },
+                quantity: { type: 'number' },
+                accountId: { type: 'string' },
+                purchaseRate: { type: 'number' },
+                vendorId: { type: 'number' },
+                taxId: { type: 'string' },
+                taxName: { type: 'string' },
+                taxType: { type: 'string' },
+                taxPercentage: { type: 'number' },
+              },
+            },
+          },
+          dueDate: {
+            type: 'string',
+            format: 'date',
+            example: 'yyyy-mm-dd',
+          },
         },
       },
-    },
-    dueDate: {
-      type: 'string',
-      format: 'date',
-      example: 'yyyy-mm-dd',
     },
   },
 };
