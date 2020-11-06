@@ -329,9 +329,10 @@ export default {
   display: flex
   flex-direction: column
   margin: 0 auto
-  max-width: 500px
-  max-height: 100vh
-  height: 650px
+  max-width: 700px
+  width: 100vw
+  max-height: 800px
+  height: 100vh
   border: 1px solid $gray
   border-radius: 8px
   &.has-errors
