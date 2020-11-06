@@ -16,6 +16,7 @@ form.vc-card(novalidate, autocomplete='on')
         )
         svg.vc-icon(focusable='false', viewBox='0 0 576 512')
           path(:d='currentIcon')
+  .vc-row
     .vc-column
       input.vc-name(
         name='cc-name',
@@ -170,6 +171,7 @@ export default {
   border: 1px solid $gray
   border-radius: 8px
   background-color: $white
+  width: 100%
 
 .vc-close
   position: absolute

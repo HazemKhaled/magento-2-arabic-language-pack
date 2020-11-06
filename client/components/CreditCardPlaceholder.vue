@@ -85,4 +85,5 @@ export default {
   bottom: 15px
   right: 15px
   width: 20px
+  color: $dark
 </style>

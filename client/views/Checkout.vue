@@ -411,8 +411,8 @@ export default {
     display: flex
   label
     width: 100%
-  .btn
-    padding: 10px
+  .button
+    padding: 15px 10px
     width: 100%
     border: 1px solid $gray
     background-color: $gray
