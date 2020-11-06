@@ -5,7 +5,7 @@ import compression from 'compression';
 import { Log, Store } from '../utilities/types';
 import { OpenApiMixin } from '../utilities/mixins/openapi.mixin';
 import { webpackMiddlewares } from '../utilities/middleware';
-import { authorizeHmac, renderCheckoutPage } from '../utilities/lib';
+import { authorizeHmac } from '../utilities/lib';
 
 const {
   UnAuthorizedError,
@@ -256,8 +256,8 @@ const TheService: ServiceSchema = {
 
         authorization: true,
         // Route error handler
-        onError(req: any, res: any, err: any) {
-          const output = renderCheckoutPage({
+        async onError(req: any, res: any, err: any) {
+          const output = await req.$ctx.call('paymentGateway.error', {
             error: {
               code: err.code,
               message: err.message,
@@ -275,7 +275,7 @@ const TheService: ServiceSchema = {
           ApiGateway.serveStatic('public'),
         ],
         aliases: {
-          'GET checkout': 'payments.checkout',
+          'GET checkout': 'paymentGateway.get',
         },
       },
     ],

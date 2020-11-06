@@ -5,11 +5,6 @@ import { Payment, PaymentInvoice } from '../utilities/types';
 import { PaymentsValidation } from '../utilities/mixins/validation';
 import { Oms } from '../utilities/mixins/oms.mixin';
 import { MpError } from '../utilities/adapters';
-import {
-  encodeCardNumber,
-  sanitizeData,
-  renderCheckoutPage,
-} from '../utilities/lib';
 
 const TheService: ServiceSchema = {
   name: 'payments',
@@ -111,40 +106,6 @@ const TheService: ServiceSchema = {
           'No Record Found For This Store!',
           404
         );
-      },
-    },
-
-    checkout: {
-      auth: ['Hmac'],
-      async handler(
-        ctx: Context<{ gateway: string }, GenericObject>
-      ): Promise<string> {
-        const { gateway } = ctx.params;
-        const { store } = ctx.meta;
-
-        const res = await ctx.call('cards.list', { store: store.url, gateway });
-
-        // Clean store data
-        const sanitizedStore = sanitizeData(
-          ['url', 'external_data', 'credit'],
-          store
-        );
-
-        // Clean cards data
-        const sanitizedCards = res.cards.map((card: GenericObject) => {
-          const data = sanitizeData(
-            ['_id', 'currency', 'number', 'primary', 'title', 'expires'],
-            card
-          );
-          data.number = encodeCardNumber(data.number);
-          return data;
-        });
-
-        ctx.meta.$responseType = 'text/html';
-        return renderCheckoutPage({
-          cards: sanitizedCards,
-          store: sanitizedStore,
-        });
       },
     },
   },

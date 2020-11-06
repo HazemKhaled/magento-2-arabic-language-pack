@@ -6,15 +6,19 @@
 
   template(v-else)
     .cc__data
+      svg.cc_icon(focusable='false', viewBox='0 0 576 512')
+        path(:d='currentIcon')
       .cc__number
         span {{ cNumber }}
       .cc__text
-        | {{ $t('checkout.expires') }}: {{ cardData.expires }}
+        | {{ $t('checkout.expires') }}:  {{ expires }}
       .cc__title
         | {{ cardData.title }}
 </template>
 
 <script>
+import icons from '../icons.ts';
+
 export default {
   name: 'CreditCardPlaceholder',
   props: {
@@ -28,8 +32,15 @@ export default {
   },
   computed: {
     cNumber() {
-      return this.cardData.number || `${'*'.repeat(4)} `.repeat(4);
+      return `${'*'.repeat(4)} `.repeat(3) + this.cardData.last_4;
     },
+    currentIcon() {
+      return icons[this.cardData.brand] || icons['unknown'];
+    },
+    expires() {
+      const { exp_month, exp_year } = this.cardData;
+      return `${exp_month.toString().padStart(2, '0') }/${ exp_year }`
+    }
   },
 };
 </script>
@@ -68,4 +79,10 @@ export default {
   font-size: 12px
   line-height: 1.5
   text-transform: uppercase
+
+.cc_icon
+  position: absolute
+  bottom: 15px
+  right: 15px
+  width: 20px
 </style>
