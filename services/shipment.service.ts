@@ -2,7 +2,7 @@ import { Context, ServiceSchema, GenericObject } from 'moleculer';
 
 import DbService from '../utilities/mixins/mongo.mixin';
 import { ShipmentOpenapi } from '../utilities/mixins/openapi';
-import { Rule, ShipmentPolicy } from '../utilities/types';
+import { Rule, ShipmentPolicy, RuleQuery } from '../utilities/types';
 import { ShipmentValidation } from '../utilities/mixins/validation';
 import { MpError } from '../utilities/adapters';
 
@@ -123,7 +123,7 @@ const Shipment: ServiceSchema = {
         }>
       ): Rule[] {
         // find policies with matched rules
-        const query: GenericObject = {
+        const query: RuleQuery = {
           countries: ctx.params.country,
           'rules.units_max': { $gte: ctx.params.weight },
           'rules.units_min': { $lte: ctx.params.weight },

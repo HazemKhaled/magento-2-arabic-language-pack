@@ -34,10 +34,30 @@ export interface Rule {
   duration?: string;
 }
 
+/**
+ * RuleParms
+ *
+ * @export
+ * @interface RuleParms
+ */
 export interface RuleParms {
   country: string;
   weight: number;
   price: number;
   ship_from_city?: string;
   ship_from_country?: string;
+}
+
+/**
+ * Mongodb RuleQuery schema
+ *
+ * @export
+ * @interface RuleQuery
+ */
+export interface RuleQuery {
+  countries: string;
+  'rules.units_max': { $gte: number };
+  'rules.units_min': { $lte: number };
+  'ship_from.city'?: { $in: string[] };
+  'ship_from.country'?: { $in: string[] };
 }
