@@ -25,13 +25,13 @@
               CreditCardPlaceholder(:isLoading="true")
 
         template(v-else)
-          li(v-for='card in cards', :key='card.id')
+          li(v-for='card in cards', :key='card._id')
             label.checkout__card
               input.checkout__card-input(
                 type='radio',
-                :id='`cardId-${card.id}`',
+                :id='`cardId-${card._id}`',
                 name='payment_type',
-                :value='card.id',
+                :value='card._id',
                 v-model='cardId'
               )
               CreditCardPlaceholder(:cardData='card', :canDelete='false')
