@@ -410,7 +410,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
      */
     getProductSKUByExternalId(externalId): string {
       return this.broker
-        .call('products.search', {
+        .call('products-instances.search', {
           index: 'products-instances',
           type: '_doc',
           body: {
