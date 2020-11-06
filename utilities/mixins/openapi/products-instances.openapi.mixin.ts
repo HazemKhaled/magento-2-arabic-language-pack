@@ -63,6 +63,11 @@ const ItemSchema = {
       type: 'array',
       items: { $ref: '#/components/schemas/ProductVariation' },
     },
+    ship_from: {
+      description: 'Product Ship From',
+      type: 'array',
+      items: { $ref: '#/components/schemas/ShipFrom' },
+    },
   },
   example: {
     sku: 'BD3830BGD19_036',
@@ -193,6 +198,12 @@ const ItemSchema = {
         ],
       },
     ],
+    ship_from: [
+      {
+        city: 'Bursa',
+        country: 'TR',
+      },
+    ],
   },
 };
 
@@ -267,6 +278,16 @@ const I18nStringSchema = {
     en: { type: 'string' },
     fr: { type: 'string' },
     tr: { type: 'string' },
+  },
+};
+
+const ShipFromSchema = {
+  required: ['country'],
+  description: '',
+  type: 'object',
+  properties: {
+    city: { type: 'string' },
+    country: { type: 'string' },
   },
 };
 
@@ -795,6 +816,7 @@ export const ProductsInstancesOpenapi: ServiceSchema = {
           ProductAttribute: ProductAttributeSchema,
           ProductVariationAttribute: ProductVariationAttributeSchema,
           I18nString: I18nStringSchema,
+          ShipFrom: ShipFromSchema,
         },
       },
     },

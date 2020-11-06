@@ -1,5 +1,7 @@
 import { GenericObject } from 'moleculer';
 
+import { ShipFrom } from './product.type';
+
 /**
  * Order Type definition
  *
@@ -93,6 +95,7 @@ export interface OrderItem {
   taxClass?: string;
   warnings?: string[];
   ship_to?: string[];
+  ship_from?: ShipFrom[];
 }
 
 export interface SalesOrder {
