@@ -123,7 +123,7 @@ const TheService: ServiceSchema = {
           handlingTimes: number[];
         } = await this.stockProducts(data.items);
 
-        if (!stock.handlingTimes.length) {
+        if (stock.handlingTimes.length) {
           data.shipment_date = this.calculateWorkingDays(
             new Date(),
             Math.max.apply(null, stock.handlingTimes)
@@ -165,10 +165,10 @@ const TheService: ServiceSchema = {
 
         // Shipping
         const { shipment, warnings: shipmentWarnings } = await this.shipment(
+          ctx,
           stock.items,
-          ctx.params.shipping.country,
           store,
-          ctx.params.shipping_method
+          ctx.params.shipping_method,
         );
 
         warnings = warnings.concat(shipmentWarnings);
@@ -924,7 +924,7 @@ const TheService: ServiceSchema = {
               }
             });
 
-            if (!handlingTimes.length) {
+            if (handlingTimes.length) {
               order.shipment_date = this.calculateWorkingDays(
                 new Date(),
                 Math.max.apply(null, handlingTimes)

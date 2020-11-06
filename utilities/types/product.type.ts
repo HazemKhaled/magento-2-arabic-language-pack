@@ -28,6 +28,7 @@ export interface Product {
   imported: string[];
   createdAt?: Date;
   import_qty: number;
+  quantity?: number;
   ship_to: string[];
   index?: string;
   body?: GenericObject;
@@ -36,6 +37,7 @@ export interface Product {
   handling_time?: {
     to?: number;
   };
+  ship_from?: ShipFrom[];
   supplier?: string;
 }
 
@@ -72,7 +74,17 @@ export interface Attribute {
 }
 
 /**
- * multiple Products definition
+ * Ship From definition
+ *
+ * @export
+ * @interface ShipFrom
+ */
+export interface ShipFrom {
+  city: string;
+  country: string;
+}
+
+/** multiple Products definition
  *
  * @export
  * @interface Products
