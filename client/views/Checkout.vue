@@ -45,7 +45,7 @@
               @change='handleCardFocus'
             )
             template(v-if='cardId')
-              button.btn(@click='cardId = ""')
+              button.button(@click='cardId = ""')
                 AppIcon(name='plus')
                 | {{ $t("checkout.useNewCreditCard") }}
             template(v-else)
@@ -239,7 +239,7 @@ export default {
       );
 
       if (this.cards.length) {
-        this.cardId = this.cards[0]?.id;
+        this.cardId = this.cards[0]?._id;
       }
     },
     handleFormSubmit(event) {
