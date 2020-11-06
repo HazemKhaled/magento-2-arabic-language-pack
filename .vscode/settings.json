@@ -56,5 +56,22 @@
     "source.fixAll.eslint": true
   },
   "editor.formatOnSave": true,
-  "eslint.format.enable": true
+  "eslint.format.enable": true,
+  "workbench.colorCustomizations": {
+    "activityBar.activeBackground": "#faf40a",
+    "activityBar.activeBorder": "#04bbb7",
+    "activityBar.background": "#faf40a",
+    "activityBar.foreground": "#15202b",
+    "activityBar.inactiveForeground": "#15202b99",
+    "activityBarBadge.background": "#04bbb7",
+    "activityBarBadge.foreground": "#15202b",
+    "statusBar.background": "#cdc804",
+    "statusBar.foreground": "#15202b",
+    "statusBarItem.hoverBackground": "#9b9703",
+    "titleBar.activeBackground": "#cdc804",
+    "titleBar.activeForeground": "#15202b",
+    "titleBar.inactiveBackground": "#cdc80499",
+    "titleBar.inactiveForeground": "#15202b99"
+  },
+  "peacock.color": "#cdc804"
 }
