@@ -60,6 +60,24 @@ export const ShipmentValidation: ServiceSchema = {
             },
           },
         },
+        ship_from: {
+          type: 'array',
+          items: {
+            type: 'object',
+            props: {
+              city: {
+                type: 'string',
+                pattern: /([A-Za-z* ])$/,
+              },
+              country: {
+                type: 'string',
+                max: 2,
+                min: 2,
+                pattern: '[A-Z]',
+              },
+            },
+          },
+        },
       },
     },
     updateShipment: {
@@ -111,6 +129,24 @@ export const ShipmentValidation: ServiceSchema = {
             },
           },
         },
+        ship_from: {
+          type: 'array',
+          items: {
+            type: 'object',
+            props: {
+              city: {
+                type: 'string',
+                pattern: /([A-Za-z* ])$/,
+              },
+              country: {
+                type: 'string',
+                max: 2,
+                min: 2,
+                pattern: '[A-Z]',
+              },
+            },
+          },
+        },
       },
     },
     ruleByCountry: {
@@ -125,6 +161,14 @@ export const ShipmentValidation: ServiceSchema = {
         price: {
           type: 'number',
           convert: true,
+        },
+        ship_from_city: {
+          type: 'string',
+          optional: true,
+        },
+        ship_from_country: {
+          type: 'string',
+          optional: true,
         },
       },
     },
