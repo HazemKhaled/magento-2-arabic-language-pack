@@ -26,7 +26,7 @@
     "prettier": "prettier services/*.ts utilities/**/*.ts *.ts --write"
   },
   "devDependencies": {
-    "@babel/plugin-proposal-optional-chaining": "^7.11.0",
+    "@babel/plugin-proposal-optional-chaining": "^7.12.1",
     "@shopify/eslint-plugin": "^39.0.0",
     "@types/bluebird": "^3.5.32",
     "@types/compression": "^1.7.0",
@@ -34,8 +34,7 @@
     "@types/jest": "^24.9.1",
     "@types/jsonwebtoken": "^8.5.0",
     "@types/lodash": "^4.14.161",
-    "@types/mkdirp": "^0.5.2",
-    "@types/node": "^12.12.62",
+    "@types/node": "^12.19.3",
     "@types/node-fetch": "^2.5.7",
     "@types/nodemailer": "^6.4.0",
     "@types/uuid": "^3.4.9",
@@ -86,7 +85,6 @@
     "ioredis": "^4.17.3",
     "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.20",
-    "mkdirp": "^0.5.1",
     "moleculer": "^0.14.11",
     "moleculer-cron": "0.0.2",
     "moleculer-db": "^0.8.10",
