@@ -132,7 +132,6 @@ module.exports = {
                 },
               },
             });
-            query.bool.minimum_should_match = 1;
           }
         }
         return ctx
