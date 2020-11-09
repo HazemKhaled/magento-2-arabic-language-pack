@@ -76,7 +76,6 @@ module.exports = {
         const query: GenericObject = {
           bool: {
             must: [],
-            should: [],
             filter: [
               {
                 term: {
