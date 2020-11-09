@@ -532,6 +532,16 @@ export const DeleteInstanceProduct = {
       schema: {
         type: 'string',
       },
+      description: 'Product sku',
+    },
+    {
+      name: 'externalId',
+      in: 'query',
+      schema: {
+        type: 'string',
+      },
+      description:
+        'Product Instance externalId is optional parameter. If user passed the externalId then the sku parameter value will be over written.',
     },
   ],
   security: [{ bearerAuth: [] as [] }],
