@@ -206,9 +206,17 @@ const TheService: ServiceSchema = {
           id: ctx.params.storeId,
         });
         ctx.meta.user = store.consumer_key;
-        const orders = await ctx.call('orders.list', {
-          externalId: ctx.params.id,
-        });
+        const orders = await ctx.call(
+          'orders.list',
+          {
+            externalId: ctx.params.id,
+          },
+          {
+            meta: {
+              store,
+            },
+          }
+        );
         const order = await ctx.call('orders.getOrder', {
           order_id: orders[0].id,
         });
