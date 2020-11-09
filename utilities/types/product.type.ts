@@ -78,3 +78,32 @@ export interface ShipFrom {
   city: string;
   country: string;
 }
+
+/**
+ * Elastic Search Total Product query
+ *
+ * @export
+ * @interface ProductTotalQuery
+ */
+export interface ProductTotalQuery {
+  bool: {
+    must: GenericObject;
+    filter: {
+      term: {
+        'instanceId.keyword': string;
+      };
+      range?: {
+        updated?: {
+          gte?: string;
+        };
+      };
+    }[];
+    must_not: {
+      term?: {
+        archive?: boolean;
+        deleted?: boolean;
+      };
+      exists?: GenericObject;
+    }[];
+  };
+}
