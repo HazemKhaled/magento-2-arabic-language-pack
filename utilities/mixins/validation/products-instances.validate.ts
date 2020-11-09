@@ -101,6 +101,10 @@ export const ProductsInstancesValidation: ServiceSchema = {
         sku: {
           type: 'string',
         },
+        externalID: {
+          type: 'string',
+          optional: true,
+        },
       },
     },
     import: {

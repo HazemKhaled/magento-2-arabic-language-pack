@@ -1,4 +1,4 @@
-import { ServiceSchema } from 'moleculer';
+import { ServiceSchema, GenericObject } from 'moleculer';
 
 import { Product, Variation } from '../types';
 import { MpError } from '../adapters';
@@ -401,6 +401,53 @@ export const ProductsInstancesMixin: ServiceSchema = {
                 )
               ).total,
       };
+    },
+    /**
+     * Get product-instance sku using externalId
+     *
+     * @param {*} externalId
+     * @param id Instance ID
+     * @returns sku
+     * @memberof Products-instances Mixin
+     */
+    getProductSKUByExternalId(externalId, id): string {
+      return this.broker
+        .call('products-instances.search', {
+          index: 'products-instances',
+          type: '_doc',
+          body: {
+            query: {
+              bool: {
+                must: [
+                  {
+                    match: {
+                      externalId,
+                    },
+                  },
+                  {
+                    match: {
+                      instanceId: id,
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        })
+        .then((response: GenericObject) => {
+          if (response._shards.successful > 0 && response._shards.total > 0) {
+            const sku = response.hits.hits[0]._source.sku;
+            return sku;
+          }
+          throw new MpError(
+            'Products Instance',
+            `Product not found ${externalId} (getProductByExternalId)!`,
+            404
+          );
+        })
+        .catch((err: unknown) => {
+          throw new MpError('Products Instance', err.toString(), 500);
+        });
     },
 
     /**
