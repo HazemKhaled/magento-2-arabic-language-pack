@@ -122,7 +122,7 @@ module.exports = {
           }
           if (ctx.params.lastupdate) {
             const lastUpdated = ctx.params.lastupdate;
-            query.bool.should.push({
+            query.bool.must.push({
               range: {
                 updated: {
                   gte:
