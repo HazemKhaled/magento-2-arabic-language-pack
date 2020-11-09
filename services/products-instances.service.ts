@@ -160,7 +160,10 @@ module.exports = {
         let { sku } = ctx.params;
         const { externalId } = ctx.params;
         if (externalId) {
-          const productSku = await this.getProductSKUByExternalId(externalId);
+          const productSku = await this.getProductSKUByExternalId(
+            externalId,
+            ctx.meta.user
+          );
           sku = productSku;
         }
         if (!sku) {

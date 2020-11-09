@@ -406,9 +406,11 @@ export const ProductsInstancesMixin: ServiceSchema = {
      * Get product-instance sku using externalId
      *
      * @param {*} externalId
+     * @param id Instance ID
      * @returns sku
+     * @memberof Products-instances Mixin
      */
-    getProductSKUByExternalId(externalId): string {
+    getProductSKUByExternalId(externalId, id): string {
       return this.broker
         .call('products-instances.search', {
           index: 'products-instances',
@@ -416,11 +418,18 @@ export const ProductsInstancesMixin: ServiceSchema = {
           body: {
             query: {
               bool: {
-                must: {
-                  match: {
-                    externalId,
+                must: [
+                  {
+                    match: {
+                      externalId,
+                    },
                   },
-                },
+                  {
+                    match: {
+                      instanceId: id,
+                    },
+                  },
+                ],
               },
             },
           },
@@ -497,7 +506,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
             },
           },
         })
-        .then(({ hits }: { hits: { hits: Array<{ _source: Product }> } }) =>
+        .then(({ hits }: { hits: { hits: { _source: Product }[] } }) =>
           hits.hits.map(({ _source }: { _source: Product }) => _source)
         );
     },
