@@ -396,7 +396,11 @@ export const ProductsInstancesMixin: ServiceSchema = {
             : (
                 await this.broker.call(
                   'products-instances.total',
-                  {},
+                  {
+                    lastupdate: lastUpdated,
+                    hideOutOfStock: hideOutOfStock ? hideOutOfStock : 1,
+                    hasExternalId: hasExternalId ? hasExternalId : '',
+                  },
                   { meta: { user: instanceId } }
                 )
               ).total,
