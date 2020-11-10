@@ -1,13 +1,6 @@
 <template lang="pug">
 .checkout(:class="{'has-errors': error}")
   .spinner(v-if="isSubmitting")
-  .checkout-errors(v-if="error")
-    .checkout-errors-image
-      img(:src="getErrorImage()")
-    .checkout-errors-code
-      | {{ error.code }}
-    .checkout-errors-message
-      | {{ error.message }}
   form.checkout__form(
     v-else
     name='checkoutForm',
@@ -144,6 +137,10 @@ export default {
     CreditCard,
     AppIcon,
   },
+  props: {
+    cards: [],
+    store: {},
+  },
   data: () => ({
     useSecurePayment: true,
     hasAgreed: false,
@@ -156,14 +153,9 @@ export default {
     currency: '',
     cardId: '',
     card: {},
-    error: null,
 
     // Will get it from query params
     purchaseUnites: [],
-
-    // Will fetched from the server
-    cards: [],
-    store: {},
   }),
   computed: {
     balance() {
@@ -213,15 +205,7 @@ export default {
       }
     },
   },
-  created() {
-    this.fetchInitialState();
-  },
   mounted() {
-    if (this.error) {
-      this.isLoading = false;
-      console.error({ ...this.error });
-      return;
-    }
     const search = window.location.search?.substring(1);
     const queryParams = qs.parse(search);
 
@@ -229,19 +213,13 @@ export default {
     this.currency = this.purchaseUnites[0].amount.currency_code;
     this.useBalance = this.canUseBalance
 
+    if (this.cards?.length) {
+      this.cardId = this.cards[0]?._id;
+    }
+
     this.$nextTick(() => (this.isLoading = false));
   },
   methods: {
-    fetchInitialState() {
-      if (!window.__INITIAL_STATE__) return;
-      Object.entries(window.__INITIAL_STATE__).forEach(([key, value]) =>
-        (this[key] = value)
-      );
-
-      if (this.cards.length) {
-        this.cardId = this.cards[0]?._id;
-      }
-    },
     handleFormSubmit(event) {
       // If from already submitted do nothing
       if (this.isSubmitting) return;
@@ -306,15 +284,6 @@ export default {
           // TODO
         })
         .finally(() => (this.isSubmitting = false))
-    },
-    getErrorImage() {
-      const { code } = this.error;
-      const mapper = {
-        401: 'not_found',
-        422: 'notify',
-      }
-
-      return `/img/${mapper[code] || 'online_payments'}.svg`
     },
     fixed2,
   },
