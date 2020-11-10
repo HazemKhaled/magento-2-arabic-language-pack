@@ -1,5 +1,6 @@
 {
   "checkout": {
+    "delete": "Delete",
     "cardNumber": "Card Number",
     "cardName": "Card Name",
     "cvc": "CVC",

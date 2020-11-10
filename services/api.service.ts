@@ -93,15 +93,10 @@ const TheService: ServiceSchema = {
           'POST invoices/:id/credits': 'invoices.applyCredits',
           'GET invoice/:storeId/external/:id': 'invoices.renderInvoice',
 
-          // Cards
-          'POST cards': 'cards.create',
-          'PUT cards/:id': 'cards.update',
-          'GET cards/:id': 'cards.get',
-          'DELETE cards/:id': 'cards.delete',
-
           // paymentGateway
           'POST paymentGateway/:type/transaction': 'paymentGateway.transaction',
           'POST paymentGateway/checkout': 'paymentGateway.checkout',
+          'DELETE paymentGateway/cards/:id': 'paymentGateway.cardDelete',
 
           // Payments
           'POST payments/:id': 'payments.add',
@@ -276,7 +271,7 @@ const TheService: ServiceSchema = {
         ],
         aliases: {
           'GET checkout': 'paymentGateway.get',
-          'GET cards/list': 'paymentGateway.cards',
+          'GET cards/list': 'paymentGateway.cardsList',
         },
       },
     ],

@@ -6,6 +6,10 @@
 
   template(v-else)
     .cc__data
+      button.cc__delete(@click="handleCardDelete")
+        AppIcon(name='delete')
+        | {{ $t("checkout.delete") }}
+
       svg.cc_icon(focusable='false', viewBox='0 0 576 512')
         path(:d='currentIcon')
       .cc__number
@@ -17,14 +21,22 @@
 </template>
 
 <script>
+import AppIcon from '@/components/AppIcon';
 import icons from '../icons.ts';
 
 export default {
   name: 'CreditCardPlaceholder',
+  components: {
+    AppIcon
+  },
   props: {
     cardData: {
       type: Object,
       default: () => ({}),
+    },
+    canDelete: {
+      type: Boolean,
+      default: false,
     },
     isLoading: {
       type: Boolean,
@@ -42,6 +54,11 @@ export default {
       return `${exp_month.toString().padStart(2, '0') }/${ exp_year }`
     }
   },
+  methods: {
+    handleCardDelete() {
+      // TODO:
+    }
+  }
 };
 </script>
 
@@ -86,4 +103,14 @@ export default {
   right: 15px
   width: 20px
   color: $dark
+
+.cc__delete
+  position: absolute
+  top: 15px
+  right: 15px
+  width: 20px
+  height: 20px
+  border: 0
+  background-color: transparent
+  color: $red
 </style>

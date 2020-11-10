@@ -1,5 +1,6 @@
 {
   "checkout": {
+    "delete": "Sil",
     "cardNumber": "Kart Numarası",
     "cardName": "Kart Adı",
     "cvc": "CVC",
