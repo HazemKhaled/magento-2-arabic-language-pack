@@ -497,7 +497,7 @@ const ProductsList = {
 
 export const DeleteInstanceProduct = {
   $path: 'delete /catalog/products/{sku}',
-  summary: 'Delete product by SKU',
+  summary: 'Delete product by SKU or externalId',
   tags: ['My Products'],
   description:
     'Delete Product by Product SKU from store. product should be under this store',
