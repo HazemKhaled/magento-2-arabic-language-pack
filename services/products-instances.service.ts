@@ -10,7 +10,7 @@ import {
   GCPPubSub,
 } from '../utilities/mixins';
 import { MpError } from '../utilities/adapters';
-import { Product, ProductTotalQuery } from '../utilities/types/product.type';
+import { Product, ElasticQuery } from '../utilities/types';
 
 module.exports = {
   name: 'products-instances',
@@ -73,7 +73,7 @@ module.exports = {
         ttl: 60 * 60,
       },
       handler(ctx: Context) {
-        const query: ProductTotalQuery = {
+        const query: ElasticQuery = {
           bool: {
             must: [],
             filter: [

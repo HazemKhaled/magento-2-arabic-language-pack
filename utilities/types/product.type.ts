@@ -79,31 +79,8 @@ export interface ShipFrom {
   country: string;
 }
 
-/**
- * Elastic Search Total Product query
- *
- * @export
- * @interface ProductTotalQuery
- */
-export interface ProductTotalQuery {
-  bool: {
-    must: GenericObject;
-    filter: {
-      term: {
-        'instanceId.keyword': string;
-      };
-      range?: {
-        updated?: {
-          gte?: string;
-        };
-      };
-    }[];
-    must_not: {
-      term?: {
-        archive?: boolean;
-        deleted?: boolean;
-      };
-      exists?: GenericObject;
-    }[];
-  };
+export interface ProductTotalParams {
+  lastupdate?: string;
+  hideOutOfStock?: number;
+  hasExternalId?: number;
 }
