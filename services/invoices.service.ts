@@ -205,7 +205,6 @@ const TheService: ServiceSchema = {
         const store = await ctx.call('stores.findInstance', {
           id: ctx.params.storeId,
         });
-        ctx.meta.user = store.consumer_key;
         const orders = await ctx.call(
           'orders.list',
           {
