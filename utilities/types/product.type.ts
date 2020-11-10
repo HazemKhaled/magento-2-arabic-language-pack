@@ -80,7 +80,7 @@ export interface ShipFrom {
 }
 
 export interface ProductTotalParams {
-  lastupdate?: string;
+  lastUpdate?: string;
   hideOutOfStock?: number;
   hasExternalId?: number;
 }

@@ -392,7 +392,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
 
       const totalQueryParams: ProductTotalParams = {};
       if (lastUpdated) {
-        totalQueryParams.lastupdate = lastUpdated;
+        totalQueryParams.lastUpdate = lastUpdated;
       }
       if (hideOutOfStock) {
         totalQueryParams.hideOutOfStock = hideOutOfStock;

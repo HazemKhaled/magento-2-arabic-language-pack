@@ -69,7 +69,7 @@ module.exports = {
     total: {
       auth: ['Bearer'],
       cache: {
-        keys: ['#user', 'lastupdate', 'hideOutOfStock', 'hasExternalId'],
+        keys: ['#user', 'lastUpdate', 'hideOutOfStock', 'hasExternalId'],
         ttl: 60 * 60,
       },
       handler(ctx: Context) {
@@ -119,15 +119,12 @@ module.exports = {
                 });
             }
           }
-          if (ctx.params.lastupdate) {
-            const lastUpdated = ctx.params.lastupdate;
+          if (ctx.params.lastUpdate) {
+            const lastUpdated = ctx.params.lastUpdate;
             query.bool.must.push({
               range: {
                 updated: {
-                  gte:
-                    String(Date.now()).length === String(lastUpdated).length
-                      ? new Date(Number(lastUpdated))
-                      : new Date(lastUpdated * 1000),
+                  gte: new Date(Number(lastUpdated)),
                 },
               },
             });
