@@ -10,7 +10,7 @@ import {
   GCPPubSub,
 } from '../utilities/mixins';
 import { MpError } from '../utilities/adapters';
-import { Product, ElasticQuery } from '../utilities/types';
+import { Product, ElasticQuery, CommonError } from '../utilities/types';
 
 module.exports = {
   name: 'products-instances',
@@ -198,11 +198,25 @@ module.exports = {
         let { sku } = ctx.params;
         const { externalId } = ctx.params;
         if (externalId) {
-          const productSku = await this.getProductSKUByExternalId(
-            externalId,
-            ctx.meta.user
-          );
-          sku = productSku;
+          try {
+            const productSku = await this.getProductSKUByExternalId(
+              externalId,
+              ctx.meta.user
+            );
+            sku = productSku;
+          } catch (err) {
+            ctx.meta.$statusCode = err.code;
+            ctx.meta.$statusMessage =
+              err.code === 404 ? 'Not Found' : 'Server Error';
+            return {
+              errors: [
+                {
+                  status: err.code === 404 ? 'Not Found' : 'Server Error',
+                  message: err.message,
+                },
+              ],
+            };
+          }
         }
         if (!sku) {
           throw new MpError('Products Instance', 'SKU Required!', 422);
@@ -233,12 +247,18 @@ module.exports = {
             }
             return { product };
           })
-          .catch(() => {
-            throw new MpError(
-              'Products Instance',
-              'Something went wrong!',
-              500
-            );
+          .catch((err: CommonError) => {
+            ctx.meta.$statusCode = err.code;
+            ctx.meta.$statusMessage =
+              err.code === 404 ? 'Not Found' : 'Server Error';
+            return {
+              errors: [
+                {
+                  status: err.code === 404 ? 'Not Found' : 'Server Error',
+                  message: err.message,
+                },
+              ],
+            };
           });
       },
     },

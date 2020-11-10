@@ -1,6 +1,6 @@
 import { ServiceSchema, GenericObject, Context } from 'moleculer';
 
-import { Product, Variation, ProductTotalParams } from '../types';
+import { Product, Variation, ProductTotalParams, CommonError } from '../types';
 import { MpError } from '../adapters';
 
 export const ProductsInstancesMixin: ServiceSchema = {
@@ -442,7 +442,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
                   },
                   {
                     match: {
-                      instanceId: id,
+                      'instanceId.keyword': id,
                     },
                   },
                 ],
@@ -451,18 +451,25 @@ export const ProductsInstancesMixin: ServiceSchema = {
           },
         })
         .then((response: GenericObject) => {
-          if (response._shards.successful > 0 && response._shards.total > 0) {
+          if (
+            response._shards.successful > 0 &&
+            response.hits.total.value > 0
+          ) {
             const sku = response.hits.hits[0]._source.sku;
             return sku;
           }
           throw new MpError(
             'Products Instance',
-            `Product not found ${externalId} (getProductByExternalId)!`,
+            `Product "${externalId}" not found (getProductByExternalId)!`,
             404
           );
         })
-        .catch((err: unknown) => {
-          throw new MpError('Products Instance', err.toString(), 500);
+        .catch((err: GenericObject) => {
+          throw new MpError(
+            'Products Instance',
+            err?.message,
+            err.code ? err.code : 500
+          );
         });
     },
 
@@ -498,8 +505,14 @@ export const ProductsInstancesMixin: ServiceSchema = {
             404
           );
         })
-        .catch((err: unknown) => {
-          throw new MpError('Products Instance', err.toString(), 500);
+        .catch((err: CommonError) => {
+          throw new MpError(
+            err.body.error.index,
+            err.body.status === 404
+              ? `Product not found ${sku} store ${id} (Delete Product)!`
+              : err.body.error.reason,
+            err.body.status === 404 ? err.body.status : 500
+          );
         });
     },
 
