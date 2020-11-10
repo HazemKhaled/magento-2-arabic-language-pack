@@ -276,6 +276,7 @@ const TheService: ServiceSchema = {
         ],
         aliases: {
           'GET checkout': 'paymentGateway.get',
+          'GET cards/list': 'paymentGateway.cards',
         },
       },
     ],
