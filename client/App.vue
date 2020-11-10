@@ -7,11 +7,12 @@
 
 <script>
 import Checkout from '@/views/Checkout';
+import Cards from '@/views/Cards';
 import Error from '@/views/Error';
 
 export default {
   name: 'App',
-  components: { Checkout, Error },
+  components: { Checkout, Cards, Error },
   data: () => ({
     component: 'Error',
     store: {},
