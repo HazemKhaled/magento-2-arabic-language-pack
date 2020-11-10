@@ -151,7 +151,7 @@ const TheService: ServiceSchema = {
           ctx,
           stock.items,
           store,
-          ctx.params.shipping_method,
+          ctx.params.shipping_method
         );
 
         warnings = warnings.concat(shipmentWarnings);
