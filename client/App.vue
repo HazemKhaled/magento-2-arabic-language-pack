@@ -1,6 +1,6 @@
 <template>
   <component
-    :is="currentComponent"
+    :is="component"
     v-bind="$data"
   />
 </template>
@@ -13,10 +13,10 @@ export default {
   name: 'App',
   components: { Checkout, Error },
   data: () => ({
-    currentComponent: 'Error',
+    component: 'Error',
     store: {},
     cards: [],
-    error: 'Unknown'
+    error: null
   }),
   created() {
     if (!window.__INITIAL_STATE__) return;

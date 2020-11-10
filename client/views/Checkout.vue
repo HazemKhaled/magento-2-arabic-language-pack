@@ -1,5 +1,5 @@
 <template lang="pug">
-.checkout(:class="{'has-errors': error}")
+.checkout
   .spinner(v-if="isSubmitting")
   form.checkout__form(
     v-else
@@ -138,8 +138,14 @@ export default {
     AppIcon,
   },
   props: {
-    cards: [],
-    store: {},
+    cards: {
+      type: Array,
+      default: () => [],
+    },
+    store: {
+      type: Object,
+      default: () => ({}),
+    }
   },
   data: () => ({
     useSecurePayment: true,
