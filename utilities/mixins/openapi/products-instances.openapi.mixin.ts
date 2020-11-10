@@ -343,6 +343,35 @@ const ProductsTotal = {
   summary: 'Products Count',
   tags: ['My Products'],
   description: 'Get in stock products count',
+  parameters: [
+    {
+      name: 'lastUpdate',
+      in: 'query',
+      description:
+        'Timestamp(`seconds/milliseconds` since Jan 01 1970. (UTC)) of last import run DateTime (must be in UTC), API will respond only products which are updated/created after this timestamp.',
+      example: '1542794072 for 21-11-2018 @ 9:54am',
+      schema: {
+        type: 'number',
+      },
+    },
+    {
+      name: 'hasExternalId',
+      in: 'query',
+      description: 'filter with or without externalId',
+      schema: {
+        type: 'number',
+      },
+    },
+    {
+      name: 'hideOutOfStock',
+      in: 'query',
+      description: 'Hide out of stock products',
+      example: '1 => Hide archived products else will not hide',
+      schema: {
+        type: 'number',
+      },
+    },
+  ],
   responses: {
     200: {
       description: 'Status 200',
