@@ -49,7 +49,7 @@ const AsyncDeleteProductOpenapi = {
   ...commonSchema,
   tags: ['Async', 'My Products'],
   $path: 'delete /async/catalog/products/{sku}',
-  summary: 'Delete product by SKU Asynchronously',
+  summary: 'Delete product by SKU or externalId Asynchronously',
 };
 
 const AsyncCreateProductOpenapi = {
