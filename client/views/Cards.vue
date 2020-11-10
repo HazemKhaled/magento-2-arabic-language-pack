@@ -1,5 +1,5 @@
 <template lang="pug">
-.checkout
+.page.page--cards
   .checkout__form
     .checkout__body
       ul.checkout__cards-list
@@ -9,7 +9,7 @@
 
         template(v-else)
           li(v-for='card in cards', :key='card._id')
-            CreditCardPlaceholder(:cardData='card', :canDelete='false')
+            CreditCardPlaceholder(:cardData='card', :canDelete='true')
 </template>
 
 <script>

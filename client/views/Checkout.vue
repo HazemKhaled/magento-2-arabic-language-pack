@@ -1,5 +1,5 @@
 <template lang="pug">
-.checkout
+.page.page--checkout
   .spinner(v-if="isSubmitting")
   form.checkout__form(
     v-else
@@ -298,23 +298,6 @@ export default {
 
 <style lang="stylus">
 @import '../styles/colors.styl'
-
-.checkout
-  position: relative
-  display: flex
-  flex-direction: column
-  margin: 0 auto
-  max-width: 700px
-  width: 100vw
-  max-height: 800px
-  height: 100vh
-  border: 1px solid $gray
-  border-radius: 8px
-  &.has-errors
-    border-color: $red
-    display: flex
-    justify-content: center
-    align-items: center
 
 .checkout__form
   display: flex

@@ -1,5 +1,5 @@
 <template lang="pug">
-.checkout.error(
+.page.page--error(
   :class="{'has-errors': error}"
 )
   .error-image
