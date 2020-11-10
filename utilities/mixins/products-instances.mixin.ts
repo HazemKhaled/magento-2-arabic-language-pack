@@ -1,4 +1,4 @@
-import { ServiceSchema, GenericObject } from 'moleculer';
+import { ServiceSchema, GenericObject, Context } from 'moleculer';
 
 import { Product, Variation, ProductTotalParams } from '../types';
 import { MpError } from '../adapters';
@@ -91,7 +91,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
      * @returns {Array} Products
      * @memberof Products-instances Mixin
      */
-    async findProducts(ctx) {
+    async findProducts(ctx: Context) {
       const {
         page,
         limit: size = 10,
@@ -222,7 +222,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
      * @returns {array} Instance Products
      */
     async findIP(
-      ctx,
+      ctx: Context,
       {
         page = 1,
         size = 10,
@@ -408,9 +408,13 @@ export const ProductsInstancesMixin: ServiceSchema = {
           search.hits.total.relation === 'eq'
             ? search.hits.total.value
             : (
-                await ctx.call('products-instances.total', totalQueryParams, {
-                  meta: { user: instanceId },
-                })
+                await ctx.call<{ total: number }, ProductTotalParams>(
+                  'products-instances.total',
+                  totalQueryParams,
+                  {
+                    meta: { user: instanceId },
+                  }
+                )
               ).total,
       };
     },
