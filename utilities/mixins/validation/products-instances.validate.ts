@@ -319,7 +319,7 @@ export const ProductsInstancesValidation: ServiceSchema = {
     total: {
       params: {
         lastupdate: {
-          type: 'string',
+          type: 'number',
           empty: false,
           optional: true,
         },
