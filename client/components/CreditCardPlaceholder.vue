@@ -6,7 +6,10 @@
 
   template(v-else)
     .cc__data
-      button.cc__delete(@click="handleCardDelete")
+      button.cc__delete(
+        v-if='canDelete',
+        @click='handleCardDelete'
+      )
         AppIcon(name='delete')
         | {{ $t("checkout.delete") }}
 
@@ -108,7 +111,6 @@ export default {
   position: absolute
   top: 15px
   right: 15px
-  width: 20px
   height: 20px
   border: 0
   background-color: transparent
