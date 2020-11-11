@@ -26,6 +26,8 @@
 <script>
 import AppIcon from '@/components/AppIcon';
 
+import { $fetch } from '../utils';
+
 export default {
   name: 'CreditCardPlaceholder',
   components: {
@@ -68,7 +70,7 @@ export default {
       this.isSubmitting = true;
 
       try {
-       await fetch(url, {
+       await $fetch(url, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',

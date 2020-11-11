@@ -1,8 +1,13 @@
 <template lang="pug">
 .page.page--checkout
+  Toastr(
+    v-if="isToastrVisible"
+    @remove="() => isToastrVisible = false"
+    :data="toastrData"
+  ) {{ toastrMessage }}
+
   .spinner(v-if="isSubmitting")
   form.checkout__form(
-    v-else
     name='checkoutForm',
     @submit.prevent="handleFormSubmit"
   )
@@ -126,8 +131,9 @@ import qs from 'qs';
 import CreditCardPlaceholder from '@/components/CreditCardPlaceholder';
 import CreditCard from '@/components/CreditCard';
 import AppIcon from '@/components/AppIcon';
+import Toastr from '@/components/Toastr';
 
-import { fixed2, round } from '../utils';
+import { fixed2, round, $fetch } from '../utils';
 import { isArray } from 'util';
 
 export default {
@@ -136,6 +142,7 @@ export default {
     CreditCardPlaceholder,
     CreditCard,
     AppIcon,
+    Toastr,
   },
   props: {
     cards: {
@@ -159,6 +166,11 @@ export default {
     currency: '',
     cardId: '',
     card: {},
+
+    // toastr
+    isToastrVisible: false,
+    toastrMessage: '',
+    toastrData: { type: 'error' },
 
     // Will get it from query params
     purchaseUnites: [],
@@ -278,18 +290,32 @@ export default {
           },
       };
 
-      return fetch(url, {
+      return $fetch(url, {
         method: 'POST',
         body: JSON.stringify(payload),
         headers: {
           'Content-Type': 'application/json'
         }
       })
-        .then(res => res.json())
         .then(() => {
-          // TODO
+          this.showToastr({
+            type: 'success',
+            message: 'Payment success',
+          })
         })
+        .catch(error => {
+          console.log('error', error);
+          this.showToastr({
+            type: 'error',
+            message: error.message,
+          })
+        }) 
         .finally(() => (this.isSubmitting = false))
+    },
+    showToastr(data) {
+      this.toastrData = data;
+      this.toastrMessage = data.message;
+      this.isToastrVisible = true;
     },
     fixed2,
   },
