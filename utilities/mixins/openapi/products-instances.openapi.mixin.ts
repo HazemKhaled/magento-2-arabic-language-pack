@@ -348,7 +348,7 @@ const ProductsTotal = {
       name: 'lastUpdate',
       in: 'query',
       description:
-        'Timestamp(`seconds/milliseconds` since Jan 01 1970. (UTC)) of last import run DateTime (must be in UTC), API will respond only products which are updated/created after this timestamp.',
+        'Timestamp(`milliseconds` since Jan 01 1970. (UTC)) of last import run DateTime (must be in UTC), API will respond only products which are updated after this timestamp.',
       example: '1542794072 for 21-11-2018 @ 9:54am',
       schema: {
         type: 'number',
