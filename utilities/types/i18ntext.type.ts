@@ -25,4 +25,6 @@ export interface CommonError extends Error {
     status?: number;
   };
   code?: number;
+  statusCode?: number;
+  msg?: string;
 }

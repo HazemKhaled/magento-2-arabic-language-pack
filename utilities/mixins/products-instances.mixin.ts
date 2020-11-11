@@ -460,7 +460,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
           }
           throw new MpError(
             'Products Instance',
-            `Product "${externalId}" not found (getProductByExternalId)!`,
+            `Product not found "${externalId}" store ${id} (getProductByExternalId)!`,
             404
           );
         })
@@ -507,11 +507,11 @@ export const ProductsInstancesMixin: ServiceSchema = {
         })
         .catch((err: CommonError) => {
           throw new MpError(
-            err.body.error.index,
-            err.body.status === 404
+            'Products Instance',
+            err.statusCode === 404
               ? `Product not found ${sku} store ${id} (Delete Product)!`
-              : err.body.error.reason,
-            err.body.status === 404 ? err.body.status : 500
+              : err.msg,
+            err.statusCode === 404 ? err.statusCode : 500
           );
         });
     },
