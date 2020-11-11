@@ -1,3 +1,5 @@
+import { GenericObject } from 'moleculer';
+
 import icons from '../icons';
 
 export default {
@@ -9,10 +11,17 @@ export default {
       type: String,
       required: true,
     },
+    fallback: {
+      type: String,
+    },
+    viewBox: {
+      type: String,
+    },
   },
-  render(h: any, context: any): any {
+  render(createElement: any, context: any): GenericObject {
     const { props, data } = context;
-    const icon = icons[props.name];
+    const icon = icons[props.name] || icons[props.fallback];
+
     if (!icon) {
       console.warn(props.name, ' icon not found');
       return;
@@ -22,7 +31,7 @@ export default {
 
     // add empty square
     children.push(
-      h('path', {
+      createElement('path', {
         attrs: {
           d: 'M0 0h24v24H0z',
           fill: 'none',
@@ -31,16 +40,16 @@ export default {
     );
 
     // add icon title
-    children.push(h('title', icon.title || props.name));
+    children.push(createElement('title', icon.title || props.name));
     children.push(
-      h('path', {
+      createElement('path', {
         attrs: {
           d: icon,
         },
       })
     );
 
-    h(
+    return createElement(
       'svg',
       {
         style: data.style,
@@ -50,10 +59,11 @@ export default {
           class: `icon icon-${props.name} ${data.staticClass || ''} ${
             data.class || ''
           }`,
-          viewBox: '0 0 24 24',
+          viewBox: props.viewBox || '0 0 24 24',
         },
       },
       children
     );
   },
+  icons,
 };

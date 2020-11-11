@@ -1,20 +1,20 @@
 <template lang="pug">
 .cc__wrapper
+  .spinner(v-if="isSubmitting")
   template(v-if='isLoading')
     .cc__data
       .text-loader(v-for='n in 3', :key='n')
 
   template(v-else)
     .cc__data
-      button.cc__delete(
+      button.cc__delete-button(
         v-if='canDelete',
         @click='handleCardDelete'
       )
         AppIcon(name='delete')
-        | {{ $t("checkout.delete") }}
+        span.cc__delete-text {{ $t("checkout.delete") }}
 
-      svg.cc_icon(focusable='false', viewBox='0 0 576 512')
-        path(:d='currentIcon')
+      AppIcon.cc_icon(focusable='false', viewBox='0 0 576 512', :name="brand", fallback="unknown")
       .cc__number
         span {{ cNumber }}
       .cc__text
@@ -25,12 +25,11 @@
 
 <script>
 import AppIcon from '@/components/AppIcon';
-import icons from '../icons.ts';
 
 export default {
   name: 'CreditCardPlaceholder',
   components: {
-    AppIcon
+    AppIcon,
   },
   props: {
     cardData: {
@@ -45,12 +44,15 @@ export default {
       type: Boolean,
     },
   },
+  data: () => ({
+    isSubmitting: false,
+  }),
   computed: {
     cNumber() {
       return `${'*'.repeat(4)} `.repeat(3) + this.cardData.last_4;
     },
-    currentIcon() {
-      return icons[this.cardData.brand] || icons['unknown'];
+    brand() {
+      return this.cardData.brand;
     },
     expires() {
       const { exp_month, exp_year } = this.cardData;
@@ -58,9 +60,24 @@ export default {
     }
   },
   methods: {
-    handleCardDelete() {
-      // TODO:
-    }
+    async handleCardDelete() {
+      const { origin, search } = window.location;
+      const id = this.cardData._id;
+      const url = `${origin}/api/paymentGateway/cards/${id}${search}`;
+
+      this.isSubmitting = true;
+
+      try {
+       await fetch(url, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+      } finally {
+        location.reload();
+      }
+    },
   }
 };
 </script>
@@ -85,6 +102,7 @@ export default {
   width: 100%
   display: flex
   flex-direction column
+  color: $dark
 
 .cc__number
   font-size: 16px
@@ -107,12 +125,31 @@ export default {
   width: 20px
   color: $dark
 
-.cc__delete
+.cc__delete-button
   position: absolute
   top: 15px
   right: 15px
   height: 20px
   border: 0
+  padding: 0
   background-color: transparent
-  color: $red
+  color: $dark
+  cursor: pointer
+
+  .icon
+    font-size: 16px
+
+  &:hover
+    color: $red
+    .cc__delete-text
+      max-width: 200px
+
+.cc__delete-text
+  font-size: 12px
+  font-weight: bold
+  display: inline-block
+  max-width: 0
+  overflow: hidden
+  vertical-align: middle
+  transition: max-width 0.2s
 </style>
