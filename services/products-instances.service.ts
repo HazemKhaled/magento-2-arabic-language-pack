@@ -10,7 +10,7 @@ import {
   GCPPubSub,
 } from '../utilities/mixins';
 import { MpError } from '../utilities/adapters';
-import { Product, CommonError } from '../utilities/types';
+import { Product, ElasticQuery, CommonError } from '../utilities/types';
 
 module.exports = {
   name: 'products-instances',
@@ -69,37 +69,72 @@ module.exports = {
     total: {
       auth: ['Bearer'],
       cache: {
-        keys: ['#user'],
+        keys: ['#user', 'lastUpdate', 'hideOutOfStock', 'hasExternalId'],
         ttl: 60 * 60,
       },
       handler(ctx: Context) {
+        const query: ElasticQuery = {
+          bool: {
+            must: [],
+            filter: [
+              {
+                term: {
+                  'instanceId.keyword': ctx.meta.user,
+                },
+              },
+            ],
+            must_not: [
+              {
+                term: {
+                  archive: true,
+                },
+              },
+              {
+                term: {
+                  deleted: true,
+                },
+              },
+            ],
+          },
+        };
+        if (Object.keys(ctx.params).length) {
+          if (ctx.params.hideOutOfStock) {
+            query.bool.must_not[0].term.archive =
+              Number(ctx.params.hideOutOfStock) === 1;
+          }
+          if (ctx.params.hasExternalId) {
+            switch (Boolean(Number(ctx.params.hasExternalId))) {
+              case true:
+                query.bool.must.push({
+                  exists: {
+                    field: 'externalId',
+                  },
+                });
+                break;
+              case false:
+                query.bool.must_not.push({
+                  exists: {
+                    field: 'externalId',
+                  },
+                });
+            }
+          }
+          if (ctx.params.lastUpdate) {
+            const lastUpdated = ctx.params.lastUpdate;
+            query.bool.must.push({
+              range: {
+                updated: {
+                  gte: new Date(Number(lastUpdated)),
+                },
+              },
+            });
+          }
+        }
         return ctx
           .call('products.count', {
             index: 'products-instances',
             body: {
-              query: {
-                bool: {
-                  filter: [
-                    {
-                      term: {
-                        'instanceId.keyword': ctx.meta.user,
-                      },
-                    },
-                  ],
-                  must_not: [
-                    {
-                      term: {
-                        deleted: true,
-                      },
-                    },
-                    {
-                      term: {
-                        archive: true,
-                      },
-                    },
-                  ],
-                },
-              },
+              query,
             },
           })
           .then((res: any) => {

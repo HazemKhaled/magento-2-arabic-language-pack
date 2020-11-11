@@ -15,3 +15,4 @@ export * from './coupon.type';
 export * from './crmStore.type';
 export * from './tax.type';
 export * from './oms-tax.type';
+export * from './elasticsearch.type';
