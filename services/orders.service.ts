@@ -107,7 +107,7 @@ const TheService: ServiceSchema = {
         } = await this.stockProducts(data.items);
 
         if (stock.handlingTimes.length) {
-          data.shipment_date = this.calculateWorkingDays(
+          data.shipmentDate = this.calculateWorkingDays(
             new Date(),
             Math.max.apply(null, stock.handlingTimes)
           );
@@ -151,7 +151,7 @@ const TheService: ServiceSchema = {
           ctx,
           stock.items,
           store,
-          ctx.params.shipping_method,
+          ctx.params.shipping_method
         );
 
         warnings = warnings.concat(shipmentWarnings);
@@ -848,7 +848,7 @@ const TheService: ServiceSchema = {
             });
 
             if (handlingTimes.length) {
-              order.shipment_date = this.calculateWorkingDays(
+              order.shipmentDate = this.calculateWorkingDays(
                 new Date(),
                 Math.max.apply(null, handlingTimes)
               );
@@ -1270,7 +1270,7 @@ const TheService: ServiceSchema = {
           (day === 6 ? 2 : Number(!day)) +
           Math.floor((days - 1 + (day % 6 || 1)) / 5) * 2
       );
-      return newDate.toISOString();
+      return newDate.toISOString().split('T')[0];
     },
   },
 };
