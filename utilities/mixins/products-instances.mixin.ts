@@ -1,6 +1,6 @@
-import { ServiceSchema, GenericObject } from 'moleculer';
+import { ServiceSchema, GenericObject, Context } from 'moleculer';
 
-import { Product, Variation, CommonError } from '../types';
+import { Product, Variation, ProductTotalParams, CommonError } from '../types';
 import { MpError } from '../adapters';
 
 export const ProductsInstancesMixin: ServiceSchema = {
@@ -91,7 +91,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
      * @returns {Array} Products
      * @memberof Products-instances Mixin
      */
-    async findProducts(ctx) {
+    async findProducts(ctx: Context) {
       const {
         page,
         limit: size = 10,
@@ -106,7 +106,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
 
       const { store: instance } = ctx.meta;
 
-      const instanceProductsFull = await this.findIP({
+      const instanceProductsFull = await this.findIP(ctx, {
         page,
         size,
         instanceId: instance.consumer_key,
@@ -221,21 +221,24 @@ export const ProductsInstancesMixin: ServiceSchema = {
      * @param {object} sort
      * @returns {array} Instance Products
      */
-    async findIP({
-      page = 1,
-      size = 10,
-      instanceId,
-      lastUpdated = 0,
-      hideOutOfStock,
-      keyword,
-      externalId,
-      hasExternalId,
-      fullResult = [],
-      endTrace = 0,
-      scrollId = false,
-      maxScroll = 0,
-      sort,
-    }) {
+    async findIP(
+      ctx: Context,
+      {
+        page = 1,
+        size = 10,
+        instanceId,
+        lastUpdated = 0,
+        hideOutOfStock,
+        keyword,
+        externalId,
+        hasExternalId,
+        fullResult = [],
+        endTrace = 0,
+        scrollId = false,
+        maxScroll = 0,
+        sort,
+      }
+    ) {
       page = parseInt(page, 10) || 1;
       let search = [];
       const mustNot: { [key: string]: any } = [{ term: { deleted: true } }];
@@ -371,7 +374,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
         maxScroll -= parseInt(process.env.SCROLL_LIMIT, 10);
         endTrace -= parseInt(process.env.SCROLL_LIMIT, 10);
 
-        return this.findIP({
+        return this.findIP(ctx, {
           page,
           size,
           instanceId,
@@ -386,6 +389,17 @@ export const ProductsInstancesMixin: ServiceSchema = {
           maxScroll,
         });
       }
+
+      const totalQueryParams: ProductTotalParams = {};
+      if (lastUpdated) {
+        totalQueryParams.lastUpdate = lastUpdated;
+      }
+      if (hideOutOfStock) {
+        totalQueryParams.hideOutOfStock = hideOutOfStock;
+      }
+      if (hasExternalId) {
+        totalQueryParams.hasExternalId = hasExternalId;
+      }
       return {
         page: scrollId
           ? results.slice(page * size - size, page * size)
@@ -394,10 +408,12 @@ export const ProductsInstancesMixin: ServiceSchema = {
           search.hits.total.relation === 'eq'
             ? search.hits.total.value
             : (
-                await this.broker.call(
+                await ctx.call<{ total: number }, ProductTotalParams>(
                   'products-instances.total',
-                  {},
-                  { meta: { user: instanceId } }
+                  totalQueryParams,
+                  {
+                    meta: { user: instanceId },
+                  }
                 )
               ).total,
       };

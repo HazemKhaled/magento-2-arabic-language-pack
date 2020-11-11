@@ -316,5 +316,26 @@ export const ProductsInstancesValidation: ServiceSchema = {
         $$strict: true,
       },
     },
+    total: {
+      params: {
+        lastupdate: {
+          type: 'number',
+          empty: false,
+          optional: true,
+        },
+        hideOutOfStock: {
+          type: 'number',
+          empty: false,
+          convert: true,
+          optional: true,
+        },
+        hasExternalId: {
+          type: 'number',
+          empty: false,
+          convert: true,
+          optional: true,
+        },
+      },
+    },
   },
 };
