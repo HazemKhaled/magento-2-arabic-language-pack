@@ -76,6 +76,8 @@ export default {
             'Content-Type': 'application/json',
           },
         })
+      } catch(error) {
+        console.error(error);
       } finally {
         location.reload();
       }
