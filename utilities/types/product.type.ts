@@ -78,3 +78,9 @@ export interface ShipFrom {
   city: string;
   country: string;
 }
+
+export interface ProductTotalParams {
+  lastUpdate?: string;
+  hideOutOfStock?: number;
+  hasExternalId?: number;
+}
