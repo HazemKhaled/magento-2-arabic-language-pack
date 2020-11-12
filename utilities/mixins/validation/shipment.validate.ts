@@ -153,6 +153,9 @@ export const ShipmentValidation: ServiceSchema = {
       params: {
         country: {
           type: 'string',
+          max: 2,
+          min: 2,
+          pattern: '[A-Z]',
         },
         weight: {
           type: 'number',

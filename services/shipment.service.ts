@@ -5,6 +5,7 @@ import { ShipmentOpenapi } from '../utilities/mixins/openapi';
 import { Rule, ShipmentPolicy } from '../utilities/types';
 import { ShipmentValidation } from '../utilities/mixins/validation';
 import { MpError } from '../utilities/adapters';
+import * as countries from '../utilities/json/country.json';
 
 const Shipment: ServiceSchema = {
   name: 'shipment',
@@ -35,6 +36,25 @@ const Shipment: ServiceSchema = {
     insertShipment: {
       auth: ['Basic'],
       handler(ctx: Context): ShipmentPolicy {
+        const contryAr = Object.keys(countries);
+        ctx.params.countries.filter((country: string, key: number) => {
+          if (!contryAr.includes(country)) {
+            throw new MpError(
+              'Shipment Service',
+              `countries[${key}] code is not valid`,
+              404
+            );
+          }
+        });
+        ctx.params.ship_from.filter((shipFrom: GenericObject, key: number) => {
+          if (!contryAr.includes(shipFrom.country)) {
+            throw new MpError(
+              'Shipment Service',
+              `shipFrom[${key}] Country code is not valid`,
+              404
+            );
+          }
+        });
         // insert to DB
         return this.adapter
           .insert({
@@ -70,6 +90,25 @@ const Shipment: ServiceSchema = {
     updateShipment: {
       auth: ['Basic'],
       handler(ctx: Context): ShipmentPolicy {
+        const contryAr = Object.keys(countries);
+        ctx.params.countries.filter((country: string, key: number) => {
+          if (!contryAr.includes(country)) {
+            throw new MpError(
+              'Shipment Service',
+              `countries[${key}] code is not valid`,
+              404
+            );
+          }
+        });
+        ctx.params.ship_from.filter((shipFrom: GenericObject, key: number) => {
+          if (!contryAr.includes(shipFrom.country)) {
+            throw new MpError(
+              'Shipment Service',
+              `shipFrom[${key}] Country code is not valid`,
+              404
+            );
+          }
+        });
         // update DB
         return this.adapter
           .updateMany(
@@ -115,6 +154,14 @@ const Shipment: ServiceSchema = {
         ttl: 60 * 60 * 24 * 30,
       },
       handler(ctx: Context): Rule[] {
+        const contryAr = Object.keys(countries);
+        if (!contryAr.includes(ctx.params.country)) {
+          throw new MpError(
+            'Shipment Service',
+            'Country code is not valid',
+            404
+          );
+        }
         // find policies with matched rules
         const query: GenericObject = {
           countries: ctx.params.country,
