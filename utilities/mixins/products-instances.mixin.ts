@@ -510,7 +510,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
             'Products Instance',
             err.statusCode === 404
               ? `Product not found ${sku} store ${id} (Delete Product)!`
-              : err.msg,
+              : err.message,
             err.statusCode === 404 ? err.statusCode : 500
           );
         });
