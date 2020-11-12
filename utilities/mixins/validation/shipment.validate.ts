@@ -1,5 +1,7 @@
 import { ServiceSchema } from 'moleculer';
 
+import country from '../../static/country';
+
 export const ShipmentValidation: ServiceSchema = {
   name: 'shipment',
   actions: {
@@ -19,7 +21,8 @@ export const ShipmentValidation: ServiceSchema = {
         countries: {
           type: 'array',
           items: {
-            type: 'string',
+            type: 'enum',
+            values: country,
             max: 2,
             min: 2,
             pattern: '[A-Z]',
@@ -70,7 +73,8 @@ export const ShipmentValidation: ServiceSchema = {
                 pattern: /([A-Za-z* ])$/,
               },
               country: {
-                type: 'string',
+                type: 'enum',
+                values: country,
                 max: 2,
                 min: 2,
                 pattern: '[A-Z]',
@@ -88,7 +92,8 @@ export const ShipmentValidation: ServiceSchema = {
         countries: {
           type: 'array',
           items: {
-            type: 'string',
+            type: 'enum',
+            values: country,
             max: 2,
             min: 2,
             pattern: '[A-Z]',
@@ -139,7 +144,8 @@ export const ShipmentValidation: ServiceSchema = {
                 pattern: /([A-Za-z* ])$/,
               },
               country: {
-                type: 'string',
+                type: 'enum',
+                values: country,
                 max: 2,
                 min: 2,
                 pattern: '[A-Z]',
@@ -152,10 +158,10 @@ export const ShipmentValidation: ServiceSchema = {
     ruleByCountry: {
       params: {
         country: {
-          type: 'string',
-          max: 2,
+          type: 'enum',
+          values: country,
           min: 2,
-          pattern: '[A-Z]',
+          max: 2,
         },
         weight: {
           type: 'number',
@@ -178,7 +184,8 @@ export const ShipmentValidation: ServiceSchema = {
     getCouriers: {
       params: {
         country: {
-          type: 'string',
+          type: 'enum',
+          values: country,
           optional: true,
           min: 2,
           max: 2,
