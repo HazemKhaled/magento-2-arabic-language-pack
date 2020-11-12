@@ -23,8 +23,6 @@ export const ShipmentValidation: ServiceSchema = {
           items: {
             type: 'enum',
             values: country,
-            max: 2,
-            min: 2,
             pattern: '[A-Z]',
           },
         },
@@ -75,8 +73,6 @@ export const ShipmentValidation: ServiceSchema = {
               country: {
                 type: 'enum',
                 values: country,
-                max: 2,
-                min: 2,
                 pattern: '[A-Z]',
               },
             },
@@ -94,8 +90,6 @@ export const ShipmentValidation: ServiceSchema = {
           items: {
             type: 'enum',
             values: country,
-            max: 2,
-            min: 2,
             pattern: '[A-Z]',
           },
         },
@@ -146,8 +140,6 @@ export const ShipmentValidation: ServiceSchema = {
               country: {
                 type: 'enum',
                 values: country,
-                max: 2,
-                min: 2,
                 pattern: '[A-Z]',
               },
             },
@@ -160,8 +152,6 @@ export const ShipmentValidation: ServiceSchema = {
         country: {
           type: 'enum',
           values: country,
-          min: 2,
-          max: 2,
         },
         weight: {
           type: 'number',
@@ -187,8 +177,6 @@ export const ShipmentValidation: ServiceSchema = {
           type: 'enum',
           values: country,
           optional: true,
-          min: 2,
-          max: 2,
         },
       },
     },
