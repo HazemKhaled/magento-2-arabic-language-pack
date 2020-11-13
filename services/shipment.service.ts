@@ -137,9 +137,11 @@ const Shipment: ServiceSchema = {
 
           // If getting * in city then allow to all city
           if (cityAr.length > 0 && !cityAr.includes('*')) {
+            cityAr.push('*'); /* Allow all the city */
             query['ship_from.city'] = { $in: cityAr };
           }
           if (countryAr.length > 0 && !countryAr.includes('ZZ')) {
+            countryAr.push('ZZ'); /* Allow all the country */
             query['ship_from.country'] = {
               $in: countryAr,
             };
