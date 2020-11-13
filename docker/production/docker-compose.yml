@@ -11,11 +11,11 @@ services:
       SERVICES: api, tasks, apm
       PORT: 80
     labels:
-      traefik.enable: "true"
-      traefik.backend: production
-      traefik.port: 80
-      traefik.frontend.entryPoints: "http,https"
-      traefik.frontend.rule: "Host:mp.knawat.io"
+      - "traefik.enable=true"
+      - "traefik.backend=production"
+      - "traefik.port=80"
+      - "traefik.frontend.entryPoints=http,https"
+      - "traefik.frontend.rule=Host:mp.knawat.io"
 
   stores:
     build:
