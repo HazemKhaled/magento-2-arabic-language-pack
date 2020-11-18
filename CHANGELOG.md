@@ -1,5 +1,24 @@
 # Changelog
 
+## v1.11.0
+
+### 🚀 Features
+
+- Added the archive in the listing schema
+- Added the functionality to delete the product-instance using externalId
+- Added ship_form new field in Get product by SKU API
+- Added new query params in product-instance total count API
+
+### 🐛 Fixes
+
+- Fixed Parsing float in wallet balance
+- Resolved invoicelink not working issue
+- Resolved shipment date issue
+
+### ✨ Enhancements
+
+- Fix type issue in ctx.call
+
 ## v1.10.0
 
 ### 🚀 Features

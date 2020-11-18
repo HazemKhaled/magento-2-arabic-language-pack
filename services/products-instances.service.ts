@@ -86,11 +86,6 @@ module.exports = {
             must_not: [
               {
                 term: {
-                  archive: true,
-                },
-              },
-              {
-                term: {
                   deleted: true,
                 },
               },
@@ -99,8 +94,11 @@ module.exports = {
         };
         if (Object.keys(ctx.params).length) {
           if (ctx.params.hideOutOfStock) {
-            query.bool.must_not[0].term.archive =
-              Number(ctx.params.hideOutOfStock) === 1;
+            query.bool.must_not.push({
+              term: {
+                archive: Number(ctx.params.hideOutOfStock) === 1,
+              },
+            });
           }
           if (ctx.params.hasExternalId) {
             switch (Boolean(Number(ctx.params.hasExternalId))) {

@@ -508,10 +508,8 @@ export const ProductsInstancesMixin: ServiceSchema = {
         .catch((err: CommonError) => {
           throw new MpError(
             'Products Instance',
-            err.statusCode === 404
-              ? `Product not found ${sku} store ${id} (Delete Product)!`
-              : err.msg,
-            err.statusCode === 404 ? err.statusCode : 500
+            err?.message,
+            err.code ? err.code : 500
           );
         });
     },
