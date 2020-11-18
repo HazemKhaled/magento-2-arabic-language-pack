@@ -134,3 +134,20 @@ export interface UpdateProductParams extends Product {
 export interface ProductSearchParams {
   storeKey: string;
 }
+export interface ProductListParams {
+  page: number;
+  limit: number;
+  lastupdate: number;
+  hideOutOfStock: number;
+  keyword: string;
+  externalId: string;
+  hasExternalId: number;
+  currency: string;
+  sort: 'd' | 'a';
+}
+
+export interface ProductTotalParams {
+  lastUpdate?: string;
+  hideOutOfStock?: number;
+  hasExternalId?: number;
+}

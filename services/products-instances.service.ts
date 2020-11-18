@@ -19,6 +19,7 @@ import {
   ElasticSearchType,
   CommonError,
   ElasticSearchResponse,
+  ElasticQuery,
 } from '../utilities/types';
 
 module.exports = {
@@ -78,43 +79,76 @@ module.exports = {
     total: {
       auth: ['Bearer'],
       cache: {
-        keys: ['#user'],
+        keys: ['#user', 'lastUpdate', 'hideOutOfStock', 'hasExternalId'],
         ttl: 60 * 60,
       },
       handler(ctx: Context<unknown, MetaParams>): Promise<{ total: number }> {
+        const query: ElasticQuery = {
+          bool: {
+            must: [],
+            filter: [
+              {
+                term: {
+                  'instanceId.keyword': ctx.meta.user,
+                },
+              },
+            ],
+            must_not: [
+              {
+                term: {
+                  deleted: true,
+                },
+              },
+            ],
+          },
+        };
+        if (Object.keys(ctx.params).length) {
+          if (ctx.params.hideOutOfStock) {
+            query.bool.must_not.push({
+              term: {
+                archive: Number(ctx.params.hideOutOfStock) === 1,
+              },
+            });
+          }
+          if (ctx.params.hasExternalId) {
+            switch (Boolean(Number(ctx.params.hasExternalId))) {
+              case true:
+                query.bool.must.push({
+                  exists: {
+                    field: 'externalId',
+                  },
+                });
+                break;
+              case false:
+                query.bool.must_not.push({
+                  exists: {
+                    field: 'externalId',
+                  },
+                });
+            }
+          }
+          if (ctx.params.lastUpdate) {
+            const lastUpdated = ctx.params.lastUpdate;
+            query.bool.must.push({
+              range: {
+                updated: {
+                  gte: new Date(Number(lastUpdated)),
+                },
+              },
+            });
+          }
+        }
         return ctx
           .call<ElasticSearchResponse, Partial<ElasticSearchType>>(
             'products.count',
             {
               index: 'products-instances',
               body: {
-                query: {
-                  bool: {
-                    filter: [
-                      {
-                        term: {
-                          'instanceId.keyword': ctx.meta.user,
-                        },
-                      },
-                    ],
-                    must_not: [
-                      {
-                        term: {
-                          deleted: true,
-                        },
-                      },
-                      {
-                        term: {
-                          archive: true,
-                        },
-                      },
-                    ],
-                  },
-                },
+                query,
               },
             }
           )
-          .then((res: ElasticSearchResponse) => {
+          .then((res: any) => {
             if (typeof res.count !== 'number') {
               throw new MpError(
                 'Products Instance',
@@ -170,8 +204,34 @@ module.exports = {
      */
     deleteInstanceProduct: {
       auth: ['Bearer'],
-      handler(ctx: Context<Product, MetaParams>): Promise<Product> {
-        const { sku } = ctx.params;
+      async handler(ctx: Context<Product, MetaParams>): Promise<Product> {
+        let { sku } = ctx.params;
+        const { externalId } = ctx.params;
+        if (externalId) {
+          try {
+            const productSku = await this.getProductSKUByExternalId(
+              externalId,
+              ctx.meta.user
+            );
+            sku = productSku;
+          } catch (err) {
+            ctx.meta.$statusCode = err.code;
+            ctx.meta.$statusMessage =
+              err.code === 404 ? 'Not Found' : 'Server Error';
+
+            return {
+              errors: [
+                {
+                  status: err.code === 404 ? 'Not Found' : 'Server Error',
+                  message: err.message,
+                },
+              ],
+            };
+          }
+        }
+        if (!sku) {
+          throw new MpError('Products Instance', 'SKU Required!', 422);
+        }
 
         return this.deleteProduct(sku, ctx.meta.user)
           .then(async (product: Product) => {
@@ -202,12 +262,18 @@ module.exports = {
             }
             return { product };
           })
-          .catch(() => {
-            throw new MpError(
-              'Products Instance',
-              'Something went wrong!',
-              500
-            );
+          .catch((err: CommonError) => {
+            ctx.meta.$statusCode = err.code;
+            ctx.meta.$statusMessage =
+              err.code === 404 ? 'Not Found' : 'Server Error';
+            return {
+              errors: [
+                {
+                  status: err.code === 404 ? 'Not Found' : 'Server Error',
+                  message: err.message,
+                },
+              ],
+            };
           });
       },
     },

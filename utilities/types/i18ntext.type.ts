@@ -56,7 +56,16 @@ export interface DynamicRequestParams {
  * @interface CommonError
  */
 export interface CommonError extends Error {
+  body?: {
+    error: {
+      index?: string;
+      reason?: string;
+    };
+    status?: number;
+  };
   code?: number;
+  statusCode?: number;
+  msg?: string;
 }
 
 /**

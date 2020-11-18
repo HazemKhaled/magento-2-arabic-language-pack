@@ -256,7 +256,6 @@ const TheService: ServiceSchema = {
             id: ctx.params.storeId,
           }
         );
-        ctx.meta.user = store.consumer_key;
         const orders: Order[] = await ctx.call<Order[], Partial<Order>>(
           'orders.list',
           {

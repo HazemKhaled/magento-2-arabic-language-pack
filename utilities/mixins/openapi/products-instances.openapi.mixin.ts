@@ -343,6 +343,35 @@ const ProductsTotal = {
   summary: 'Products Count',
   tags: ['My Products'],
   description: 'Get in stock products count',
+  parameters: [
+    {
+      name: 'lastUpdate',
+      in: 'query',
+      description:
+        'Timestamp(`milliseconds` since Jan 01 1970. (UTC)) of last import run DateTime (must be in UTC), API will respond only products which are updated after this timestamp.',
+      example: '1542794072000 for 21-11-2018 @ 9:54am',
+      schema: {
+        type: 'number',
+      },
+    },
+    {
+      name: 'hasExternalId',
+      in: 'query',
+      description: 'filter with or without externalId',
+      schema: {
+        type: 'number',
+      },
+    },
+    {
+      name: 'hideOutOfStock',
+      in: 'query',
+      description: 'Hide out of stock products',
+      example: '1 => Hide archived products else will not hide',
+      schema: {
+        type: 'number',
+      },
+    },
+  ],
   responses: {
     200: {
       description: 'Status 200',
@@ -396,7 +425,7 @@ const ProductsList = {
       in: 'query',
       description:
         'Timestamp(`seconds/milliseconds` since Jan 01 1970. (UTC)) of last import run DateTime (must be in UTC), API will respond only products which are updated/created after this timestamp.',
-      example: '1542794072 for 21-11-2018 @ 9:54am',
+      example: '1542794072000 for 21-11-2018 @ 9:54am',
       schema: {
         type: 'number',
       },
@@ -497,7 +526,7 @@ const ProductsList = {
 
 export const DeleteInstanceProduct = {
   $path: 'delete /catalog/products/{sku}',
-  summary: 'Delete product by SKU',
+  summary: 'Delete product by SKU or externalId',
   tags: ['My Products'],
   description:
     'Delete Product by Product SKU from store. product should be under this store',
@@ -532,6 +561,16 @@ export const DeleteInstanceProduct = {
       schema: {
         type: 'string',
       },
+      description: 'Product sku',
+    },
+    {
+      name: 'externalId',
+      in: 'query',
+      schema: {
+        type: 'string',
+      },
+      description:
+        'Product Instance externalId is optional parameter. If user passed the externalId then the sku parameter value will be over written.',
     },
   ],
   security: [{ bearerAuth: [] as [] }],
