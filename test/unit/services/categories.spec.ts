@@ -1,6 +1,9 @@
-const { ServiceBroker } = require('moleculer');
-const { ValidationError } = require('moleculer').Errors;
-const TestService = require('../../services/categories.service');
+import { ServiceBroker } from 'moleculer';
+import { Errors } from 'moleculer';
+
+import TestService from '../../../services/categories.service';
+
+const { ValidationError } = Errors;
 
 describe("Test 'categories' service", () => {
   const broker = new ServiceBroker({ logger: false });
@@ -11,7 +14,9 @@ describe("Test 'categories' service", () => {
 
   describe("Test 'categories.list' action", () => {
     it('should reject an ValidationError', () => {
-      expect(broker.call('categories.list')).rejects.toBeInstanceOf(ValidationError);
+      expect(broker.call('categories.list')).rejects.toBeInstanceOf(
+        ValidationError
+      );
     });
     it('should return an array', () => {
       expect(broker.call('categories.list')).resolves.toBe(Array);

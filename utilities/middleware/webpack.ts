@@ -9,17 +9,15 @@ export function webpackMiddlewares(): unknown[] {
   const webpack = require('webpack');
   const devMiddleware = require('webpack-dev-middleware');
   const hotMiddleware = require('webpack-hot-middleware');
-  const config = require('../../../webpack.dev.js');
+  const config = require('../../webpack.dev.js');
 
   const compiler = webpack(config);
 
   return [
     // Webpack middleware
     devMiddleware(compiler, {
-      noInfo: true,
       publicPath: config.output.publicPath,
       headers: { 'Access-Control-Allow-Origin': '*' },
-      stats: 'errors-only',
     }),
 
     // Webpack hot replacement

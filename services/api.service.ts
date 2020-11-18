@@ -30,13 +30,10 @@ const TheService: ServiceSchema = {
       headers: Boolean(process.env.RATE_LIMIT_HEADER) || true,
 
       // Function used to generate keys. Defaults to:
-      key: (req: GenericObject) => {
-        return (
-          req.headers['x-forwarded-for'] ||
+      key(req: IncomingRequest): string {
+        return (req.headers['x-forwarded-for'] ||
           req.connection.remoteAddress ||
-          req.socket.remoteAddress ||
-          req.connection.socket.remoteAddress
-        );
+          req.socket.remoteAddress) as string;
       },
     },
 
