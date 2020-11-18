@@ -16,3 +16,9 @@ openapi.json
 build
 openapi-private.json
 gcp-key.json
+!webpack.*
+
+# public folder
+public/*
+!public/img
+!public/index.html

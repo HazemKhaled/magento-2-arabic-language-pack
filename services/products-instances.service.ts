@@ -1,4 +1,4 @@
-import { Context } from 'moleculer';
+import { Context, GenericObject } from 'moleculer';
 import ESService from 'moleculer-elasticsearch';
 
 import {
@@ -10,7 +10,7 @@ import {
   GCPPubSub,
 } from '../utilities/mixins';
 import { MpError } from '../utilities/adapters';
-import { Product } from '../utilities/types/product.type';
+import { Product, ElasticQuery, CommonError } from '../utilities/types';
 
 module.exports = {
   name: 'products-instances',
@@ -69,37 +69,70 @@ module.exports = {
     total: {
       auth: ['Bearer'],
       cache: {
-        keys: ['#user'],
+        keys: ['#user', 'lastUpdate', 'hideOutOfStock', 'hasExternalId'],
         ttl: 60 * 60,
       },
       handler(ctx: Context) {
+        const query: ElasticQuery = {
+          bool: {
+            must: [],
+            filter: [
+              {
+                term: {
+                  'instanceId.keyword': ctx.meta.user,
+                },
+              },
+            ],
+            must_not: [
+              {
+                term: {
+                  deleted: true,
+                },
+              },
+            ],
+          },
+        };
+        if (Object.keys(ctx.params).length) {
+          if (ctx.params.hideOutOfStock) {
+            query.bool.must_not.push({
+              term: {
+                archive: Number(ctx.params.hideOutOfStock) === 1,
+              },
+            });
+          }
+          if (ctx.params.hasExternalId) {
+            switch (Boolean(Number(ctx.params.hasExternalId))) {
+              case true:
+                query.bool.must.push({
+                  exists: {
+                    field: 'externalId',
+                  },
+                });
+                break;
+              case false:
+                query.bool.must_not.push({
+                  exists: {
+                    field: 'externalId',
+                  },
+                });
+            }
+          }
+          if (ctx.params.lastUpdate) {
+            const lastUpdated = ctx.params.lastUpdate;
+            query.bool.must.push({
+              range: {
+                updated: {
+                  gte: new Date(Number(lastUpdated)),
+                },
+              },
+            });
+          }
+        }
         return ctx
           .call('products.count', {
             index: 'products-instances',
             body: {
-              query: {
-                bool: {
-                  filter: [
-                    {
-                      term: {
-                        'instanceId.keyword': ctx.meta.user,
-                      },
-                    },
-                  ],
-                  must_not: [
-                    {
-                      term: {
-                        deleted: true,
-                      },
-                    },
-                    {
-                      term: {
-                        archive: true,
-                      },
-                    },
-                  ],
-                },
-              },
+              query,
             },
           })
           .then((res: any) => {
@@ -156,9 +189,33 @@ module.exports = {
      */
     deleteInstanceProduct: {
       auth: ['Bearer'],
-      handler(ctx: Context) {
-        const { sku } = ctx.params;
-
+      async handler(ctx: Context) {
+        let { sku } = ctx.params;
+        const { externalId } = ctx.params;
+        if (externalId) {
+          try {
+            const productSku = await this.getProductSKUByExternalId(
+              externalId,
+              ctx.meta.user
+            );
+            sku = productSku;
+          } catch (err) {
+            ctx.meta.$statusCode = err.code;
+            ctx.meta.$statusMessage =
+              err.code === 404 ? 'Not Found' : 'Server Error';
+            return {
+              errors: [
+                {
+                  status: err.code === 404 ? 'Not Found' : 'Server Error',
+                  message: err.message,
+                },
+              ],
+            };
+          }
+        }
+        if (!sku) {
+          throw new MpError('Products Instance', 'SKU Required!', 422);
+        }
         return this.deleteProduct(sku, ctx.meta.user)
           .then(async (product: Product) => {
             this.broker.cacher.clean(
@@ -185,12 +242,18 @@ module.exports = {
             }
             return { product };
           })
-          .catch(() => {
-            throw new MpError(
-              'Products Instance',
-              'Something went wrong!',
-              500
-            );
+          .catch((err: CommonError) => {
+            ctx.meta.$statusCode = err.code;
+            ctx.meta.$statusMessage =
+              err.code === 404 ? 'Not Found' : 'Server Error';
+            return {
+              errors: [
+                {
+                  status: err.code === 404 ? 'Not Found' : 'Server Error',
+                  message: err.message,
+                },
+              ],
+            };
           });
       },
     },
@@ -213,9 +276,9 @@ module.exports = {
             const outOfStock = skus.filter(
               (sku: string) => !newSKUs.includes(sku)
             );
-            const instance = await this.broker.call('stores.findInstance', {
-              consumerKey: ctx.meta.user,
-            });
+
+            const { store } = ctx.meta;
+
             const bulk: any[] = [];
             if (newSKUs.length === 0) {
               throw new MpError(
@@ -228,15 +291,15 @@ module.exports = {
               bulk.push({
                 update: {
                   _index: 'products-instances',
-                  _id: `${instance.consumer_key}-${product.sku}`,
+                  _id: `${store.consumer_key}-${product.sku}`,
                 },
               });
               bulk.push({
                 doc: {
-                  instanceId: instance.consumer_key,
+                  instanceId: store.consumer_key,
                   createdAt: new Date(),
                   updated: new Date(),
-                  siteUrl: instance.url,
+                  siteUrl: store.url,
                   sku: product.sku,
                   variations: product.variations
                     .filter(variation => variation.quantity > 0)
@@ -261,9 +324,7 @@ module.exports = {
                     .filter((item: any) => item.update._version === 1)
                     .map((item: any) => item.update._id);
                   const update = res.filter((product: Product) =>
-                    firstImport.includes(
-                      `${instance.consumer_key}-${product.sku}`
-                    )
+                    firstImport.includes(`${store.consumer_key}-${product.sku}`)
                   );
 
                   const appSearchProducts = [];
@@ -279,11 +340,11 @@ module.exports = {
                     if (product) {
                       let index = -1;
                       if (product.imported) {
-                        index = product.imported.indexOf(instance.url);
+                        index = product.imported.indexOf(store.url);
                       }
                       if (index === -1) {
                         product.imported = (product.imported || []).concat([
-                          instance.url,
+                          store.url,
                         ]);
                         updateArr.push({
                           id: product.sku,
@@ -448,7 +509,7 @@ module.exports = {
       success: string[];
       outOfStock: string[];
     } {
-      this.publishMessage('products.create', {
+      this.publishMessage('products.import', {
         storeId: ctx.meta.storeId,
         data: res,
       });

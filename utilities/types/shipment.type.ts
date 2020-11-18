@@ -27,4 +27,13 @@ export interface Rule {
   units_max: number;
   type: string;
   cost: number;
+  duration?: string;
+}
+
+export interface RuleParms {
+  country: string;
+  weight: number;
+  price: number;
+  ship_from_city?: string;
+  ship_from_country?: string;
 }

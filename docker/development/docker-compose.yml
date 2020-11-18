@@ -1,4 +1,4 @@
-version: '3.3'
+version: "3.3"
 
 services:
   api:
@@ -8,16 +8,16 @@ services:
     restart: always
     env_file: .env
     environment:
-      SERVICES: api, tasks
+      SERVICES: api, tasks, apm
       PORT: 4040
     ports:
-      - '4040:4040'
+      - "4040:4040"
     labels:
-      - 'traefik.enable=true'
-      - 'traefik.backend=mp-development'
-      - 'traefik.port=4040'
-      - 'traefik.frontend.entryPoints=http,https'
-      - 'traefik.frontend.rule=Host:dev.mp.knawat.io'
+      traefik.enable: "true"
+      traefik.backend: mp-development
+      traefik.port: 4040
+      traefik.frontend.entryPoints: "http,https"
+      traefik.frontend.rule: "Host:dev.mp.knawat.io"
 
   stores:
     build:
@@ -109,17 +109,6 @@ services:
     environment:
       SERVICES: shipment
 
-  elastic-update:
-    build:
-      context: ../../
-    image: microes
-    restart: always
-    env_file: .env
-    environment:
-      SERVICES: elastic-update
-    volumes:
-      - ~/data/mp-nedb:/app/data
-
   logs:
     build:
       context: ../../
@@ -133,12 +122,12 @@ services:
     image: redis:alpine
 
   traefik:
-    image: traefik
+    image: traefik:v1.7
     restart: always
     ports:
-      - '80:80'
-      - '443:443'
-      - '8080:8080'
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./traefik.toml:/traefik.toml

@@ -1,4 +1,4 @@
-import { Context, ServiceSchema } from 'moleculer';
+import { Context, GenericObject, ServiceSchema } from 'moleculer';
 import { v1 as uuidv1 } from 'uuid';
 
 import {
@@ -42,52 +42,56 @@ const TheService: ServiceSchema = {
       async handler(ctx: Context) {
         // Initialize warnings array
         let warnings: { code: number; message: string }[] = [];
-        // Get the Store instance
-        const instance = await ctx.call('stores.findInstance', {
-          consumerKey: ctx.meta.user,
-        });
 
+        // Get the Store instance
+        const { store } = ctx.meta;
+
+        // TODO: Move to hook before create order, invoice or payment, and write this code into OMS service
         // create OMS contact if no oms ID
-        if (!instance.internal_data || !instance.internal_data.omsId) {
-          await this.setOmsId(instance);
+        if (!store.internal_data?.omsId) {
+          await this.setOmsId(store);
         }
 
+        // De-duplicate
         if (ctx.params.id) {
           const isCreated = await this.broker.cacher.get(
-            `createOrder_${instance.consumer_key}|${ctx.params.id}`
+            `createOrder_${store.consumer_key}|${ctx.params.id}`
           );
           if (isCreated) {
             this.sendLogs({
               topic: 'order',
               topicId: ctx.params.id,
               message: 'We already received this order before!',
-              storeId: instance.url,
+              storeId: store.url,
               logLevel: 'warn',
               code: 409,
               payload: {
                 params: ctx.params,
               },
             });
+
             const orders = await ctx.call('orders.list', {
               externalId: ctx.params.id,
             });
+
             return {
               status: 'success',
               message: 'We already received this order before!',
               data: orders?.[0],
             };
           }
+
           this.broker.cacher.set(
-            `createOrder_${instance.consumer_key}|${ctx.params.id}`,
+            `createOrder_${store.consumer_key}|${ctx.params.id}`,
             1,
             60 * 60 * 24
           );
         }
 
-        const data = this.orderData(ctx.params, instance, true);
+        const data = this.orderData(ctx.params, store, true);
 
         // Send received log
-        this.sendReceiveLog('Create', data.externalId, instance, ctx.params);
+        this.sendReceiveLog('Create', data.externalId, store, ctx.params);
 
         // Check the available products and quantities return object with inStock products info
         const stock: {
@@ -99,7 +103,15 @@ const TheService: ServiceSchema = {
           outOfStock: OrderItem[];
           notEnoughStock: OrderItem[];
           notKnawat: OrderItem[];
+          handlingTimes: number[];
         } = await this.stockProducts(data.items);
+
+        if (stock.handlingTimes.length) {
+          data.shipmentDate = this.calculateWorkingDays(
+            new Date(),
+            Math.max.apply(null, stock.handlingTimes)
+          );
+        }
 
         // Return warning response if no Item available
         if (stock.items.length === 0) {
@@ -107,7 +119,7 @@ const TheService: ServiceSchema = {
             topicId: data.externalId,
             message:
               'The products you ordered are not Knawat products, The order has not been created!',
-            storeId: instance.url,
+            storeId: store.url,
             logLevel: 'warn',
             code: 1101,
             payload: {
@@ -126,7 +138,7 @@ const TheService: ServiceSchema = {
         }
 
         // Taxes
-        const taxData = await this.setTaxIds(instance, stock.items);
+        const taxData = await this.setTaxIds(store, stock.items);
         const taxesMsg: { code: number; message: string }[] = taxData.msgs;
 
         // Update Order Items
@@ -135,18 +147,20 @@ const TheService: ServiceSchema = {
         const { taxTotal } = taxData;
 
         // Shipping
-        const shipment = await this.shipment(
+        const { shipment, warnings: shipmentWarnings } = await this.shipment(
+          ctx,
           stock.items,
-          ctx.params.shipping.country,
-          instance,
+          store,
           ctx.params.shipping_method
         );
+
+        warnings = warnings.concat(shipmentWarnings);
 
         if (!shipment) {
           this.sendLogs({
             topicId: data.externalId,
             message: `We don't shipment to ${ctx.params.shipping.country}`,
-            storeId: instance.url,
+            storeId: store.url,
             logLevel: 'error',
             code: 400,
             payload: {
@@ -177,7 +191,7 @@ const TheService: ServiceSchema = {
 
         // Getting the current user subscription
         const subscription = await ctx.call('subscription.sGet', {
-          id: instance.url,
+          id: store.url,
         });
         switch (subscription.attributes.orderProcessingType) {
           case '$':
@@ -215,7 +229,7 @@ const TheService: ServiceSchema = {
         if (Array.isArray(discountResponse) && ctx.params.coupon) {
           warnings = warnings.concat(discountResponse.warnings);
         }
-        if (discountResponse && discountResponse.discount) {
+        if (discountResponse?.discount) {
           data.discount = discountResponse.discount.toString();
           data.coupon = discountResponse.coupon;
         }
@@ -227,7 +241,7 @@ const TheService: ServiceSchema = {
           message: `Subscription Package: ${
             subscription ? subscription.membership.name.en : 'Free'
           }`,
-          storeId: instance.url,
+          storeId: store.url,
           logLevel: 'info',
           code: 2103,
           payload: {
@@ -245,7 +259,7 @@ const TheService: ServiceSchema = {
             stock.outOfStock,
             stock.notEnoughStock,
             data,
-            instance,
+            store,
             ctx.params.shipping_method,
             ctx.params.shipping,
             shipment,
@@ -265,24 +279,34 @@ const TheService: ServiceSchema = {
           );
         }
 
-        const result: OrderOMSResponse = await ctx.call(
-          'oms.createNewOrder',
-          data
-        );
-        if (!result.salesorder) {
+        const result: OrderOMSResponse = await ctx
+          .call('oms.createNewOrder', data)
+          .then(async result => {
+            if (result.salesorder) {
+              // Clearing order list action(API) cache
+              await this.broker.cacher.clean(
+                `orders.list:undefined|${ctx.meta.user}**`
+              );
+              this.cacheUpdate(result.salesorder, store);
+            }
+
+            return result;
+          });
+
+        if (result.error) {
           this.sendLogs({
             topicId: data.externalId,
             message: result.error.message,
-            storeId: instance.url,
+            storeId: store.url,
             logLevel: 'error',
             code: result.error.statusCode,
             payload: {
-              errors: (result.error && result.error.details) || result,
+              errors: result.error?.details || result,
               params: ctx.params,
             },
           });
-          ctx.meta.$statusCode = result.error.statusCode;
-          ctx.meta.$statusMessage = result.error.name;
+          ctx.meta.$statusCode = result.error?.statusCode;
+          ctx.meta.$statusMessage = result.error?.name;
           return {
             errors: [
               {
@@ -292,13 +316,13 @@ const TheService: ServiceSchema = {
             ],
           };
         }
-        if (
-          result.salesorder &&
-          !(instance.internal_data && instance.internal_data.omsId)
-        ) {
+
+        const order = result.salesorder;
+
+        if (order && !store.internal_data?.omsId) {
           ctx
             .call('stores.update', {
-              id: instance.url,
+              id: store.url,
               internal_data: {
                 omsId: result.salesorder.store.id,
               },
@@ -306,14 +330,16 @@ const TheService: ServiceSchema = {
             .then(r => this.logger.info(r));
         }
 
+        // TODO: Move to hook after create, and write this code into coupon service
         // If coupon used update quantity
         if (data.coupon) {
           ctx.call('coupons.updateCount', { id: data.coupon });
         }
 
+        // TODO: Move to hook after create, and write this code into CRM service
         // Update CRM last update
         ctx.call('crm.updateStoreById', {
-          id: instance.url,
+          id: store.url,
           last_order_date: Date.now(),
         });
 
@@ -326,27 +352,19 @@ const TheService: ServiceSchema = {
           })),
         });
 
-        /* Prepare the response message in case of success or warnings */
-        const order = result.salesorder;
-
-        // Clearing order list action(API) cache
-        await this.broker.cacher.clean(
-          `orders.list:undefined|${ctx.meta.user}**`
-        );
-        this.cacheUpdate(order, instance);
-
         const message: {
           status?: string;
           // Remove any later
           data?: OrderOMSResponse['salesorder'] | any;
-          warnings?: {}[];
-          errors?: {}[];
+          warnings?: GenericObject[];
+          errors?: GenericObject[];
         } = {
           status: 'success',
           data: order,
         };
 
         if (warnings.length) {
+          // TODO: Move to hook after create, and write this code into notifications service
           this.sendMail({
             to: process.env.SUPPORT_MAIL,
             subject: 'Order Warnings',
@@ -355,13 +373,15 @@ const TheService: ServiceSchema = {
               `OrderID: ${order.id}\n`
             )}`,
           });
+
+          // Return in the response
+          message.warnings = warnings;
         }
 
-        if (warnings.length > 0) message.warnings = warnings;
         this.sendLogs({
           topicId: data.externalId,
           message: 'Order created successfully',
-          storeId: instance.url,
+          storeId: store.url,
           logLevel: 'info',
           code: 200,
         });
@@ -373,9 +393,7 @@ const TheService: ServiceSchema = {
       async handler(ctx) {
         // Initialize warnings array
         let warnings: { code: number; message: string }[] = [];
-        const instance = await ctx.call('stores.findInstance', {
-          consumerKey: ctx.meta.user,
-        });
+        const { store } = ctx.meta;
 
         const orderBeforeUpdate = await ctx.call('orders.getOrder', {
           order_id: ctx.params.id,
@@ -385,7 +403,7 @@ const TheService: ServiceSchema = {
         this.sendReceiveLog(
           'Update',
           orderBeforeUpdate?.externalId,
-          instance,
+          store,
           ctx.params
         );
 
@@ -398,21 +416,23 @@ const TheService: ServiceSchema = {
         data.status = this.normalizeUpdateRequestStatus(data.status);
         // Change
         if (data.status === 'cancelled' || data.status === 'void') {
-          return ctx.call('orders.delete', { id: data.id }).then(res => {
-            this.broker.cacher.clean(
-              `orders.list:undefined|${ctx.meta.user}**`
-            );
-            this.broker.cacher.clean(`orders.getOrder:${ctx.params.id}**`);
-            return res;
-          });
+          return ctx
+            .call('orders.deleteOrder', { id: ctx.params.id })
+            .then(res => {
+              this.broker.cacher.clean(
+                `orders.list:undefined|${ctx.meta.user}**`
+              );
+              this.broker.cacher.clean(`orders.getOrder:${ctx.params.id}**`);
+              return res;
+            });
         }
 
         const message: {
           status?: string;
           // Remove any later
           data?: OrderOMSResponse['salesorder'] | any;
-          warnings?: {}[];
-          errors?: {}[];
+          warnings?: GenericObject[];
+          errors?: GenericObject[];
         } = {};
         let shipment: any = 'No Items';
 
@@ -426,7 +446,7 @@ const TheService: ServiceSchema = {
                 topicId: orderBeforeUpdate.externalId,
                 message:
                   'The products you ordered are not Knawat products, The order has not been created!',
-                storeId: instance.url,
+                storeId: store.url,
                 logLevel: 'warn',
                 code: 1101,
                 payload: {
@@ -445,12 +465,12 @@ const TheService: ServiceSchema = {
 
             // Get Shipping Country
             let country = orderBeforeUpdate.shipping.country;
-            if (ctx.params.shipping && ctx.params.shipping.country) {
+            if (ctx.params.shipping?.country) {
               country = ctx.params.shipping.country;
             }
 
             // Taxes
-            const taxData = await this.setTaxIds(instance, stock.items);
+            const taxData = await this.setTaxIds(store, stock.items);
             const taxesMsg: { code: number; message: string }[] = taxData.msgs;
             const { taxTotal } = taxData;
 
@@ -462,7 +482,7 @@ const TheService: ServiceSchema = {
             shipment = await this.shipment(
               stock.items,
               country,
-              instance,
+              store,
               ctx.params.shipping_method
             );
 
@@ -480,7 +500,7 @@ const TheService: ServiceSchema = {
 
             // Getting the current user subscription
             const subscription = await ctx.call('subscription.sGet', {
-              id: instance.url,
+              id: store.url,
             });
             if (subscription.attributes.orderProcessingType === '%') {
               subscription.adjustment =
@@ -516,7 +536,7 @@ const TheService: ServiceSchema = {
                 stock.outOfStock,
                 stock.notEnoughStock,
                 data,
-                instance,
+                store,
                 ctx.params.shipping_method,
                 ctx.params.shipping,
                 shipment,
@@ -543,7 +563,7 @@ const TheService: ServiceSchema = {
           const result: OrderOMSResponse = await ctx.call(
             'oms.updateOrderById',
             {
-              customerId: instance.internal_data.omsId,
+              customerId: store.internal_data.omsId,
               orderId: ctx.params.id,
               ...data,
             }
@@ -553,16 +573,16 @@ const TheService: ServiceSchema = {
             this.sendLogs({
               topicId: orderBeforeUpdate.externalId,
               message: result.error.message,
-              storeId: instance.url,
+              storeId: store.url,
               logLevel: 'error',
               code: result.error.statusCode,
               payload: {
-                errors: (result.error && result.error.details) || result,
+                errors: result.error?.details || result,
                 params: ctx.params,
               },
             });
-            ctx.meta.$statusCode = result.error.statusCode;
-            ctx.meta.$statusMessage = result.error.name;
+            ctx.meta.$statusCode = result.error?.statusCode;
+            ctx.meta.$statusMessage = result.error?.name;
             return {
               errors: [
                 {
@@ -576,14 +596,14 @@ const TheService: ServiceSchema = {
           await this.broker.cacher.clean(
             `orders.list:undefined|${ctx.meta.user}**`
           );
-          this.cacheUpdate(order, instance);
+          this.cacheUpdate(order, store);
           message.status = 'success';
           message.data = order;
           if (warnings.length > 0) message.warnings = warnings;
           this.sendLogs({
             topicId: data.externalId,
             message: 'Order updated successfully',
-            storeId: instance.url,
+            storeId: store.url,
             logLevel: 'info',
             code: 200,
           });
@@ -593,10 +613,10 @@ const TheService: ServiceSchema = {
           this.sendLogs({
             topicId: orderBeforeUpdate.externalId,
             message:
-              (err && err.stack) || (err.error && err.error.message)
+              err?.stack || err?.error?.message
                 ? err.error.message
                 : 'Order Error',
-            storeId: instance.url,
+            storeId: store.url,
             logLevel: 'error',
             code: 500,
             payload: { errors: err.error || err.stack, params: ctx.params },
@@ -621,10 +641,9 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60,
       },
       async handler(ctx) {
-        const instance = await ctx.call('stores.findInstance', {
-          consumerKey: ctx.meta.user,
-        });
-        if (!(instance.internal_data && instance.internal_data.omsId)) {
+        const { store } = ctx.meta;
+
+        if (!store.internal_data?.omsId) {
           ctx.meta.$statusCode = 404;
           ctx.meta.$statusMessage = 'Not Found';
           return {
@@ -633,7 +652,7 @@ const TheService: ServiceSchema = {
         }
 
         const order = await ctx.call('oms.getOrderById', {
-          customerId: instance.internal_data.omsId,
+          customerId: store.internal_data.omsId,
           orderId: ctx.params.order_id,
         });
         if (order.error) {
@@ -670,13 +689,12 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 * 24,
       },
       async handler(ctx) {
-        const instance = await ctx.call('stores.findInstance', {
-          consumerKey: ctx.meta.user,
-        });
-        if (!(instance.internal_data && instance.internal_data.omsId)) {
+        const { store } = ctx.meta;
+
+        if (!store.internal_data?.omsId) {
           return [];
         }
-        const queryParams: { [key: string]: string } = {};
+        const queryParams: GenericObject = {};
         if (ctx.params.limit) queryParams.perPage = ctx.params.limit;
         const keys = [
           'page',
@@ -699,7 +717,7 @@ const TheService: ServiceSchema = {
           queryParams[key] = ctx.params[key];
         });
         const orders = await ctx.call('oms.listOrders', {
-          customerId: instance.internal_data.omsId,
+          customerId: store.internal_data.omsId,
           ...queryParams,
         });
         return orders.salesorders;
@@ -745,10 +763,9 @@ const TheService: ServiceSchema = {
 
             this.sendLogs({
               topicId: ctx.params.id,
-              message:
-                result && result.error && result.error.message
-                  ? result.error.message
-                  : 'Order Error',
+              message: result.error?.message
+                ? result.error.message
+                : 'Order Error',
               storeId: store.url,
               logLevel: 'error',
               code: 500,
@@ -814,6 +831,29 @@ const TheService: ServiceSchema = {
             60000,
             ctx.meta.user
           );
+
+          const productsRes = await ctx.call(
+            'products.getProductsByVariationSku',
+            {
+              skus: order.items.map((item: OrderItem) => item.sku),
+            }
+          );
+
+          if (productsRes.products.length > 0) {
+            const handlingTimes: number[] = [];
+            productsRes.products.filter((product: Product) => {
+              if (product.handling_time?.to) {
+                handlingTimes.push(product.handling_time.to);
+              }
+            });
+
+            if (handlingTimes.length) {
+              order.shipmentDate = this.calculateWorkingDays(
+                new Date(),
+                Math.max.apply(null, handlingTimes)
+              );
+            }
+          }
 
           order.status = 'paid';
           order.financialStatus = 'paid';
@@ -1030,10 +1070,7 @@ const TheService: ServiceSchema = {
      * @param params
      */
     checkShipment(instance, data, shippingMethod, shipping, shipment, params) {
-      if (
-        (!instance.shipping_methods || !instance.shipping_methods[0].name) &&
-        !shippingMethod
-      ) {
+      if (!instance.shipping_methods?.[0].name && !shippingMethod) {
         this.sendLogs({
           topic: 'order',
           topicId: data.externalId,
@@ -1048,9 +1085,8 @@ const TheService: ServiceSchema = {
       }
       if (
         (shipment.courier !== shippingMethod && shippingMethod) ||
-        (instance.shipping_methods &&
-          instance.shipping_methods[0].name &&
-          shipment.courier !== instance.shipping_methods[0].name)
+        (shipment.courier !== instance.shipping_methods?.[0]?.name &&
+          instance.shipping_methods?.[0]?.name)
       ) {
         this.sendLogs({
           topic: 'order',
@@ -1089,14 +1125,13 @@ const TheService: ServiceSchema = {
             instance.url
           )}/external/${data.externalId}`;
         // Order store data
-        data.store =
-          instance.internal_data && instance.internal_data.omsId
-            ? { id: instance.internal_data.omsId }
-            : {
-                url: instance.url,
-                name: instance.name,
-                users: instance.users,
-              };
+        data.store = instance.internal_data?.omsId
+          ? { id: instance.internal_data.omsId }
+          : {
+              url: instance.url,
+              name: instance.name,
+              users: instance.users,
+            };
         if (instance.logo) {
           data.storeLogo = instance.logo;
         }
@@ -1125,7 +1160,7 @@ const TheService: ServiceSchema = {
       return true;
     },
     async setTaxIds(instance, items) {
-      const taxesMsg: {}[] = [];
+      const taxesMsg: GenericObject[] = [];
       let isInclusive = false;
       let taxTotal = 0;
       const itemsAfterTaxes = await Promise.all(
@@ -1218,6 +1253,24 @@ const TheService: ServiceSchema = {
           405
         );
       }
+    },
+    /**
+     * Calculate Working Days Exculded saturday and sunday
+     *
+     * @param fromDate
+     * @param days
+     */
+    calculateWorkingDays(fromDate: Date, days: number): string {
+      const day = fromDate.getDay();
+
+      const newDate = new Date(fromDate.getTime());
+      newDate.setDate(
+        fromDate.getDate() +
+          days +
+          (day === 6 ? 2 : Number(!day)) +
+          Math.floor((days - 1 + (day % 6 || 1)) / 5) * 2
+      );
+      return newDate.toISOString().split('T')[0];
     },
   },
 };

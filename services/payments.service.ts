@@ -5,10 +5,11 @@ import { Payment, PaymentInvoice } from '../utilities/types';
 import { PaymentsValidation } from '../utilities/mixins/validation';
 import { Oms } from '../utilities/mixins/oms.mixin';
 import { MpError } from '../utilities/adapters';
+import { CheckoutPage } from '../utilities/mixins';
 
 const TheService: ServiceSchema = {
   name: 'payments',
-  mixins: [PaymentsValidation, PaymentsOpenapi, Oms],
+  mixins: [PaymentsValidation, PaymentsOpenapi, Oms, CheckoutPage],
   actions: {
     add: {
       auth: ['Basic'],
@@ -18,16 +19,17 @@ const TheService: ServiceSchema = {
         });
 
         // create OMS contact if no oms ID
-        if (!instance.internal_data || !instance.internal_data.omsId) {
+        if (!instance?.internal_data?.omsId) {
           await this.setOmsId(instance);
         }
 
         const paymentBody: any = {
-          customerId: instance.internal_data.omsId,
+          customerId: instance?.internal_data?.omsId,
           paymentMode: ctx.params.payment_mode,
           amount: ctx.params.amount,
           accountId: ctx.params.account_id,
         };
+
         if (ctx.params.invoices) {
           paymentBody.invoices = ctx.params.invoices.map(
             (invoice: { [key: string]: string }) => ({
@@ -36,15 +38,19 @@ const TheService: ServiceSchema = {
             })
           );
         }
+
         if (ctx.params.bank_charges) {
           paymentBody.bankCharges = ctx.params.bank_charges;
         }
+
         if (ctx.params.reference) {
           paymentBody.referenceNumber = String(ctx.params.reference);
         }
+
         if (ctx.params.description) {
           paymentBody.description = ctx.params.description;
         }
+
         return ctx.call('oms.createPayment', paymentBody).then(
           res => {
             // Store balance
@@ -66,9 +72,7 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 * 24,
       },
       async handler(ctx: Context) {
-        const instance = await ctx.call('stores.findInstance', {
-          consumerKey: ctx.meta.user,
-        });
+        const { store } = ctx.meta;
         const keys: { [key: string]: string } = {
           page: 'page',
           limit: 'perPage',
@@ -79,10 +83,11 @@ const TheService: ServiceSchema = {
         Object.keys(ctx.params).forEach(key => {
           queryParams[keys[key]] = ctx.params[key];
         });
-        if (instance.internal_data && instance.internal_data.omsId) {
+
+        if (store?.internal_data?.omsId) {
           return ctx
             .call('oms.listPayments', {
-              customerId: instance.internal_data.omsId,
+              customerId: store.internal_data.omsId,
               ...queryParams,
             })
             .then(
@@ -96,11 +101,19 @@ const TheService: ServiceSchema = {
               }
             );
         }
+
         throw new MpError(
           'Payments Service',
           'No Record Found For This Store!',
           404
         );
+      },
+    },
+
+    checkout: {
+      handler(ctx: Context): string {
+        ctx.meta.$responseType = 'text/html';
+        return this.renderCheckoutPage();
       },
     },
   },

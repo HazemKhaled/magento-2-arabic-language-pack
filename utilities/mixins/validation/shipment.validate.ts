@@ -1,5 +1,7 @@
 import { ServiceSchema } from 'moleculer';
 
+import country from '../../static/country';
+
 export const ShipmentValidation: ServiceSchema = {
   name: 'shipment',
   actions: {
@@ -19,9 +21,8 @@ export const ShipmentValidation: ServiceSchema = {
         countries: {
           type: 'array',
           items: {
-            type: 'string',
-            max: 2,
-            min: 2,
+            type: 'enum',
+            values: country,
             pattern: '[A-Z]',
           },
         },
@@ -56,6 +57,23 @@ export const ShipmentValidation: ServiceSchema = {
               cost: {
                 type: 'number',
                 convert: true,
+              },
+            },
+          },
+        },
+        ship_from: {
+          type: 'array',
+          items: {
+            type: 'object',
+            props: {
+              city: {
+                type: 'string',
+                pattern: /([A-Za-z* ])$/,
+              },
+              country: {
+                type: 'enum',
+                values: country,
+                pattern: '[A-Z]',
               },
             },
           },
@@ -70,9 +88,8 @@ export const ShipmentValidation: ServiceSchema = {
         countries: {
           type: 'array',
           items: {
-            type: 'string',
-            max: 2,
-            min: 2,
+            type: 'enum',
+            values: country,
             pattern: '[A-Z]',
           },
         },
@@ -111,12 +128,30 @@ export const ShipmentValidation: ServiceSchema = {
             },
           },
         },
+        ship_from: {
+          type: 'array',
+          items: {
+            type: 'object',
+            props: {
+              city: {
+                type: 'string',
+                pattern: /([A-Za-z* ])$/,
+              },
+              country: {
+                type: 'enum',
+                values: country,
+                pattern: '[A-Z]',
+              },
+            },
+          },
+        },
       },
     },
     ruleByCountry: {
       params: {
         country: {
-          type: 'string',
+          type: 'enum',
+          values: country,
         },
         weight: {
           type: 'number',
@@ -126,15 +161,22 @@ export const ShipmentValidation: ServiceSchema = {
           type: 'number',
           convert: true,
         },
+        ship_from_city: {
+          type: 'string',
+          optional: true,
+        },
+        ship_from_country: {
+          type: 'string',
+          optional: true,
+        },
       },
     },
     getCouriers: {
       params: {
         country: {
-          type: 'string',
+          type: 'enum',
+          values: country,
           optional: true,
-          min: 2,
-          max: 2,
         },
       },
     },

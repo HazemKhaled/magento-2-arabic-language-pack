@@ -1,4 +1,4 @@
-import { ServiceSchema } from 'moleculer';
+import { GenericObject, ServiceSchema } from 'moleculer';
 
 import { Attribute, Category, Store, Variation } from '../types';
 
@@ -78,9 +78,9 @@ export const ProductTransformation: ServiceSchema = {
      * @param {Attribute[]} attributes
      * @returns {Attribute[]}
      */
-    formatAttributes(attributes: Attribute[]): object[] {
+    formatAttributes(attributes: Attribute[]): GenericObject[] {
       return attributes.map(attribute => {
-        if (attribute && typeof attribute.name === 'string') {
+        if (typeof attribute?.name === 'string') {
           return {
             name: {
               en: attribute.name,

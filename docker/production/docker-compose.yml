@@ -1,4 +1,4 @@
-version: '3.3'
+version: "3.3"
 
 services:
   api:
@@ -8,14 +8,14 @@ services:
     restart: always
     env_file: .env
     environment:
-      SERVICES: api, tasks
+      SERVICES: api, tasks, apm
       PORT: 80
     labels:
-      - 'traefik.enable=true'
-      - 'traefik.backend=production'
-      - 'traefik.port=80'
-      - 'traefik.frontend.entryPoints=http,https'
-      - 'traefik.frontend.rule=Host:mp.knawat.io'
+      - "traefik.enable=true"
+      - "traefik.backend=production"
+      - "traefik.port=80"
+      - "traefik.frontend.entryPoints=http,https"
+      - "traefik.frontend.rule=Host:mp.knawat.io"
 
   stores:
     build:
@@ -25,10 +25,8 @@ services:
     env_file: .env
     environment:
       SERVICES: stores
-    depends_on:
-      - mongodb
 
-  product-instances:
+  products-instances:
     build:
       context: ../../
     image: microes
@@ -99,8 +97,6 @@ services:
     env_file: .env
     environment:
       SERVICES: shipment
-    depends_on:
-      - mongodb
 
   oms:
     build:
@@ -110,17 +106,6 @@ services:
     env_file: .env
     environment:
       SERVICES: oms
-
-  elastic-update:
-    build:
-      context: ../../
-    image: microes
-    restart: always
-    env_file: .env
-    environment:
-      SERVICES: elastic-update
-    volumes:
-      - ~/data/mp-nedb:/app/data
 
   logs:
     build:
@@ -134,23 +119,13 @@ services:
   redis:
     image: redis:alpine
 
-  mongodb:
-    image: mongo:4
-    restart: always
-    env_file: .env
-    volumes:
-      - ~/data/db/mp:/data/db
-      - ../docker-mongodb-init/:/docker-entrypoint-initdb.d/
-    ports:
-      - '21985:27017'
-
   traefik:
-    image: traefik
+    image: traefik:v1.7
     restart: always
     ports:
-      - '80:80'
-      - '443:443'
-      - '8080:8080'
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./traefik.toml:/traefik.toml

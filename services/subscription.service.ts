@@ -1,6 +1,6 @@
 import { types } from 'util';
 
-import { Context, Errors, ServiceSchema } from 'moleculer';
+import { Context, Errors, GenericObject, ServiceSchema } from 'moleculer';
 
 import DbService from '../utilities/mixins/mongo.mixin';
 import { SubscriptionOpenapi } from '../utilities/mixins/openapi';
@@ -79,7 +79,7 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 * 24,
       },
       async handler(ctx: Context): Promise<Subscription | false> {
-        const query: { [key: string]: any } = {};
+        const query: GenericObject = {};
         if (ctx.params.storeId) {
           query.storeId = ctx.params.storeId;
         }
@@ -255,7 +255,7 @@ const TheService: ServiceSchema = {
           }
         }
 
-        const invoiceBody: { [key: string]: any } = {
+        const invoiceBody: GenericObject = {
           storeId: ctx.params.storeId,
           items: [
             {
@@ -393,7 +393,7 @@ const TheService: ServiceSchema = {
         }
 
         return this.adapter.insert(subscriptionBody).then(
-          async (res: Subscription): Promise<{}> => {
+          async (res: Subscription): Promise<GenericObject> => {
             this.broker.cacher.clean(
               `subscription.sGet:${ctx.params.grantTo || instance.url}*`
             );
@@ -514,6 +514,7 @@ const TheService: ServiceSchema = {
             const store = await ctx.call('stores.findInstance', {
               id: subscription.storeId,
             });
+
             this.broker.cacher.clean(`subscription.sGet:${store.url}**`);
             this.broker.cacher.clean(`subscription.sList:${store.url}**`);
             this.broker.cacher.clean(`stores.sGet:${store.url}**`);
@@ -574,6 +575,7 @@ const TheService: ServiceSchema = {
             const instance = await ctx.call('stores.findInstance', {
               id: res.storeId,
             });
+
             if (res.invoiceId) {
               ctx.call('invoices.updateInvoiceStatus', {
                 omsId: instance?.internal_data?.omsId,

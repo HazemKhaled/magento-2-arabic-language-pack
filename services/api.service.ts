@@ -1,8 +1,10 @@
 import { Context, ServiceSchema } from 'moleculer';
 import ApiGateway from 'moleculer-web';
+import compression from 'compression';
 
 import { Log, Store } from '../utilities/types';
 import { OpenApiMixin } from '../utilities/mixins/openapi.mixin';
+import { hmacMiddleware, webpackMiddlewares } from '../utilities/middleware';
 
 const {
   UnAuthorizedError,
@@ -89,6 +91,12 @@ const TheService: ServiceSchema = {
           'POST invoices': 'invoices.create',
           'POST invoices/:id/credits': 'invoices.applyCredits',
           'GET invoice/:storeId/external/:id': 'invoices.renderInvoice',
+
+          // Cards
+          'POST cards': 'cards.create',
+          'PUT cards/:id': 'cards.update',
+          'GET cards/:id': 'cards.get',
+          'DELETE cards/:id': 'cards.delete',
 
           // paymentGateway
           'POST paymentGateway/:type/transaction': 'paymentGateway.transaction',
@@ -193,7 +201,7 @@ const TheService: ServiceSchema = {
             type: string;
             data: any[];
           }
-        ) {
+        ): Promise<void> {
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
           res.writeHead(err.code || 500);
           if (
@@ -241,11 +249,21 @@ const TheService: ServiceSchema = {
           );
         },
       },
-    ],
+      {
+        path: '/',
 
-    assets: {
-      folder: './public',
-    },
+        authorization: false,
+        use: [
+          compression(),
+          // Webpack middleware
+          ...webpackMiddlewares(),
+          ApiGateway.serveStatic('public'),
+        ],
+        aliases: {
+          'GET checkout': [hmacMiddleware(), 'payments.checkout'],
+        },
+      },
+    ],
   },
 
   methods: {
@@ -257,10 +275,10 @@ const TheService: ServiceSchema = {
      * @param {IncomingRequest} req
      * @returns {Promise}
      */
-    authorize(ctx: Context, route: any, req: any) {
+    authorize(ctx: Context, route: any, req: any): Promise<any> {
       // Pass if no auth required
       if (!req.$endpoint.action.auth) {
-        return;
+        return this.Promise.resolve();
       }
 
       // if no authorization in the header

@@ -1,4 +1,4 @@
-import { Context, ServiceSchema } from 'moleculer';
+import { Context, GenericObject, ServiceSchema } from 'moleculer';
 import ESService from 'moleculer-elasticsearch';
 import { v1 as uuidv1 } from 'uuid';
 
@@ -15,7 +15,7 @@ const TheService: ServiceSchema = {
     elasticsearch: {
       host: process.env.ELASTIC_URL,
       httpAuth: process.env.ELASTIC_AUTH,
-      apiVersion: process.env.ELASTIC_VERSION || '6.x',
+      apiVersion: process.env.ELASTIC_VERSION || '7.x',
     },
   },
   mixins: [ESService, LogsValidation, LogsOpenapi],
@@ -30,10 +30,10 @@ const TheService: ServiceSchema = {
           logLevel,
           storeId,
           message,
-          payload,
+          payload = {},
           code,
         } = ctx.params;
-        if (payload && (payload.errors || payload.error)) {
+        if (payload.errors || payload.error) {
           let error = payload.error || payload.errors;
           try {
             error = JSON.stringify(error);
@@ -90,10 +90,10 @@ const TheService: ServiceSchema = {
         const body: {
           size?: number;
           from?: number;
-          query?: { [key: string]: {} };
+          query?: { [key: string]: GenericObject };
           sort?: { [key: string]: string };
         } = {};
-        const query: { bool?: { filter?: {}[] } } = {
+        const query: { bool?: { filter?: GenericObject[] } } = {
           bool: { filter: [] },
         };
         if (ctx.params.limit) body.size = parseInt(ctx.params.limit, 10);

@@ -1,4 +1,4 @@
-import { Context, Errors, ServiceSchema } from 'moleculer';
+import { Context, Errors, GenericObject, ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
 import jwt from 'jsonwebtoken';
 import { v1 as uuidv1, v4 as uuidv4 } from 'uuid';
@@ -133,11 +133,7 @@ const TheService: ServiceSchema = {
                   id: ctx.params.id,
                 });
               }
-              if (
-                res.internal_data &&
-                res.internal_data.omsId &&
-                !ctx.params.withoutBalance
-              ) {
+              if (res?.internal_data?.omsId && !ctx.params.withoutBalance) {
                 const omsData = (await ctx
                   .call('oms.getCustomer', {
                     customerId: res.internal_data.omsId,
@@ -177,11 +173,11 @@ const TheService: ServiceSchema = {
       },
       handler(ctx: Context) {
         let params: {
-          where?: {};
-          limit?: {};
-          skip?: {};
+          where?: GenericObject;
+          limit?: number;
+          skip?: number;
           order?: string;
-          sort?: {};
+          sort?: GenericObject;
         } = {};
         try {
           params = JSON.parse(ctx.params.filter);
@@ -223,7 +219,7 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 * 24,
       },
       handler(ctx: Context) {
-        const query: any = {};
+        const query: GenericObject = {};
         if (ctx.params.id) {
           query._id = { $regex: new RegExp(`.*${ctx.params.id}.*`, 'i') };
         }
@@ -381,7 +377,7 @@ const TheService: ServiceSchema = {
         );
         this.cacheUpdate(myStore);
 
-        if (myStore.internal_data && myStore.internal_data.omsId) {
+        if (myStore?.internal_data?.omsId) {
           ctx
             .call('crm.updateStoreById', { id, ...ctx.params })
             .then(null, (error: unknown) => {
@@ -437,7 +433,7 @@ const TheService: ServiceSchema = {
             );
           instance.internal_data = {
             ...instance.internal_data,
-            omsId: omsStore.id || (omsStore.store && omsStore.store.id),
+            omsId: omsStore.id || omsStore.store?.id,
           };
           this.broker.cacher.clean(`orders.getOrder:${instance.consumer_key}*`);
           this.broker.cacher.clean(
@@ -456,10 +452,9 @@ const TheService: ServiceSchema = {
             price_status: 'idle',
           });
         } catch (err) {
-          ctx.meta.$statusCode =
-            err.status || (err.error && err.error.statusCode) || 500;
+          ctx.meta.$statusCode = err.status || err.error?.statusCode || 500;
           ctx.meta.$statusMessage =
-            err.statusText || (err.error && err.error.name) || 'Internal Error';
+            err.statusText || err.error?.name || 'Internal Error';
           return {
             errors: [
               {
@@ -576,7 +571,7 @@ const TheService: ServiceSchema = {
           jwt.verify(
             ctx.params.token,
             this.settings.JWT_SECRET,
-            (error: Error, decoded: object) => {
+            (error: Error, decoded: GenericObject) => {
               if (error) {
                 reject(false);
               }
@@ -591,6 +586,7 @@ const TheService: ServiceSchema = {
               const instance = await this.broker.call('stores.findInstance', {
                 consumerKey: decoded.id,
               });
+
               if (instance.status) {
                 return instance;
               }
@@ -643,7 +639,7 @@ const TheService: ServiceSchema = {
      * @returns
      */
     sanitizeStoreParams(params, create = false) {
-      const store: Store | any = {};
+      const store: Store | GenericObject = {};
       // Some initial data when creating store
       if (create) {
         store._id = params.url.toLowerCase();
@@ -719,7 +715,7 @@ const TheService: ServiceSchema = {
      * @param {Store} store
      * @returns {Store}
      */
-    sanitizeResponse(store: Store, omsData = false) {
+    sanitizeResponse(store: Store, omsData = false): Store {
       store.url = store._id;
       delete store._id;
       if (omsData) {
@@ -765,7 +761,7 @@ const TheService: ServiceSchema = {
      * @param {Object} user
      * @param {Boolean} withToken
      */
-    transformEntity(user, withToken, token) {
+    transformEntity(user, withToken, token): GenericObject {
       if (user) {
         if (withToken) {
           user.token = token || this.generateJWT(user);
@@ -775,7 +771,7 @@ const TheService: ServiceSchema = {
       return { channel: user };
     },
 
-    merge2Objects(oldObj, newObj) {
+    merge2Objects(oldObj, newObj): GenericObject {
       return {
         ...oldObj,
         ...newObj,

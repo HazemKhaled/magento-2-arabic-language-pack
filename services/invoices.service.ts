@@ -19,10 +19,9 @@ const TheService: ServiceSchema = {
         keys: ['#user', 'page', 'limit', 'reference_number', 'invoice_number'],
         ttl: 60,
       },
-      async handler(ctx: Context) {
-        const instance = await ctx.call('stores.findInstance', {
-          consumerKey: ctx.meta.user,
-        });
+      handler(ctx: Context) {
+        const { store } = ctx.meta;
+
         const keys: { [key: string]: string } = {
           page: 'page',
           limit: 'perPage',
@@ -33,26 +32,24 @@ const TheService: ServiceSchema = {
         Object.keys(ctx.params).forEach(key => {
           if (ctx.params[key]) queryParams[keys[key]] = ctx.params[key];
         });
-        if (instance.internal_data && instance.internal_data.omsId) {
-          return ctx
-            .call('oms.listInvoice', {
-              omsId: instance.internal_data.omsId,
-              ...queryParams,
-            })
-            .then(
-              async response => {
-                return {
-                  invoices: response.invoices.map((invoice: Invoice) =>
-                    this.invoiceSanitize(invoice)
-                  ),
-                };
-              },
-              err => {
-                throw new MoleculerError(err.message, err.code || 500);
-              }
-            );
-        }
-        return [];
+
+        return ctx
+          .call('oms.listInvoice', {
+            omsId: store?.internal_data?.omsId,
+            ...queryParams,
+          })
+          .then(
+            async response => {
+              return {
+                invoices: response.invoices.map((invoice: Invoice) =>
+                  this.invoiceSanitize(invoice)
+                ),
+              };
+            },
+            err => {
+              throw new MoleculerError(err.message, err.code || 500);
+            }
+          );
       },
     },
     create: {
@@ -72,7 +69,7 @@ const TheService: ServiceSchema = {
           (a: number, i: GenericObject) => (a += i.rate),
           0
         );
-        const totalBeforeTax = itemsCost - ((discount && discount.value) || 0);
+        const totalBeforeTax = itemsCost - (discount?.value || 0);
 
         if (totalBeforeTax === 0) {
           return {
@@ -83,14 +80,14 @@ const TheService: ServiceSchema = {
         }
 
         // create OMS contact if no oms ID
-        if (!instance.internal_data || !instance.internal_data.omsId) {
+        if (!instance?.internal_data?.omsId) {
           await this.setOmsId(instance);
         }
 
         const invoiceParams: { [key: string]: string } = {
-          customerId: instance.internal_data.omsId,
-          discount: ctx.params.discount && ctx.params.discount.value,
-          discountType: ctx.params.discount && ctx.params.discount.type,
+          customerId: instance?.internal_data?.omsId,
+          discount: ctx.params.discount?.value,
+          discountType: ctx.params.discount?.type,
           items: ctx.params.items,
         };
 
@@ -124,20 +121,18 @@ const TheService: ServiceSchema = {
     applyCredits: {
       auth: ['Bearer'],
       async handler(ctx: Context) {
-        const instance = await ctx.call('stores.me');
-        if (instance.errors) {
-          throw new MpError('Invoices Service', 'Store not found', 404);
-        }
+        const store = await ctx.call('stores.me');
+
         const { params } = ctx;
         if (
           params.useSavedPaymentMethods &&
-          instance.credit < params.paymentAmount
+          store.credit < params.paymentAmount
         ) {
           if (process.env.PAYMENT_AUTO_CHARGE_CC_INVOICE) {
             await ctx
               .call('paymentGateway.charge', {
-                storeId: instance.url,
-                amount: params.paymentAmount - instance.credit,
+                storeId: store.url,
+                amount: params.paymentAmount - store.credit,
               })
               .then(null, err => {
                 if (err.type === 'SERVICE_NOT_FOUND')
@@ -152,21 +147,18 @@ const TheService: ServiceSchema = {
             throw new MpError('Invoices Service', 'Not enough balance!', 402);
           }
         }
+
         return ctx
           .call('oms.applyInvoiceCredits', {
-            customerId: instance.internal_data.omsId,
+            customerId: store?.internal_data?.omsId,
             invoiceId: ctx.params.id,
           })
           .then(
             res => {
-              this.broker.cacher.clean(
-                `invoices.get:${instance.consumer_key}*`
-              );
-              this.broker.cacher.clean(`stores.sGet:${instance.url}*`);
-              this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
-              this.broker.cacher.clean(
-                `payments.get:${instance.consumer_key}**`
-              );
+              this.broker.cacher.clean(`invoices.get:${store.consumer_key}*`);
+              this.broker.cacher.clean(`stores.sGet:${store.url}*`);
+              this.broker.cacher.clean(`stores.me:${store.consumer_key}*`);
+              this.broker.cacher.clean(`payments.get:${store.consumer_key}**`);
               return res;
             },
             err => {
@@ -184,9 +176,10 @@ const TheService: ServiceSchema = {
         const instance = await ctx.call('stores.findInstance', {
           id: ctx.params.storeId,
         });
+
         return ctx
           .call('oms.createSalesOrderInvoice', {
-            customerId: instance.internal_data.omsId,
+            customerId: instance?.internal_data?.omsId,
             orderId: ctx.params.orderId,
           })
           .then(null, err => {
@@ -212,10 +205,17 @@ const TheService: ServiceSchema = {
         const store = await ctx.call('stores.findInstance', {
           id: ctx.params.storeId,
         });
-        ctx.meta.user = store.consumer_key;
-        const orders = await ctx.call('orders.list', {
-          externalId: ctx.params.id,
-        });
+        const orders = await ctx.call(
+          'orders.list',
+          {
+            externalId: ctx.params.id,
+          },
+          {
+            meta: {
+              store,
+            },
+          }
+        );
         const order = await ctx.call('orders.getOrder', {
           order_id: orders[0].id,
         });

@@ -1,7 +1,14 @@
-import { ServiceSchema } from 'moleculer';
+import { ServiceSchema, GenericObject, Context } from 'moleculer';
 
-import { OrderItem, Product, Store, Variation, Coupon } from '../types';
-import { Rule } from '../types/shipment.type';
+import {
+  OrderItem,
+  Product,
+  Store,
+  Variation,
+  OrderWarnings,
+  Rule,
+  RuleParms,
+} from '../types';
 
 export const OrdersOperations: ServiceSchema = {
   name: 'orders-operations',
@@ -32,6 +39,7 @@ export const OrdersOperations: ServiceSchema = {
       outOfStock: OrderItem[];
       notEnoughStock: OrderItem[];
       notKnawat: OrderItem[];
+      handlingTimes: number[];
     }> {
       const orderItems = items.map(item => item.sku);
 
@@ -44,9 +52,13 @@ export const OrdersOperations: ServiceSchema = {
       );
 
       const found: OrderItem[] = [];
+      const handlingTimes: number[] = [];
 
       // Filter Knawat products and reformat the items data
       products.forEach(product => {
+        if (product?.handling_time?.to) {
+          handlingTimes.push(product.handling_time.to);
+        }
         found.push(
           ...product.variations
             .filter((variation: Variation) =>
@@ -68,6 +80,7 @@ export const OrdersOperations: ServiceSchema = {
               sales_qty: product.sales_qty,
               barcode: String(product.barcode),
               taxClass: product.tax_class,
+              ship_to: product.ship_to,
               description: `${item.attributes.reduce(
                 (accumulator, attribute, n) =>
                   accumulator.concat(
@@ -77,6 +90,7 @@ export const OrdersOperations: ServiceSchema = {
                   ),
                 ''
               )}`,
+              ship_from: product?.ship_from,
             }))
         );
       });
@@ -144,6 +158,7 @@ export const OrdersOperations: ServiceSchema = {
         outOfStock,
         notEnoughStock,
         notKnawat,
+        handlingTimes,
       };
     },
 
@@ -157,25 +172,66 @@ export const OrdersOperations: ServiceSchema = {
      * @returns {Promise<Rule>}
      */
     async shipment(
+      ctx: Context<
+        { shipping: { country: string }; shipping_method?: string },
+        GenericObject
+      >,
       items: OrderItem[],
-      country: string,
-      instance: Store,
-      providedMethod?: string
-    ): Promise<Rule> {
+      instance: Store
+    ): Promise<{
+      shipment: Rule;
+      warnings: OrderWarnings;
+    }> {
+      const country = ctx.params.shipping.country;
+      const providedMethod = ctx.params?.shipping_method;
+      const warnings: OrderWarnings = [];
+      let shipmentRules: Partial<Rule[]> = [];
       const shipmentWeight =
-        items.reduce(
-          (accumulator, item) => accumulator + item.weight * item.quantity,
-          0
-        ) * 1000;
-      const shipmentRules: Rule[] = await this.broker
-        .call('shipment.ruleByCountry', {
+        items.reduce((accumulator, item) => {
+          if (
+            item.ship_to &&
+            !item.ship_to.includes('ZZ') &&
+            !item.ship_to.includes(country)
+          ) {
+            warnings.push({
+              message: 'country_not_available',
+              sku: item.sku,
+            });
+          }
+          return accumulator + item.weight * item.quantity;
+        }, 0) * 1000;
+
+      for (const item of items) {
+        const ruleQuery: RuleParms = {
           country,
           weight: shipmentWeight,
           price: 1,
-        })
-        .then((rules: Rule[]) =>
-          rules.sort((a: Rule, b: Rule) => a.cost - b.cost)
-        );
+        };
+        if (item?.ship_from) {
+          const cityAr: string[] = [];
+          const countryAr: string[] = [];
+          item.ship_from.map(res => {
+            cityAr.push(res.city);
+            countryAr.push(res.country);
+          });
+          ruleQuery.ship_from_city = cityAr.join(',');
+          ruleQuery.ship_from_country = countryAr.join(',');
+        } else {
+          delete ruleQuery.ship_from_city;
+          delete ruleQuery.ship_from_country;
+        }
+        const shipment_rule = await ctx
+          .call<Rule[], RuleParms>('shipment.ruleByCountry', ruleQuery)
+          .then(rules => rules.sort((a: Rule, b: Rule) => a.cost - b.cost));
+        if (shipment_rule.length) {
+          shipmentRules = [...shipment_rule];
+        } else {
+          warnings.push({
+            message: 'ship_from_city_country_not_available',
+            sku: item.sku,
+          });
+        }
+      }
 
       // find shipment policy according to store priorities
       let shipment: Rule;
@@ -215,7 +271,7 @@ export const OrdersOperations: ServiceSchema = {
         [shipment] = shipmentRules;
       }
 
-      return shipment;
+      return { shipment, warnings };
     },
     async discount({ code, membership, orderExpenses, isValid, isAuto }) {
       const warnings = [];

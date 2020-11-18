@@ -1,4 +1,4 @@
-import { Context, Errors, ServiceSchema } from 'moleculer';
+import { Context, Errors, GenericObject, ServiceSchema } from 'moleculer';
 
 import DbService from '../utilities/mixins/mongo.mixin';
 import { Coupon } from '../utilities/types';
@@ -45,7 +45,7 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 * 24,
       },
       handler(ctx: Context): Promise<Coupon> {
-        const query: { [key: string]: {} } = {
+        const query: GenericObject = {
           _id: ctx.params.id.toUpperCase(),
           startDate: { $lte: new Date() },
           endDate: { $gte: new Date() },
@@ -87,7 +87,7 @@ const TheService: ServiceSchema = {
       },
       handler(ctx): Promise<Coupon[]> {
         this.couponListValidation(ctx.params);
-        const query: { [key: string]: {} } = {};
+        const query: GenericObject = {};
         const isAuto = Number(ctx.params.isAuto);
         const isValid = Number(ctx.params.isValid);
         if (isValid) {
@@ -262,10 +262,7 @@ const TheService: ServiceSchema = {
         error.name = 'Validation error';
         throw error;
       }
-      if (
-        params.type === 'subscription' &&
-        (!params.discount || !params.discount.total)
-      ) {
+      if (params.type === 'subscription' && !params.discount?.total) {
         const error = new MoleculerError(
           'Parameters validation error!',
           422,

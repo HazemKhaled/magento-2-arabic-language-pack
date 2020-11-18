@@ -1,3 +1,5 @@
+import { GenericObject } from 'moleculer';
+
 import { I18nText } from './i18ntext.type';
 
 /**
@@ -26,6 +28,12 @@ export interface Product {
   imported: string[];
   createdAt?: Date;
   import_qty: number;
+  quantity?: number;
+  ship_to: string[];
+  handling_time?: {
+    to?: number;
+  };
+  ship_from?: ShipFrom[];
 }
 
 /**
@@ -45,7 +53,7 @@ export interface Variation {
   quantity: number;
   archive?: boolean;
   attributes: Attribute[];
-  logs?: object[];
+  logs?: GenericObject[];
   cost?: number;
 }
 
@@ -58,4 +66,21 @@ export interface Variation {
 export interface Attribute {
   name: { [key: string]: string };
   option: { [key: string]: string };
+}
+
+/**
+ * Ship From definition
+ *
+ * @export
+ * @interface ShipFrom
+ */
+export interface ShipFrom {
+  city: string;
+  country: string;
+}
+
+export interface ProductTotalParams {
+  lastUpdate?: string;
+  hideOutOfStock?: number;
+  hasExternalId?: number;
 }

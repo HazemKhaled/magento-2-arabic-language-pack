@@ -1,4 +1,4 @@
-import { Context, Errors, ServiceSchema } from 'moleculer';
+import { Context, Errors, GenericObject, ServiceSchema } from 'moleculer';
 
 import DbService from '../utilities/mixins/mongo.mixin';
 import { TaxOpenapi } from '../utilities/mixins/openapi';
@@ -74,9 +74,9 @@ const TaxesService: ServiceSchema = {
           ctx.call(
             'oms.updateTax',
             ['name', 'percentage'].reduce(
-              (acc, key) => {
+              (acc: GenericObject, key: string) => {
                 if (!$set[key]) {
-                  delete acc[key as keyof {}];
+                  delete acc[key];
                 }
                 return acc;
               },

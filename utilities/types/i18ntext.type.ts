@@ -16,3 +16,15 @@ export interface I18n {
   en: string;
   ar: string;
 }
+export interface CommonError extends Error {
+  body?: {
+    error: {
+      index?: string;
+      reason?: string;
+    };
+    status?: number;
+  };
+  code?: number;
+  statusCode?: number;
+  msg?: string;
+}
