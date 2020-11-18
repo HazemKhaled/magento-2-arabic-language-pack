@@ -24,9 +24,9 @@ const TheService: ServiceSchema = {
       handler(ctx: Context<Currency>): Promise<Currency> {
         return ctx
           .call<Currency[]>('currencies.getCurrencies')
-          .then((currencies: Currency[]) => {
+          .then(currencies => {
             const currency = currencies.find(
-              (currencyObj: Currency) =>
+              currencyObj =>
                 currencyObj.currencyCode === ctx.params.currencyCode
             );
             if (currency === undefined) {

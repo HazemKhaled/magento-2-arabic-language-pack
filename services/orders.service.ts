@@ -84,7 +84,7 @@ const TheService: ServiceSchema = {
                 params: ctx.params,
               },
             });
-            const orders: Order[] = await ctx.call<Order[], Partial<Order>>(
+            const orders = await ctx.call<Order[], Partial<Order>>(
               'orders.list',
               {
                 externalId: ctx.params.id,
@@ -207,12 +207,12 @@ const TheService: ServiceSchema = {
           ) + (data.isInclusiveTax ? 0 : taxTotal);
 
         // Getting the current user subscription
-        const subscription: Subscription = await ctx.call<
-          Subscription,
-          Partial<Store>
-        >('subscription.sGet', {
-          id: store.url,
-        });
+        const subscription = await ctx.call<Subscription, Partial<Store>>(
+          'subscription.sGet',
+          {
+            id: store.url,
+          }
+        );
         switch (subscription.attributes.orderProcessingType) {
           case '$':
             data.adjustment = Number(
@@ -294,13 +294,13 @@ const TheService: ServiceSchema = {
             .map(warn => warn.message)
             .filter((msg, i, arr) => i === arr.indexOf(msg));
           data.warningsSnippet = warningsSnippetMessages.reduce(
-            (a: string, msg: string) => `${a}${a && ','}${msg}`,
+            (aa: string, msg: string) => `${aa}${aa && ','}${msg}`,
             ''
           );
         }
-        const result: OrderOMSResponse = await ctx
-          .call('oms.createNewOrder', data)
-          .then(async (result: OrderOMSResponse) => {
+        const result = await ctx
+          .call<OrderOMSResponse, Order>('oms.createNewOrder', data)
+          .then(async result => {
             if (result.salesorder) {
               // Clearing order list action(API) cache
               await this.broker.cacher.clean(
@@ -344,7 +344,7 @@ const TheService: ServiceSchema = {
               id: store.url,
               internal_data: { omsId: result.salesorder.store.id },
             })
-            .then((res: Store) => this.logger.info(res))
+            .then(res => this.logger.info(res))
             .catch((err: CommonError) => this.logger.error(err));
         }
 
@@ -392,7 +392,7 @@ const TheService: ServiceSchema = {
             to: process.env.SUPPORT_MAIL,
             subject: 'Order Warnings',
             text: `${warnings.reduce(
-              (a, o) => `${a}${o.message}\n`,
+              (aa, oo) => `${aa}${oo.message}\n`,
               `OrderID: ${order.id}\n`
             )}`,
           });
@@ -420,7 +420,7 @@ const TheService: ServiceSchema = {
         let warnings: { code: number; message: string }[] = [];
         const { store } = ctx.meta;
 
-        const orderBeforeUpdate: Order = await ctx.call<
+        const orderBeforeUpdate = await ctx.call<
           Order,
           Partial<OrderRequestParams>
         >('orders.getOrder', {
@@ -533,7 +533,7 @@ const TheService: ServiceSchema = {
               ) + (data.isInclusiveTax ? 0 : taxTotal);
 
             // Getting the current user subscription
-            const subscription: Subscription = await ctx.call<
+            const subscription = await ctx.call<
               Subscription,
               Partial<SubscriptionType>
             >('subscription.sGet', {
@@ -586,7 +586,7 @@ const TheService: ServiceSchema = {
               .map(warn => warn.message)
               .filter((msg, i, arr) => i === arr.indexOf(msg));
             data.warningsSnippet = warningsSnippetMessages.reduce(
-              (a: string, msg: string) => `${a}${a && ','}${msg}`,
+              (aa: string, msg: string) => `${aa}${aa && ','}${msg}`,
               ''
             );
           }
@@ -597,7 +597,7 @@ const TheService: ServiceSchema = {
             ? this.normalizeStatus(data.status)
             : data.status;
           // Update order
-          const result: OrderOMSResponse = await ctx.call<
+          const result = await ctx.call<
             OrderOMSResponse,
             updateOderRequestParams
           >('oms.updateOrderById', {
@@ -690,7 +690,7 @@ const TheService: ServiceSchema = {
           };
         }
 
-        const order: OrderOMSResponse = await ctx.call<
+        const order = await ctx.call<
           OrderOMSResponse,
           Partial<OrderRequestParams>
         >('oms.getOrderById', {
@@ -758,13 +758,13 @@ const TheService: ServiceSchema = {
           if (!keys.includes(key)) return;
           queryParams[key] = ctx.params[key];
         });
-        const orders: OrderOMSResponse = await ctx.call<
-          OrderOMSResponse,
-          DynamicRequestParams
-        >('oms.listOrders', {
-          customerId: store.internal_data.omsId,
-          ...queryParams,
-        });
+        const orders = await ctx.call<OrderOMSResponse, DynamicRequestParams>(
+          'oms.listOrders',
+          {
+            customerId: store.internal_data.omsId,
+            ...queryParams,
+          }
+        );
         return orders.salesorders;
       },
     },
@@ -775,7 +775,7 @@ const TheService: ServiceSchema = {
       ): Promise<
         { status: string; data?: { order_id?: string } } | { message: string }
       > {
-        const orderBeforeUpdate: Order = await ctx.call<
+        const orderBeforeUpdate = await ctx.call<
           Order,
           Partial<OrderRequestParams>
         >('orders.getOrder', {
@@ -800,7 +800,7 @@ const TheService: ServiceSchema = {
               orderId: ctx.params.id,
             }
           )
-          .then(async (result: OrderOMSResponse) => {
+          .then(async result => {
             if (result.salesorder) {
               // Clean list cache
               this.broker.cacher.clean(
@@ -835,14 +835,11 @@ const TheService: ServiceSchema = {
       async handler(
         ctx: Context<OrderRequestParams, MetaParams>
       ): Promise<GenericObject> {
-        const store: Store = await ctx.call<Store, Partial<Store>>(
-          'stores.sGet',
-          {
-            id: ctx.meta.store.url,
-          }
-        );
+        const store = await ctx.call<Store, Partial<Store>>('stores.sGet', {
+          id: ctx.meta.store.url,
+        });
 
-        const order: Order = await ctx.call<Order, Partial<OrderRequestParams>>(
+        const order = await ctx.call<Order, Partial<OrderRequestParams>>(
           'orders.getOrder',
           {
             order_id: ctx.params.id,
@@ -952,7 +949,7 @@ const TheService: ServiceSchema = {
       ): Promise<{ message: string; code: number }[]> {
         const { order_id } = ctx.params;
         const { store: instance } = ctx.meta;
-        const order: Order = await ctx.call<Order, Partial<OrderRequestParams>>(
+        const order = await ctx.call<Order, Partial<OrderRequestParams>>(
           'orders.getOrder',
           { order_id }
         );
@@ -973,7 +970,7 @@ const TheService: ServiceSchema = {
             (msg: string, i: number, arr: string[]) => i === arr.indexOf(msg)
           );
         const warningsSnippet = warningsSnippetMessages.reduce(
-          (a: string, msg: string) => `${a}${a && ','}${msg}`,
+          (aa: string, msg: string) => `${aa}${aa && ','}${msg}`,
           ''
         );
 
@@ -1326,7 +1323,7 @@ const TheService: ServiceSchema = {
      *  Check order availability and possibility for update
      * @param order
      */
-    checkUpdateStatus(order, params) {
+    checkUpdateStatus(order) {
       if (order.id === -1) {
         throw new MpError('Not Found', 'Order Not Found!', 404);
       }

@@ -2,7 +2,12 @@ import { Context, ServiceSchema, GenericObject } from 'moleculer';
 
 import DbService from '../utilities/mixins/mongo.mixin';
 import { ShipmentOpenapi } from '../utilities/mixins/openapi';
-import { Rule, ShipmentPolicy, RuleQuery } from '../utilities/types';
+import {
+  Rule,
+  ShipmentPolicy,
+  RuleQuery,
+  CommonError,
+} from '../utilities/types';
 import { ShipmentValidation } from '../utilities/mixins/validation';
 import { MpError } from '../utilities/adapters';
 
@@ -50,14 +55,14 @@ const Shipment: ServiceSchema = {
             return this.adapter.findById(ctx.params.name);
           })
           .then((data: ShipmentPolicy) => this.shipmentTransform(data))
-          .catch((err: any) => {
+          .catch((err: CommonError) => {
             if (err.name === 'MoleculerError') {
               throw new MpError('Shipment Service', err.message, err.code);
             }
             if (err.name === 'MongoError' && err.code === 11000) {
               throw new MpError('Shipment Service', 'Duplicate name!', 422);
             }
-            throw new MpError('Shipment Service', err, 500);
+            throw new MpError('Shipment Service', err.toString(), 500);
           });
       },
     },
@@ -88,11 +93,11 @@ const Shipment: ServiceSchema = {
             return this.adapter.findById(ctx.params.id);
           })
           .then((data: ShipmentPolicy) => this.shipmentTransform(data))
-          .catch((err: any) => {
+          .catch((err: CommonError) => {
             if (err.name === 'MoleculerError') {
               throw new MpError('Shipment Service', err.message, err.code);
             }
-            throw new MpError('Shipment Service', err, 500);
+            throw new MpError('Shipment Service', err.toString(), 500);
           });
       },
     },
@@ -179,14 +184,14 @@ const Shipment: ServiceSchema = {
                   cost: Number(rule.cost),
                   duration: `${rule.delivery_days_min}-${rule.delivery_days_max}`,
                 }))
-                .sort((a, b) => a.cost - b.cost)
+                .sort((aa, bb) => aa.cost - bb.cost)
             );
           })
-          .catch((err: any) => {
+          .catch((err: CommonError) => {
             if (err.name === 'MoleculerError') {
               throw new MpError('Shipment Service', err.message, err.code);
             }
-            throw new MpError('Shipment Service', err, 500);
+            throw new MpError('Shipment Service', err.toString(), 500);
           });
       },
     },
@@ -220,11 +225,11 @@ const Shipment: ServiceSchema = {
                 )
               )
           )
-          .catch((err: any) => {
+          .catch((err: CommonError) => {
             if (err.name === 'MoleculerError') {
               throw new MpError('Shipment Service', err.message, err.code);
             }
-            throw new MpError('Shipment Service', err, 500);
+            throw new MpError('Shipment Service', err.toString(), 500);
           });
       },
     },

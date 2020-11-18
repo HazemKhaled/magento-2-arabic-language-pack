@@ -159,8 +159,8 @@ const TheService: ServiceSchema = {
   },
   methods: {
     /**
-     * General http requests methods for Zoho crm to handle variuos zoho requests
-     * Also checks errors for auth and reauth if the token expired
+     * General http requests methods for Zoho crm to handle various zoho requests
+     * Also checks errors for auth and re-auth if the token expired
      *
      * @param {({
      *             method: string,

@@ -15,6 +15,7 @@ import {
   Products,
   UpdateProductParams,
   ProductSearchParams,
+  ProductTotalParams,
   MetaParams,
   ElasticSearchType,
   CommonError,
@@ -82,7 +83,9 @@ module.exports = {
         keys: ['#user', 'lastUpdate', 'hideOutOfStock', 'hasExternalId'],
         ttl: 60 * 60,
       },
-      handler(ctx: Context<unknown, MetaParams>): Promise<{ total: number }> {
+      handler(
+        ctx: Context<ProductTotalParams, MetaParams>
+      ): Promise<{ total: number }> {
         const query: ElasticQuery = {
           bool: {
             must: [],
@@ -148,7 +151,7 @@ module.exports = {
               },
             }
           )
-          .then((res: any) => {
+          .then(res => {
             if (typeof res.count !== 'number') {
               throw new MpError(
                 'Products Instance',
@@ -204,7 +207,9 @@ module.exports = {
      */
     deleteInstanceProduct: {
       auth: ['Bearer'],
-      async handler(ctx: Context<Product, MetaParams>): Promise<Product> {
+      async handler(
+        ctx: Context<Product, MetaParams>
+      ): Promise<Product | unknown> {
         let { sku } = ctx.params;
         const { externalId } = ctx.params;
         if (externalId) {

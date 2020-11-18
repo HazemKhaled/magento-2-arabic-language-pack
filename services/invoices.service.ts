@@ -84,7 +84,7 @@ const TheService: ServiceSchema = {
         const { items, discount } = ctx.params;
         // Total items cost
         const itemsCost = items.reduce(
-          (a: number, i: { rate: number }) => (a += i.rate),
+          (aa: number, i: { rate: number }) => (aa += i.rate),
           0
         );
         const totalBeforeTax = itemsCost - (discount?.value || 0);

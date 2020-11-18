@@ -25,14 +25,14 @@ const TaxesService: ServiceSchema = {
           createdAt: new Date(),
           updatedAt: new Date(),
         };
-        const omsTax: GenericObject = await ctx.call<
-          GenericObject,
-          Partial<DbTax>
-        >('oms.createTax', {
-          name: taxBody.name,
-          percentage: taxBody.percentage,
-          type: 'tax',
-        });
+        const omsTax = await ctx.call<{ tax: { id: string } }, Partial<DbTax>>(
+          'oms.createTax',
+          {
+            name: taxBody.name,
+            percentage: taxBody.percentage,
+            type: 'tax',
+          }
+        );
         taxBody.omsId = omsTax.tax.id;
         return this.adapter
           .insert(taxBody)
