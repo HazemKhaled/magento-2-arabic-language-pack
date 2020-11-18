@@ -122,19 +122,30 @@ const Shipment: ServiceSchema = {
           'rules.units_min': { $lte: parseInt(ctx.params.weight, 10) },
         };
         if (ctx.params.ship_from_city && ctx.params.ship_from_country) {
-          const cityAr = ctx.params.ship_from_city
-            .split(',')
-            .filter((city: string) => city.trim().length > 0);
+          let cityAr: string[] = [];
+          let countryAr: string[] = [];
+          if (ctx.params.ship_from_city) {
+            cityAr = ctx.params.ship_from_city
+              .split(',')
+              .filter((city: string) => city.trim().length > 0);
+          }
+          if (ctx.params.ship_from_country) {
+            countryAr = ctx.params.ship_from_country
+              .split(',')
+              .filter((country: string) => country.trim().length > 0);
+          }
 
           // If getting * in city then allow to all city
-          if (!cityAr.includes('*')) {
+          if (cityAr.length > 0 && !cityAr.includes('*')) {
+            cityAr.push('*'); /* Allow all the city */
             query['ship_from.city'] = { $in: cityAr };
           }
-          query['ship_from.country'] = {
-            $in: ctx.params.ship_from_country
-              .split(',')
-              .filter((country: string) => country.trim().length > 0),
-          };
+          if (countryAr.length > 0 && !countryAr.includes('ZZ')) {
+            countryAr.push('ZZ'); /* Allow all the country */
+            query['ship_from.country'] = {
+              $in: countryAr,
+            };
+          }
         }
         return this.adapter
           .find({
