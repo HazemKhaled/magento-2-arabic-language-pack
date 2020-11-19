@@ -5,16 +5,16 @@
  * @interface Subscription
  */
 export interface Subscription {
-  _id?: number;
-  id?: number | string;
-  membershipId?: number;
-  storeId?: string | number;
-  invoiceId?: string;
-  startDate?: Date;
-  expireDate?: any;
-  status?: 'confirmed' | 'pending' | 'cancelled' | 'active';
+  _id?: string;
+  id?: string;
+  membershipId: number;
+  storeId: string;
+  invoiceId: string;
+  startDate: Date;
+  expireDate: any;
+  status: 'confirmed' | 'pending' | 'cancelled' | 'active';
   reference?: string;
-  donor?: string | number;
+  donor?: string;
   renewed?: string | boolean;
   autoRenew?: string;
   retries?: number | any[];

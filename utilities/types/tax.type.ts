@@ -22,8 +22,8 @@ export interface Tax {
  */
 export interface DbTax extends Tax {
   _id: string;
-  id?: string;
-  type?: string;
+  id: string;
+  type: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -48,12 +48,12 @@ export interface RTax {
  */
 export interface TaxRequestParams {
   id: string;
-  name?: string;
-  percentage?: number;
-  type?: string;
-  class?: string[];
-  country?: string;
-  page?: string;
-  perPage?: string;
-  query?: string;
+  name: string;
+  percentage: number;
+  type: string;
+  class: string[];
+  country: string;
+  page: string;
+  perPage: string;
+  query: string;
 }

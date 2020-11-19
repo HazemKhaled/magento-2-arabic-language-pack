@@ -493,7 +493,7 @@ const TheService: ServiceSchema = {
         >('subscription.sGet', {
           id: expiredSubscription.storeId,
         });
-        if (currentSubscription.id !== -1) {
+        if (Number(currentSubscription.id) !== -1) {
           await ctx.call<GenericObject, Partial<Subscription>>(
             'subscription.updateSubscription',
             {
@@ -505,7 +505,7 @@ const TheService: ServiceSchema = {
             id: expiredSubscription.storeId,
             tag: 'subscription-renew',
           });
-          return ctx.call<GenericObject, Partial<Subscription>>(
+          return ctx.call<Subscription, Partial<Subscription>>(
             'subscription.getSubscriptionByExpireDate',
             {
               afterDays: ctx.params.afterDays,
@@ -574,7 +574,7 @@ const TheService: ServiceSchema = {
           GenericObject,
           Partial<Subscription>
         >('subscription.sList', {
-          storeId: ctx.params.id,
+          storeId: String(ctx.params.id),
           expireDate: {
             operation: 'gte',
             date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7),

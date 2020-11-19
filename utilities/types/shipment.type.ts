@@ -6,14 +6,14 @@
  */
 export interface ShipmentPolicy {
   _id: string;
-  id?: string;
-  name?: string;
+  id: string;
+  name: string;
   countries: string[];
   rules: Rule[];
   createdAt: Date;
   updatedAt: Date;
-  country?: string;
-  weight?: number;
+  country: string;
+  weight: number;
   ship_from?: string;
 }
 
@@ -31,7 +31,7 @@ export interface Rule {
   units_max: number;
   type: string;
   cost: number;
-  duration?: string;
+  duration: string;
 }
 
 /**
