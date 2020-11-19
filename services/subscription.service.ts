@@ -63,7 +63,7 @@ const TheService: ServiceSchema = {
           id: subscription.membershipId || 'free',
         });
         return {
-          id: (subscription._id && subscription._id.toString()) || -1,
+          id: (subscription._id && subscription._id.toString()) || '-1',
           ...subscription,
           membershipId: undefined,
           membership: {
@@ -499,7 +499,7 @@ const TheService: ServiceSchema = {
         >('subscription.sGet', {
           id: expiredSubscription.storeId,
         });
-        if (currentSubscription.id) {
+        if (currentSubscription.id !== '-1') {
           await ctx.call<GenericObject, Partial<Subscription>>(
             'subscription.updateSubscription',
             {
