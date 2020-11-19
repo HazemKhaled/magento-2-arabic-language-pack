@@ -102,7 +102,7 @@ const TheService: ServiceSchema = {
         keys: ['country'],
         ttl: 60 * 60 * 24,
       },
-      handler(ctx): Promise<Membership[]> {
+      handler(ctx: Context<{ country: string }>): Promise<Membership[]> {
         const { country } = ctx.params;
         let query: { [key: string]: GenericObject } = {};
         if (ctx.params.country) {

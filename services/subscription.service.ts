@@ -14,6 +14,7 @@ import {
   Invoice,
   CrmStore,
   CommonError,
+  CrmResponse,
 } from '../utilities/types';
 import { SubscriptionValidation } from '../utilities/mixins/validation';
 import { TaxCheck } from '../utilities/mixins/tax.mixin';
@@ -44,7 +45,7 @@ const TheService: ServiceSchema = {
         keys: ['id'],
         ttl: 60 * 60 * 24,
       },
-      async handler(ctx: Context<Subscription>): Promise<any | false> {
+      async handler(ctx: Context<Subscription>): Promise<Subscription | false> {
         const subscription =
           (await this.adapter.findOne({
             storeId: ctx.params.id,
@@ -91,7 +92,9 @@ const TheService: ServiceSchema = {
         ],
         ttl: 60 * 60 * 24,
       },
-      async handler(ctx: Context<Subscription>): Promise<Subscription | false> {
+      async handler(
+        ctx: Context<Subscription>
+      ): Promise<Subscription[] | false> {
         const query: GenericObject = {};
         if (ctx.params.storeId) {
           query.storeId = ctx.params.storeId;
@@ -346,8 +349,8 @@ const TheService: ServiceSchema = {
           startDate = new Date(ctx.params.date.start);
           expireDate = new Date(ctx.params.date.expire);
         } else {
-          const storeOldSubscription: GenericObject = await ctx.call<
-            GenericObject,
+          const storeOldSubscription = await ctx.call<
+            Subscription[],
             Partial<Subscription>
           >('subscription.sList', {
             storeId: ctx.params.grantTo || ctx.params.storeId,
@@ -493,7 +496,7 @@ const TheService: ServiceSchema = {
         >('subscription.sGet', {
           id: expiredSubscription.storeId,
         });
-        if (Number(currentSubscription.id) !== -1) {
+        if (currentSubscription.id) {
           await ctx.call<GenericObject, Partial<Subscription>>(
             'subscription.updateSubscription',
             {
@@ -569,12 +572,12 @@ const TheService: ServiceSchema = {
       },
     },
     checkCurrentSubGradingStatus: {
-      async handler(ctx: Context<Subscription>) {
+      async handler(ctx: Context<{ id: string }>): Promise<CrmResponse> | null {
         const allSubBefore = await ctx.call<
           GenericObject,
           Partial<Subscription>
         >('subscription.sList', {
-          storeId: String(ctx.params.id),
+          storeId: ctx.params.id,
           expireDate: {
             operation: 'gte',
             date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7),
@@ -583,18 +586,13 @@ const TheService: ServiceSchema = {
           sort: { field: 'expireDate', order: -1 },
           perPage: 2,
         });
-        const memberships: GenericObject = await ctx.call<GenericObject>(
-          'membership.list'
-        );
+        const memberships = await ctx.call<Membership[]>('membership.list');
         if (allSubBefore.length === 0) return;
         if (allSubBefore.length === 1) {
-          return ctx.call<GenericObject, Partial<CrmStore>>(
-            'crm.addTagsByUrl',
-            {
-              id: ctx.params.id,
-              tag: 'subscription-upgrade',
-            }
-          );
+          return ctx.call<CrmResponse, Partial<CrmStore>>('crm.addTagsByUrl', {
+            id: ctx.params.id,
+            tag: 'subscription-upgrade',
+          });
         }
         const oldM = memberships.find(
           (m: Membership) => allSubBefore[0].membershipId === m.id
@@ -603,22 +601,16 @@ const TheService: ServiceSchema = {
           (m: Membership) => allSubBefore[1].membershipId === m.id
         );
         if (oldM.sort > lastM.sort) {
-          return ctx.call<GenericObject, Partial<CrmStore>>(
-            'crm.addTagsByUrl',
-            {
-              id: ctx.params.id,
-              tag: 'subscription-upgrade',
-            }
-          );
+          return ctx.call<CrmResponse, Partial<CrmStore>>('crm.addTagsByUrl', {
+            id: ctx.params.id,
+            tag: 'subscription-upgrade',
+          });
         }
         if (oldM.sort < lastM.sort) {
-          return ctx.call<GenericObject, Partial<CrmStore>>(
-            'crm.addTagsByUrl',
-            {
-              id: ctx.params.id,
-              tag: 'subscription-downgrade',
-            }
-          );
+          return ctx.call<CrmResponse, Partial<CrmStore>>('crm.addTagsByUrl', {
+            id: ctx.params.id,
+            tag: 'subscription-downgrade',
+          });
         }
       },
     },
