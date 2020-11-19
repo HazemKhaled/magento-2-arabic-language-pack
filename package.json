@@ -27,6 +27,7 @@
     "prettier": "prettier services/*.ts utilities/**/*.ts *.ts --write"
   },
   "devDependencies": {
+    "@babel/plugin-proposal-optional-chaining": "^7.12.1",
     "@shopify/eslint-plugin": "^39.0.3",
     "@types/bluebird": "^3.5.32",
     "@types/compression": "^1.7.0",
@@ -42,6 +43,7 @@
     "@types/webpack": "^4.41.25",
     "@types/webpack-dev-middleware": "^3.7.2",
     "@types/webpack-hot-middleware": "^2.25.3",
+    "babel-loader": "^8.2.1",
     "css-loader": "^4.3.0",
     "dotenv": "^8.2.0",
     "eslint": "^7.13.0",
