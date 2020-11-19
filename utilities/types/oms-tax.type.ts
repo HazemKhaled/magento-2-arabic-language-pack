@@ -24,16 +24,16 @@ export interface OmsTaxResponse extends OmsTax {
 }
 
 export interface OmsRequestParams {
-  omsId?: string;
-  page?: number;
-  limit?: number;
-  reference_number?: string;
-  invoice_number?: string;
-  customerId?: string;
-  discount?: number;
-  discountType?: string;
-  coupon?: string;
-  items?: [
+  omsId: string;
+  page: number;
+  limit: number;
+  reference_number: string;
+  invoice_number: string;
+  customerId: string;
+  discount: number;
+  discountType: string;
+  coupon: string;
+  items: [
     {
       items: {
         sku: string;
@@ -52,7 +52,7 @@ export interface OmsRequestParams {
       };
     }
   ];
-  isInclusiveTax?: boolean;
-  invoiceId?: string;
-  status?: string;
+  isInclusiveTax: boolean;
+  invoiceId: string;
+  status: string;
 }

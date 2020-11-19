@@ -5,16 +5,16 @@
  * @interface Subscription
  */
 export interface Subscription {
-  _id?: number;
-  id?: number | string;
-  membershipId?: number;
-  storeId?: string | number;
-  invoiceId?: string;
-  startDate?: Date;
-  expireDate?: any;
-  status?: 'confirmed' | 'pending' | 'cancelled' | 'active';
+  _id?: string;
+  id?: string;
+  membershipId: number;
+  storeId: string;
+  invoiceId: string;
+  startDate: Date;
+  expireDate: any;
+  status: 'confirmed' | 'pending' | 'cancelled' | 'active';
   reference?: string;
-  donor?: string | number;
+  donor?: string;
   renewed?: string | boolean;
   autoRenew?: string;
   retries?: number | any[];
@@ -23,10 +23,9 @@ export interface Subscription {
   coupon?: string;
   sort?: {
     field: string;
-    order: string | number;
+    order: number;
   };
-  perPage?: string | number;
-  page?: string;
+  perPage?: number;
   afterDays?: number;
   beforeDays?: number;
   membership?: any;
@@ -47,3 +46,7 @@ export interface Subscription {
 }
 
 export interface SubscriptionType extends Subscription {}
+
+export interface SubscriptionListParams extends Subscription {
+  page: number;
+}

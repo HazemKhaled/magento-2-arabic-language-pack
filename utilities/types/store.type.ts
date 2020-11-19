@@ -10,10 +10,10 @@ import { MetaParams } from './i18ntext.type';
  * @interface Store
  */
 export interface Store {
-  id: string | number;
+  id: string;
   _id: string;
   name: string;
-  logo?: string;
+  logo: string;
   currency: string;
   status: 'confirmed' | 'unconfirmed' | 'archived' | 'error' | 'uninstalled';
   url: string;
@@ -29,16 +29,16 @@ export interface Store {
   credit: number;
   debit: number;
   internal_data: { [key: string]: any };
-  external_data?: { [key: string]: any };
-  subscription?: Subscription;
+  external_data: { [key: string]: any };
+  subscription: Subscription;
   address: OrderAddress;
-  customerId?: string;
-  key?: string;
-  query?: GenericObject;
-  stock_date?: string;
-  price_date?: string;
-  stock_status?: string;
-  price_status?: string;
+  customerId: string;
+  key: string;
+  query: GenericObject;
+  stock_date: string;
+  price_date: string;
+  stock_status: string;
+  price_status: string;
   errors?: GenericObject;
   message?: string;
   code?: number;
@@ -76,18 +76,18 @@ export interface ShippingMethod {
  */
 export interface StoreRequest {
   customerId: string;
-  storeId?: string;
-  amount?: number;
-  id?: string;
-  consumerKey?: string;
-  consumerSecret?: string;
-  withoutBalance?: string;
-  filter?: string;
-  perPage?: number;
-  page?: number;
-  query?: string;
-  url?: string;
-  token?: string;
+  storeId: string;
+  amount: number;
+  id: string;
+  consumerKey: string;
+  consumerSecret: string;
+  withoutBalance: string;
+  filter: string;
+  perPage: number;
+  page: number;
+  query: string;
+  url: string;
+  token: string;
 }
 
 /**
@@ -156,6 +156,6 @@ export interface CrmData extends Store {
  * @interface EventArguments
  */
 export interface EventArguments extends Context {
-  storeId?: string;
-  res?: GenericObject;
+  storeId: string;
+  res: GenericObject;
 }

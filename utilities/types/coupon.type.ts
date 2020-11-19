@@ -6,14 +6,14 @@ import { MongoQueryType } from './i18ntext.type';
  * @interface Coupon
  */
 export interface Coupon {
-  _id?: string;
+  _id: string;
   id?: string;
   code?: string;
   type: string;
   discount: {
-    total?: Discount;
-    shipping?: Discount;
-    tax?: Discount;
+    total: Discount;
+    shipping: Discount;
+    tax: Discount;
   };
   startDate: Date;
   endDate: Date;

@@ -301,8 +301,7 @@ export function OpenApiMixin(): ServiceSchema {
 
             const ctx = req.$ctx;
             ctx.meta.responseType = 'application/json';
-
-            return this.sendResponse(ctx, '', req, res, schema);
+            return this.sendResponse(req, res, schema);
           },
           'GET /openapi-private.json': [
             (req: any, res: ServerResponse) => {
@@ -328,8 +327,7 @@ export function OpenApiMixin(): ServiceSchema {
                 this.generateOpenApiFiles();
 
                 ctx.meta.responseType = 'application/json';
-
-                return this.sendResponse(ctx, '', req, res, schemaPrivate);
+                return this.sendResponse(req, res, schemaPrivate);
               }
 
               // Access denied...
@@ -338,13 +336,7 @@ export function OpenApiMixin(): ServiceSchema {
               };
               ctx.meta.$statusCode = 401;
 
-              return this.sendResponse(
-                ctx,
-                '',
-                req,
-                res,
-                'Authentication required'
-              );
+              return this.sendResponse(req, res, 'Authentication required');
             },
           ],
         },

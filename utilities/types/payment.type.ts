@@ -16,11 +16,11 @@ export interface Payment {
   accountName: string;
   paymentId: string;
   unusedAmount: number;
-  referenceNumber?: string;
+  referenceNumber: string;
   date: Date;
-  description?: string;
-  customerId?: string;
-  force?: boolean;
+  description: string;
+  customerId: string;
+  force: boolean;
 }
 
 /**
@@ -39,10 +39,10 @@ export interface PaymentResponse {
   account_name: string;
   payment_id: string;
   unused_amount: number;
-  reference?: string;
+  reference: string;
   date: Date;
-  description?: string;
-  payments?: [Payment];
+  description: string;
+  payments: [Payment];
 }
 
 /**
@@ -75,7 +75,7 @@ export interface PaymentRequestParams {
   payment_mode: string;
   amount: number;
   account_id: string;
-  invoices: [{ [key: string]: string }];
+  invoices: GenericObject;
   bank_charges: number;
   reference: string;
   description: string;

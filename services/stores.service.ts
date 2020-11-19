@@ -102,7 +102,7 @@ const TheService: ServiceSchema = {
             if (res) {
               if (res.users) {
                 res.subscription = await ctx.call<
-                  Partial<Subscription>,
+                  Subscription,
                   Partial<Subscription>
                 >('subscription.sGet', {
                   id: res._id,
@@ -143,7 +143,7 @@ const TheService: ServiceSchema = {
             if (res) {
               if (res.users) {
                 res.subscription = await ctx.call<
-                  Partial<Subscription>,
+                  Subscription,
                   Partial<Subscription>
                 >('subscription.sGet', {
                   id: ctx.params.id,

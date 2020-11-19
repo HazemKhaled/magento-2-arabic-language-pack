@@ -13,19 +13,19 @@ export interface Order {
   status: string;
   knawat_order_status?: string;
   line_items?: OrderItem[];
-  items?: OrderItem[];
+  items: OrderItem[];
   billing?: GenericObject;
   shipping: OrderAddress;
   total?: number;
   createDate?: Date;
   externalId?: string;
   updateDate?: Date;
-  notes?: string;
+  notes: string;
   invoice_url?: string;
   shipping_charge?: number;
   shipmentTrackingNumber?: string;
   shipmentDate?: Date;
-  shipping_method?: string;
+  shipping_method: string;
   discount?: number;
   store?: GenericObject;
   orderNumber?: string;
@@ -83,40 +83,40 @@ export interface OrderItem {
   quantity: number;
   purchaseRate: number;
   vendorId: number;
-  description?: string;
+  description: string;
   productType?: string;
   discount?: string;
   discountAmount?: number;
   total?: number;
-  weight?: number;
-  archive?: boolean;
+  weight: number;
+  archive: boolean;
   quantityRequired?: number;
   taxId?: string;
-  taxClass?: string;
+  taxClass: string;
   warnings?: string[];
-  ship_to?: string[];
-  ship_from?: ShipFrom[];
+  ship_to: string[];
+  ship_from: ShipFrom[];
 }
 
 export interface SalesOrder {
   id?: string;
-  store?: {
+  store: {
     id: string;
     url: string;
   };
   status: string;
-  subStatuses?: [];
+  subStatuses: [];
   createDate: Date;
-  updateDate?: Date;
+  updateDate: Date;
   items: OrderItem[];
   shipping: OrderAddress;
   billing: OrderAddress;
-  shipping_charge?: number;
+  shipping_charge: number;
   shipping_method: string;
-  discount?: number;
+  discount: number;
   total: number;
   hasQtyCancelled: boolean;
-  notes?: string;
+  notes: string;
   adjustment: number;
   adjustmentDescription: string;
   orderNumber: string;
@@ -130,9 +130,9 @@ export interface SalesOrder {
  * @interface OMSResponse
  */
 export interface OrderOMSResponse {
-  salesorder?: SalesOrder;
-  salesorders?: SalesOrder;
-  error?: { [key: string]: any };
+  salesorder: SalesOrder;
+  salesorders: SalesOrder;
+  error: GenericObject;
 }
 
 /**
@@ -286,10 +286,10 @@ export interface updateOderRequestParams {
  * @interface OrderRequestParams
  */
 export interface OrderRequestParams extends Order {
-  customerId?: string;
-  orderId?: string;
-  order_id?: string;
-  limit?: number;
+  customerId: string;
+  orderId: string;
+  order_id: string;
+  limit: number;
 }
 
 /**

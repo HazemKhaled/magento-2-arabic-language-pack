@@ -21,8 +21,8 @@ export interface InvoiceResponse {
   last_modified_time: Date;
   shipping_charge: number;
   adjustment: number;
-  invoices?: [{ invoice_id: string }];
-  invoice?: { invoiceId?: string };
+  invoices: [{ invoice_id: string }];
+  invoice: { invoiceId: string };
   invoicePayments: [
     {
       invoicePaymentId: string;
@@ -51,7 +51,7 @@ export interface InvoiceResponse {
  * @interface Invoice
  */
 export interface Invoice {
-  id?: string;
+  id: string;
   invoiceId: string;
   customerName: string;
   customerId: string;
@@ -67,23 +67,23 @@ export interface Invoice {
   lastModifiedTime: Date;
   shippingCharge: number;
   adjustment: number;
-  message?: string;
-  code?: number;
-  invoice?: {
-    invoiceId?: string;
+  message: string;
+  code: number;
+  invoice: {
+    invoiceId: string;
   };
-  omsId?: string;
-  invoice_id?: string;
-  customer_name?: string;
-  customer_id?: string;
-  invoice_number?: string;
-  reference_number?: string;
-  due_date?: string;
-  due_days?: string;
-  created_time?: string;
-  last_modified_time?: string;
-  shipping_charge?: number;
-  coupon?: string;
+  omsId: string;
+  invoice_id: string;
+  customer_name: string;
+  customer_id: string;
+  invoice_number: string;
+  reference_number: string;
+  due_date: string;
+  due_days: string;
+  created_time: string;
+  last_modified_time: string;
+  shipping_charge: number;
+  coupon: string;
 }
 
 /**
@@ -93,23 +93,23 @@ export interface Invoice {
  * @interface InvoiceRequestParams
  */
 export interface InvoiceRequestParams {
-  id?: string;
+  id: string;
   storeId: string;
-  customerId?: string;
-  orderId?: string;
+  customerId: string;
+  orderId: string;
   items: any;
-  discount?: {
+  discount: {
     value: number;
     type: string;
   };
-  isInclusiveTax?: boolean;
-  coupon?: string;
-  dueDate?: string;
-  useSavedPaymentMethods?: string;
-  credit?: number;
-  paymentAmount?: number;
-  omsId?: string;
-  invoiceId?: string;
-  status?: string;
-  reference_number?: string;
+  isInclusiveTax: boolean;
+  coupon: string;
+  dueDate: string;
+  useSavedPaymentMethods: string;
+  credit: number;
+  paymentAmount: number;
+  omsId: string;
+  invoiceId: string;
+  status: string;
+  reference_number: string;
 }

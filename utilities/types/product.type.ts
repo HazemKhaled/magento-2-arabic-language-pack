@@ -9,31 +9,31 @@ import { I18nText } from './i18ntext.type';
  * @interface Product
  */
 export interface Product {
-  sku?: string;
-  name?: I18nText;
+  sku: string;
+  name: I18nText;
   updated: Date;
   archive: boolean;
   description: I18nText;
   attributes: Attribute;
   variations: Variation[];
-  sales_qty?: number;
-  seller_id?: number;
-  source_url?: string;
+  sales_qty: number;
+  seller_id: number;
+  source_url: string;
   images: string[];
-  barcode?: string;
-  tax_class?: string;
+  barcode: string;
+  tax_class: string;
   categories: string[];
-  externalId?: string;
-  externalUrl?: string;
+  externalId: string;
+  externalUrl: string;
   imported: string[];
-  createdAt?: Date;
+  createdAt: Date;
   import_qty: number;
-  quantity?: number;
+  quantity: number;
   ship_to: string[];
-  index?: string;
-  body?: GenericObject;
-  type?: string;
-  id?: string;
+  index: string;
+  body: GenericObject;
+  type: string;
+  id: string;
   handling_time?: {
     to?: number;
   };

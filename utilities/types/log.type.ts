@@ -16,21 +16,21 @@ export interface Log {
   logLevel: 'info' | 'debug' | 'warn' | 'error';
   storeId: string;
   message: string;
-  index?: string;
-  type?: string;
-  body?: {
-    topic?: string;
-    topicId?: string;
-    '@timestamp'?: Date;
-    logLevel?: 'info' | 'debug' | 'warn' | 'error' | string;
-    storeId?: string;
-    message?: string;
-    payload?: string;
-    code?: number;
-    size?: number;
-    from?: number;
-    query?: { [key: string]: GenericObject };
-    sort?: { [key: string]: string };
+  index: string;
+  type: string;
+  body: {
+    topic: string;
+    topicId: string;
+    '@timestamp': Date;
+    logLevel: 'info' | 'debug' | 'warn' | 'error' | string;
+    storeId: string;
+    message: string;
+    payload: string;
+    code: number;
+    size: number;
+    from: number;
+    query: { [key: string]: GenericObject };
+    sort: { [key: string]: string };
   };
 }
 
@@ -46,11 +46,11 @@ export interface LogRequestParams {
   logLevel: string;
   storeId: string;
   topicId: string;
-  payload: any;
-  code?: number;
-  sort?: string;
-  limit?: string;
-  page?: string;
+  payload: GenericObject;
+  code: number;
+  sort: string;
+  limit: string;
+  page: string;
 }
 
 /**
