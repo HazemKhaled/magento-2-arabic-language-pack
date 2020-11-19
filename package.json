@@ -79,6 +79,7 @@
     "@google-cloud/pubsub": "^2.6.0",
     "@google-cloud/tasks": "^2.1.2",
     "@jest/types": "^26.6.2",
+    "@moleculer/lab": "^0.6.0",
     "bluebird": "^3.7.2",
     "compression": "^1.7.4",
     "elastic-apm-node": "^3.8.0",
