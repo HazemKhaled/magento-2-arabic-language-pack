@@ -15,6 +15,7 @@ import {
   CrmStore,
   CommonError,
   CrmResponse,
+  SubscriptionListParams,
 } from '../utilities/types';
 import { SubscriptionValidation } from '../utilities/mixins/validation';
 import { TaxCheck } from '../utilities/mixins/tax.mixin';
@@ -45,7 +46,9 @@ const TheService: ServiceSchema = {
         keys: ['id'],
         ttl: 60 * 60 * 24,
       },
-      async handler(ctx: Context<Subscription>): Promise<Subscription | false> {
+      async handler(
+        ctx: Context<{ id: string }>
+      ): Promise<Subscription | false> {
         const subscription =
           (await this.adapter.findOne({
             storeId: ctx.params.id,
@@ -93,7 +96,7 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 * 24,
       },
       async handler(
-        ctx: Context<Subscription>
+        ctx: Context<SubscriptionListParams>
       ): Promise<Subscription[] | false> {
         const query: GenericObject = {};
         if (ctx.params.storeId) {
@@ -351,7 +354,7 @@ const TheService: ServiceSchema = {
         } else {
           const storeOldSubscription = await ctx.call<
             Subscription[],
-            Partial<Subscription>
+            Partial<SubscriptionListParams>
           >('subscription.sList', {
             storeId: ctx.params.grantTo || ctx.params.storeId,
             expireDate: { operation: 'gte' },

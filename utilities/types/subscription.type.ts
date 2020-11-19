@@ -23,10 +23,9 @@ export interface Subscription {
   coupon?: string;
   sort?: {
     field: string;
-    order: string | number;
+    order: number;
   };
-  perPage?: string | number;
-  page?: string;
+  perPage?: number;
   afterDays?: number;
   beforeDays?: number;
   membership?: any;
@@ -47,3 +46,7 @@ export interface Subscription {
 }
 
 export interface SubscriptionType extends Subscription {}
+
+export interface SubscriptionListParams extends Subscription {
+  page: number;
+}
