@@ -42,6 +42,14 @@ const TheService: ServiceSchema = {
         path: '/api',
 
         authorization: true,
+        whitelist: [
+          'logs.*',
+
+          // webhooks
+          'registry.*',
+          'publisher.*',
+        ],
+        autoAliases: true,
 
         aliases: {
           // Login
@@ -101,10 +109,6 @@ const TheService: ServiceSchema = {
           'GET shipment/couriers': 'shipment.getCouriers',
           'GET shipment/:id': 'shipment.getShipments',
 
-          // Logs
-          'POST logs': 'logs.add',
-          'GET logs': 'logs.getLogs',
-
           // Invoices
           'GET invoices': 'invoices.get',
           'POST invoices': 'invoices.create',
@@ -160,13 +164,6 @@ const TheService: ServiceSchema = {
           'PUT crm/:module/:id': 'crm.updateRecord',
           'POST crm/:module/:id/tags/add': 'crm.addTagsToRecord',
           'DELETE crm/:module/:id/tags/remove': 'crm.removeTagsFromRecord',
-
-          // Webhook
-          'POST webhooks': 'registry.create',
-          'GET webhooks': 'registry.list',
-          'DELETE webhooks/:id': 'registry.remove',
-
-          'POST webhooks/:event': 'publisher.publish',
 
           // Async API
           'async/(.*)': 'tasks.handle',
