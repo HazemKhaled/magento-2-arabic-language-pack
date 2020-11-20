@@ -7,15 +7,16 @@ services:
     image: microes
     restart: always
     env_file: .env
+    hostname: "api"
     environment:
       SERVICES: api, tasks
-      PORT: 80
+      PORT: 4040
     labels:
-      - "traefik.enable=true"
-      - "traefik.backend=production"
-      - "traefik.port=80"
-      - "traefik.frontend.entryPoints=http,https"
-      - "traefik.frontend.rule=Host:mp.knawat.io"
+      traefik.enable: "true"
+      traefik.backend: mp-development
+      traefik.port: 4040
+      traefik.frontend.entryPoints: "http,https"
+      traefik.frontend.rule: "Host:dev.mp.knawat.io"
 
   stores:
     build:
@@ -23,17 +24,17 @@ services:
     image: microes
     restart: always
     env_file: .env
+    hostname: "stores"
     environment:
       SERVICES: stores
-    depends_on:
-      - mongodb
 
-  product-instances:
+  products-instances:
     build:
       context: ../../
     image: microes
     restart: always
     env_file: .env
+    hostname: "products-instances"
     environment:
       SERVICES: products-instances
 
@@ -43,6 +44,7 @@ services:
     image: microes
     restart: always
     env_file: .env
+    hostname: "categories-products"
     environment:
       SERVICES: categories, products
 
@@ -52,6 +54,7 @@ services:
     image: microes
     restart: always
     env_file: .env
+    hostname: "currencies-taxes-gdpr"
     environment:
       SERVICES: currencies, taxes, gdpr
 
@@ -61,6 +64,7 @@ services:
     image: microes
     restart: always
     env_file: .env
+    hostname: "membership-subscription-coupons-crm"
     environment:
       SERVICES: membership, subscription, coupons, crm
 
@@ -70,6 +74,7 @@ services:
     image: microes
     restart: always
     env_file: .env
+    hostname: "subscription-cron"
     environment:
       SERVICES: subscription-cron
 
@@ -79,6 +84,7 @@ services:
     image: microes
     restart: always
     env_file: .env
+    hostname: "orders"
     environment:
       SERVICES: orders
 
@@ -88,19 +94,9 @@ services:
     image: microes
     restart: always
     env_file: .env
+    hostname: "invoices-payments"
     environment:
       SERVICES: invoices, payments
-
-  shipment:
-    build:
-      context: ../../
-    image: microes
-    restart: always
-    env_file: .env
-    environment:
-      SERVICES: shipment
-    depends_on:
-      - mongodb
 
   oms:
     build:
@@ -108,30 +104,22 @@ services:
     image: microes
     restart: always
     env_file: .env
+    hostname: "oms"
     environment:
       SERVICES: oms
 
-  logs:
+  shipment:
     build:
       context: ../../
     image: microes
     restart: always
     env_file: .env
+    hostname: "shipment"
     environment:
-      SERVICES: logs
+      SERVICES: shipment
 
   redis:
     image: redis:alpine
-
-  mongodb:
-    image: mongo:4
-    restart: always
-    env_file: .env
-    volumes:
-      - ~/data/db/mp:/data/db
-      - ../docker-mongodb-init/:/docker-entrypoint-initdb.d/
-    ports:
-      - "21985:27017"
 
   traefik:
     image: traefik:v1.7
@@ -144,3 +132,15 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./traefik.toml:/traefik.toml
       - ./acme.json:/acme.json
+
+  monitor:
+    build:
+      context: ../../
+    image: microes
+    restart: always
+    env_file: .env
+    hostname: "monitor"
+    environment:
+      SERVICES: apm, lab
+    ports:
+      - "3210:3210"

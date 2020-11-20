@@ -195,6 +195,7 @@ export const StoresValidation: ServiceSchema = {
         },
         address: {
           type: 'object',
+          optional: true,
           props: {
             first_name: {
               type: 'string',
@@ -242,7 +243,6 @@ export const StoresValidation: ServiceSchema = {
               convert: true,
             },
           },
-          optional: true,
         },
       },
     },
@@ -342,6 +342,7 @@ export const StoresValidation: ServiceSchema = {
         },
         users: {
           type: 'array',
+          optional: true,
           items: {
             type: 'object',
             props: {
@@ -373,7 +374,6 @@ export const StoresValidation: ServiceSchema = {
               },
             },
           },
-          optional: true,
         },
         languages: {
           type: 'array',
@@ -384,6 +384,7 @@ export const StoresValidation: ServiceSchema = {
         },
         address: {
           type: 'object',
+          optional: true,
           props: {
             first_name: {
               type: 'string',
@@ -430,7 +431,6 @@ export const StoresValidation: ServiceSchema = {
               convert: true,
             },
           },
-          optional: true,
         },
       },
     },
@@ -467,6 +467,7 @@ export const StoresValidation: ServiceSchema = {
         },
         address: {
           type: 'object',
+          strict: true,
           props: {
             first_name: {
               type: 'string',
@@ -517,7 +518,6 @@ export const StoresValidation: ServiceSchema = {
               optional: true,
               convert: true,
             },
-            $$strict: true,
           },
           optional: true,
         },

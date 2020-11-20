@@ -26,6 +26,7 @@ export const OmsValidation: ServiceSchema = {
           type: 'array',
           items: {
             type: 'object',
+            strict: true,
             props: {
               sku: { type: 'string' },
               barcode: { type: 'string', optional: true },
@@ -40,7 +41,6 @@ export const OmsValidation: ServiceSchema = {
               purchaseRate: { type: 'number', optional: true },
               vendorId: { type: 'number', optional: true },
               taxId: { type: 'string', optional: true },
-              $$strict: true,
             },
           },
         },
@@ -77,6 +77,7 @@ export const OmsValidation: ServiceSchema = {
             url: { type: 'string', optional: true },
             users: {
               type: 'array',
+              optional: true,
               items: {
                 type: 'object',
                 props: {
@@ -85,7 +86,6 @@ export const OmsValidation: ServiceSchema = {
                   last_name: { type: 'string', optional: true },
                 },
               },
-              optional: true,
             },
           },
         },
@@ -173,6 +173,7 @@ export const OmsValidation: ServiceSchema = {
         },
         items: {
           type: 'array',
+          optional: true,
           items: {
             type: 'object',
             props: {
@@ -194,10 +195,10 @@ export const OmsValidation: ServiceSchema = {
               accountId: { type: 'string', optional: true },
             },
           },
-          optional: true,
         },
         shipping: {
           type: 'object',
+          optional: true,
           props: {
             first_name: 'string',
             last_name: 'string',
@@ -211,7 +212,6 @@ export const OmsValidation: ServiceSchema = {
             email: { type: 'string', optional: true },
             phone: { type: 'string', optional: true },
           },
-          optional: true,
         },
         invoice_url: { type: 'string', optional: true },
         shipping_method: { type: 'string', optional: true },
@@ -267,6 +267,7 @@ export const OmsValidation: ServiceSchema = {
         amount: 'number',
         invoices: {
           type: 'array',
+          optional: true,
           item: {
             type: 'object',
             props: {
@@ -279,7 +280,6 @@ export const OmsValidation: ServiceSchema = {
               },
             },
           },
-          optional: true,
         },
         bankCharges: {
           type: 'number',
@@ -340,6 +340,7 @@ export const OmsValidation: ServiceSchema = {
         },
         billing: {
           type: 'object',
+          optional: true,
           props: {
             first_name: 'string',
             last_name: 'string',
@@ -353,7 +354,6 @@ export const OmsValidation: ServiceSchema = {
             email: { type: 'string', optional: true },
             phone: { type: 'string', optional: true },
           },
-          optional: true,
         },
       },
     },

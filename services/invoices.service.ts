@@ -1,7 +1,17 @@
-import { Context, Errors, ServiceSchema, GenericObject } from 'moleculer';
+import { Context, Errors, GenericObject, ServiceSchema } from 'moleculer';
 
 import { InvoicesOpenapi } from '../utilities/mixins/openapi';
-import { Invoice } from '../utilities/types';
+import {
+  Invoice,
+  InvoiceRequestParams,
+  DynamicRequestParams,
+  MetaParams,
+  Store,
+  Order,
+  OrderRequestParams,
+  StoreRequest,
+  InvoiceResponse,
+} from '../utilities/types';
 import { InvoicesValidation } from '../utilities/mixins/validation';
 import { InvoicePage } from '../utilities/mixins/invoicePage';
 import { Oms } from '../utilities/mixins/oms.mixin';
@@ -19,29 +29,34 @@ const TheService: ServiceSchema = {
         keys: ['#user', 'page', 'limit', 'reference_number', 'invoice_number'],
         ttl: 60,
       },
-      handler(ctx: Context) {
+      handler(
+        ctx: Context<DynamicRequestParams, MetaParams>
+      ): Promise<{ invoices: Invoice[]; }> {
         const { store } = ctx.meta;
 
-        const keys: { [key: string]: string } = {
+        const keys: { [key: string]: string; } = {
           page: 'page',
           limit: 'perPage',
           reference_number: 'referenceNumber',
           invoice_number: 'invoiceNumber',
         };
-        const queryParams: { [key: string]: string } = {};
+        const queryParams: { [key: string]: string; } = {};
         Object.keys(ctx.params).forEach(key => {
           if (ctx.params[key]) queryParams[keys[key]] = ctx.params[key];
         });
 
         return ctx
-          .call('oms.listInvoice', {
+          .call<
+            { response: { invoices: Invoice[]; }; },
+            Partial<InvoiceRequestParams>
+          >('oms.listInvoice', {
             omsId: store?.internal_data?.omsId,
             ...queryParams,
           })
           .then(
-            async response => {
+            async ({ response: { invoices } }) => {
               return {
-                invoices: response.invoices.map((invoice: Invoice) =>
+                invoices: invoices.map((invoice: Invoice) =>
                   this.invoiceSanitize(invoice)
                 ),
               };
@@ -54,10 +69,13 @@ const TheService: ServiceSchema = {
     },
     create: {
       auth: ['Basic'],
-      async handler(ctx: Context) {
-        const instance = await ctx.call('stores.findInstance', {
-          id: ctx.params.storeId,
-        });
+      async handler(ctx: Context<InvoiceRequestParams>): Promise<unknown> {
+        const instance: Store = await ctx.call<Store, Partial<Store>>(
+          'stores.findInstance',
+          {
+            id: ctx.params.storeId,
+          }
+        );
 
         if (instance.errors) {
           throw new MoleculerError('Store not found', 404);
@@ -66,7 +84,7 @@ const TheService: ServiceSchema = {
         const { items, discount } = ctx.params;
         // Total items cost
         const itemsCost = items.reduce(
-          (a: number, i: GenericObject) => (a += i.rate),
+          (aa: number, i: { rate: number; }) => (aa += i.rate),
           0
         );
         const totalBeforeTax = itemsCost - (discount?.value || 0);
@@ -84,9 +102,9 @@ const TheService: ServiceSchema = {
           await this.setOmsId(instance);
         }
 
-        const invoiceParams: { [key: string]: string } = {
+        const invoiceParams: { [key: string]: string; } = {
           customerId: instance?.internal_data?.omsId,
-          discount: ctx.params.discount?.value,
+          discount: ctx.params.discount?.value.toString(),
           discountType: ctx.params.discount?.type,
           items: ctx.params.items,
         };
@@ -99,29 +117,41 @@ const TheService: ServiceSchema = {
           invoiceParams.dueDate = ctx.params.dueDate;
         }
 
-        return ctx.call('oms.createInvoice', invoiceParams).then(
-          async res => {
-            await this.broker.cacher.clean(
-              `invoices.get:${instance.consumer_key}**`
-            );
-            this.cacheUpdate(res.invoice, instance);
-            return res;
-          },
-          err => {
-            throw new MoleculerError(err.message, err.code || 500);
-          }
-        );
+        return ctx
+          .call<Invoice, Partial<InvoiceRequestParams>>(
+            'oms.createInvoice',
+            invoiceParams
+          )
+          .then(
+            async (res: Invoice) => {
+              await this.broker.cacher.clean(
+                `invoices.get:${instance.consumer_key}**`
+              );
+              this.cacheUpdate(res.invoice, instance);
+              return res;
+            },
+            err => {
+              throw new MoleculerError(err.message, err.code || 500);
+            }
+          );
       },
     },
     updateInvoiceStatus: {
-      handler(ctx: Context) {
-        return ctx.call('oms.updateInvoiceStatus', ctx.params);
+      handler(
+        ctx: Context<Partial<InvoiceRequestParams>>
+      ): Promise<{ code?: number; message: string; }> {
+        return ctx.call<
+          { code?: number; message: string; },
+          Partial<InvoiceRequestParams>
+        >('oms.updateInvoiceStatus', ctx.params);
       },
     },
     applyCredits: {
       auth: ['Bearer'],
-      async handler(ctx: Context) {
-        const store = await ctx.call('stores.me');
+      async handler(
+        ctx: Context<Partial<InvoiceRequestParams>>
+      ): Promise<InvoiceResponse> {
+        const store: Store = await ctx.call<Store>('stores.me');
 
         const { params } = ctx;
         if (
@@ -130,7 +160,7 @@ const TheService: ServiceSchema = {
         ) {
           if (process.env.PAYMENT_AUTO_CHARGE_CC_INVOICE) {
             await ctx
-              .call('paymentGateway.charge', {
+              .call<void, Partial<GenericObject>>('paymentGateway.charge', {
                 store: store.url,
                 purchase_units: [
                   {
@@ -156,10 +186,13 @@ const TheService: ServiceSchema = {
         }
 
         return ctx
-          .call('oms.applyInvoiceCredits', {
-            customerId: store?.internal_data?.omsId,
-            invoiceId: ctx.params.id,
-          })
+          .call<InvoiceResponse, Partial<InvoiceRequestParams>>(
+            'oms.applyInvoiceCredits',
+            {
+              customerId: store?.internal_data?.omsId,
+              invoiceId: ctx.params.id,
+            }
+          )
           .then(
             res => {
               this.broker.cacher.clean(`invoices.get:${store.consumer_key}*`);
@@ -179,28 +212,41 @@ const TheService: ServiceSchema = {
       },
     },
     createOrderInvoice: {
-      async handler(ctx: Context) {
-        const instance = await ctx.call('stores.findInstance', {
-          id: ctx.params.storeId,
-        });
+      async handler(
+        ctx: Context<InvoiceRequestParams>
+      ): Promise<{ invoice: Invoice; code?: number; message?: string; }> {
+        const instance: Store = await ctx.call<Store, Partial<Store>>(
+          'stores.findInstance',
+          {
+            id: ctx.params.storeId,
+          }
+        );
 
         return ctx
-          .call('oms.createSalesOrderInvoice', {
-            customerId: instance?.internal_data?.omsId,
-            orderId: ctx.params.orderId,
-          })
+          .call<null, Partial<InvoiceRequestParams>>(
+            'oms.createSalesOrderInvoice',
+            {
+              customerId: instance?.internal_data?.omsId,
+              orderId: ctx.params.orderId,
+            }
+          )
           .then(null, err => {
             throw new MoleculerError(err.message, err.code || 500);
           });
       },
     },
     markInvoiceSent: {
-      handler(ctx: Context) {
+      handler(
+        ctx: Context<InvoiceRequestParams>
+      ): Promise<{ code: number; message: string; }> {
         return ctx
-          .call('oms.markInvoiceToSent', {
-            customerId: ctx.params.omsId,
-            invoiceId: ctx.params.invoiceId,
-          })
+          .call<InvoiceResponse, Partial<InvoiceRequestParams>>(
+            'oms.markInvoiceToSent',
+            {
+              customerId: ctx.params.omsId,
+              invoiceId: ctx.params.invoiceId,
+            }
+          )
           .then(null, err => {
             throw new MoleculerError(err.message, err.code || 500);
           });
@@ -208,31 +254,34 @@ const TheService: ServiceSchema = {
     },
     renderInvoice: {
       params: {},
-      async handler(ctx: Context) {
-        const store = await ctx.call('stores.findInstance', {
-          id: ctx.params.storeId,
-        });
-        const orders = await ctx.call(
+      async handler(
+        ctx: Context<InvoiceRequestParams, MetaParams>
+      ): Promise<unknown> {
+        const store: Store = await ctx.call<Store, Partial<Store>>(
+          'stores.findInstance',
+          {
+            id: ctx.params.storeId,
+          }
+        );
+        const orders: Order[] = await ctx.call<Order[], Partial<Order>>(
           'orders.list',
           {
             externalId: ctx.params.id,
-          },
-          {
-            meta: {
-              store,
-            },
           }
         );
-        const order = await ctx.call('orders.getOrder', {
-          order_id: orders[0].id,
-        });
+        const order: Order = await ctx.call<Order, Partial<OrderRequestParams>>(
+          'orders.getOrder',
+          {
+            order_id: orders[0].id,
+          }
+        );
         ctx.meta.$responseType = 'text/html';
         return this.renderInvoice(store, order);
       },
     },
   },
   methods: {
-    invoiceSanitize(invoice) {
+    invoiceSanitize(invoice): Partial<Invoice> {
       return {
         invoice_id: invoice.invoiceId,
         customer_name: invoice.customerName,
@@ -252,7 +301,7 @@ const TheService: ServiceSchema = {
         coupon: invoice.coupon,
       };
     },
-    async cacheUpdate(invoice, instance) {
+    async cacheUpdate(invoice, instance): Promise<void> {
       const invoices = { invoices: [this.invoiceSanitize(invoice)] };
       this.broker.cacher.set(
         `invoices.get:${instance.consumer_key}|undefined|undefined|${invoice.referenceNumber}|undefined`,

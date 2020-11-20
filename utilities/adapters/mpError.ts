@@ -1,4 +1,4 @@
-import { Errors } from 'moleculer';
+import { Errors, GenericObject } from 'moleculer';
 
 const { MoleculerError } = Errors;
 
@@ -8,7 +8,7 @@ export class MpError extends MoleculerError {
     message: string,
     code: number,
     type?: string,
-    data?: any
+    data?: GenericObject
   ) {
     super(message, code, type, data);
     this.name = name;

@@ -1,8 +1,13 @@
-import { Context, GenericObject, ServiceSchema } from 'moleculer';
+import { Context, ServiceSchema, GenericObject } from 'moleculer';
 
 import DbService from '../utilities/mixins/mongo.mixin';
 import { ShipmentOpenapi } from '../utilities/mixins/openapi';
-import { Rule, ShipmentPolicy } from '../utilities/types';
+import {
+  Rule,
+  ShipmentPolicy,
+  RuleQuery,
+  CommonError,
+} from '../utilities/types';
 import { ShipmentValidation } from '../utilities/mixins/validation';
 import { MpError } from '../utilities/adapters';
 
@@ -19,7 +24,7 @@ const Shipment: ServiceSchema = {
     getShipments: {
       auth: ['Basic'],
       cache: { keys: ['id'], ttl: 60 * 60 * 24 * 30 },
-      handler(ctx: Context): ShipmentPolicy | ShipmentPolicy[] {
+      handler(ctx: Context<ShipmentPolicy>): ShipmentPolicy | ShipmentPolicy[] {
         return (ctx.params.id
           ? this.adapter.findById(ctx.params.id)
           : this.adapter.find()
@@ -34,7 +39,7 @@ const Shipment: ServiceSchema = {
      */
     insertShipment: {
       auth: ['Basic'],
-      handler(ctx: Context): ShipmentPolicy {
+      handler(ctx: Context<ShipmentPolicy>): ShipmentPolicy {
         // insert to DB
         return this.adapter
           .insert({
@@ -50,14 +55,14 @@ const Shipment: ServiceSchema = {
             return this.adapter.findById(ctx.params.name);
           })
           .then((data: ShipmentPolicy) => this.shipmentTransform(data))
-          .catch((err: any) => {
+          .catch((err: CommonError) => {
             if (err.name === 'MoleculerError') {
               throw new MpError('Shipment Service', err.message, err.code);
             }
             if (err.name === 'MongoError' && err.code === 11000) {
               throw new MpError('Shipment Service', 'Duplicate name!', 422);
             }
-            throw new MpError('Shipment Service', err, 500);
+            throw new MpError('Shipment Service', err.toString(), 500);
           });
       },
     },
@@ -69,7 +74,7 @@ const Shipment: ServiceSchema = {
      */
     updateShipment: {
       auth: ['Basic'],
-      handler(ctx: Context): ShipmentPolicy {
+      handler(ctx: Context<ShipmentPolicy>): ShipmentPolicy {
         // update DB
         return this.adapter
           .updateMany(
@@ -88,11 +93,11 @@ const Shipment: ServiceSchema = {
             return this.adapter.findById(ctx.params.id);
           })
           .then((data: ShipmentPolicy) => this.shipmentTransform(data))
-          .catch((err: any) => {
+          .catch((err: CommonError) => {
             if (err.name === 'MoleculerError') {
               throw new MpError('Shipment Service', err.message, err.code);
             }
-            throw new MpError('Shipment Service', err, 500);
+            throw new MpError('Shipment Service', err.toString(), 500);
           });
       },
     },
@@ -114,27 +119,45 @@ const Shipment: ServiceSchema = {
         ],
         ttl: 60 * 60 * 24 * 30,
       },
-      handler(ctx: Context): Rule[] {
+      handler(
+        ctx: Context<{
+          country: string;
+          weight: number;
+          ship_from_city: string;
+          ship_from_country: string;
+        }>
+      ): Rule[] {
         // find policies with matched rules
-        const query: GenericObject = {
+        const query: RuleQuery = {
           countries: ctx.params.country,
-          'rules.units_max': { $gte: parseInt(ctx.params.weight, 10) },
-          'rules.units_min': { $lte: parseInt(ctx.params.weight, 10) },
+          'rules.units_max': { $gte: ctx.params.weight },
+          'rules.units_min': { $lte: ctx.params.weight },
         };
         if (ctx.params.ship_from_city && ctx.params.ship_from_country) {
-          const cityAr = ctx.params.ship_from_city
-            .split(',')
-            .filter((city: string) => city.trim().length > 0);
+          let cityAr: string[] = [];
+          let countryAr: string[] = [];
+          if (ctx.params.ship_from_city) {
+            cityAr = ctx.params.ship_from_city
+              .split(',')
+              .filter((city: string) => city.trim().length > 0);
+          }
+          if (ctx.params.ship_from_country) {
+            countryAr = ctx.params.ship_from_country
+              .split(',')
+              .filter((country: string) => country.trim().length > 0);
+          }
 
           // If getting * in city then allow to all city
-          if (!cityAr.includes('*')) {
+          if (cityAr.length > 0 && !cityAr.includes('*')) {
+            cityAr.push('*'); /* Allow all the city */
             query['ship_from.city'] = { $in: cityAr };
           }
-          query['ship_from.country'] = {
-            $in: ctx.params.ship_from_country
-              .split(',')
-              .filter((country: string) => country.trim().length > 0),
-          };
+          if (countryAr.length > 0 && !countryAr.includes('ZZ')) {
+            countryAr.push('ZZ'); /* Allow all the country */
+            query['ship_from.country'] = {
+              $in: countryAr,
+            };
+          }
         }
         return this.adapter
           .find({
@@ -161,14 +184,14 @@ const Shipment: ServiceSchema = {
                   cost: Number(rule.cost),
                   duration: `${rule.delivery_days_min}-${rule.delivery_days_max}`,
                 }))
-                .sort((a, b) => a.cost - b.cost)
+                .sort((aa, bb) => aa.cost - bb.cost)
             );
           })
-          .catch((err: any) => {
+          .catch((err: CommonError) => {
             if (err.name === 'MoleculerError') {
               throw new MpError('Shipment Service', err.message, err.code);
             }
-            throw new MpError('Shipment Service', err, 500);
+            throw new MpError('Shipment Service', err.toString(), 500);
           });
       },
     },
@@ -181,7 +204,7 @@ const Shipment: ServiceSchema = {
     getCouriers: {
       auth: ['Basic'],
       cache: { keys: ['country'], ttl: 60 * 60 * 24 * 30 },
-      handler(ctx: Context): string[] {
+      handler(ctx: Context<ShipmentPolicy>): string[] {
         const query = ctx.params.country
           ? { countries: ctx.params.country }
           : {};
@@ -202,11 +225,11 @@ const Shipment: ServiceSchema = {
                 )
               )
           )
-          .catch((err: any) => {
+          .catch((err: CommonError) => {
             if (err.name === 'MoleculerError') {
               throw new MpError('Shipment Service', err.message, err.code);
             }
-            throw new MpError('Shipment Service', err, 500);
+            throw new MpError('Shipment Service', err.toString(), 500);
           });
       },
     },
@@ -220,7 +243,7 @@ const Shipment: ServiceSchema = {
      */
     shipmentTransform(
       data: ShipmentPolicy[] | ShipmentPolicy
-    ): ShipmentPolicy[] | GenericObject {
+    ): ShipmentPolicy[] | unknown {
       if (data === null) {
         return { message: 'No Shipment Policy with This ID Found' };
       }

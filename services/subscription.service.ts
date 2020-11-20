@@ -4,7 +4,19 @@ import { Context, Errors, GenericObject, ServiceSchema } from 'moleculer';
 
 import DbService from '../utilities/mixins/mongo.mixin';
 import { SubscriptionOpenapi } from '../utilities/mixins/openapi';
-import { Coupon, Membership, Subscription, Store } from '../utilities/types';
+import {
+  Coupon,
+  Membership,
+  Subscription,
+  Store,
+  MetaParams,
+  Payment,
+  Invoice,
+  CrmStore,
+  CommonError,
+  CrmResponse,
+  SubscriptionListParams,
+} from '../utilities/types';
 import { SubscriptionValidation } from '../utilities/mixins/validation';
 import { TaxCheck } from '../utilities/mixins/tax.mixin';
 import { MpError } from '../utilities/adapters';
@@ -34,7 +46,9 @@ const TheService: ServiceSchema = {
         keys: ['id'],
         ttl: 60 * 60 * 24,
       },
-      async handler(ctx: Context): Promise<any | false> {
+      async handler(
+        ctx: Context<{ id: string; }>
+      ): Promise<Subscription | false> {
         const subscription =
           (await this.adapter.findOne({
             storeId: ctx.params.id,
@@ -42,11 +56,14 @@ const TheService: ServiceSchema = {
             expireDate: { $gte: new Date() },
             startDate: { $lte: new Date() },
           })) || {};
-        const membership = await ctx.call('membership.mGet', {
+        const membership: Membership = await ctx.call<
+          Membership,
+          Partial<Membership>
+        >('membership.mGet', {
           id: subscription.membershipId || 'free',
         });
         return {
-          id: (subscription._id && subscription._id.toString()) || -1,
+          id: (subscription._id && subscription._id.toString()) || '-1',
           ...subscription,
           membershipId: undefined,
           membership: {
@@ -78,7 +95,9 @@ const TheService: ServiceSchema = {
         ],
         ttl: 60 * 60 * 24,
       },
-      async handler(ctx: Context): Promise<Subscription | false> {
+      async handler(
+        ctx: Context<SubscriptionListParams>
+      ): Promise<Subscription[] | false> {
         const query: GenericObject = {};
         if (ctx.params.storeId) {
           query.storeId = ctx.params.storeId;
@@ -140,21 +159,21 @@ const TheService: ServiceSchema = {
           .then((res: Subscription[]) => {
             return res;
           })
-          .catch((err: any) => {
+          .catch((err: CommonError) => {
             if (err.name === 'MoleculerError') {
               throw new MoleculerError(err.message, err.code);
             }
-            throw new MoleculerError(err, 500);
+            throw new MoleculerError(String(err), 500);
           });
       },
     },
     create: {
       auth: ['Basic'],
-      async handler(ctx: Context) {
+      async handler(ctx: Context<Subscription, MetaParams>): Promise<unknown> {
         let coupon: Coupon = null;
         if (ctx.params.coupon) {
           coupon = await ctx
-            .call('coupons.get', {
+            .call<Coupon, Partial<Coupon>>('coupons.get', {
               id: ctx.params.coupon,
               membership: ctx.params.membership,
               type: 'subscription',
@@ -174,9 +193,12 @@ const TheService: ServiceSchema = {
           membershipRequestBody.coupon = ctx.params.coupon;
         }
         const membership = await ctx
-          .call('membership.mGet', membershipRequestBody)
+          .call<Membership, Partial<Membership>>(
+            'membership.mGet',
+            membershipRequestBody
+          )
           .then(null, err => err);
-        if (isNativeError(membership as { message: string; code: number })) {
+        if (isNativeError(membership as { message: string; code: number; })) {
           throw new MoleculerError(membership.message, membership.code || 500);
         }
         if (!membership) {
@@ -195,14 +217,19 @@ const TheService: ServiceSchema = {
         const discount = membership.discount;
 
         // Get the Store instance
-        const instance = await ctx
-          .call('stores.sGet', { id: ctx.params.storeId })
+        const instance: Store = await ctx
+          .call<Store, Partial<Store>>('stores.sGet', {
+            id: ctx.params.storeId,
+          })
           .then(null, err => err);
         let grantToInstance: Store | null = null;
         if (ctx.params.grantTo) {
-          grantToInstance = await ctx.call('stores.findInstance', {
-            id: ctx.params.grantTo,
-          });
+          grantToInstance = await ctx.call<Store, Partial<Store>>(
+            'stores.findInstance',
+            {
+              id: ctx.params.grantTo,
+            }
+          );
         }
 
         // Check for instance errors
@@ -210,7 +237,7 @@ const TheService: ServiceSchema = {
           throw new MoleculerError(instance.errors[0].message, 404);
         }
 
-        if (isNativeError(instance as { message: string; code: number })) {
+        if (isNativeError(instance as { message: string; code: number; })) {
           throw new MoleculerError(instance.message, instance.code || 500);
         }
         let total = Number((cost - discount).toFixed(2));
@@ -229,20 +256,22 @@ const TheService: ServiceSchema = {
         if (instance.credit < total && !ctx.params.postpaid) {
           if (process.env.PAYMENT_AUTO_CHARGE_CC_SUBSCRIPTION) {
             await ctx
-              .call('paymentGateway.charge', {
-                store: instance.url,
-                purchase_units: [
-                  {
-                    amount: {
-                      value: total - instance.credit,
-                      currency: 'USD',
+              .call<GenericObject, Partial<GenericObject>>(
+                'paymentGateway.charge',
+                {
+                  store: instance.url,
+                  purchase_units: [
+                    {
+                      amount: {
+                        value: total - instance.credit,
+                        currency: 'USD',
+                      },
+                      description: `${membership.name?.en} subscription ${membership.paymentFrequencyType
+                        }ly renewal ${ctx.params.grantTo || ctx.params.storeId}`,
                     },
-                    description: `${membership.name?.en} subscription ${
-                      membership.paymentFrequencyType
-                    }ly renewal ${ctx.params.grantTo || ctx.params.storeId}`,
-                  },
-                ],
-              })
+                  ],
+                }
+              )
               .then(null, err => {
                 if (err.type === 'SERVICE_NOT_FOUND')
                   throw new MpError(
@@ -271,9 +300,8 @@ const TheService: ServiceSchema = {
               rate: cost,
               quantity: 1,
               taxId: taxData.omsId,
-              description: `StoreId: ${ctx.params.storeId}${
-                ctx.params.grantTo ? ` Granted To: ${ctx.params.grantTo}` : ''
-              }`,
+              description: `StoreId: ${ctx.params.storeId}${ctx.params.grantTo ? ` Granted To: ${ctx.params.grantTo}` : ''
+                }`,
             },
           ],
           isInclusiveTax: taxData.isInclusive,
@@ -299,22 +327,22 @@ const TheService: ServiceSchema = {
         ctx.meta.user = instance.consumer_key;
 
         // Apply credits to invoice if the total not equal to 0
-        let invoice = null;
+        let invoice: Invoice = null;
         if (total !== 0 && !ctx.params.postpaid) {
           invoice = await ctx
-            .call('invoices.create', invoiceBody)
+            .call<Invoice, Partial<Invoice>>('invoices.create', invoiceBody)
             .then(null, err => err);
-          if (isNativeError(invoice as { message: string; code: number })) {
+          if (isNativeError(invoice as { message: string; code: number; })) {
             throw new MoleculerError(invoice.message, invoice.code || 500);
           }
           const applyCreditsResponse = await ctx
-            .call('invoices.applyCredits', {
+            .call<Invoice, Partial<Invoice>>('invoices.applyCredits', {
               id: invoice.invoice.invoiceId,
             })
             .then(null, err => err);
           if (
             isNativeError(
-              applyCreditsResponse as { message: string; code: number }
+              applyCreditsResponse as { message: string; code: number; }
             )
           ) {
             throw new MoleculerError(
@@ -331,7 +359,10 @@ const TheService: ServiceSchema = {
           startDate = new Date(ctx.params.date.start);
           expireDate = new Date(ctx.params.date.expire);
         } else {
-          const storeOldSubscription = await ctx.call('subscription.sList', {
+          const storeOldSubscription = await ctx.call<
+            Subscription[],
+            Partial<SubscriptionListParams>
+          >('subscription.sList', {
             storeId: ctx.params.grantTo || ctx.params.storeId,
             expireDate: { operation: 'gte' },
             status: 'active',
@@ -342,8 +373,8 @@ const TheService: ServiceSchema = {
               startDate =
                 new Date(subscription.expireDate) > startDate
                   ? new Date(
-                      new Date(subscription.expireDate).setMilliseconds(1000)
-                    )
+                    new Date(subscription.expireDate).setMilliseconds(1000)
+                  )
                   : startDate;
             });
           }
@@ -375,7 +406,7 @@ const TheService: ServiceSchema = {
         };
 
         if (ctx.params.coupon) {
-          ctx.call('coupons.updateCount', {
+          ctx.call<GenericObject, Partial<Coupon>>('coupons.updateCount', {
             id: ctx.params.coupon,
           });
           subscriptionBody.coupon = ctx.params.coupon;
@@ -416,10 +447,13 @@ const TheService: ServiceSchema = {
                 `stores.me:${grantToInstance?.consumer_key}*`
               );
             }
-            ctx.call('subscription.checkCurrentSubGradingStatus', {
-              id: ctx.params.grantTo || ctx.params.storeId,
-            });
-            ctx.call('crm.updateStoreById', {
+            ctx.call<GenericObject, Partial<Subscription>>(
+              'subscription.checkCurrentSubGradingStatus',
+              {
+                id: ctx.params.grantTo || ctx.params.storeId,
+              }
+            );
+            ctx.call<GenericObject, Partial<Store>>('crm.updateStoreById', {
               id: ctx.params.grantTo || ctx.params.storeId,
               membership_id: membership.id,
               subscription_expiration: expireDate.getTime(),
@@ -431,14 +465,14 @@ const TheService: ServiceSchema = {
     },
     getSubscriptionByExpireDate: {
       cache: false,
-      async handler(ctx: Context) {
+      async handler(ctx: Context<Subscription>): Promise<Subscription> {
         const minDate = new Date();
         minDate.setDate(minDate.getDate() - (ctx.params.afterDays || 0));
         const maxDate = new Date();
         maxDate.setDate(maxDate.getDate() + (ctx.params.beforeDays || 0));
         const lastRetryDay = new Date();
         lastRetryDay.setUTCHours(0, 0, 0, 0);
-        const query: any = {
+        const query: GenericObject = {
           expireDate: {
             $gte: minDate,
             $lte: maxDate,
@@ -466,32 +500,44 @@ const TheService: ServiceSchema = {
           sort: { expireDate: -1 },
         });
         expiredSubscription._id = expiredSubscription._id.toString();
-        const currentSubscription = await ctx.call('subscription.sGet', {
+        const currentSubscription: Subscription = await ctx.call<
+          Subscription,
+          Partial<Subscription>
+        >('subscription.sGet', {
           id: expiredSubscription.storeId,
         });
-        if (currentSubscription.id !== -1) {
-          await ctx.call('subscription.updateSubscription', {
-            id: expiredSubscription._id,
-            renewed: true,
-          });
-          ctx.call('crm.addTagsByUrl', {
+        if (currentSubscription.id !== '-1') {
+          await ctx.call<GenericObject, Partial<Subscription>>(
+            'subscription.updateSubscription',
+            {
+              id: expiredSubscription._id,
+              renewed: true,
+            }
+          );
+          ctx.call<GenericObject, Partial<CrmStore>>('crm.addTagsByUrl', {
             id: expiredSubscription.storeId,
             tag: 'subscription-renew',
           });
-          return ctx.call('subscription.getSubscriptionByExpireDate', {
-            afterDays: ctx.params.afterDays,
-            beforeDays: ctx.params.beforeDays,
-          });
+          return ctx.call<Subscription, Partial<Subscription>>(
+            'subscription.getSubscriptionByExpireDate',
+            {
+              afterDays: ctx.params.afterDays,
+              beforeDays: ctx.params.beforeDays,
+            }
+          );
         }
         const date = new Date();
         date.setUTCHours(0, 0, 0, 0);
-        ctx.call('subscription.updateSubscription', {
-          id: expiredSubscription._id,
-          retries: expiredSubscription.retries
-            ? [...expiredSubscription.retries, new Date(date)]
-            : [new Date(date)],
-        });
-        ctx.call('crm.addTagsByUrl', {
+        ctx.call<GenericObject, Partial<Subscription>>(
+          'subscription.updateSubscription',
+          {
+            id: expiredSubscription._id,
+            retries: expiredSubscription.retries
+              ? [...expiredSubscription.retries, new Date(date)]
+              : [new Date(date)],
+          }
+        );
+        ctx.call<GenericObject, Partial<CrmStore>>('crm.addTagsByUrl', {
           id: expiredSubscription.storeId,
           tag: 'subscription-retry-fail',
         });
@@ -500,7 +546,7 @@ const TheService: ServiceSchema = {
     },
     updateSubscription: {
       auth: ['Basic'],
-      handler(ctx: Context) {
+      handler(ctx: Context<any>): Promise<Subscription> {
         let $set: Partial<Subscription> = {};
         const { params } = ctx;
         if (ctx.params.retries) {
@@ -517,9 +563,12 @@ const TheService: ServiceSchema = {
         return this.adapter
           .updateById(ctx.params.id, { $set })
           .then(async (subscription: Subscription) => {
-            const store = await ctx.call('stores.findInstance', {
-              id: subscription.storeId,
-            });
+            const store: Store = await ctx.call<Store, Partial<Store>>(
+              'stores.findInstance',
+              {
+                id: subscription.storeId,
+              }
+            );
 
             this.broker.cacher.clean(`subscription.sGet:${store.url}**`);
             this.broker.cacher.clean(`subscription.sList:${store.url}**`);
@@ -527,14 +576,17 @@ const TheService: ServiceSchema = {
             this.broker.cacher.clean(`stores.me:${store.consumer_key}**`);
             return subscription;
           })
-          .catch((err: any) => {
-            throw new MoleculerError(err, 500);
+          .catch((err: CommonError) => {
+            throw new MoleculerError(String(err), 500);
           });
       },
     },
     checkCurrentSubGradingStatus: {
-      async handler(ctx: Context) {
-        const allSubBefore = await ctx.call('subscription.sList', {
+      async handler(ctx: Context<{ id: string; }>): Promise<CrmResponse> | null {
+        const allSubBefore = await ctx.call<
+          GenericObject,
+          Partial<Subscription>
+        >('subscription.sList', {
           storeId: ctx.params.id,
           expireDate: {
             operation: 'gte',
@@ -544,10 +596,10 @@ const TheService: ServiceSchema = {
           sort: { field: 'expireDate', order: -1 },
           perPage: 2,
         });
-        const memberships = await ctx.call('membership.list');
+        const memberships = await ctx.call<Membership[]>('membership.list');
         if (allSubBefore.length === 0) return;
         if (allSubBefore.length === 1) {
-          return ctx.call('crm.addTagsByUrl', {
+          return ctx.call<CrmResponse, Partial<CrmStore>>('crm.addTagsByUrl', {
             id: ctx.params.id,
             tag: 'subscription-upgrade',
           });
@@ -559,13 +611,13 @@ const TheService: ServiceSchema = {
           (m: Membership) => allSubBefore[1].membershipId === m.id
         );
         if (oldM.sort > lastM.sort) {
-          return ctx.call('crm.addTagsByUrl', {
+          return ctx.call<CrmResponse, Partial<CrmStore>>('crm.addTagsByUrl', {
             id: ctx.params.id,
             tag: 'subscription-upgrade',
           });
         }
         if (oldM.sort < lastM.sort) {
-          return ctx.call('crm.addTagsByUrl', {
+          return ctx.call<CrmResponse, Partial<CrmStore>>('crm.addTagsByUrl', {
             id: ctx.params.id,
             tag: 'subscription-downgrade',
           });
@@ -574,20 +626,26 @@ const TheService: ServiceSchema = {
     },
     cancel: {
       auth: ['Basic'],
-      handler(ctx) {
+      handler(ctx): Promise<Subscription> {
         return this.adapter
           .updateById(ctx.params.id, { $set: { status: 'cancelled' } })
           .then(async (res: any) => {
-            const instance = await ctx.call('stores.findInstance', {
-              id: res.storeId,
-            });
+            const instance: Store = await ctx.call<Store, Partial<Store>>(
+              'stores.findInstance',
+              {
+                id: res.storeId,
+              }
+            );
 
             if (res.invoiceId) {
-              ctx.call('invoices.updateInvoiceStatus', {
-                omsId: instance?.internal_data?.omsId,
-                invoiceId: res.invoiceId,
-                status: 'void',
-              });
+              ctx.call<GenericObject, Partial<Invoice>>(
+                'invoices.updateInvoiceStatus',
+                {
+                  omsId: instance?.internal_data?.omsId,
+                  invoiceId: res.invoiceId,
+                  status: 'void',
+                }
+              );
             }
             if (!res) {
               throw new MpError(

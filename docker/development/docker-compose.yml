@@ -7,11 +7,10 @@ services:
     image: microes
     restart: always
     env_file: .env
+    hostname: "api"
     environment:
-      SERVICES: api, tasks, apm
+      SERVICES: api, tasks
       PORT: 4040
-    ports:
-      - "4040:4040"
     labels:
       traefik.enable: "true"
       traefik.backend: mp-development
@@ -25,6 +24,7 @@ services:
     image: microes
     restart: always
     env_file: .env
+    hostname: "stores"
     environment:
       SERVICES: stores
 
@@ -34,6 +34,7 @@ services:
     image: microes
     restart: always
     env_file: .env
+    hostname: "products-instances"
     environment:
       SERVICES: products-instances
 
@@ -43,6 +44,7 @@ services:
     image: microes
     restart: always
     env_file: .env
+    hostname: "categories-products"
     environment:
       SERVICES: categories, products
 
@@ -52,6 +54,7 @@ services:
     image: microes
     restart: always
     env_file: .env
+    hostname: "currencies-taxes-gdpr"
     environment:
       SERVICES: currencies, taxes, gdpr
 
@@ -61,6 +64,7 @@ services:
     image: microes
     restart: always
     env_file: .env
+    hostname: "membership-subscription-coupons-crm"
     environment:
       SERVICES: membership, subscription, coupons, crm
 
@@ -70,6 +74,7 @@ services:
     image: microes
     restart: always
     env_file: .env
+    hostname: "subscription-cron"
     environment:
       SERVICES: subscription-cron
 
@@ -79,6 +84,7 @@ services:
     image: microes
     restart: always
     env_file: .env
+    hostname: "orders"
     environment:
       SERVICES: orders
 
@@ -88,6 +94,7 @@ services:
     image: microes
     restart: always
     env_file: .env
+    hostname: "invoices-payments"
     environment:
       SERVICES: invoices, payments
 
@@ -97,6 +104,7 @@ services:
     image: microes
     restart: always
     env_file: .env
+    hostname: "oms"
     environment:
       SERVICES: oms
 
@@ -106,17 +114,9 @@ services:
     image: microes
     restart: always
     env_file: .env
+    hostname: "shipment"
     environment:
       SERVICES: shipment
-
-  logs:
-    build:
-      context: ../../
-    image: microes
-    restart: always
-    env_file: .env
-    environment:
-      SERVICES: logs
 
   redis:
     image: redis:alpine
@@ -132,3 +132,15 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./traefik.toml:/traefik.toml
       - ./acme.json:/acme.json
+
+  monitor:
+    build:
+      context: ../../
+    image: microes
+    restart: always
+    env_file: .env
+    hostname: "monitor"
+    environment:
+      SERVICES: apm, lab
+    ports:
+      - "3210:3210"

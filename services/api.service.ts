@@ -1,8 +1,9 @@
-import { Context, GenericObject, ServiceSchema } from 'moleculer';
+import { Context, ServiceSchema, GenericObject } from 'moleculer';
 import ApiGateway from 'moleculer-web';
 import compression from 'compression';
 
-import { Log, Store } from '../utilities/types';
+import { MoleculerRequest } from 'moleculer-express';
+import { Log, Store, AuthorizeMeta, IncomingRequest } from '../utilities/types';
 import { OpenApiMixin } from '../utilities/mixins/openapi.mixin';
 import { webpackMiddlewares } from '../utilities/middleware';
 import { authorizeHmac } from '../utilities/lib';
@@ -18,6 +19,25 @@ const TheService: ServiceSchema = {
   mixins: [ApiGateway, OpenApiMixin()],
   settings: {
     port: process.env.PORT || 3000,
+
+    rateLimit: {
+      // How long to keep record of requests in memory (in milliseconds).
+      // Defaults to 60000 (1 min)
+      window: Number(process.env.RATE_LIMIT_TIME) || 60 * 1000,
+
+      // Max number of requests during window. Defaults to 30
+      limit: Number(process.env.RATE_LIMIT) || 30,
+
+      // Set rate limit headers to response. Defaults to false
+      headers: Boolean(process.env.RATE_LIMIT_HEADER) || true,
+
+      // Function used to generate keys. Defaults to:
+      key(req: IncomingRequest): string {
+        return (req.headers['x-forwarded-for'] ||
+          req.connection.remoteAddress ||
+          req.socket.remoteAddress) as string;
+      },
+    },
 
     routes: [
       {
@@ -158,26 +178,26 @@ const TheService: ServiceSchema = {
           process.env.NODE_ENV === 'production'
             ? false
             : {
-                // Configures the Access-Control-Allow-Origin CORS header.
-                origin: ['http://localhost*'],
-                // Configures the Access-Control-Allow-Methods CORS header.
-                methods: ['POST', 'GET', 'PUT', 'DELETE', 'OPTION'],
-                // Configures the Access-Control-Allow-Headers CORS header.
-                allowedHeaders: [
-                  '*',
-                  'Origin',
-                  'X-Requested-With',
-                  'Content-Type',
-                  'Accept',
-                  'Authorization',
-                ],
-                // Configures the Access-Control-Expose-Headers CORS header.
-                exposedHeaders: [],
-                // Configures the Access-Control-Allow-Credentials CORS header.
-                credentials: true,
-                // Configures the Access-Control-Max-Age CORS header.
-                maxAge: 3600,
-              },
+              // Configures the Access-Control-Allow-Origin CORS header.
+              origin: ['http://localhost*'],
+              // Configures the Access-Control-Allow-Methods CORS header.
+              methods: ['POST', 'GET', 'PUT', 'DELETE', 'OPTION'],
+              // Configures the Access-Control-Allow-Headers CORS header.
+              allowedHeaders: [
+                '*',
+                'Origin',
+                'X-Requested-With',
+                'Content-Type',
+                'Accept',
+                'Authorization',
+              ],
+              // Configures the Access-Control-Expose-Headers CORS header.
+              exposedHeaders: [],
+              // Configures the Access-Control-Allow-Credentials CORS header.
+              credentials: true,
+              // Configures the Access-Control-Max-Age CORS header.
+              maxAge: 3600,
+            },
 
         // Parse body content
         bodyParsers: {
@@ -189,14 +209,14 @@ const TheService: ServiceSchema = {
           },
         },
         async onError(
-          req: any,
-          res: any,
+          req: IncomingRequest,
+          res: GenericObject,
           err: {
             message: string;
             code: number;
             name: string;
             type: string;
-            data: any[];
+            data: unknown[];
           }
         ): Promise<void> {
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -218,10 +238,14 @@ const TheService: ServiceSchema = {
           }
           if (err.code === 500 || !err.code) {
             const log = await this.sendLogs({
-              topic: `${String(req.$action.service?.name)}`,
+              topic: `${String(req.$params?.topic)}`
+                ? `${String(req.$params?.topic)}`
+                : `${String(req.$action.service?.name)}`,
               topicId: `${req.$action.name}`,
               message: 'Something went wrong fetching the data',
-              storeId: 'Unknown',
+              storeId: req.$meta?.storeId
+                ? `${String(req.$meta.storeId)}`
+                : 'Unknown',
               logLevel: 'error',
               code: 500,
               payload: { error: err.toString(), params: req.$params },
@@ -281,14 +305,17 @@ const TheService: ServiceSchema = {
     /**
      * Authorize the request
      *
-     * @param {Context} ctx
-     * @param {Object} route
+     * @param {Context<void, AuthorizeMeta>} ctx
+     * @param {unknown} route
      * @param {IncomingRequest} req
-     * @returns {Promise}
+     * @returns {(Promise<Store | boolean>)}
      */
-    authorize(ctx: Context, route: any, req: any): Promise<any> {
+    authorize(
+      ctx: Context<void, AuthorizeMeta>,
+      route: unknown,
+      req: IncomingRequest & MoleculerRequest
+    ): Promise<Store | boolean> {
       const { $endpoint, $action, headers } = req as GenericObject;
-
       // Pass if no auth required
       if (!$endpoint.action.auth) {
         return this.Promise.resolve();
@@ -304,11 +331,9 @@ const TheService: ServiceSchema = {
       }
 
       // If token or token type are missing, throw error
-      const [type, reqToken] = headers.authorization.split(' ');
-      if (!type || !reqToken || !$action.auth.includes(type)) {
-        return this.Promise.reject(
-          new UnAuthorizedError(ERR_NO_TOKEN, headers.authorization)
-        );
+      const [type, reqToken] = req.headers.authorization.split(' ');
+      if (!type || !reqToken || !req.$action.auth.includes(type)) {
+        throw new UnAuthorizedError(ERR_NO_TOKEN, req.headers.authorization);
       }
 
       return this.Promise.resolve(reqToken)
@@ -316,8 +341,10 @@ const TheService: ServiceSchema = {
           // Verify JWT token
           if (type === 'Bearer') {
             return ctx
-              .call('stores.resolveBearerToken', { token })
-              .then((user: Store) => {
+              .call<Store, { token: string; }>('stores.resolveBearerToken', {
+                token,
+              })
+              .then(user => {
                 if (!user) {
                   return this.Promise.reject(
                     new UnAuthorizedError(
@@ -344,8 +371,10 @@ const TheService: ServiceSchema = {
           // Verify Base64 Basic auth
           if (type === 'Basic') {
             return ctx
-              .call('stores.resolveBasicToken', { token })
-              .then((user: any) => {
+              .call<Store, { token: string; }>('stores.resolveBasicToken', {
+                token,
+              })
+              .then(user => {
                 if (user) {
                   ctx.meta.token = token;
                 }
@@ -353,21 +382,24 @@ const TheService: ServiceSchema = {
               });
           }
         })
-        .then((user: any) => {
+        .then((user: Store) => {
           if (!user) {
-            return this.Promise.reject(
-              new UnAuthorizedError(ERR_INVALID_TOKEN, headers.authorization)
+            throw new UnAuthorizedError(
+              ERR_INVALID_TOKEN,
+              req.headers.authorization
             );
           }
+
+          return user;
         });
     },
     /**
      * Log order errors
      *
      * @param {Log} log
-     * @returns {ServiceSchema}
+     * @returns {Log} Created log
      */
-    sendLogs(log: Log): ServiceSchema {
+    sendLogs(log: Log): Log {
       return this.broker.call('logs.add', log);
     },
   },

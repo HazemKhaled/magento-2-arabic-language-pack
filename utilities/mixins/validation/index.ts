@@ -7,7 +7,6 @@ export * from './subscription.validate';
 export * from './crm.validate';
 export * from './categories.validate';
 export * from './currencies.validate';
-export * from './logs.validate';
 export * from './shipment.validate';
 export * from './taxes.validate';
 export * from './products-instances.validate';

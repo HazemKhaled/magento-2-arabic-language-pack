@@ -87,11 +87,11 @@ export const ProductsInstancesValidation: ServiceSchema = {
         },
         sort: {
           type: 'object',
+          strict: true,
           optional: true,
           props: {
             field: { type: 'enum', values: ['updated', 'created'] },
             order: { type: 'enum', values: ['asc', 'desc'] },
-            $$strict: true,
           },
         },
       },
@@ -253,9 +253,9 @@ export const ProductsInstancesValidation: ServiceSchema = {
         },
         query: {
           type: 'object',
+          strict: true,
           optional: true,
           props: {
-            $$strict: true,
             filter: {
               type: 'array',
               optional: true,
@@ -265,6 +265,7 @@ export const ProductsInstancesValidation: ServiceSchema = {
                 props: {
                   term: {
                     type: 'object',
+                    strict: true,
                     optional: true,
                     props: {
                       'sku.keyword': {
@@ -281,11 +282,11 @@ export const ProductsInstancesValidation: ServiceSchema = {
                           optional: true,
                         },
                       ],
-                      $$strict: true,
                     },
                   },
                   terms: {
                     type: 'object',
+                    strict: true,
                     optional: true,
                     props: {
                       'sku.keyword': {
@@ -305,7 +306,6 @@ export const ProductsInstancesValidation: ServiceSchema = {
                           optional: true,
                         },
                       ],
-                      $$strict: true,
                     },
                   },
                 },

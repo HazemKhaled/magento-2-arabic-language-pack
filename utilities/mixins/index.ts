@@ -1,5 +1,4 @@
 export * from './i18n.mixin';
-export * from './db.mixin';
 export * from './invoicePage';
 export * from './mail.mixin';
 export * from './openapi.mixin';
