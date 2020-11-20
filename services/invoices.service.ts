@@ -31,23 +31,23 @@ const TheService: ServiceSchema = {
       },
       handler(
         ctx: Context<DynamicRequestParams, MetaParams>
-      ): Promise<{ invoices: Invoice[]; }> {
+      ): Promise<{ invoices: Invoice[] }> {
         const { store } = ctx.meta;
 
-        const keys: { [key: string]: string; } = {
+        const keys: { [key: string]: string } = {
           page: 'page',
           limit: 'perPage',
           reference_number: 'referenceNumber',
           invoice_number: 'invoiceNumber',
         };
-        const queryParams: { [key: string]: string; } = {};
+        const queryParams: { [key: string]: string } = {};
         Object.keys(ctx.params).forEach(key => {
           if (ctx.params[key]) queryParams[keys[key]] = ctx.params[key];
         });
 
         return ctx
           .call<
-            { response: { invoices: Invoice[]; }; },
+            { response: { invoices: Invoice[] } },
             Partial<InvoiceRequestParams>
           >('oms.listInvoice', {
             omsId: store?.internal_data?.omsId,
@@ -84,7 +84,7 @@ const TheService: ServiceSchema = {
         const { items, discount } = ctx.params;
         // Total items cost
         const itemsCost = items.reduce(
-          (aa: number, i: { rate: number; }) => (aa += i.rate),
+          (aa: number, i: { rate: number }) => (aa += i.rate),
           0
         );
         const totalBeforeTax = itemsCost - (discount?.value || 0);
@@ -102,7 +102,7 @@ const TheService: ServiceSchema = {
           await this.setOmsId(instance);
         }
 
-        const invoiceParams: { [key: string]: string; } = {
+        const invoiceParams: { [key: string]: string } = {
           customerId: instance?.internal_data?.omsId,
           discount: ctx.params.discount?.value.toString(),
           discountType: ctx.params.discount?.type,
@@ -139,9 +139,9 @@ const TheService: ServiceSchema = {
     updateInvoiceStatus: {
       handler(
         ctx: Context<Partial<InvoiceRequestParams>>
-      ): Promise<{ code?: number; message: string; }> {
+      ): Promise<{ code?: number; message: string }> {
         return ctx.call<
-          { code?: number; message: string; },
+          { code?: number; message: string },
           Partial<InvoiceRequestParams>
         >('oms.updateInvoiceStatus', ctx.params);
       },
@@ -214,7 +214,7 @@ const TheService: ServiceSchema = {
     createOrderInvoice: {
       async handler(
         ctx: Context<InvoiceRequestParams>
-      ): Promise<{ invoice: Invoice; code?: number; message?: string; }> {
+      ): Promise<{ invoice: Invoice; code?: number; message?: string }> {
         const instance: Store = await ctx.call<Store, Partial<Store>>(
           'stores.findInstance',
           {
@@ -238,7 +238,7 @@ const TheService: ServiceSchema = {
     markInvoiceSent: {
       handler(
         ctx: Context<InvoiceRequestParams>
-      ): Promise<{ code: number; message: string; }> {
+      ): Promise<{ code: number; message: string }> {
         return ctx
           .call<InvoiceResponse, Partial<InvoiceRequestParams>>(
             'oms.markInvoiceToSent',

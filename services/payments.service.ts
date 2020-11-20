@@ -44,7 +44,7 @@ const TheService: ServiceSchema = {
 
         if (ctx.params.invoices) {
           paymentBody.invoices = ctx.params.invoices.map(
-            (invoice: { [key: string]: string; }) => ({
+            (invoice: { [key: string]: string }) => ({
               invoiceId: invoice.invoice_id,
               amountApplied: invoice.amount_applied,
             })
@@ -98,15 +98,15 @@ const TheService: ServiceSchema = {
       },
       async handler(
         ctx: Context<GetPaymentRequestParams, MetaParams>
-      ): Promise<{ payments: Payment[]; }> {
+      ): Promise<{ payments: Payment[] }> {
         const { store } = ctx.meta;
-        const keys: { [key: string]: string; } = {
+        const keys: { [key: string]: string } = {
           page: 'page',
           limit: 'perPage',
           reference_number: 'referenceNumber',
           payment_mode: 'paymentMode',
         };
-        const queryParams: { [key: string]: string; } = {};
+        const queryParams: { [key: string]: string } = {};
         Object.keys(ctx.params).forEach(key => {
           queryParams[keys[key]] = ctx.params[key];
         });

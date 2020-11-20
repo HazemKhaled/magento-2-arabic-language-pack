@@ -47,7 +47,7 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 * 24,
       },
       async handler(
-        ctx: Context<{ id: string; }>
+        ctx: Context<{ id: string }>
       ): Promise<Subscription | false> {
         const subscription =
           (await this.adapter.findOne({
@@ -198,7 +198,7 @@ const TheService: ServiceSchema = {
             membershipRequestBody
           )
           .then(null, err => err);
-        if (isNativeError(membership as { message: string; code: number; })) {
+        if (isNativeError(membership as { message: string; code: number })) {
           throw new MoleculerError(membership.message, membership.code || 500);
         }
         if (!membership) {
@@ -237,7 +237,7 @@ const TheService: ServiceSchema = {
           throw new MoleculerError(instance.errors[0].message, 404);
         }
 
-        if (isNativeError(instance as { message: string; code: number; })) {
+        if (isNativeError(instance as { message: string; code: number })) {
           throw new MoleculerError(instance.message, instance.code || 500);
         }
         let total = Number((cost - discount).toFixed(2));
@@ -266,8 +266,9 @@ const TheService: ServiceSchema = {
                         value: total - instance.credit,
                         currency: 'USD',
                       },
-                      description: `${membership.name?.en} subscription ${membership.paymentFrequencyType
-                        }ly renewal ${ctx.params.grantTo || ctx.params.storeId}`,
+                      description: `${membership.name?.en} subscription ${
+                        membership.paymentFrequencyType
+                      }ly renewal ${ctx.params.grantTo || ctx.params.storeId}`,
                     },
                   ],
                 }
@@ -300,8 +301,9 @@ const TheService: ServiceSchema = {
               rate: cost,
               quantity: 1,
               taxId: taxData.omsId,
-              description: `StoreId: ${ctx.params.storeId}${ctx.params.grantTo ? ` Granted To: ${ctx.params.grantTo}` : ''
-                }`,
+              description: `StoreId: ${ctx.params.storeId}${
+                ctx.params.grantTo ? ` Granted To: ${ctx.params.grantTo}` : ''
+              }`,
             },
           ],
           isInclusiveTax: taxData.isInclusive,
@@ -332,7 +334,7 @@ const TheService: ServiceSchema = {
           invoice = await ctx
             .call<Invoice, Partial<Invoice>>('invoices.create', invoiceBody)
             .then(null, err => err);
-          if (isNativeError(invoice as { message: string; code: number; })) {
+          if (isNativeError(invoice as { message: string; code: number })) {
             throw new MoleculerError(invoice.message, invoice.code || 500);
           }
           const applyCreditsResponse = await ctx
@@ -342,7 +344,7 @@ const TheService: ServiceSchema = {
             .then(null, err => err);
           if (
             isNativeError(
-              applyCreditsResponse as { message: string; code: number; }
+              applyCreditsResponse as { message: string; code: number }
             )
           ) {
             throw new MoleculerError(
@@ -373,8 +375,8 @@ const TheService: ServiceSchema = {
               startDate =
                 new Date(subscription.expireDate) > startDate
                   ? new Date(
-                    new Date(subscription.expireDate).setMilliseconds(1000)
-                  )
+                      new Date(subscription.expireDate).setMilliseconds(1000)
+                    )
                   : startDate;
             });
           }
@@ -582,7 +584,7 @@ const TheService: ServiceSchema = {
       },
     },
     checkCurrentSubGradingStatus: {
-      async handler(ctx: Context<{ id: string; }>): Promise<CrmResponse> | null {
+      async handler(ctx: Context<{ id: string }>): Promise<CrmResponse> | null {
         const allSubBefore = await ctx.call<
           GenericObject,
           Partial<Subscription>
