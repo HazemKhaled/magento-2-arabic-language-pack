@@ -15,9 +15,9 @@ const {
 } = Errors;
 
 export async function authorizeHmac(
-  ctx: Context,
+  ctx: Context<void, GenericObject>,
   req: MoleculerRequest
-): Promise<void> {
+): Promise<Store | boolean> {
   const { query, headers } = req;
   const { store: storeUrl, hmac } = query;
 
@@ -25,7 +25,10 @@ export async function authorizeHmac(
     throw new UnAuthorizedError(ERR_NO_TOKEN, headers.authorization);
   }
 
-  const store = await req.$ctx.broker.call('stores.sGet', { id: storeUrl });
+  const store = (await req.$ctx.broker.call('stores.sGet', {
+    id: storeUrl,
+  })) as Store;
+
   if (!store) {
     throw new NotFoundError('ERR_NOT_FOUND', headers.authorization);
   }
@@ -37,6 +40,7 @@ export async function authorizeHmac(
 
   // Bind the store store into the meta data
   ctx.meta.store = store;
+  return store;
 }
 
 /**
