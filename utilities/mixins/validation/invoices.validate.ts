@@ -34,6 +34,7 @@ export const InvoicesValidation: ServiceSchema = {
         },
         discount: {
           type: 'object',
+          optional: true,
           props: {
             value: {
               type: 'number',
@@ -44,12 +45,12 @@ export const InvoicesValidation: ServiceSchema = {
               values: ['entity_level'],
             },
           },
-          optional: true,
         },
         items: {
           type: 'array',
           items: {
             type: 'object',
+            strict: true,
             props: {
               sku: {
                 type: 'string',
@@ -105,7 +106,6 @@ export const InvoicesValidation: ServiceSchema = {
                   optional: true,
                 },
               ],
-              $$strict: true,
             },
           },
         },

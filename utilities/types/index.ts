@@ -15,4 +15,6 @@ export * from './coupon.type';
 export * from './crmStore.type';
 export * from './tax.type';
 export * from './oms-tax.type';
+export * from './authenticate.type';
+export * from './crm.type';
 export * from './elasticsearch.type';

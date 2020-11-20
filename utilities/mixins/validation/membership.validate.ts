@@ -12,6 +12,7 @@ export const MembershipValidation: ServiceSchema = {
         },
         name: {
           type: 'object',
+          strict: true,
           props: {
             tr: {
               type: 'string',
@@ -24,11 +25,11 @@ export const MembershipValidation: ServiceSchema = {
               type: 'string',
               optional: true,
             },
-            $$strict: true,
           },
         },
         tagline: {
           type: 'object',
+          strict: true,
           props: {
             tr: {
               type: 'string',
@@ -41,11 +42,11 @@ export const MembershipValidation: ServiceSchema = {
               type: 'string',
               optional: true,
             },
-            $$strict: true,
           },
         },
         description: {
           type: 'object',
+          strict: true,
           props: {
             tr: {
               type: 'string',
@@ -58,7 +59,6 @@ export const MembershipValidation: ServiceSchema = {
               type: 'string',
               optional: true,
             },
-            $$strict: true,
           },
         },
         sort: {
@@ -111,6 +111,7 @@ export const MembershipValidation: ServiceSchema = {
         },
         name: {
           type: 'object',
+          strict: true,
           props: {
             tr: {
               type: 'string',
@@ -124,12 +125,13 @@ export const MembershipValidation: ServiceSchema = {
               type: 'string',
               optional: true,
             },
-            $$strict: true,
           },
           optional: true,
         },
         tagline: {
           type: 'object',
+          strict: true,
+          optional: true,
           props: {
             tr: {
               type: 'string',
@@ -143,12 +145,12 @@ export const MembershipValidation: ServiceSchema = {
               type: 'string',
               optional: true,
             },
-            $$strict: true,
           },
-          optional: true,
         },
         description: {
           type: 'object',
+          strict: true,
+          optional: true,
           props: {
             tr: {
               type: 'string',
@@ -162,9 +164,7 @@ export const MembershipValidation: ServiceSchema = {
               type: 'string',
               optional: true,
             },
-            $$strict: true,
           },
-          optional: true,
         },
         sort: {
           type: 'number',

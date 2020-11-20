@@ -2,17 +2,17 @@ import FormData from 'form-data';
 import { Context, Errors, GenericObject, ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
 
+import {
+  CrmStore,
+  OrderAddress,
+  CrmData,
+  CommonError,
+  CrmResponse,
+} from '../utilities/types';
 import { CRMOpenapi } from '../utilities/mixins/openapi';
-import { CrmStore, OrderAddress, Store } from '../utilities/types';
 import { CrmValidation } from '../utilities/mixins/validation';
 
 const MoleculerError = Errors.MoleculerError;
-
-interface CrmData extends Store {
-  last_order_date?: string;
-  membership_id?: string;
-  subscription_expiration?: string;
-}
 
 const TheService: ServiceSchema = {
   name: 'crm',
@@ -23,7 +23,7 @@ const TheService: ServiceSchema = {
   actions: {
     refreshToken: {
       cache: false,
-      handler(): Promise<GenericObject> {
+      handler(): Promise<void> {
         return this.request({
           method: 'post',
           isAccountsUrl: true,
@@ -48,11 +48,14 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 * 24,
         keys: ['id'],
       },
-      async handler(ctx: Context): Promise<GenericObject> {
-        const res = await ctx.call('crm.findRecords', {
-          module: 'accounts',
-          criteria: `((Account_Name:equals:${ctx.params.id}))`,
-        });
+      async handler(ctx: Context<CrmStore>): Promise<CrmResponse> {
+        const res = await ctx.call<CrmResponse, Partial<CrmStore>>(
+          'crm.findRecords',
+          {
+            module: 'accounts',
+            criteria: `((Account_Name:equals:${ctx.params.id}))`,
+          }
+        );
 
         if (!res.data?.[0]) {
           throw this.errorFactory('Store not found!', 404);
@@ -61,12 +64,15 @@ const TheService: ServiceSchema = {
       },
     },
     updateStoreById: {
-      async handler(ctx: Context): Promise<GenericObject> {
-        const { id: crmStoreId } = await ctx.call('crm.findStoreByUrl', {
-          id: ctx.params.id,
-        });
+      async handler(ctx: Context<CrmStore>): Promise<CrmResponse> {
+        const { id: crmStoreId } = await ctx.call<CrmStore, Partial<CrmStore>>(
+          'crm.findStoreByUrl',
+          {
+            id: ctx.params.id,
+          }
+        );
 
-        return ctx.call('crm.updateRecord', {
+        return ctx.call<CrmResponse, Partial<CrmStore>>('crm.updateRecord', {
           module: 'accounts',
           id: crmStoreId,
           data: [this.transformStoreParams(ctx.params)],
@@ -74,11 +80,14 @@ const TheService: ServiceSchema = {
       },
     },
     addTagsByUrl: {
-      async handler(ctx: Context): Promise<GenericObject> {
+      async handler(ctx: Context<CrmStore>): Promise<Partial<CrmResponse>> {
         const { id, tag } = ctx.params;
-        const { id: crmStoreId } = await ctx.call('crm.findStoreByUrl', { id });
+        const { id: crmStoreId } = await ctx.call<CrmStore, Partial<CrmStore>>(
+          'crm.findStoreByUrl',
+          { id }
+        );
 
-        return ctx.call('crm.addTagsToRecord', {
+        return ctx.call<CrmResponse, Partial<CrmStore>>('crm.addTagsToRecord', {
           module: 'accounts',
           id: crmStoreId,
           tag,
@@ -87,7 +96,7 @@ const TheService: ServiceSchema = {
     },
     createRecord: {
       auth: ['Basic'],
-      handler(ctx: Context): Promise<GenericObject> {
+      handler(ctx: Context<CrmStore>): Promise<CrmResponse> {
         const { module, data } = ctx.params;
 
         return this.request({
@@ -100,7 +109,7 @@ const TheService: ServiceSchema = {
     },
     updateRecord: {
       auth: ['Basic'],
-      handler(ctx: Context): Promise<GenericObject> {
+      handler(ctx: Context<CrmStore>): Promise<CrmResponse> {
         const { module, id, data } = ctx.params;
 
         return this.request({
@@ -113,7 +122,7 @@ const TheService: ServiceSchema = {
     },
     findRecords: {
       auth: ['Basic'],
-      handler(ctx: Context): Promise<GenericObject> {
+      handler(ctx: Context<CrmStore>): Promise<CrmResponse> {
         const { module, criteria, email, phone, word } = ctx.params;
 
         return this.request({
@@ -125,7 +134,7 @@ const TheService: ServiceSchema = {
     },
     addTagsToRecord: {
       auth: ['Basic'],
-      handler(ctx: Context): Promise<GenericObject> {
+      handler(ctx: Context<CrmStore>): Promise<CrmResponse> {
         const { module, id, tag } = ctx.params;
 
         return this.request({
@@ -137,7 +146,7 @@ const TheService: ServiceSchema = {
     },
     removeTagsFromRecord: {
       auth: ['Basic'],
-      handler(ctx: Context): Promise<GenericObject> {
+      handler(ctx: Context<CrmStore>): Promise<CrmResponse> {
         const { module, id, tag } = ctx.params;
 
         return this.request({
@@ -150,8 +159,8 @@ const TheService: ServiceSchema = {
   },
   methods: {
     /**
-     * General http requests methods for Zoho crm to handle variuos zoho requests
-     * Also checks errors for auth and reauth if the token expired
+     * General http requests methods for Zoho crm to handle various zoho requests
+     * Also checks errors for auth and re-auth if the token expired
      *
      * @param {({
      *             method: string,
@@ -177,7 +186,7 @@ const TheService: ServiceSchema = {
       body: { [key: string]: unknown };
       bodyType: 'json' | 'formData';
       params: { [key: string]: string };
-    }): Promise<GenericObject> {
+    }): Promise<unknown> {
       let url = process.env.ZOHO_CRM_URL;
       let queryString = '';
       const headers: { [key: string]: string } = {
@@ -187,7 +196,7 @@ const TheService: ServiceSchema = {
         url = process.env.ZOHO_ACCOUNTS_URL;
         delete headers.Authorization;
       }
-      const fetchParams: any = {
+      const fetchParams: GenericObject = {
         method,
       };
       if (body && bodyType === 'formData') {
@@ -230,15 +239,15 @@ const TheService: ServiceSchema = {
           }
           return parsedRes;
         })
-        .catch(err => {
+        .catch((err: CommonError) => {
           throw this.errorFactory(err.message, err.code);
         });
     },
-    transformStoreParams(params: CrmData): GenericObject {
-      const newObj: { [key: string]: string } = {
-        id: params.id,
+    transformStoreParams(params: CrmData): unknown {
+      const newObj: GenericObject = {
+        id: String(params.id),
       };
-      const crmParams: { [key: string]: string } = {
+      const crmParams: GenericObject = {
         type: 'Platform',
         status: 'Store_Status',
         stock_date: 'Stock_Date',
@@ -314,7 +323,7 @@ const TheService: ServiceSchema = {
       }
       return newObj;
     },
-    errorFactory(msg, code) {
+    errorFactory(msg, code): CommonError {
       const error = new MoleculerError(msg, code);
       error.name = 'CRM Service';
       return error;

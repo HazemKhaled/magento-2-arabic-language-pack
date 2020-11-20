@@ -1,5 +1,6 @@
 import { Errors as MoleculerErrors, ServiceSchema } from 'moleculer';
 
+import { CommonError } from '../utilities/types';
 import { Mail } from '../utilities/mixins/mail.mixin';
 import { GDPROpenapi } from '../utilities/mixins/openapi';
 import { GDPRValidation } from '../utilities/mixins/validation';
@@ -20,7 +21,7 @@ const Service: ServiceSchema = {
           },
         },
       },
-      async handler(ctx) {
+      async handler(ctx): Promise<{ message: string } | CommonError> {
         const {
           customer: { email },
         } = ctx.params;
@@ -32,7 +33,7 @@ const Service: ServiceSchema = {
     },
     storeRedact: {
       auth: ['Bearer'],
-      handler(ctx) {
+      handler(ctx): Promise<{ message: string } | CommonError> {
         return this.sendRequest({
           subject: 'GDPR Customer Redact',
           text: `This customer with the storeId: ${ctx.meta.storeId} has sent store redact request.`,
@@ -49,7 +50,7 @@ const Service: ServiceSchema = {
           },
         },
       },
-      handler(ctx) {
+      handler(ctx): Promise<{ message: string } | CommonError> {
         const {
           customer: { email },
         } = ctx.params;
@@ -61,7 +62,7 @@ const Service: ServiceSchema = {
     },
   },
   methods: {
-    sendRequest({ subject, text }) {
+    sendRequest({ subject, text }): Promise<{ message: string } | CommonError> {
       return this.sendMail({
         to: process.env.SUPPORT_MAIL,
         subject,

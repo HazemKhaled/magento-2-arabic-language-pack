@@ -8,10 +8,8 @@ services:
     restart: always
     env_file: .env
     environment:
-      SERVICES: api, tasks, apm
+      SERVICES: api, tasks
       PORT: 4040
-    ports:
-      - "4040:4040"
     labels:
       traefik.enable: "true"
       traefik.backend: mp-development
@@ -132,3 +130,14 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./traefik.toml:/traefik.toml
       - ./acme.json:/acme.json
+
+  monitor:
+    build:
+      context: ../../
+    image: microes
+    restart: always
+    env_file: .env
+    environment:
+      SERVICES: apm, lab
+    ports:
+      - "3210:3210"

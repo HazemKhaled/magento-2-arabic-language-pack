@@ -7,7 +7,7 @@ export const Oms: ServiceSchema = {
   name: 'oms',
   methods: {
     createOmsStore(params) {
-      const body: OmsStore = {};
+      const body: Partial<OmsStore> = {};
 
       params.users.forEach((user: User) => {
         // Backward compatibility since zoho require contact last

@@ -85,6 +85,7 @@ export const CrmValidation: ServiceSchema = {
         },
         address: {
           type: 'object',
+          optional: true,
           props: {
             first_name: {
               type: 'string',
@@ -133,7 +134,6 @@ export const CrmValidation: ServiceSchema = {
               convert: true,
             },
           },
-          optional: true,
         },
         shipping_methods: {
           type: 'array',

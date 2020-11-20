@@ -8,7 +8,7 @@ services:
     restart: always
     env_file: .env
     environment:
-      SERVICES: api, tasks, apm
+      SERVICES: api, tasks
       PORT: 80
     labels:
       - "traefik.enable=true"
@@ -89,15 +89,6 @@ services:
     environment:
       SERVICES: invoices, payments
 
-  shipment:
-    build:
-      context: ../../
-    image: microes
-    restart: always
-    env_file: .env
-    environment:
-      SERVICES: shipment
-
   oms:
     build:
       context: ../../
@@ -106,6 +97,15 @@ services:
     env_file: .env
     environment:
       SERVICES: oms
+
+  shipment:
+    build:
+      context: ../../
+    image: microes
+    restart: always
+    env_file: .env
+    environment:
+      SERVICES: shipment
 
   logs:
     build:
@@ -130,3 +130,14 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./traefik.toml:/traefik.toml
       - ./acme.json:/acme.json
+
+  monitor:
+    build:
+      context: ../../
+    image: microes
+    restart: always
+    env_file: .env
+    environment:
+      SERVICES: apm, lab
+    ports:
+      - "3210:3210"

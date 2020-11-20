@@ -16,10 +16,8 @@ export function webpackMiddlewares(): unknown[] {
   return [
     // Webpack middleware
     devMiddleware(compiler, {
-      noInfo: true,
       publicPath: config.output.publicPath,
       headers: { 'Access-Control-Allow-Origin': '*' },
-      stats: 'errors-only',
     }),
 
     // Webpack hot replacement
