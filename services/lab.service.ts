@@ -6,8 +6,8 @@ const LabService: ServiceSchema = {
   mixins: [Laboratory.AgentService],
   settings: {
     name: process.env.ELASTIC_APM_SERVICE_NAME,
-    token: process.env.MOLECULER_LAB_TOKEN,
-    apiKey: process.env.MOLECULER_LAB_KEY,
+    token: process.env.MOLECULER_APM_TOKEN,
+    apiKey: process.env.MOLECULER_APM_KEY,
   },
 };
 
