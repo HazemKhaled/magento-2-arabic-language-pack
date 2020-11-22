@@ -36,7 +36,7 @@ services:
     env_file: .env
     hostname: "products-instances"
     environment:
-      SERVICES: products-instances
+      SERVICES: products-instances, products
 
   products:
     build:
@@ -44,9 +44,9 @@ services:
     image: mp
     restart: always
     env_file: .env
-    hostname: "categories-products"
+    hostname: "categories"
     environment:
-      SERVICES: categories, products
+      SERVICES: categories
 
   currencies:
     build:
