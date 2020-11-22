@@ -42,13 +42,7 @@ const TheService: ServiceSchema = {
         path: '/api',
 
         authorization: true,
-        whitelist: [
-          'logs.*',
-
-          // webhooks
-          'registry.*',
-          'publisher.*',
-        ],
+        whitelist: [/^(?!api|$node)\w+/],
         autoAliases: true,
 
         aliases: {
