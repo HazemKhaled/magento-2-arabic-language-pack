@@ -21,7 +21,6 @@
     "logsmp",
     "magento",
     "mget",
-    "microes",
     "mixins",
     "moleculer",
     "mongodb",
@@ -74,5 +73,6 @@
     "titleBar.inactiveBackground": "#cdc80499",
     "titleBar.inactiveForeground": "#15202b99"
   },
-  "peacock.color": "#cdc804"
+  "peacock.color": "#cdc804",
+  "typescript.tsdk": "node_modules/typescript/lib"
 }

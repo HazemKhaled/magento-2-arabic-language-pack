@@ -4,7 +4,7 @@ services:
   api:
     build:
       context: ../../
-    image: microes
+    image: mp
     restart: always
     env_file: .env
     hostname: "api"
@@ -21,7 +21,7 @@ services:
   stores:
     build:
       context: ../../
-    image: microes
+    image: mp
     restart: always
     env_file: .env
     hostname: "stores"
@@ -31,27 +31,27 @@ services:
   products-instances:
     build:
       context: ../../
-    image: microes
+    image: mp
     restart: always
     env_file: .env
     hostname: "products-instances"
     environment:
-      SERVICES: products-instances
+      SERVICES: products-instances, products
 
   products:
     build:
       context: ../../
-    image: microes
+    image: mp
     restart: always
     env_file: .env
-    hostname: "categories-products"
+    hostname: "categories"
     environment:
-      SERVICES: categories, products
+      SERVICES: categories
 
   currencies:
     build:
       context: ../../
-    image: microes
+    image: mp
     restart: always
     env_file: .env
     hostname: "currencies-taxes-gdpr"
@@ -61,7 +61,7 @@ services:
   subscription:
     build:
       context: ../../
-    image: microes
+    image: mp
     restart: always
     env_file: .env
     hostname: "membership-subscription-coupons-crm"
@@ -71,7 +71,7 @@ services:
   subscription-cron:
     build:
       context: ../../
-    image: microes
+    image: mp
     restart: always
     env_file: .env
     hostname: "subscription-cron"
@@ -81,7 +81,7 @@ services:
   orders:
     build:
       context: ../../
-    image: microes
+    image: mp
     restart: always
     env_file: .env
     hostname: "orders"
@@ -91,7 +91,7 @@ services:
   invoices:
     build:
       context: ../../
-    image: microes
+    image: mp
     restart: always
     env_file: .env
     hostname: "invoices-payments"
@@ -101,7 +101,7 @@ services:
   oms:
     build:
       context: ../../
-    image: microes
+    image: mp
     restart: always
     env_file: .env
     hostname: "oms"
@@ -111,7 +111,7 @@ services:
   shipment:
     build:
       context: ../../
-    image: microes
+    image: mp
     restart: always
     env_file: .env
     hostname: "shipment"
@@ -136,7 +136,7 @@ services:
   monitor:
     build:
       context: ../../
-    image: microes
+    image: mp
     restart: always
     env_file: .env
     hostname: "monitor"

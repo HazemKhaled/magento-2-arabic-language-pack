@@ -1,5 +1,7 @@
 import { ServiceSchema } from 'moleculer';
 
+import country from '../../static/country';
+
 const ShipmentPolicySchema = {
   type: 'object',
   required: ['countries', 'name', 'rules', 'ship_from'],
@@ -65,6 +67,7 @@ const ShipmentPolicySchema = {
           },
           country: {
             type: 'string',
+            enum: country,
           },
         },
       },
@@ -183,8 +186,7 @@ const ShipmentRuleByCountryOpenapi = {
       required: true,
       schema: {
         type: 'string',
-        minLength: 2,
-        maxLength: 2,
+        enum: country,
       },
     },
     {
@@ -258,8 +260,7 @@ const ShipmentGetCurriersOpenapi = {
       in: 'query',
       schema: {
         type: 'string',
-        minLength: 2,
-        maxLength: 2,
+        enum: country,
       },
     },
   ],
