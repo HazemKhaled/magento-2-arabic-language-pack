@@ -83,8 +83,6 @@ const TheService: ServiceSchema = {
           'PUT stores/:id/sync': 'stores.sync',
           'GET admin/stores': 'stores.storesList',
 
-          // All Products
-
           // Categories
           'GET catalog/categories': 'categories.list',
 
