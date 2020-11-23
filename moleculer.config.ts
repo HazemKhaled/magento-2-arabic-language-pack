@@ -1,5 +1,5 @@
 import '@moleculer/lab';
-import { BrokerOptions } from 'moleculer';
+import { BrokerOptions, Errors } from 'moleculer';
 
 const enableApm = Number(process.env.MOLECULER_APM_ENABLE) === 1;
 
