@@ -297,20 +297,10 @@ export default {
           'Content-Type': 'application/json'
         }
       })
-        .then(() => {
-          this.showToastr({
-            type: 'success',
-            message: 'Payment success',
-          })
+        .finally((res) => {
+          document.write(res);
+          this.isSubmitting = false
         })
-        .catch(error => {
-          console.log('error', error);
-          this.showToastr({
-            type: 'error',
-            message: error.message,
-          })
-        }) 
-        .finally(() => (this.isSubmitting = false))
     },
     showToastr(data) {
       this.toastrData = data;
