@@ -17,6 +17,7 @@ services:
       traefik.port: 4040
       traefik.frontend.entryPoints: "http,https"
       traefik.frontend.rule: "Host:dev.mp.knawat.io"
+      traefik.docker.network: mp_default
 
   stores:
     build:
