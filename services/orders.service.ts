@@ -613,7 +613,7 @@ const TheService: ServiceSchema = {
           this.logger.error(err);
           this.sendLogs({
             topicId: orderBeforeUpdate.externalId,
-            message: err?.stack || err?.message ? err.message : 'Order Error',
+            message: err?.message ? err.message : 'Order Error',
             storeId: store.url,
             logLevel: 'error',
             code: 500,
@@ -627,10 +627,7 @@ const TheService: ServiceSchema = {
             errors: [
               {
                 status: 'fail',
-                message:
-                  err?.stack || err?.message
-                    ? err.message
-                    : 'Internal Server Error',
+                message: err?.message ? err.message : 'Internal Server Error',
               },
             ],
           };
