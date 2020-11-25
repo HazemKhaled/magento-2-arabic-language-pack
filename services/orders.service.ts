@@ -441,7 +441,7 @@ const TheService: ServiceSchema = {
             // Check the available products and quantities return object with inStock products info
             const stock = await this.stockProducts(data.items);
             // Return error response if no Item available
-            if (stock.enoughStock.length === 0) {
+            if (stock.items.length === 0) {
               this.sendLogs({
                 topicId: orderBeforeUpdate.externalId,
                 message:
@@ -468,6 +468,7 @@ const TheService: ServiceSchema = {
             if (ctx.params.shipping?.country) {
               country = ctx.params.shipping.country;
             }
+            ctx.params.shipping.country = country;
 
             // Taxes
             const taxData = await this.setTaxIds(store, stock.items);
@@ -480,8 +481,8 @@ const TheService: ServiceSchema = {
 
             // Shipping
             shipment = await this.shipment(
+              ctx,
               stock.items,
-              country,
               store,
               ctx.params.shipping_method
             );
@@ -612,22 +613,21 @@ const TheService: ServiceSchema = {
           this.logger.error(err);
           this.sendLogs({
             topicId: orderBeforeUpdate.externalId,
-            message:
-              err?.stack || err?.error?.message
-                ? err.error.message
-                : 'Order Error',
+            message: err?.message ? err.message : 'Order Error',
             storeId: store.url,
             logLevel: 'error',
             code: 500,
             payload: { errors: err.error || err.stack, params: ctx.params },
           });
-          ctx.meta.$statusCode = 500;
-          ctx.meta.$statusMessage = 'Internal Server Error';
+          ctx.meta.$statusCode = err.code ? err.code : 500;
+          ctx.meta.$statusMessage = err.code
+            ? 'Not Found'
+            : 'Internal Server Error';
           return {
             errors: [
               {
                 status: 'fail',
-                message: 'Internal Server Error',
+                message: err?.message ? err.message : 'Internal Server Error',
               },
             ],
           };
