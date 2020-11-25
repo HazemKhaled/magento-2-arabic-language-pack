@@ -717,7 +717,6 @@ const TheService: ServiceSchema = {
     },
     list: {
       auth: ['Bearer'],
-      rest: 'GET /list',
       cache: {
         keys: [
           'externalId',
