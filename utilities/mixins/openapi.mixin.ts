@@ -292,13 +292,7 @@ export function OpenApiMixin(): ServiceSchema {
         },
 
         aliases: {
-          'HEAD /openapi.json': function (
-            req: { $ctx: Context<unknown, { responseType: string }> },
-            res: ServerResponse
-          ) {
-            return this.sendResponse(req, res, 'ok');
-          },
-          'GET /openapi.json': function (
+          '/openapi.json': function (
             req: { $ctx: Context<unknown, { responseType: string }> },
             res: ServerResponse
           ) {
