@@ -1,7 +1,7 @@
 import request from 'supertest';
 import { ServiceBroker } from 'moleculer';
 
-import APISchema from '../../services/api.service';
+import APISchema from '../../../services/api.service';
 
 describe("Test 'stores' endpoints", () => {
   let broker = new ServiceBroker({ logger: false });

@@ -23,7 +23,8 @@
     "lint": "eslint . --ext .ts,.tsx --quiet",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "openapi": "node ./utilities/scripts/docs-checker.script.js",
-    "prettier": "prettier services/*.ts utilities/**/*.ts *.ts --write"
+    "prettier": "prettier services/*.ts utilities/**/*.ts *.ts --write",
+    "test:integration": "jest integration.spec.ts -- runInBand"
   },
   "devDependencies": {
     "@babel/plugin-proposal-optional-chaining": "^7.12.1",
