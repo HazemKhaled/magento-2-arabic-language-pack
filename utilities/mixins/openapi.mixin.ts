@@ -292,7 +292,7 @@ export function OpenApiMixin(): ServiceSchema {
         },
 
         aliases: {
-          'GET /openapi.json': function (
+          '/openapi.json': function (
             req: { $ctx: Context<unknown, { responseType: string }> },
             res: ServerResponse
           ) {
@@ -303,7 +303,7 @@ export function OpenApiMixin(): ServiceSchema {
             ctx.meta.responseType = 'application/json';
             return this.sendResponse(req, res, schema);
           },
-          'GET /openapi-private.json': [
+          '/openapi-private.json': [
             (req: any, res: ServerResponse) => {
               const auth = { login: 'your-login', password: 'your-password' };
 
