@@ -25,5 +25,9 @@
     "subscriptionDisclaimer": "You will pay {currentPrice} and renew {frequency} for {originalPrice}",
     "paymentType__month": "monthly",
     "paymentType__year": "yearly"
+  },
+
+  "toastr": {
+    "payment__success": "Payment success"
   }
 }

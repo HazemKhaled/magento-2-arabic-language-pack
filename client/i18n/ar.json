@@ -25,5 +25,10 @@
     "subscriptionDisclaimer": "ستقوم بدفع {currentPrice} وسيتم تجديد باقتك  {frequency} بسعر {originalPrice}",
     "paymentType__month": "شهرياً",
     "paymentType__year": "سنوياً"
+  },
+
+
+  "toastr": {
+    "payment__success": "تم الدفع بنجاح"
   }
 }

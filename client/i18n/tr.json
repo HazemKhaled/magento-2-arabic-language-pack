@@ -23,5 +23,8 @@
     "subscriptionDisclaimer": "{originalPrice} için {currentPrice} ödeyecek ve her {frequency} yenileyeceksiniz.",
     "paymentType__month": "aylık",
     "paymentType__year": "yıllık"
+  },
+  "toastr": {
+    "payment__success": "Başarılı ödeme"
   }
 }
