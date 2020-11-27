@@ -133,7 +133,7 @@ import CreditCard from '@/components/CreditCard';
 import AppIcon from '@/components/AppIcon';
 import Toastr from '@/components/Toastr';
 
-import { fixed2, round, $fetch } from '../utils';
+import { fixed2, round, $fetch, getErrorMessage } from '../utils';
 import { isArray } from 'util';
 
 export default {
@@ -302,13 +302,16 @@ export default {
             type: 'success',
             message: 'Payment success',
           });
+          if (res.location && res.code === 302) {
+            return window.location = res.location;
+          }
           document.write(res);
         })
         .catch(error => {
           console.error('error', error);
           this.showToastr({
             type: 'error',
-            message: error.message,
+            message: getErrorMessage(error),
           })
         }) 
         .finally(() => (this.isSubmitting = false));
