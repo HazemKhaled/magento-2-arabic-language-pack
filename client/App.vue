@@ -9,10 +9,11 @@
 import Checkout from '@/views/Checkout';
 import Cards from '@/views/Cards';
 import Error from '@/views/Error';
+import Success from '@/views/Success';
 
 export default {
   name: 'App',
-  components: { Checkout, Cards, Error },
+  components: { Checkout, Cards, Error, Success },
   data: () => ({
     component: 'Error',
     store: {},
@@ -42,10 +43,15 @@ export default {
   height: 100vh
   border: 1px solid $gray
   border-radius: 8px
-  &.has-errors
-    border-color: $red
-    display: flex
-    justify-content: center
-    align-items: center
 
+.page--error,
+.page--success
+  display: flex
+  justify-content: center
+  align-items: center
+
+.page--error
+  border-color: $red
+.page--success
+  border-color: $green
 </style>

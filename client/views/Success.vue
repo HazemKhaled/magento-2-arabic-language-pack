@@ -4,7 +4,7 @@
     img(src="/img/online_payments.svg")
   slot
     .success-message
-      | {{ error.message }}
+      | {{ $t('toastr.payment__success') }}
 </template>
 
 <script>
