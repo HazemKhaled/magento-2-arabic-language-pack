@@ -17,6 +17,7 @@ export default {
   data: () => ({
     component: 'Error',
     store: {},
+    currency: {},
     cards: [],
     error: null
   }),

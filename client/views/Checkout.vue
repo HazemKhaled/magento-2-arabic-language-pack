@@ -74,7 +74,7 @@
               v-model='useBalance'
             )
             span.checkbox__label
-              | {{ $t("checkout.useBalance") }} ({{ currency }} {{ balance }})
+              | {{ $t("checkout.useBalance") }} ({{ currency.currencyCode }} {{ balance }})
 
     .checkout__footer
       details.checkout__summary
@@ -94,14 +94,14 @@
 
             template(v-if='unit.type === "charge"')
               span {{ $t("checkout.charge") }}
-              span {{ unit.currency_code }}{{ unit.value }}
+              span {{ unit.amount.value }} {{ unit.amount.currency_code }}
         hr
         .checkout__summary-list
           span {{ $t("checkout.total") }}
-          span {{ currency }}{{ amount }}
+          span {{ fixed2(amount * currency.rate) }} {{ currency.currencyCode }}
           template(v-if='useBalance')
             span {{ $t("checkout.balanceDeduction") }}
-            span -{{ currency }}{{ fixed2(usedBalance) }}
+            span -{{ fixed2(usedBalance * currency.rate) }} {{ currency.currencyCode }}
 
       .checkbox(v-if='!cardId', :class='{ "checkbox--errors": !hasAgreed && showErrors }')
         label.checkbox__label(for='termsAgree')
@@ -114,7 +114,7 @@
 
       dl.checkout__total
         dt {{ $t("checkout.total") }} :
-        dd {{ fixed2(paymentTotal) }} {{ currency }}
+        dd {{ fixed2(paymentTotal * currency.rate) }} {{ currency.currencyCode }}
 
       button.button.button--primary.button--block.checkout__submit(
         type='submit',
@@ -152,6 +152,13 @@ export default {
     store: {
       type: Object,
       default: () => ({}),
+    },
+    currency: {
+      type: Object,
+      default: () => ({
+        currencyCode: 'USD',
+        rate: 1,
+      }),
     }
   },
   data: () => ({
@@ -162,8 +169,6 @@ export default {
     isLoading: true,
     isSubmitting: false,
     showErrors: false,
-    currencyRate: 1,
-    currency: '',
     cardId: '',
     card: {},
 
@@ -177,7 +182,7 @@ export default {
   }),
   computed: {
     balance() {
-      return round((this.store.credit || 0) * this.currencyRate);
+      return (this.store.credit || 0);
     },
     canUseBalance() {
       // Can use balance only if there's no any charge unit
@@ -200,18 +205,19 @@ export default {
       }, 0)
     },
     paymentTotal() {
-      return this.amount - this.usedBalance;
+      return (this.amount - this.usedBalance);
     },
     subscriptionDisclaimer() {
       const subscription = this.purchaseUnites.find(({ type }) => type === 'subscription');
       if (!subscription) return '';
 
       const { frequencyType, originalPrice } = subscription;
+      const { currencyCode, rate } = this.currency; 
 
       return this.$t('checkout.subscriptionDisclaimer', {
-        currentPrice: `${this.currency}${fixed2(this.paymentTotal)}`,
+        currentPrice: `${currencyCode}${fixed2(this.paymentTotal * rate)}`,
         frequency: this.$t(`checkout.paymentType__${frequencyType}`),
-        originalPrice: `${this.currency}${fixed2(originalPrice)}`,
+        originalPrice: `${currencyCode}${fixed2(originalPrice * rate)}`,
       });
     },
   },
@@ -228,7 +234,6 @@ export default {
     const queryParams = qs.parse(search);
 
     this.purchaseUnites = queryParams['purchase_units'] || [];
-    this.currency = this.purchaseUnites[0].amount.currency_code;
     this.useBalance = this.canUseBalance
 
     if (this.cards?.length) {
