@@ -1,3 +1,4 @@
+import throws from 'assert';
 import request from 'supertest';
 
 let params = {
@@ -35,7 +36,7 @@ async function getToken(body: object): Promise<void> {
 
 /* Error handling function */
 function protectReject(err: any) {
-    console.error(err.stack);
+    throws(err.stack);
     expect(err).toBe(true);
 }
 
