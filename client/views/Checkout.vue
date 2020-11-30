@@ -74,17 +74,20 @@
               v-model='useBalance'
             )
             span.checkbox__label
-              | {{ $t("checkout.useBalance") }} ({{ currency.currencyCode }} {{ balance }})
+              | {{ $t("checkout.useBalance") }} ({{ fixed2(balance * currency.rate) }} {{ currency.currencyCode }})
 
     .checkout__footer
       details.checkout__summary
         summary {{ $t("checkout.summary") }}
-        .checkout__summary-list
-          template(v-for="unit in purchaseUnites")
-            .checkout__summary-description {{ unit.description }}
+        template(v-for="unit in purchaseUnites")
+          .checkout__summary-description(v-if="unit.description")
+            | {{ unit.description }}
+          .checkout__summary-list
             template(v-if='unit.type === "order"')
-              span {{ $t("checkout.orderId") }}
-              span {{ unit.data.order }}
+              span
+                | {{ $t("checkout.orderId") }}: 
+                b {{ unit.data.order.externalId }}
+              span {{ unit.amount.value }} {{ unit.amount.currency_code }}
 
             template(v-if='unit.type === "subscription"')
               span {{ $t("membership.plan") }} :
@@ -99,9 +102,9 @@
         .checkout__summary-list
           span {{ $t("checkout.total") }}
           span {{ fixed2(amount * currency.rate) }} {{ currency.currencyCode }}
-          template(v-if='useBalance')
-            span {{ $t("checkout.balanceDeduction") }}
-            span -{{ fixed2(usedBalance * currency.rate) }} {{ currency.currencyCode }}
+        .checkout__summary-list(v-if='useBalance')
+          span {{ $t("checkout.balanceDeduction") }}
+          span -{{ fixed2(usedBalance * currency.rate) }} {{ currency.currencyCode }}
 
       .checkbox(v-if='!cardId', :class='{ "checkbox--errors": !hasAgreed && showErrors }')
         label.checkbox__label(for='termsAgree')
@@ -375,9 +378,6 @@ export default {
   justify-content: space-between
   flex-wrap: wrap
   margin: 2px 0
-  > span
-    align-self: flex-start
-    width: 50%
 
 .checkout__card
   display: flex

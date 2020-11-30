@@ -2,6 +2,7 @@
   "checkout": {
     "delete": "Delete",
     "cardNumber": "Card Number",
+    "orderId": "Order Id",
     "cardName": "Card Name",
     "cvc": "CVC",
     "expiry": "MM / YY",

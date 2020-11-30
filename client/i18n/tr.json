@@ -2,6 +2,7 @@
   "checkout": {
     "delete": "Sil",
     "cardNumber": "Kart Numarası",
+    "orderId": "Sipariş Kimliği",
     "cardName": "Kart Adı",
     "cvc": "CVC",
     "expiry": "AA / YY",
