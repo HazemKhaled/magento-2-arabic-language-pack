@@ -33,16 +33,16 @@ services:
     restart: always
     env_file: .env
     environment:
-      SERVICES: products-instances
+      SERVICES: products-instances, products
 
-  products:
+  categories:
     build:
       context: ../../
     image: microes
     restart: always
     env_file: .env
     environment:
-      SERVICES: categories, products
+      SERVICES: categories
 
   currencies:
     build:
