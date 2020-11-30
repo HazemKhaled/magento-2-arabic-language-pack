@@ -86,7 +86,7 @@
             template(v-if='unit.type === "order"')
               span
                 | {{ $t("checkout.orderId") }}: 
-                b {{ unit.data.order.externalId }}
+                b {{ unit.data.externalId }}
               span {{ unit.amount.value }} {{ unit.amount.currency_code }}
 
             template(v-if='unit.type === "subscription"')
