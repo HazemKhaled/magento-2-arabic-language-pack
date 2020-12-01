@@ -778,19 +778,21 @@ const TheService: ServiceSchema = {
     payOrder: {
       auth: ['Bearer'],
       async handler(ctx: Context) {
-        const store = await ctx.call('stores.sGet', { id: ctx.meta.store.url });
+        const { store, id } = ctx.params;
 
-        const order = await ctx.call('orders.getOrder', {
-          order_id: ctx.params.id,
-        });
+        const order = await ctx.call('orders.getOrder', { order_id: id });
 
         if (order.financialStatus === 'paid') {
-          return {
-            message: 'This order is already paid!',
-          };
+          return { message: 'This order is already paid!' };
+        }
+        if (!ctx.meta.store && !store) {
+          throw new MpError('Orders Service', 'No store provided', 422);
         }
 
-        if (order.total > store.credit) {
+        const storeDoc =
+          ctx.meta.store || (await ctx.call('stores.sGet', { id: store }));
+
+        if (order.total > storeDoc.credit) {
           throw new MpError(
             'Orders Service',
             "You don't have enough balance",
@@ -810,13 +812,13 @@ const TheService: ServiceSchema = {
             ({
               invoice: { invoiceId },
             } = await ctx.call('invoices.createOrderInvoice', {
-              storeId: store.url,
+              storeId: storeDoc.url,
               orderId: order.id,
             }));
           }
 
           await ctx.call('invoices.markInvoiceSent', {
-            omsId: ctx.meta.store.internal_data.omsId,
+            omsId: storeDoc.internal_data.omsId,
             invoiceId,
           });
 
@@ -858,7 +860,7 @@ const TheService: ServiceSchema = {
           order.status = 'paid';
           order.financialStatus = 'paid';
           order.fulfillmentStatus = 'processing';
-          this.cacheUpdate(order, store);
+          this.cacheUpdate(order, storeDoc);
 
           return applyCreditRes;
         }
