@@ -289,7 +289,7 @@ export interface OrderRequestParams extends Order {
   orderId: string;
   order_id: string;
   limit: number;
-  store?: string;
+  storeId?: string;
 }
 
 /**
