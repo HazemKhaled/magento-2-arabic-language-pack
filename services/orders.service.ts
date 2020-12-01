@@ -837,7 +837,7 @@ const TheService: ServiceSchema = {
       ): Promise<GenericObject> {
         const { store, id } = ctx.params;
 
-        const storeDoc =
+        const storeDoc: Partial<Store> =
           ctx.meta.store ||
           (await ctx.call<Store, Partial<Store>>('stores.sGet', {
             id: store,
