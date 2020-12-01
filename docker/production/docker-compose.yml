@@ -38,7 +38,7 @@ services:
     environment:
       SERVICES: products-instances, products
 
-  products:
+  categories:
     build:
       context: ../../
     image: mp
