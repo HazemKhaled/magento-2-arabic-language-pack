@@ -27,7 +27,6 @@ export interface Order {
   shipmentDate?: Date;
   shipping_method: string;
   discount?: number;
-  store?: GenericObject;
   orderNumber?: string;
   taxTotal?: number;
   adjustment?: number;
@@ -290,6 +289,7 @@ export interface OrderRequestParams extends Order {
   orderId: string;
   order_id: string;
   limit: number;
+  store?: string;
 }
 
 /**
