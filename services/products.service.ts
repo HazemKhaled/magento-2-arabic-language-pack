@@ -38,6 +38,7 @@ const TheService: ServiceSchema = {
   actions: {
     list: {
       auth: ['Basic'],
+      rest: 'GET /',
       cache: {
         keys: [
           'page',
@@ -163,6 +164,7 @@ const TheService: ServiceSchema = {
     },
     getBySku: {
       auth: ['Basic'],
+      rest: 'GET /:sku',
       cache: {
         keys: ['sku'],
         ttl: 60 * 60 * 5,
@@ -241,6 +243,7 @@ const TheService: ServiceSchema = {
     },
     getProductsByVariationSku: {
       auth: ['Basic'],
+      rest: 'GET /variation',
       cache: {
         keys: ['skus'],
         ttl: 60 * 60 * 5,

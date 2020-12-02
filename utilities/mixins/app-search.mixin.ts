@@ -1,5 +1,6 @@
 import { ServiceSchema } from 'moleculer';
-import AppSearchClient from '@elastic/app-search-node';
+
+const AppSearchClient = require('@elastic/app-search-node');
 
 export const AppSearch = (engine: string): ServiceSchema => ({
   name: 'appSearch',

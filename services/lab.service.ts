@@ -1,5 +1,6 @@
 import { ServiceSchema } from 'moleculer';
-import Laboratory from '@moleculer/lab';
+
+const Laboratory = require('@moleculer/lab');
 
 const LabService: ServiceSchema = {
   name: 'lab',
