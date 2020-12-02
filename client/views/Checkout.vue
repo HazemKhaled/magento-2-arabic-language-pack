@@ -1,16 +1,13 @@
 <template lang="pug">
 .page.page--checkout
   Toastr(
-    v-if="isToastrVisible"
-    @remove="() => isToastrVisible = false"
-    :data="toastrData"
+    v-if='isToastrVisible',
+    @remove='() => (isToastrVisible = false)',
+    :data='toastrData'
   ) {{ toastrMessage }}
 
-  .spinner(v-if="isSubmitting")
-  form.checkout__form(
-    name='checkoutForm',
-    @submit.prevent="handleFormSubmit"
-  )
+  .spinner(v-if='isSubmitting')
+  form.checkout__form(name='checkoutForm', @submit.prevent='handleFormSubmit')
     .checkout__body
       .checkout__header
         h2 {{ $t("checkout.payWith") }}
@@ -20,7 +17,7 @@
           li(v-for='card in 2', :key='card')
             label.checkout__card
               input.checkout__card-input(type='radio')
-              CreditCardPlaceholder(:isLoading="true")
+              CreditCardPlaceholder(:isLoading='true')
 
         template(v-else)
           li(v-for='card in cards', :key='card._id')
@@ -79,8 +76,8 @@
     .checkout__footer
       details.checkout__summary
         summary {{ $t("checkout.summary") }}
-        template(v-for="unit in purchaseUnites")
-          .checkout__summary-description(v-if="unit.description")
+        template(v-for='unit in purchaseUnites')
+          .checkout__summary-description(v-if='unit.description')
             | {{ unit.description }}
           .checkout__summary-list
             template(v-if='unit.type === "order"')
@@ -106,7 +103,10 @@
           span {{ $t("checkout.balanceDeduction") }}
           span -{{ fixed2(usedBalance * currency.rate) }} {{ currency.currencyCode }}
 
-      .checkbox(v-if='!cardId', :class='{ "checkbox--errors": !hasAgreed && showErrors }')
+      .checkbox(
+        v-if='!cardId',
+        :class='{ "checkbox--errors": !hasAgreed && showErrors }'
+      )
         label.checkbox__label(for='termsAgree')
           input#termsAgree.checkbox__input(
             type='checkbox',
@@ -162,7 +162,7 @@ export default {
         currencyCode: 'USD',
         rate: 1,
       }),
-    }
+    },
   },
   data: () => ({
     useSecurePayment: true,
@@ -185,7 +185,7 @@ export default {
   }),
   computed: {
     balance() {
-      return (this.store.credit || 0);
+      return this.store.credit || 0;
     },
     canUseBalance() {
       // Can use balance only if there's no any charge unit
@@ -205,17 +205,19 @@ export default {
       return this.purchaseUnites.reduce((acc, crr) => {
         acc += Number(crr.amount.value);
         return acc;
-      }, 0)
+      }, 0);
     },
     paymentTotal() {
-      return (this.amount - this.usedBalance);
+      return this.amount - this.usedBalance;
     },
     subscriptionDisclaimer() {
-      const subscription = this.purchaseUnites.find(({ type }) => type === 'subscription');
+      const subscription = this.purchaseUnites.find(
+        ({ type }) => type === 'subscription'
+      );
       if (!subscription) return '';
 
       const { frequencyType, originalPrice } = subscription;
-      const { currencyCode, rate } = this.currency; 
+      const { currencyCode, rate } = this.currency;
 
       return this.$t('checkout.subscriptionDisclaimer', {
         currentPrice: `${currencyCode}${fixed2(this.paymentTotal * rate)}`,
@@ -237,7 +239,7 @@ export default {
     const queryParams = qs.parse(search);
 
     this.purchaseUnites = queryParams['purchase_units'] || [];
-    this.useBalance = this.canUseBalance
+    this.useBalance = this.canUseBalance;
 
     if (this.cards?.length) {
       this.cardId = this.cards[0]?._id;
@@ -253,7 +255,7 @@ export default {
       // Handle paying from balance
       // If there is no remaining payment return
       if (this.useBalanceOnly) {
-        return this.handlePayingFromBalance();
+        return this.handlePayment({ balance: true });
       }
 
       // Handle paying from a new card
@@ -269,7 +271,17 @@ export default {
       }
 
       // Submit the form
-      this.handlePayment();
+      const card = !this.cardId
+        ? {
+            is_new: true,
+            store_card: this.saveCard ? 1 : 0,
+            ...this.card,
+          }
+        : {
+            is_new: false,
+            id: this.cardId,
+          };
+      this.handlePayment({ card });
       this.isSubmitting = true;
     },
     handleCardFocus() {
@@ -282,36 +294,24 @@ export default {
 
       // TODO: handle payment fail
     },
-    handlePayment() {
+    handlePayment(payload) {
       const { origin, search } = window.location;
       const url = `${origin}/api/paymentGateway/checkout${search}`;
-
-      const payload = {
-        card: !this.cardId ?
-          {
-            is_new: true,
-            store_card: this.saveCard ? 1 : 0,
-            ...this.card,
-          } : {
-            is_new: false,
-            id: this.cardId,
-          },
-      };
 
       return $fetch(url, {
         method: 'POST',
         body: JSON.stringify(payload),
         headers: {
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+        },
       })
-        .then((res) => {
+        .then(res => {
           this.showToastr({
             type: 'success',
             message: 'Payment success',
           });
           if (res.location && res.code === 302) {
-            return window.location = res.location;
+            return (window.location = res.location);
           }
           document.write(res);
         })
@@ -320,8 +320,8 @@ export default {
           this.showToastr({
             type: 'error',
             message: getErrorMessage(error),
-          })
-        }) 
+          });
+        })
         .finally(() => (this.isSubmitting = false));
     },
     showToastr(data) {
@@ -331,7 +331,7 @@ export default {
     },
     fixed2,
   },
-}
+};
 </script>
 
 <style lang="stylus">
@@ -360,8 +360,8 @@ export default {
 
 .checkout__total
   display: flex
-  margin-top: 10px
   justify-content: space-between
+  margin-top: 10px
   color: $red
   >dt
     align-self: flex-start
@@ -369,14 +369,14 @@ export default {
     align-self: flex-end
 
 .checkout__summary
-  border: 1px solid $gray
   padding: 10px
+  border: 1px solid $gray
   border-radius: 10px
 
 .checkout__summary-list
   display: flex
-  justify-content: space-between
   flex-wrap: wrap
+  justify-content: space-between
   margin: 2px 0
 
 .checkout__card
@@ -408,9 +408,9 @@ export default {
     padding: 15px 10px
     width: 100%
     border: 1px solid $gray
+    border-radius: 8px
     background-color: $gray
     color: $dark
-    border-radius: 8px
 
 // Errors
 .checkout-errors-image
@@ -419,10 +419,10 @@ export default {
     max-width: 100%
 
 .checkout-errors-code
-  text-align: center
-  color: $red
-  font-size: 40px
   margin-bottom: 20px
+  color: $red
+  text-align: center
+  font-size: 40px
 
 .checkout-errors-message
   text-align: center
