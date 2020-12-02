@@ -218,7 +218,7 @@ export function OpenApiMixin(): ServiceSchema {
             withActions: true,
           });
 
-          services.forEach((service: GenericObject) => {
+          services.forEach((service: ServiceSchema) => {
             // --- COMPILE SERVICE-LEVEL DEFINITIONS ---
             if (service.settings.openapi) {
               _.merge(res, service.settings.openapi);
