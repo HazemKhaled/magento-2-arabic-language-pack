@@ -55,13 +55,13 @@ export function OpenApiMixin(): ServiceSchema {
       /**
        * Write static files in not created
        */
-      async generateOpenApiFiles(): Promise<void> {
+      async generateOpenApiFiles(ctx: Context): Promise<void> {
         if (shouldUpdateSchema || !schema) {
           // Create new server & regenerate GraphQL schema
           this.logger.info('♻ Regenerate OpenAPI/Swagger schema...');
 
-          schema = await this.generateOpenAPISchema({ bearerOnly: true });
-          schemaPrivate = await this.generateOpenAPISchema({});
+          schema = await this.generateOpenAPISchema(ctx, { bearerOnly: true });
+          schemaPrivate = await this.generateOpenAPISchema(ctx, {});
           shouldUpdateSchema = false;
 
           if (process.env.NODE_ENV !== 'production') {
@@ -83,11 +83,14 @@ export function OpenApiMixin(): ServiceSchema {
       /**
        * Generate OpenAPI Schema
        */
-      async generateOpenAPISchema({
-        bearerOnly,
-      }: {
-        bearerOnly: boolean;
-      }): Promise<GenericObject> {
+      async generateOpenAPISchema(
+        ctx: Context,
+        {
+          bearerOnly,
+        }: {
+          bearerOnly: boolean;
+        }
+      ): Promise<GenericObject> {
         try {
           const res = _.defaultsDeep(mixinOptions.schema, {
             openapi: '3.0.3',
@@ -206,7 +209,12 @@ export function OpenApiMixin(): ServiceSchema {
             },
           });
 
-          const services = await this.broker.call('$node.services', {
+          const services = await ctx.broker.call<
+            ServiceSchema[],
+            {
+              withActions: true;
+            }
+          >('$node.services', {
             withActions: true,
           });
 
@@ -307,10 +315,10 @@ export function OpenApiMixin(): ServiceSchema {
             req: { $ctx: Context<unknown, { responseType: string }> },
             res: ServerResponse
           ): Promise<GenericObject> {
-            // Regenerate static files
-            await this.generateOpenApiFiles();
-
             const ctx = req.$ctx;
+            // Regenerate static files
+            await this.generateOpenApiFiles(ctx);
+
             ctx.meta.responseType = 'application/json';
             return this.sendResponse(req, res, schema);
           },
@@ -340,7 +348,7 @@ export function OpenApiMixin(): ServiceSchema {
               password === auth.password
             ) {
               // Regenerate static files
-              await this.generateOpenApiFiles();
+              await this.generateOpenApiFiles(ctx);
 
               ctx.meta.responseType = 'application/json';
               return this.sendResponse(req, res, schemaPrivate);
