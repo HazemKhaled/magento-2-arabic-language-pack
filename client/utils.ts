@@ -18,7 +18,11 @@ export function round(number: number): number {
  */
 export function $fetch(url: string, ...args: any[]): Promise<any> {
   return fetch(url, ...args).then(async res => {
-    const jsonRes = await res.json();
+    const jsonRes = await res.json().catch(error => {
+      console.error(res, error);
+      return {};
+    });
+
     if (res.ok) {
       return jsonRes;
     }

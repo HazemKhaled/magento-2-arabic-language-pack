@@ -149,12 +149,12 @@ const TheService: ServiceSchema = {
     applyCredits: {
       auth: ['Bearer'],
       async handler(
-        ctx: Context<Partial<InvoiceRequestParams>, { store?: Store; }>
+        ctx: Context<Partial<InvoiceRequestParams>, { store?: Store }>
       ): Promise<InvoiceResponse> {
-        const store: Store = ctx.meta.store || await ctx.call<Store>('stores.me');
-
+        const store: Store =
+          ctx.meta.store || (await ctx.call<Store>('stores.me'));
         const { params } = ctx;
-        console.log('params', params);
+
         if (
           params.useSavedPaymentMethods &&
           store.credit < params.paymentAmount
