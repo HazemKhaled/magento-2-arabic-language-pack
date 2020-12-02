@@ -2,7 +2,13 @@ import fs from 'fs';
 import { ServerResponse } from 'http';
 
 import _ from 'lodash';
-import { ActionSchema, Errors, ServiceSchema, Context } from 'moleculer';
+import {
+  ActionSchema,
+  Errors,
+  ServiceSchema,
+  Context,
+  GenericObject,
+} from 'moleculer';
 
 import { OpenAPIAction, OpenAPIV3Document } from '../../types/OpenAPI';
 import pkg from '../../package.json';
@@ -33,7 +39,7 @@ export function OpenApiMixin(): ServiceSchema {
   return {
     name: 'openapi',
     events: {
-      '$services.changed': function () {
+      '$services.changed': function (): void {
         this.invalidateOpenApiSchema();
       },
     },
@@ -42,30 +48,30 @@ export function OpenApiMixin(): ServiceSchema {
       /**
        * Invalidate the generated OpenAPI schema
        */
-      invalidateOpenApiSchema() {
+      invalidateOpenApiSchema(): void {
         shouldUpdateSchema = true;
       },
 
       /**
        * Write static files in not created
        */
-      generateOpenApiFiles() {
+      async generateOpenApiFiles(): Promise<void> {
         if (shouldUpdateSchema || !schema) {
           // Create new server & regenerate GraphQL schema
           this.logger.info('♻ Regenerate OpenAPI/Swagger schema...');
 
-          schema = this.generateOpenAPISchema({ bearerOnly: true });
-          schemaPrivate = this.generateOpenAPISchema({});
+          schema = await this.generateOpenAPISchema({ bearerOnly: true });
+          schemaPrivate = await this.generateOpenAPISchema({});
           shouldUpdateSchema = false;
 
           if (process.env.NODE_ENV !== 'production') {
-            fs.writeFileSync(
+            await fs.writeFileSync(
               './openapi.json',
               JSON.stringify(schema, null, 4),
               'utf8'
             );
 
-            fs.writeFileSync(
+            await fs.writeFileSync(
               './openapi-private.json',
               JSON.stringify(schemaPrivate, null, 4),
               'utf8'
@@ -77,7 +83,11 @@ export function OpenApiMixin(): ServiceSchema {
       /**
        * Generate OpenAPI Schema
        */
-      generateOpenAPISchema({ bearerOnly }: { bearerOnly: boolean }) {
+      async generateOpenAPISchema({
+        bearerOnly,
+      }: {
+        bearerOnly: boolean;
+      }): Promise<GenericObject> {
         try {
           const res = _.defaultsDeep(mixinOptions.schema, {
             openapi: '3.0.3',
@@ -196,10 +206,11 @@ export function OpenApiMixin(): ServiceSchema {
             },
           });
 
-          const services = this.broker.registry.getServiceList({
+          const services = await this.broker.call('$node.services', {
             withActions: true,
           });
-          services.forEach((service: any) => {
+
+          services.forEach((service: GenericObject) => {
             // --- COMPILE SERVICE-LEVEL DEFINITIONS ---
             if (service.settings.openapi) {
               _.merge(res, service.settings.openapi);
@@ -223,15 +234,15 @@ export function OpenApiMixin(): ServiceSchema {
               }
 
               // console.log(action.openapi.security[0].bearerAuth);
-              const def: any = _.cloneDeep(action.openapi);
+              const def: GenericObject = _.cloneDeep(action.openapi);
               if (def?.length > 0) {
-                def.forEach((defElement: any) => {
+                def.forEach((defElement: OpenAPIAction) => {
                   let method: string;
                   let routePath: string;
                   if (defElement.$path) {
-                    const p: any = defElement.$path.split(' ');
-                    method = p[0].toLowerCase();
-                    routePath = p[1];
+                    const path: string[] = defElement.$path.split(' ');
+                    method = path[0].toLowerCase();
+                    routePath = path[1];
                     delete defElement.$path;
                   }
 
@@ -241,9 +252,9 @@ export function OpenApiMixin(): ServiceSchema {
                 let method: string;
                 let routePath: string;
                 if (def.$path) {
-                  const p: any = def.$path.split(' ');
-                  method = p[0].toLowerCase();
-                  routePath = p[1];
+                  const path: string[] = def.$path.split(' ');
+                  method = path[0].toLowerCase();
+                  routePath = path[1];
                   delete def.$path;
                 }
 
@@ -264,7 +275,7 @@ export function OpenApiMixin(): ServiceSchema {
       },
     },
 
-    created() {
+    created(): void {
       const route = _.defaultsDeep(mixinOptions.routeOptions, {
         path: '/openapi',
         // Set CORS headers
@@ -292,55 +303,58 @@ export function OpenApiMixin(): ServiceSchema {
         },
 
         aliases: {
-          '/openapi.json': function (
+          '/openapi.json': async function (
             req: { $ctx: Context<unknown, { responseType: string }> },
             res: ServerResponse
-          ) {
+          ): Promise<GenericObject> {
             // Regenerate static files
-            this.generateOpenApiFiles();
+            await this.generateOpenApiFiles();
 
             const ctx = req.$ctx;
             ctx.meta.responseType = 'application/json';
             return this.sendResponse(req, res, schema);
           },
-          '/openapi-private.json': [
-            (req: any, res: ServerResponse) => {
-              const auth = { login: 'your-login', password: 'your-password' };
+          '/openapi-private.json': async function (
+            req: GenericObject,
+            res: ServerResponse
+          ): Promise<GenericObject> {
+            const auth = {
+              login: process.env.BASIC_USER,
+              password: process.env.BASIC_PASS,
+            };
 
-              // parse login and password from headers
-              const b64auth =
-                (req?.headers?.authorization || '').split(' ')[1] || '';
-              const [login, password] = Buffer.from(b64auth, 'base64')
-                .toString()
-                .split(':');
+            // parse login and password from headers
+            const b64auth =
+              (req?.headers?.authorization || '').split(' ')[1] || '';
+            const [login, password] = Buffer.from(b64auth, 'base64')
+              .toString()
+              .split(':');
 
-              const ctx = req.$ctx;
+            const ctx = req.$ctx;
 
-              // Verify login and password are set and correct
-              if (
-                login &&
-                password &&
-                login === auth.login &&
-                password === auth.password
-              ) {
-                // Regenerate static files
-                this.generateOpenApiFiles();
+            // Verify login and password are set and correct
+            if (
+              login &&
+              password &&
+              login === auth.login &&
+              password === auth.password
+            ) {
+              // Regenerate static files
+              await this.generateOpenApiFiles();
 
-                ctx.meta.responseType = 'application/json';
-                return this.sendResponse(req, res, schemaPrivate);
-              }
+              ctx.meta.responseType = 'application/json';
+              return this.sendResponse(req, res, schemaPrivate);
+            }
 
-              // Access denied...
-              ctx.meta.$responseHeaders = {
-                'WWW-Authenticate': 'Basic realm="401"',
-              };
-              ctx.meta.$statusCode = 401;
+            // Access denied...
+            ctx.meta.$responseHeaders = {
+              'WWW-Authenticate': 'Basic realm="401"',
+            };
+            ctx.meta.$statusCode = 401;
 
-              return this.sendResponse(req, res, 'Authentication required');
-            },
-          ],
+            return this.sendResponse(req, res, 'Authentication required');
+          },
         },
-
         mappingPolicy: 'restrict',
       });
 
@@ -348,7 +362,7 @@ export function OpenApiMixin(): ServiceSchema {
       this.settings.routes.unshift(route);
     },
 
-    started() {
+    started(): Promise<void> {
       return this.logger.info(
         `📜 OpenAPI Docs server is available at ${mixinOptions.routeOptions.path}`
       );
