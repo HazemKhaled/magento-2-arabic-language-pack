@@ -2,14 +2,9 @@ import fs from 'fs';
 import { ServerResponse } from 'http';
 
 import _ from 'lodash';
-import {
-  ActionSchema,
-  Errors,
-  ServiceSchema,
-  Context,
-  GenericObject,
-} from 'moleculer';
+import { ActionSchema, Errors, ServiceSchema, Context } from 'moleculer';
 
+import { IncomingRequest } from '../types';
 import { OpenAPIAction, OpenAPIV3Document } from '../../types/OpenAPI';
 import pkg from '../../package.json';
 
@@ -90,7 +85,7 @@ export function OpenApiMixin(): ServiceSchema {
         }: {
           bearerOnly: boolean;
         }
-      ): Promise<GenericObject> {
+      ): Promise<OpenAPIV3Document> {
         try {
           const res = _.defaultsDeep(mixinOptions.schema, {
             openapi: '3.0.3',
@@ -218,7 +213,7 @@ export function OpenApiMixin(): ServiceSchema {
             withActions: true,
           });
 
-          services.forEach((service: ServiceSchema) => {
+          services.forEach(service => {
             // --- COMPILE SERVICE-LEVEL DEFINITIONS ---
             if (service.settings.openapi) {
               _.merge(res, service.settings.openapi);
@@ -242,7 +237,9 @@ export function OpenApiMixin(): ServiceSchema {
               }
 
               // console.log(action.openapi.security[0].bearerAuth);
-              const def: GenericObject = _.cloneDeep(action.openapi);
+              const def: OpenAPIAction & OpenAPIAction[] = _.cloneDeep(
+                action.openapi
+              );
               if (def?.length > 0) {
                 def.forEach((defElement: OpenAPIAction) => {
                   let method: string;
@@ -312,9 +309,9 @@ export function OpenApiMixin(): ServiceSchema {
 
         aliases: {
           '/openapi.json': async function (
-            req: { $ctx: Context<unknown, { responseType: string }> },
+            req: IncomingRequest,
             res: ServerResponse
-          ): Promise<GenericObject> {
+          ): Promise<OpenAPIV3Document> {
             const ctx = req.$ctx;
             // Regenerate static files
             await this.generateOpenApiFiles(ctx);
@@ -323,9 +320,9 @@ export function OpenApiMixin(): ServiceSchema {
             return this.sendResponse(req, res, schema);
           },
           '/openapi-private.json': async function (
-            req: GenericObject,
+            req: IncomingRequest,
             res: ServerResponse
-          ): Promise<GenericObject> {
+          ): Promise<OpenAPIV3Document> {
             const auth = {
               login: process.env.BASIC_USER,
               password: process.env.BASIC_PASS,

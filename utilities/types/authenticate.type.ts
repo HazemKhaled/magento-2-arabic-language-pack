@@ -1,6 +1,6 @@
 import { IncomingMessage } from 'http';
 
-import { ActionSchema, GenericObject } from 'moleculer';
+import { ActionSchema, Context, GenericObject } from 'moleculer';
 
 import { Store } from './store.type';
 /**
@@ -31,4 +31,12 @@ export interface IncomingRequest extends IncomingMessage {
     };
   };
   $action: ActionSchema;
+  $ctx: Context<
+    unknown,
+    {
+      responseType: string;
+      $responseHeaders: GenericObject;
+      $statusCode: number;
+    }
+  >;
 }
