@@ -15,11 +15,23 @@ export interface Membership {
   active: boolean;
   public: boolean;
   cost: number;
-  country?: string;
+  country: string;
   discount: number;
   paymentFrequency: number;
   paymentFrequencyType: 'month' | 'year';
   attributes: { [key: string]: any };
   createdAt: Date;
   updatedAt: Date;
+  isDefault: boolean;
+}
+
+/**
+ * Membership Request Params definition
+ *
+ * @exports
+ * @interface MembershipRequestParams
+ */
+export interface MembershipRequestParams extends Membership {
+  _id: string;
+  coupon: string;
 }

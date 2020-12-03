@@ -9,7 +9,7 @@
     "moduleResolution": "node",
     "pretty": true,
     "resolveJsonModule": true,
-    "types": ["node"],
+    "types": ["jest", "node"],
     "sourceMap": true,
     "target": "es2019",
     "outDir": "./build",

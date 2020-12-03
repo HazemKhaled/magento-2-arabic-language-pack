@@ -13,26 +13,26 @@ export interface Order {
   status: string;
   knawat_order_status?: string;
   line_items?: OrderItem[];
-  items?: OrderItem[];
+  items: OrderItem[];
   billing?: GenericObject;
   shipping: OrderAddress;
   total?: number;
   createDate?: Date;
   externalId?: string;
   updateDate?: Date;
-  notes?: string;
+  notes: string;
   invoice_url?: string;
   shipping_charge?: number;
   shipmentTrackingNumber?: string;
   shipmentDate?: Date;
-  shipping_method?: string;
+  shipping_method: string;
   discount?: number;
   store?: GenericObject;
   orderNumber?: string;
   taxTotal?: number;
   adjustment?: number;
   storeLogo?: string;
-  warnings?: OrderWarnings;
+  warnings?: OrderWarnings | string;
   warningsSnippet?: string;
   financialStatus?:
     | 'unpaid'
@@ -50,6 +50,13 @@ export interface Order {
     | 'shipped'
     | 'delivered'
     | 'voided';
+  customerId?: string;
+  orderId?: string;
+  shipment_date?: string;
+  error?: {
+    statusCode: number;
+  };
+  coupon?: string;
 }
 
 /**
@@ -76,19 +83,44 @@ export interface OrderItem {
   quantity: number;
   purchaseRate: number;
   vendorId: number;
-  description?: string;
+  description: string;
   productType?: string;
   discount?: string;
   discountAmount?: number;
   total?: number;
-  weight?: number;
-  archive?: boolean;
+  weight: number;
+  archive: boolean;
   quantityRequired?: number;
   taxId?: string;
-  taxClass?: string;
+  taxClass: string;
   warnings?: string[];
-  ship_to?: string[];
-  ship_from?: ShipFrom[];
+  ship_to: string[];
+  ship_from: ShipFrom[];
+}
+
+export interface SalesOrder {
+  id?: string;
+  store: {
+    id: string;
+    url: string;
+  };
+  status: string;
+  subStatuses: [];
+  createDate: Date;
+  updateDate: Date;
+  items: OrderItem[];
+  shipping: OrderAddress;
+  billing: OrderAddress;
+  shipping_charge: number;
+  shipping_method: string;
+  discount: number;
+  total: number;
+  hasQtyCancelled: boolean;
+  notes: string;
+  adjustment: number;
+  adjustmentDescription: string;
+  orderNumber: string;
+  taxTotal: number;
 }
 
 /**
@@ -98,31 +130,9 @@ export interface OrderItem {
  * @interface OMSResponse
  */
 export interface OrderOMSResponse {
-  salesorder: {
-    id?: string;
-    store?: {
-      id: string;
-      url: string;
-    };
-    status: string;
-    subStatuses?: [];
-    createDate: Date;
-    updateDate?: Date;
-    items: OrderItem[];
-    shipping: OrderAddress;
-    billing: OrderAddress;
-    shipping_charge?: number;
-    shipping_method: string;
-    discount?: number;
-    total: number;
-    hasQtyCancelled: boolean;
-    notes?: string;
-    adjustment: number;
-    adjustmentDescription: string;
-    orderNumber: string;
-    taxTotal: number;
-  };
-  error?: { [key: string]: any };
+  salesorder: SalesOrder;
+  salesorders: SalesOrder;
+  error: GenericObject;
 }
 
 /**
@@ -145,3 +155,149 @@ export interface OrderAddress {
 }
 
 export type OrderWarnings = { message: string; sku: string }[];
+
+/**
+ * Create Order schema
+ *
+ * @exports
+ * @interface CreateOrderRequestParams
+ */
+export interface CreateOrderRequestParams {
+  store: {
+    id: string;
+    name: string;
+    url: string;
+    users: [
+      {
+        items: {
+          email: string;
+          first_name: string;
+          last_name: string;
+        };
+      }
+    ];
+  };
+  externalId: string;
+  status: string;
+  items: [
+    {
+      items: {
+        sku: string;
+        barcode: string;
+        name: string;
+        description: string;
+        url: string;
+        image: string;
+        weight: number;
+        rate: number;
+        quantity: number;
+        productType: string;
+        purchaseRate: number;
+        vendorId: string;
+        accountId: string;
+      };
+    }
+  ];
+  shipping: {
+    first_name: string;
+    last_name: string;
+    company: string;
+    address_1: string;
+    address_2: string;
+    city: string;
+    state: string;
+    postcode: string;
+    country: string;
+    email: string;
+    phone: string;
+  };
+  invoice_url: string;
+  shipping_method: string;
+  shipping_charge: number;
+  discount: string;
+  adjustment: number;
+  adjustmentDescription: string;
+  subscription: string;
+  notes: string;
+  orderNumber: string;
+  warnings: string;
+  warningsSnippet: string;
+}
+/**
+ * update Order schema
+ *
+ * @exports
+ * @interface updateOderRequestParams
+ */
+export interface updateOderRequestParams {
+  customerId: string;
+  orderId: string;
+  externalId: string;
+  status: string;
+  items: [
+    {
+      items: {
+        sku: string;
+        barcode: string;
+        name: string;
+        description: string;
+        url: string;
+        image: string;
+        weight: number;
+        rate: number;
+        quantity: number;
+        productType: string;
+        purchaseRate: number;
+        vendorId: string;
+        accountId: string;
+      };
+    }
+  ];
+  shipping: {
+    first_name: string;
+    last_name: string;
+    company: string;
+    address_1: string;
+    address_2: string;
+    city: string;
+    state: string;
+    postcode: string;
+    country: string;
+    email: string;
+    phone: string;
+  };
+  invoice_url: string;
+  shipping_method: string;
+  shipping_charge: number;
+  discount: string;
+  adjustment: number;
+  adjustmentDescription: string;
+  subscription: string;
+  notes: string;
+  orderNumber: string;
+  warnings: string;
+  warningsSnippet: string;
+}
+
+/**
+ * Order schema
+ *
+ * @exports
+ * @interface OrderRequestParams
+ */
+export interface OrderRequestParams extends Order {
+  customerId: string;
+  orderId: string;
+  order_id: string;
+  limit: number;
+}
+
+/**
+ * Order MetaParams Definition
+ *
+ * @exports
+ * @interface OrderMetaParams
+ */
+export interface OrderMetaParams {
+  store: GenericObject;
+}

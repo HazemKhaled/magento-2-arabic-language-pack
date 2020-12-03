@@ -1,7 +1,15 @@
-import { Context, Errors, ServiceSchema } from 'moleculer';
+import { Context, ServiceSchema, GenericObject } from 'moleculer';
 
 import { PaymentsOpenapi } from '../utilities/mixins/openapi';
-import { Payment, PaymentInvoice } from '../utilities/types';
+import {
+  Payment,
+  PaymentInvoice,
+  PaymentRequestParams,
+  GetPaymentRequestParams,
+  MetaParams,
+  Store,
+  PaymentResponse,
+} from '../utilities/types';
 import { PaymentsValidation } from '../utilities/mixins/validation';
 import { Oms } from '../utilities/mixins/oms.mixin';
 import { MpError } from '../utilities/adapters';
@@ -13,17 +21,22 @@ const TheService: ServiceSchema = {
   actions: {
     add: {
       auth: ['Basic'],
-      async handler(ctx: Context) {
-        const instance = await ctx.call('stores.findInstance', {
-          id: ctx.params.id,
-        });
+      async handler(
+        ctx: Context<PaymentRequestParams>
+      ): Promise<PaymentResponse> {
+        const instance: Store = await ctx.call<Store, Partial<Store>>(
+          'stores.findInstance',
+          {
+            id: ctx.params.id,
+          }
+        );
 
         // create OMS contact if no oms ID
         if (!instance?.internal_data?.omsId) {
           await this.setOmsId(instance);
         }
 
-        const paymentBody: any = {
+        const paymentBody: GenericObject = {
           customerId: instance?.internal_data?.omsId,
           paymentMode: ctx.params.payment_mode,
           amount: ctx.params.amount,
@@ -51,18 +64,31 @@ const TheService: ServiceSchema = {
           paymentBody.description = ctx.params.description;
         }
 
-        return ctx.call('oms.createPayment', paymentBody).then(
-          res => {
-            // Store balance
-            this.broker.cacher.clean(`payments.get:${instance.consumer_key}**`);
-            this.broker.cacher.clean(`invoices.get:${instance.consumer_key}**`);
-            this.cacheUpdate(res.payment, instance);
-            return this.sanitizePayment(res.payment);
-          },
-          err => {
-            throw new MpError('Payments Service', err.message, err.code || 500);
-          }
-        );
+        return ctx
+          .call<GenericObject, Partial<Payment>>(
+            'oms.createPayment',
+            paymentBody
+          )
+          .then(
+            (res: GenericObject) => {
+              // Store balance
+              this.broker.cacher.clean(
+                `payments.get:${instance.consumer_key}**`
+              );
+              this.broker.cacher.clean(
+                `invoices.get:${instance.consumer_key}**`
+              );
+              this.cacheUpdate(res.payment, instance);
+              return this.sanitizePayment(res.payment);
+            },
+            err => {
+              throw new MpError(
+                'Payments Service',
+                err.message,
+                err.code || 500
+              );
+            }
+          );
       },
     },
     get: {
@@ -71,7 +97,9 @@ const TheService: ServiceSchema = {
         keys: ['#user', 'page', 'limit', 'reference_number', 'payment_mode'],
         ttl: 60 * 60 * 24,
       },
-      async handler(ctx: Context) {
+      async handler(
+        ctx: Context<GetPaymentRequestParams, MetaParams>
+      ): Promise<{ payments: Payment[] }> {
         const { store } = ctx.meta;
         const keys: { [key: string]: string } = {
           page: 'page',
@@ -86,12 +114,14 @@ const TheService: ServiceSchema = {
 
         if (store?.internal_data?.omsId) {
           return ctx
-            .call('oms.listPayments', {
+            .call<PaymentResponse, Partial<Payment>>('oms.listPayments', {
               customerId: store.internal_data.omsId,
               ...queryParams,
             })
             .then(
-              res => ({ payments: res.payments.map(this.sanitizePayment) }),
+              (res: PaymentResponse) => ({
+                payments: res.payments.map(this.sanitizePayment),
+              }),
               err => {
                 throw new MpError(
                   'Payments Service',
@@ -111,7 +141,7 @@ const TheService: ServiceSchema = {
     },
 
     checkout: {
-      handler(ctx: Context): string {
+      handler(ctx: Context<unknown, MetaParams>): string {
         ctx.meta.$responseType = 'text/html';
         return this.renderCheckoutPage();
       },
@@ -139,7 +169,7 @@ const TheService: ServiceSchema = {
         date: payment.date,
       });
     },
-    async cacheUpdate(payment, instance) {
+    async cacheUpdate(payment, instance): Promise<void> {
       const store = await this.broker.call('stores.sGet', { id: instance.url });
       store.credit = (store.credit || 0) + payment.amount;
       this.broker.cacher.set(`stores.sGet:${store.url}|undefined`, store);

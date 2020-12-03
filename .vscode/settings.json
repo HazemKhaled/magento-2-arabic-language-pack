@@ -5,6 +5,7 @@
     "Klayer",
     "Knawat",
     "Microservices",
+    "Middlewares",
     "OPENEXCHANGE",
     "Unprocessable",
     "barcode",
@@ -20,7 +21,6 @@
     "logsmp",
     "magento",
     "mget",
-    "microes",
     "mixins",
     "moleculer",
     "mongodb",
@@ -56,5 +56,6 @@
     "source.fixAll.eslint": true
   },
   "editor.formatOnSave": true,
-  "eslint.format.enable": true
+  "eslint.format.enable": true,
+  "typescript.tsdk": "node_modules/typescript/lib"
 }

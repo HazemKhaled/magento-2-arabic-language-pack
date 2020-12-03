@@ -7,9 +7,9 @@ import { I18nText } from './i18ntext.type';
  * @interface Category
  */
 export interface Category {
-  id: number;
-  parentId?: number;
-  name?: I18nText;
+  id: string;
+  parentId: number;
+  name: I18nText;
   name_i18n?: I18nText;
   productsCount: number;
   treeNodeLevel: number;

@@ -21,21 +21,23 @@ const TheService: ServiceSchema = {
         keys: ['currencyCode'],
         ttl: 60 * 60,
       },
-      handler(ctx: Context) {
-        return ctx.call('currencies.getCurrencies').then(currencies => {
-          const currency = currencies.find(
-            (currencyObj: Currency) =>
-              currencyObj.currencyCode === ctx.params.currencyCode
-          );
-          if (currency === undefined) {
-            throw new MpError(
-              'Currencies Service',
-              'Currency code could not be found!',
-              404
+      handler(ctx: Context<Currency>): Promise<Currency> {
+        return ctx
+          .call<Currency[]>('currencies.getCurrencies')
+          .then(currencies => {
+            const currency = currencies.find(
+              currencyObj =>
+                currencyObj.currencyCode === ctx.params.currencyCode
             );
-          }
-          return currency;
-        });
+            if (currency === undefined) {
+              throw new MpError(
+                'Currencies Service',
+                'Currency code could not be found!',
+                404
+              );
+            }
+            return currency;
+          });
       },
     },
     /**
@@ -48,7 +50,7 @@ const TheService: ServiceSchema = {
       cache: {
         ttl: 60 * 60,
       },
-      handler() {
+      handler(): Promise<Currency[]> {
         return fetch('https://openexchangerates.org/api/latest.json', {
           method: 'get',
           headers: { Authorization: `Token ${process.env.OPENEXCHANGE_TOKEN}` },

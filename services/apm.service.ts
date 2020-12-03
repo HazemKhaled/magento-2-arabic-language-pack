@@ -22,7 +22,7 @@ const TheService: ServiceSchema = {
      *
      * @param {Object} metric
      */
-    'metrics.trace.span.start': function (metric: ServiceSchema) {
+    'metrics.trace.span.start': function (metric: ServiceSchema): void {
       this.requests = this.requests || {};
       this.spans = this.spans || {};
 
@@ -44,9 +44,9 @@ const TheService: ServiceSchema = {
     /**
      * Metric event end span
      *
-     * @param {Object} metric
+     * @param {ServiceSchema} metric
      */
-    'metrics.trace.span.finish': function (metric) {
+    'metrics.trace.span.finish': function (metric: ServiceSchema): void {
       // WTF!?
       /* if(metric.error) {
         let error = {};
@@ -70,10 +70,10 @@ const TheService: ServiceSchema = {
     /**
      * Get span type from metric event. By default it returns the action node path
      *
-     * @param {Object} metric
-     * @returns  {String}
+     * @param {ServiceSchema} metric
+     * @returns
      */
-    getSpanType(metric) {
+    getSpanType(metric: ServiceSchema): string {
       const type = [];
       if (metric.parentID) type.push(metric.parentID);
       if (metric.callerNodeID) type.push(metric.callerNodeID);
@@ -84,10 +84,10 @@ const TheService: ServiceSchema = {
     /**
      * Get span name from metric event. By default it returns the action name
      *
-     * @param {Object} metric
-     * @returns  {String}
+     * @param {ServiceSchema} metric
+     * @returns
      */
-    getSpanName(metric) {
+    getSpanName(metric: ServiceSchema): string {
       if (metric.name) return metric.name;
       if (metric.action) return metric.action.name;
       return 'unnamed';
@@ -96,10 +96,10 @@ const TheService: ServiceSchema = {
     /**
      * Get span type from metric event. By default 'request'
      *
-     * @param {Object} span
-     * @returns  {String}
+     * @param {ServiceSchema} metric
+     * @returns
      */
-    getType(metric) {
+    getType(metric: ServiceSchema): string {
       let type = 'request';
       if (metric.fromCache) type += '.cache';
       if (metric.remoteCall) type += '.remote';

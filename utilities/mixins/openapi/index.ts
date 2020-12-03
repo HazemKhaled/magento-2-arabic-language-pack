@@ -4,7 +4,6 @@ export * from './currencies.openapi.mixin';
 export * from './crm.openapi.mixin';
 export * from './invoices.openapi.mixin';
 export * from './membership.openapi.mixin';
-export * from './logs.openapi.mixin';
 export * from './orders.openapi.mixin';
 export * from './payments.openapi.mixin';
 export * from './shipment.openapi.mixin';

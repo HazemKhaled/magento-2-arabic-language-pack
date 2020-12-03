@@ -4,117 +4,119 @@ services:
   api:
     build:
       context: ../../
-    image: microes
+    image: mp
     restart: always
     env_file: .env
+    hostname: "api"
     environment:
       SERVICES: api, tasks
       PORT: 80
     labels:
-      - "traefik.enable=true"
-      - "traefik.backend=production"
-      - "traefik.port=80"
-      - "traefik.frontend.entryPoints=http,https"
-      - "traefik.frontend.rule=Host:mp.knawat.io"
+      traefik.enable: "true"
+      traefik.backend: mp-development
+      traefik.port: 80
+      traefik.frontend.entryPoints: "http,https"
+      traefik.frontend.rule: "Host:dev.mp.knawat.io"
 
   stores:
     build:
       context: ../../
-    image: microes
+    image: mp
     restart: always
     env_file: .env
+    hostname: "stores"
     environment:
       SERVICES: stores
 
   products-instances:
     build:
       context: ../../
-    image: microes
+    image: mp
     restart: always
     env_file: .env
+    hostname: "products-instances"
     environment:
       SERVICES: products-instances, products
 
   categories:
     build:
       context: ../../
-    image: microes
+    image: mp
     restart: always
     env_file: .env
+    hostname: "categories"
     environment:
       SERVICES: categories
 
   currencies:
     build:
       context: ../../
-    image: microes
+    image: mp
     restart: always
     env_file: .env
+    hostname: "currencies-taxes-gdpr"
     environment:
       SERVICES: currencies, taxes, gdpr
 
   subscription:
     build:
       context: ../../
-    image: microes
+    image: mp
     restart: always
     env_file: .env
+    hostname: "membership-subscription-coupons-crm"
     environment:
       SERVICES: membership, subscription, coupons, crm
 
   subscription-cron:
     build:
       context: ../../
-    image: microes
+    image: mp
     restart: always
     env_file: .env
+    hostname: "subscription-cron"
     environment:
       SERVICES: subscription-cron
 
   orders:
     build:
       context: ../../
-    image: microes
+    image: mp
     restart: always
     env_file: .env
+    hostname: "orders"
     environment:
       SERVICES: orders
 
   invoices:
     build:
       context: ../../
-    image: microes
+    image: mp
     restart: always
     env_file: .env
+    hostname: "invoices-payments"
     environment:
       SERVICES: invoices, payments
-
-  shipment:
-    build:
-      context: ../../
-    image: microes
-    restart: always
-    env_file: .env
-    environment:
-      SERVICES: shipment
 
   oms:
     build:
       context: ../../
-    image: microes
+    image: mp
     restart: always
     env_file: .env
+    hostname: "oms"
     environment:
       SERVICES: oms
 
-  logs:
+  shipment:
     build:
       context: ../../
-    image: microes
+    image: mp
     restart: always
     env_file: .env
+    hostname: "shipment"
     environment:
-      SERVICES: logs
+      SERVICES: shipment
 
   monitor:
     build:
@@ -139,3 +141,15 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./traefik.toml:/traefik.toml
       - ./acme.json:/acme.json
+
+  monitor:
+    build:
+      context: ../../
+    image: mp
+    restart: always
+    env_file: .env
+    hostname: "monitor"
+    environment:
+      SERVICES: apm, lab
+    ports:
+      - "3210:3210"

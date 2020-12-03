@@ -1,8 +1,12 @@
-import { ServiceSchema } from 'moleculer';
+import { ServiceSchema, GenericObject } from 'moleculer';
 import ESService from 'moleculer-elasticsearch';
 
+import {
+  Product,
+  ElasticSearchType,
+  ElasticSearchResponse,
+} from '../utilities/types';
 import { MpError } from '../utilities/adapters/mpError';
-import { Product } from '../utilities/types/product.type';
 import {
   ProductTransformation,
   I18nService,
@@ -34,6 +38,7 @@ const TheService: ServiceSchema = {
   actions: {
     list: {
       auth: ['Basic'],
+      rest: 'GET /',
       cache: {
         keys: [
           'page',
@@ -48,7 +53,7 @@ const TheService: ServiceSchema = {
         ],
         ttl: 30 * 60,
       },
-      handler(ctx) {
+      handler(ctx): Promise<{ products: Product[]; total: number }> {
         const filter = [];
         filter.push({
           term: {
@@ -98,7 +103,7 @@ const TheService: ServiceSchema = {
               'categories.id': parseInt(ctx.params.category_id, 10),
             },
           });
-        const sort: { [key: string]: any } = {};
+        const sort: { [key: string]: GenericObject } = {};
         switch (ctx.params.sortBy) {
           case 'salesDesc':
             sort.sales_qty = { order: 'desc' };
@@ -159,27 +164,31 @@ const TheService: ServiceSchema = {
     },
     getBySku: {
       auth: ['Basic'],
+      rest: 'GET /:sku',
       cache: {
         keys: ['sku'],
         ttl: 60 * 60 * 5,
       },
-      handler(ctx) {
+      handler(ctx): Promise<Product> {
         return ctx
-          .call('products.search', {
-            index: 'products',
-            type: '_doc',
-            body: {
-              query: {
-                bool: {
-                  filter: {
-                    term: {
-                      _id: ctx.params.sku,
+          .call<ElasticSearchResponse, Partial<ElasticSearchType>>(
+            'products.search',
+            {
+              index: 'products',
+              type: '_doc',
+              body: {
+                query: {
+                  bool: {
+                    filter: {
+                      term: {
+                        _id: ctx.params.sku,
+                      },
                     },
                   },
                 },
               },
-            },
-          })
+            }
+          )
           .then(
             ({
               hits: {
@@ -204,26 +213,29 @@ const TheService: ServiceSchema = {
         keys: ['skus'],
         ttl: 60 * 60 * 5,
       },
-      handler(ctx) {
+      handler(ctx): Promise<Product[]> {
         return ctx
-          .call('products.search', {
-            index: 'products',
-            type: '_doc',
-            body: {
-              size: 1000,
-              query: {
-                bool: {
-                  filter: [
-                    {
-                      terms: {
-                        sku: ctx.params.skus,
+          .call<ElasticSearchResponse, Partial<ElasticSearchType>>(
+            'products.search',
+            {
+              index: 'products',
+              type: '_doc',
+              body: {
+                size: 1000,
+                query: {
+                  bool: {
+                    filter: [
+                      {
+                        terms: {
+                          sku: ctx.params.skus,
+                        },
                       },
-                    },
-                  ],
+                    ],
+                  },
                 },
               },
-            },
-          })
+            }
+          )
           .then(({ hits: { hits: products } }) =>
             products.map((product: Product) => this.productSanitize(product))
           );
@@ -231,33 +243,37 @@ const TheService: ServiceSchema = {
     },
     getProductsByVariationSku: {
       auth: ['Basic'],
+      rest: 'GET /variation',
       cache: {
         keys: ['skus'],
         ttl: 60 * 60 * 5,
       },
-      handler(ctx) {
+      handler(ctx): Promise<{ products: Product[] }> {
         return ctx
-          .call('products.search', {
-            index: 'products',
-            size: 1000,
-            body: {
-              query: {
-                nested: {
-                  path: 'variations',
-                  query: {
-                    bool: {
-                      filter: {
-                        terms: {
-                          'variations.sku': ctx.params.skus,
+          .call<ElasticSearchResponse, Partial<ElasticSearchType>>(
+            'products.search',
+            {
+              index: 'products',
+              size: 1000,
+              body: {
+                query: {
+                  nested: {
+                    path: 'variations',
+                    query: {
+                      bool: {
+                        filter: {
+                          terms: {
+                            'variations.sku': ctx.params.skus,
+                          },
                         },
                       },
                     },
                   },
                 },
               },
-            },
-          })
-          .then(response => {
+            }
+          )
+          .then((response: ElasticSearchResponse) => {
             return {
               products: response.hits.hits.map(
                 ({ _source }: { _source: Product }) => _source
@@ -267,7 +283,7 @@ const TheService: ServiceSchema = {
       },
     },
     updateQuantityAttributes: {
-      async handler(ctx) {
+      async handler(ctx): Promise<GenericObject> {
         const bulk = ctx.params.products.map(
           (product: {
             id: string;
@@ -287,21 +303,24 @@ const TheService: ServiceSchema = {
             return body;
           }
         );
-        await ctx.call('products.bulk', {
-          index: 'products',
-          type: '_doc',
-          body: ctx.params.products.reduce(
-            (
-              a: any[],
-              product: { id: string; attribute: string; qty: number }
-            ) => {
-              a.push({ update: { _id: product.id, _index: 'products' } });
-              a.push({ doc: { [product.attribute]: product.qty } });
-              return a;
-            },
-            []
-          ),
-        });
+        await ctx.call<ElasticSearchResponse, Partial<ElasticSearchType>>(
+          'products.bulk',
+          {
+            index: 'products',
+            type: '_doc',
+            body: ctx.params.products.reduce(
+              (
+                a: any[],
+                product: { id: string; attribute: string; qty: number }
+              ) => {
+                a.push({ update: { _id: product.id, _index: 'products' } });
+                a.push({ doc: { [product.attribute]: product.qty } });
+                return a;
+              },
+              []
+            ),
+          }
+        );
         return this.updateDocuments(bulk);
       },
     },
@@ -321,7 +340,7 @@ const TheService: ServiceSchema = {
       scrollId = false,
       trace = 0,
       maxScroll = 0
-    ) {
+    ): Promise<{ products: Product[]; total: number }> {
       limit = limit ? parseInt(limit, 10) : 10;
       page = page ? parseInt(page, 10) : 1;
       let result = [];
@@ -380,7 +399,7 @@ const TheService: ServiceSchema = {
         total: result.hits.total.value,
       };
     },
-    productSanitize(product) {
+    productSanitize(product): Partial<Product> {
       return {
         sku: product._source.sku,
         name: this.formatI18nText(product._source.name),
