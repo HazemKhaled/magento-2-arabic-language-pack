@@ -245,7 +245,7 @@ export function OpenApiMixin(): ServiceSchema {
                   let method: string;
                   let routePath: string;
                   if (defElement.$path) {
-                    const path: string[] = defElement.$path.split(' ');
+                    const path = defElement.$path.split(' ');
                     method = path[0].toLowerCase();
                     routePath = path[1];
                     delete defElement.$path;
@@ -257,7 +257,7 @@ export function OpenApiMixin(): ServiceSchema {
                 let method: string;
                 let routePath: string;
                 if (def.$path) {
-                  const path: string[] = def.$path.split(' ');
+                  const path = def.$path.split(' ');
                   method = path[0].toLowerCase();
                   routePath = path[1];
                   delete def.$path;
