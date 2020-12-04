@@ -1,7 +1,7 @@
-import { throws } from 'assert';
 import fs from 'fs';
 import request from 'supertest';
-import { default as storeDetail } from '../payload/getstore.detail.json';
+import { default as storeDetail } from '../payload/store.detail.json';
+import { protectReject } from '../utility/common';
 
 export const baseURL = process.env.MP_BASE_URL;
 export let bearerAuthToken: string = '';
@@ -10,11 +10,11 @@ export const invalidToken = 'Invalid Token';
 /* Generate basic auth token */
 const user = process.env.BASIC_USER;
 const password = process.env.BASIC_PASS;
-export let basicAuthToken = 'Basic ' + (Buffer.from(user + ":" + password)).toString("base64");
+export const basicAuthToken = 'Basic ' + (Buffer.from(user + ":" + password)).toString("base64");
 
 /* Store consumer key and secret in a variable to generate bearer token */
-let storeConsumerKey = storeDetail.consumer_key;
-let storeConsumerSecret = storeDetail.consumer_secret;
+const storeConsumerKey = storeDetail.consumer_key;
+const storeConsumerSecret = storeDetail.consumer_secret;
 
 /* Create a body for generating token of store */
 async function storesConsumerSecretKey() {
@@ -30,7 +30,7 @@ async function storesConsumerSecretKey() {
 }
 
 /* Generate bearer auth token */
-let tokenBody: any;
+export let tokenBody: any;
 async function getToken(tokenBody: string): Promise<void> {
     try {
         const response = await request(baseURL)
@@ -46,12 +46,7 @@ async function getToken(tokenBody: string): Promise<void> {
     }
 };
 
-/*Error handling function */
-export function protectReject(err: any) {
-    throws(err.stack);
-    expect(err).toBe(true);
-}
-
+jest.setTimeout(30000);
 describe("Authentication token generation as per store.", () => {
     afterAll(async () => {
         await storesConsumerSecretKey();
@@ -65,8 +60,21 @@ describe("Authentication token generation as per store.", () => {
             .catch(protectReject)
             .then((res: any) => {
                 expect(res.statusCode).toBe(200);
-                let storeDetail = JSON.stringify(res.body.stores[0]);
-                fs.writeFileSync('test/integration/payload/getstore.detail.json', storeDetail);
+
+                /* Verify store have all the required parameters */
+                let stores = res.body.stores;
+                for (const store of stores) {
+                    let address = store.address;
+                    stores.consumer_key != null;
+                    stores.consumer_secret != null;
+                    stores.stock_status != null;
+                    if (address.hasOwnProperty('first_name', 'last_name', 'address_1', 'country')) {
+                        let storeDetail = JSON.stringify(store);
+                        fs.writeFileSync('test/integration/payload/store.detail.json', storeDetail);
+                        break;
+                    }
+                }
+
             });
     });
 

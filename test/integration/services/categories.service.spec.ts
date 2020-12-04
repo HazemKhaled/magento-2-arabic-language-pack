@@ -1,5 +1,6 @@
 import request from 'supertest';
-import { bearerAuthToken, baseURL, protectReject, invalidToken } from './getstore.spec';
+import { bearerAuthToken, baseURL, invalidToken } from './getstore.spec';
+import { protectReject } from '../utility/common';
 
 /* Function to find parentId and treeNodeLevel from response of API */
 let categoryParentId: number;

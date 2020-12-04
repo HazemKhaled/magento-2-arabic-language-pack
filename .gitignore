@@ -22,3 +22,6 @@ gcp-key.json
 public/*
 !public/img
 !public/index.html
+
+# Test folder
+test/integration/payload/*.json
