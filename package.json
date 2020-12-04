@@ -20,12 +20,14 @@
     "deps": "npm-check -u",
     "ci": "jest --watch",
     "test": "npm run test:unit && npm run test:integration ",
+    "pretest:integration": "jest getstore.spec.ts",
+    "test:integration": "jest integration.spec.ts -- runInBand",
+    "posttest:integration": "rm -rf test/payload/*.json",
+    "test:unit": "jest unit.spec.ts --coverage",
     "lint": "eslint . --ext .ts,.tsx --quiet",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "openapi": "node ./utilities/scripts/docs-checker.script.js",
-    "prettier": "prettier services/*.ts utilities/**/*.ts *.ts --write",
-    "test:integration": "jest integration.spec.ts -- runInBand",
-    "test:unit": "jest unit.spec.ts --coverage"
+    "prettier": "prettier services/*.ts utilities/**/*.ts *.ts --write"
   },
   "devDependencies": {
     "@babel/plugin-proposal-optional-chaining": "^7.12.1",

@@ -1,10 +1,10 @@
 import request from 'supertest';
-import { bearerAuthToken, baseURL, invalidToken } from './getstore.spec';
-import { protectReject } from '../utility/common';
+import { bearerAuthToken, baseURL, invalidToken, protectReject, getToken } from '../utility/helper';
 
-/* Function to find parentId and treeNodeLevel from response of API */
+/* Function to find parentId and treeNodeLevel and create a query parameter */
 let categoryParentId: number;
 let categoryTreeNodeLevel: number;
+let params: any;
 async function getQueryParamsDetail() {
     try {
         const response = await request(baseURL)
@@ -20,6 +20,10 @@ async function getQueryParamsDetail() {
             if (category.hasOwnProperty('parentId')) {
                 categoryParentId = category.parentId;
                 categoryTreeNodeLevel = category.treeNodeLevel;
+                params = {
+                    'parentId': categoryParentId,
+                    'treeNodeLevel': categoryTreeNodeLevel
+                }
                 break;
             }
         }
@@ -28,20 +32,6 @@ async function getQueryParamsDetail() {
         throw (err);
     }
 };
-
-/* Function to create query parameter for categories */
-let params: any;
-async function createQueryParamsDetail() {
-    try {
-        params = {
-            'parentId': categoryParentId,
-            'treeNodeLevel': categoryTreeNodeLevel
-        }
-    }
-    catch (err) {
-        throw (err);
-    }
-}
 
 /* Invalid data with changed data type of parameter */
 let invalidParams = {
@@ -52,10 +42,10 @@ let invalidParams = {
 jest.setTimeout(30000);
 describe("Verify 'categories' API", () => {
     beforeAll(async () => {
+        await getToken();
         await getQueryParamsDetail();
-        await createQueryParamsDetail();
     });
-
+    let index: number;
     it("Test '/catalog/categories' for 200 response code ", async () => {
 
         return request(baseURL)
@@ -245,9 +235,10 @@ describe("Verify 'categories' API", () => {
             .set('Authorization', `Bearer ${bearerAuthToken}`)
             .catch(protectReject)
             .then((res: any) => {
+                index = Math.floor(Math.random() * res.body.count);
                 expect(res.body).toHaveProperty('count' && 'categories');
-                expect(res.body.categories[0]).toHaveProperty('id' && 'name' && 'parentId' && 'productsCount' && 'treeNodeLevel');
-                expect(res.body.categories[0].name).toHaveProperty('en');
+                expect(res.body.categories[index]).toHaveProperty('id' && 'name' && 'parentId' && 'productsCount' && 'treeNodeLevel');
+                expect(res.body.categories[index].name).toHaveProperty('en');
             });
     });
 
@@ -260,14 +251,15 @@ describe("Verify 'categories' API", () => {
             .set('Authorization', `Bearer ${bearerAuthToken}`)
             .catch(protectReject)
             .then((res: any) => {
+                index = Math.floor(Math.random() * res.body.count);
                 expect(typeof res.body.count).toBe('number')
                 expect(Array.isArray([res.body.categories])).toBe(true)
-                expect(typeof res.body.categories[0].id).toBe('number')
-                expect(Array.isArray([res.body.categories[0].name])).toBe(true)
-                expect(typeof res.body.categories[0].parentId).toBe('number')
-                expect(typeof res.body.categories[0].productsCount).toBe('number')
-                expect(typeof res.body.categories[0].treeNodeLevel).toBe('number')
-                expect(typeof res.body.categories[0].name.en).toBe('string')
+                expect(typeof res.body.categories[index].id).toBe('number')
+                expect(Array.isArray([res.body.categories[index].name])).toBe(true)
+                expect(typeof res.body.categories[index].parentId).toBe('number')
+                expect(typeof res.body.categories[index].productsCount).toBe('number')
+                expect(typeof res.body.categories[index].treeNodeLevel).toBe('number')
+                expect(typeof res.body.categories[index].name.en).toBe('string')
             });
     });
 })
