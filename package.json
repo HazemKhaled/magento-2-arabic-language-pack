@@ -5,10 +5,10 @@
   "description": "Knawat MarketPlace API layer",
   "author": "Knawat, LLC.",
   "engines": {
-    "node": "12.x.x"
+    "node": "14.x.x"
   },
   "scripts": {
-    "build": "npm run clean && npm run tsc && npm run webpack:prod",
+    "build": "npm run clean && npm run tsc & npm run webpack:prod",
     "clean": "rm -rf build",
     "tsc": "tsc",
     "webpack:prod": "webpack --env platform=app --env production --config webpack.prod.js",
@@ -34,7 +34,7 @@
     "@types/jest": "^26.0.15",
     "@types/jsonwebtoken": "^8.5.0",
     "@types/lodash": "^4.14.165",
-    "@types/node": "^12.19.6",
+    "@types/node": "^14.14.10",
     "@types/node-fetch": "^2.5.7",
     "@types/nodemailer": "^6.4.0",
     "@types/supertest": "^2.0.10",
