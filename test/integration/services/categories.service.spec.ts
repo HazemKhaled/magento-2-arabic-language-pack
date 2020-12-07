@@ -1,20 +1,26 @@
 import request from 'supertest';
+import { ServiceBroker } from 'moleculer';
 
 import { getStore, arrayRandom } from '../../utility';
 import { Store, Category } from '../../../utilities/types';
+import APISchema from '../../../services/api.service';
+import CategoriesSchema from '../../../services/categories.service';
+import StoresSchema from '../../../services/stores.service';
 
-// Tmp url until replace all baseurl
-const baseURL = 'https://dev.mp.knawat.io/api';
-
-function randomCategory(token: string): Promise<Category> {
-  return request(baseURL)
-    .get('/catalog/categories')
+function randomCategory(baseUrl: string, token: string): Promise<Category> {
+  return request(baseUrl)
+    .get('/api/catalog/categories')
     .set('Authorization', `Bearer ${token}`)
     .then(({ body: { categories } }) => arrayRandom(categories));
 }
 
 jest.setTimeout(30000);
 describe("Verify 'categories' API", () => {
+  const broker = new ServiceBroker({ logger: false });
+  broker.createService(CategoriesSchema);
+  broker.createService(StoresSchema);
+  const apiService = broker.createService(APISchema);
+
   let store: { store: Store; token: string };
 
   // Test data
@@ -26,12 +32,16 @@ describe("Verify 'categories' API", () => {
 
   beforeAll(async () => {
     store = await getStore();
-    validCategory = await randomCategory(store.token);
+
+    await broker.start();
+
+    validCategory = await randomCategory(apiService.server, store.token);
   });
+  afterAll(() => broker.stop());
 
   it("Test '/catalog/categories' for 200 response code ", async () => {
-    return request(baseURL)
-      .get('/catalog/categories')
+    return request(apiService.server)
+      .get('/api/catalog/categories')
       .query({})
       .set('Authorization', `Bearer ${store.token}`)
       .then(res => {
@@ -40,8 +50,8 @@ describe("Verify 'categories' API", () => {
   });
 
   it("Test '/catalog/categories' to verify response code is 200 without passing any query parameter ", async () => {
-    return request(baseURL)
-      .get('/catalog/categories')
+    return request(apiService.server)
+      .get('/api/catalog/categories')
       .set('Authorization', `Bearer ${store.token}`)
       .then(res => {
         expect(res.status).toBe(200);
@@ -49,8 +59,8 @@ describe("Verify 'categories' API", () => {
   });
 
   it("Test '/catalog/categories' verify response code is 404 for invalid endpoint", async () => {
-    return request(baseURL)
-      .get('/catalog/invalid/categories')
+    return request(apiService.server)
+      .get('/api/catalog/invalid/categories')
       .query({})
       .set('Authorization', `Bearer ${store.token}`)
       .then(res => {
@@ -59,8 +69,8 @@ describe("Verify 'categories' API", () => {
   });
 
   it("Test '/catalog/categories' for 401 response code ", async () => {
-    return request(baseURL)
-      .get('/catalog/categories')
+    return request(apiService.server)
+      .get('/api/catalog/categories')
       .query({})
       .set('Authorization', 'Invalid Token')
       .then(res => {
@@ -69,8 +79,8 @@ describe("Verify 'categories' API", () => {
   });
 
   it("Test '/catalog/categories' for 404 response code ", async () => {
-    return request(baseURL)
-      .get('/catalog/categories')
+    return request(apiService.server)
+      .get('/api/catalog/categories')
       .query({
         // Updated value to invalid number for negative scenario
         parentId: -10,
@@ -84,8 +94,8 @@ describe("Verify 'categories' API", () => {
   });
 
   it("Test '/catalog/categories' for response has code as 400 ", async () => {
-    return request(baseURL)
-      .get('/catalog/categories')
+    return request(apiService.server)
+      .get('/api/catalog/categories')
       .query(invalidCategory)
       .set('Authorization', `Bearer ${store.token}`)
       .then(res => {
@@ -96,8 +106,8 @@ describe("Verify 'categories' API", () => {
 
   it("Test '/catalog/categories' to verify for only invalid ParentId, response has code as 400 ", async () => {
     delete invalidCategory.treeNodeLevel;
-    return request(baseURL)
-      .get('/catalog/categories')
+    return request(apiService.server)
+      .get('/api/catalog/categories')
       .query(invalidCategory)
       .set('Authorization', `Bearer ${store.token}`)
       .then(res => {
@@ -107,8 +117,8 @@ describe("Verify 'categories' API", () => {
 
   it("Test '/catalog/categories' to verify for only invalid treeNodeLevel, response has code as 400 ", async () => {
     invalidCategory.treeNodeLevel = 'Test-treeNodeLevel';
-    return request(baseURL)
-      .get('/catalog/categories')
+    return request(apiService.server)
+      .get('/api/catalog/categories')
       .query(invalidCategory)
       .set('Authorization', `Bearer ${store.token}`)
       .then(res => {
@@ -119,8 +129,8 @@ describe("Verify 'categories' API", () => {
   it("Test '/catalog/categories' to verify for invalid ParentId and valid treeNodeLevel, response has code as 400 ", async () => {
     // Updated invalid query parameter value as a number and passed it as a string for negative scenario
     invalidCategory.treeNodeLevel = '1';
-    return request(baseURL)
-      .get('/catalog/categories')
+    return request(apiService.server)
+      .get('/api/catalog/categories')
       .query(invalidCategory)
       .set('Authorization', `Bearer ${store.token}`)
       .then(res => {
@@ -133,8 +143,8 @@ describe("Verify 'categories' API", () => {
     invalidCategory.parentId = '1';
     // Passed string value in number accepted data type for negative scenario
     invalidCategory.treeNodeLevel = 'Test-treeNodeLevel';
-    return request(baseURL)
-      .get('/catalog/categories')
+    return request(apiService.server)
+      .get('/api/catalog/categories')
       .query(invalidCategory)
       .set('Authorization', `Bearer ${store.token}`)
       .then(res => {
@@ -145,8 +155,8 @@ describe("Verify 'categories' API", () => {
   it("Test '/catalog/categories' to verify for both invalid parameters, response has code as 400 ", async () => {
     // Passed string value in number accepted data type for negative scenario
     invalidCategory.parentId = 'Test-parentId';
-    return request(baseURL)
-      .get('/catalog/categories')
+    return request(apiService.server)
+      .get('/api/catalog/categories')
       .query(invalidCategory)
       .set('Authorization', `Bearer ${store.token}`)
       .then(res => {
@@ -155,8 +165,8 @@ describe("Verify 'categories' API", () => {
   });
 
   it("Test '/catalog/categories' with valid ParentId only response code is 200  ", async () => {
-    return request(baseURL)
-      .get('/catalog/categories')
+    return request(apiService.server)
+      .get('/api/catalog/categories')
       .query({ parentId: validCategory.parentId })
       .set('Authorization', `Bearer ${store.token}`)
       .then(res => {
@@ -165,8 +175,8 @@ describe("Verify 'categories' API", () => {
   });
 
   it("Test '/catalog/categories' with valid treeNodeLevel only and should get 200 response code ", async () => {
-    return request(baseURL)
-      .get('/catalog/categories')
+    return request(apiService.server)
+      .get('/api/catalog/categories')
       .query({ treeNodeLevel: validCategory.treeNodeLevel })
       .set('Authorization', `Bearer ${store.token}`)
       .then(res => {
@@ -176,8 +186,8 @@ describe("Verify 'categories' API", () => {
 
   // The below test case is failing due to the issue reported regarding combination of the query parameter. This case will pass once the issue is resolved
   it("Test '/catalog/categories' to verify response body parameters ", async () => {
-    return request(baseURL)
-      .get('/catalog/categories')
+    return request(apiService.server)
+      .get('/api/catalog/categories')
       .query({ parentId: validCategory.parentId })
       .set('Authorization', `Bearer ${store.token}`)
       .then(({ body }) => {
@@ -193,8 +203,8 @@ describe("Verify 'categories' API", () => {
 
   // The below test case is failing due to the issue reported regarding combination of the query parameter. This case will pass once the issue is resolved
   it("Test '/catalog/categories' to verify response body parameter data type ", async () => {
-    return request(baseURL)
-      .get('/catalog/categories')
+    return request(apiService.server)
+      .get('/api/catalog/categories')
       .query({})
       .set('Authorization', `Bearer ${store.token}`)
       .then(({ body }) => {
