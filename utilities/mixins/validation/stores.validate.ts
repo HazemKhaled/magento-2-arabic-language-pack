@@ -242,6 +242,11 @@ export const StoresValidation: ServiceSchema = {
               optional: true,
               convert: true,
             },
+            taxNumber: {
+              type: 'string',
+              optional: true,
+              convert: true,
+            },
           },
         },
       },
@@ -430,6 +435,11 @@ export const StoresValidation: ServiceSchema = {
               optional: true,
               convert: true,
             },
+            taxNumber: {
+              type: 'string',
+              optional: true,
+              convert: true,
+            },
           },
         },
       },
@@ -514,6 +524,11 @@ export const StoresValidation: ServiceSchema = {
               optional: true,
             },
             phone: {
+              type: 'string',
+              optional: true,
+              convert: true,
+            },
+            taxNumber: {
               type: 'string',
               optional: true,
               convert: true,
