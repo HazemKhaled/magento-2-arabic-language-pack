@@ -1,12 +1,12 @@
 import request from 'supertest';
 import { ServiceBroker } from 'moleculer';
 
-import { getStore, arrayRandom } from '../../utility';
-import { Store, Category } from '../../../utilities/types';
+import { getStore } from '../../utility';
+import { Store } from '../../../utilities/types';
 import APISchema from '../../../services/api.service';
 import StoresSchema from '../../../services/stores.service';
 
-describe("Test 'Store Token' cases", () => {
+describe("Test '/token' cases", () => {
   const broker = new ServiceBroker({ logger: false });
   broker.createService(StoresSchema);
   const apiService = broker.createService(APISchema);
