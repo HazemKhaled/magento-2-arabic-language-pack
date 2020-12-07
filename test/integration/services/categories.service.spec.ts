@@ -1,50 +1,38 @@
+import { GenericObject } from 'moleculer';
 import request from 'supertest';
 
 import { getStore } from '../../utility';
-import { Store } from '../../../utilities/types/store.type';
+import { Store, Category } from '../../../utilities/types';
 
-let categoryParentId: number;
-let categoryTreeNodeLevel: number;
-let params: any;
+const params: GenericObject = {};
 
 // Tmp url until replace all baseurl
 const baseURL = 'https://dev.mp.knawat.io/api';
 
-/**
- * Function to find parentId and treeNodeLevel and create a query parameter
- */
-async function getQueryParamsDetail(token: string): Promise<void> {
-  const responseCategories = await request(baseURL)
+function randomCategory(token: string): Promise<Category> {
+  return request(baseURL)
     .get('/catalog/categories')
     .set('Authorization', `Bearer ${token}`)
-    .then(res => res.body.categories);
-
-  for (const category of responseCategories) {
-    if (category?.parentId) {
-      categoryParentId = category.parentId;
-      categoryTreeNodeLevel = category.treeNodeLevel;
-      params = {
-        parentId: categoryParentId,
-        treeNodeLevel: categoryTreeNodeLevel,
-      };
-      break;
-    }
-  }
+    .then(
+      ({ body: { categories } }) =>
+        categories[Math.floor(Math.random() * categories.length)]
+    );
 }
 
 jest.setTimeout(30000);
 describe("Verify 'categories' API", () => {
   let store: { store: Store; token: string };
 
-  /* Invalid data with changed data type of parameter */
-  const invalidParams = {
+  // Test data
+  let category: Category;
+  const invalidCategory = {
     parentId: 'Test-ParentId',
     treeNodeLevel: 'Test-treeNodeLevel',
   };
 
   beforeAll(async () => {
     store = await getStore();
-    await getQueryParamsDetail(store.token);
+    category = await randomCategory(store.token);
   });
 
   let index: number;
@@ -104,7 +92,7 @@ describe("Verify 'categories' API", () => {
   it("Test '/catalog/categories' for response has code as 400 ", async () => {
     return request(baseURL)
       .get('/catalog/categories')
-      .query(invalidParams)
+      .query(invalidCategory)
       .set('Authorization', `Bearer ${store.token}`)
       .then(res => {
         expect(res.body.code).toBe(400);
@@ -113,10 +101,10 @@ describe("Verify 'categories' API", () => {
   });
 
   it("Test '/catalog/categories' to verify for only invalid ParentId, response has code as 400 ", async () => {
-    delete invalidParams.treeNodeLevel;
+    delete invalidCategory.treeNodeLevel;
     return request(baseURL)
       .get('/catalog/categories')
-      .query(invalidParams)
+      .query(invalidCategory)
       .set('Authorization', `Bearer ${store.token}`)
       .then(res => {
         expect(res.body.code).toBe(400);
@@ -125,10 +113,10 @@ describe("Verify 'categories' API", () => {
 
   it("Test '/catalog/categories' to verify for only invalid treeNodeLevel, response has code as 400 ", async () => {
     delete params.parentId;
-    invalidParams.treeNodeLevel = 'Test-treeNodeLevel';
+    invalidCategory.treeNodeLevel = 'Test-treeNodeLevel';
     return request(baseURL)
       .get('/catalog/categories')
-      .query(invalidParams)
+      .query(invalidCategory)
       .set('Authorization', `Bearer ${store.token}`)
       .then(res => {
         expect(res.body.code).toBe(400);
@@ -137,10 +125,10 @@ describe("Verify 'categories' API", () => {
 
   it("Test '/catalog/categories' to verify for invalid ParentId and valid treeNodeLevel, response has code as 400 ", async () => {
     // Updated invalid query parameter value as a number and passed it as a string for negative scenario
-    invalidParams.treeNodeLevel = '1';
+    invalidCategory.treeNodeLevel = '1';
     return request(baseURL)
       .get('/catalog/categories')
-      .query(invalidParams)
+      .query(invalidCategory)
       .set('Authorization', `Bearer ${store.token}`)
       .then(res => {
         expect(res.body.code).toBe(400);
@@ -149,12 +137,12 @@ describe("Verify 'categories' API", () => {
 
   it("Test '/catalog/categories' to verify for valid ParentId invalid treeNodeLevel, response has code as 400 ", async () => {
     // Updated invalid query parameter value as a number and passed it as a string for negative scenario
-    invalidParams.parentId = '1';
+    invalidCategory.parentId = '1';
     // Passed string value in number accepted data type for negative scenario
-    invalidParams.treeNodeLevel = 'Test-treeNodeLevel';
+    invalidCategory.treeNodeLevel = 'Test-treeNodeLevel';
     return request(baseURL)
       .get('/catalog/categories')
-      .query(invalidParams)
+      .query(invalidCategory)
       .set('Authorization', `Bearer ${store.token}`)
       .then(res => {
         expect(res.body.code).toBe(400);
@@ -163,10 +151,10 @@ describe("Verify 'categories' API", () => {
 
   it("Test '/catalog/categories' to verify for both invalid parameters, response has code as 400 ", async () => {
     // Passed string value in number accepted data type for negative scenario
-    invalidParams.parentId = 'Test-parentId';
+    invalidCategory.parentId = 'Test-parentId';
     return request(baseURL)
       .get('/catalog/categories')
-      .query(invalidParams)
+      .query(invalidCategory)
       .set('Authorization', `Bearer ${store.token}`)
       .then(res => {
         expect(res.body.code).toBe(400);
@@ -174,7 +162,7 @@ describe("Verify 'categories' API", () => {
   });
 
   it("Test '/catalog/categories' with valid ParentId only response code is 200  ", async () => {
-    params.parentId = categoryParentId;
+    params.parentId = category.parentId;
     delete params.treeNodeLevel;
     return request(baseURL)
       .get('/catalog/categories')
@@ -186,7 +174,7 @@ describe("Verify 'categories' API", () => {
   });
 
   it("Test '/catalog/categories' with valid treeNodeLevel only and should get 200 response code ", async () => {
-    params.treeNodeLevel = categoryTreeNodeLevel;
+    params.treeNodeLevel = category.treeNodeLevel;
     delete params.parentId;
     return request(baseURL)
       .get('/catalog/categories')
@@ -199,7 +187,7 @@ describe("Verify 'categories' API", () => {
 
   // The below test case is failing due to the issue reported regarding combination of the query parameter. This case will pass once the issue is resolved
   it("Test '/catalog/categories' to verify response body parameters ", async () => {
-    params.parentId = categoryParentId;
+    params.parentId = category.parentId;
 
     return request(baseURL)
       .get('/catalog/categories')
