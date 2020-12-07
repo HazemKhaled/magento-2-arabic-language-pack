@@ -4,8 +4,8 @@ import { ServiceBroker } from 'moleculer';
 import { getStore, arrayRandom } from '../../utility';
 import { Store, Category } from '../../../utilities/types';
 import APISchema from '../../../services/api.service';
-import CategoriesSchema from '../../../services/categories.service';
 import StoresSchema from '../../../services/stores.service';
+import CategoriesSchema from '../../../services/categories.service';
 
 function randomCategory(baseUrl: string, token: string): Promise<Category> {
   return request(baseUrl)
@@ -17,8 +17,8 @@ function randomCategory(baseUrl: string, token: string): Promise<Category> {
 jest.setTimeout(30000);
 describe("Verify 'categories' API", () => {
   const broker = new ServiceBroker({ logger: false });
-  broker.createService(CategoriesSchema);
   broker.createService(StoresSchema);
+  broker.createService(CategoriesSchema);
   const apiService = broker.createService(APISchema);
 
   let store: { store: Store; token: string };
@@ -31,9 +31,9 @@ describe("Verify 'categories' API", () => {
   };
 
   beforeAll(async () => {
-    store = await getStore();
-
     await broker.start();
+
+    store = await getStore(apiService.server);
 
     validCategory = await randomCategory(apiService.server, store.token);
   });
@@ -209,6 +209,7 @@ describe("Verify 'categories' API", () => {
       .set('Authorization', `Bearer ${store.token}`)
       .then(({ body }) => {
         const category = arrayRandom<Category>(body.categories);
+
         expect(typeof body.count).toBe('number');
         expect(Array.isArray([body.categories])).toBe(true);
         expect(typeof category.id).toBe('number');
