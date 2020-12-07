@@ -4,8 +4,8 @@ import { ServiceBroker } from 'moleculer';
 import APISchema from '../../../services/api.service';
 
 describe("Test 'stores' endpoints", () => {
-  let broker = new ServiceBroker({ logger: false });
-  let apiService = broker.createService(APISchema);
+  const broker = new ServiceBroker({ logger: false });
+  const apiService = broker.createService(APISchema);
 
   beforeAll(() => broker.start());
   afterAll(() => broker.stop());
