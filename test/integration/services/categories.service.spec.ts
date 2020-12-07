@@ -1,23 +1,22 @@
 import request from 'supertest';
 
-import {
-  bearerAuthToken,
-  baseURL,
-  invalidToken,
-  getToken,
-} from '../utility/helper';
+import { getStore } from '../../utility';
+import { Store } from '../../../utilities/types/store.type';
 
 let categoryParentId: number;
 let categoryTreeNodeLevel: number;
 let params: any;
 
+// Tmp url until replace all baseurl
+const baseURL = 'https://dev.mp.knawat.io/api';
+
 /**
  * Function to find parentId and treeNodeLevel and create a query parameter
  */
-async function getQueryParamsDetail(): Promise<void> {
+async function getQueryParamsDetail(token: string): Promise<void> {
   const responseCategories = await request(baseURL)
     .get('/catalog/categories')
-    .set('Authorization', `Bearer ${bearerAuthToken}`)
+    .set('Authorization', `Bearer ${token}`)
     .then(res => res.body.categories);
 
   for (const category of responseCategories) {
@@ -33,24 +32,27 @@ async function getQueryParamsDetail(): Promise<void> {
   }
 }
 
-/* Invalid data with changed data type of parameter */
-const invalidParams = {
-  parentId: 'Test-ParentId',
-  treeNodeLevel: 'Test-treeNodeLevel',
-};
-
 jest.setTimeout(30000);
 describe("Verify 'categories' API", () => {
+  let store: { store: Store; token: string };
+
+  /* Invalid data with changed data type of parameter */
+  const invalidParams = {
+    parentId: 'Test-ParentId',
+    treeNodeLevel: 'Test-treeNodeLevel',
+  };
+
   beforeAll(async () => {
-    await getToken();
-    await getQueryParamsDetail();
+    store = await getStore();
+    await getQueryParamsDetail(store.token);
   });
+
   let index: number;
   it("Test '/catalog/categories' for 200 response code ", async () => {
     return request(baseURL)
       .get('/catalog/categories')
       .query(params)
-      .set('Authorization', `Bearer ${bearerAuthToken}`)
+      .set('Authorization', `Bearer ${store.token}`)
       .then(res => {
         expect(res.status).toBe(200);
       });
@@ -59,7 +61,7 @@ describe("Verify 'categories' API", () => {
   it("Test '/catalog/categories' to verify response code is 200 without passing any query parameter ", async () => {
     return request(baseURL)
       .get('/catalog/categories')
-      .set('Authorization', `Bearer ${bearerAuthToken}`)
+      .set('Authorization', `Bearer ${store.token}`)
       .then(res => {
         expect(res.status).toBe(200);
       });
@@ -69,7 +71,7 @@ describe("Verify 'categories' API", () => {
     return request(baseURL)
       .get('/catalog/invalid/categories')
       .query(params)
-      .set('Authorization', `Bearer ${bearerAuthToken}`)
+      .set('Authorization', `Bearer ${store.token}`)
       .then(res => {
         expect(res.status).toBe(404);
       });
@@ -79,7 +81,7 @@ describe("Verify 'categories' API", () => {
     return request(baseURL)
       .get('/catalog/categories')
       .query(params)
-      .set('Authorization', invalidToken)
+      .set('Authorization', 'Invalid Token')
       .then(res => {
         expect(res.status).toBe(401);
       });
@@ -93,7 +95,7 @@ describe("Verify 'categories' API", () => {
     return request(baseURL)
       .get('/catalog/categories')
       .query(params)
-      .set('Authorization', `Bearer ${bearerAuthToken}`)
+      .set('Authorization', `Bearer ${store.token}`)
       .then(res => {
         expect(res.status).toBe(404);
       });
@@ -103,7 +105,7 @@ describe("Verify 'categories' API", () => {
     return request(baseURL)
       .get('/catalog/categories')
       .query(invalidParams)
-      .set('Authorization', `Bearer ${bearerAuthToken}`)
+      .set('Authorization', `Bearer ${store.token}`)
       .then(res => {
         expect(res.body.code).toBe(400);
         expect(res.body.retryable).toBe(false);
@@ -115,7 +117,7 @@ describe("Verify 'categories' API", () => {
     return request(baseURL)
       .get('/catalog/categories')
       .query(invalidParams)
-      .set('Authorization', `Bearer ${bearerAuthToken}`)
+      .set('Authorization', `Bearer ${store.token}`)
       .then(res => {
         expect(res.body.code).toBe(400);
       });
@@ -127,7 +129,7 @@ describe("Verify 'categories' API", () => {
     return request(baseURL)
       .get('/catalog/categories')
       .query(invalidParams)
-      .set('Authorization', `Bearer ${bearerAuthToken}`)
+      .set('Authorization', `Bearer ${store.token}`)
       .then(res => {
         expect(res.body.code).toBe(400);
       });
@@ -139,7 +141,7 @@ describe("Verify 'categories' API", () => {
     return request(baseURL)
       .get('/catalog/categories')
       .query(invalidParams)
-      .set('Authorization', `Bearer ${bearerAuthToken}`)
+      .set('Authorization', `Bearer ${store.token}`)
       .then(res => {
         expect(res.body.code).toBe(400);
       });
@@ -153,7 +155,7 @@ describe("Verify 'categories' API", () => {
     return request(baseURL)
       .get('/catalog/categories')
       .query(invalidParams)
-      .set('Authorization', `Bearer ${bearerAuthToken}`)
+      .set('Authorization', `Bearer ${store.token}`)
       .then(res => {
         expect(res.body.code).toBe(400);
       });
@@ -165,7 +167,7 @@ describe("Verify 'categories' API", () => {
     return request(baseURL)
       .get('/catalog/categories')
       .query(invalidParams)
-      .set('Authorization', `Bearer ${bearerAuthToken}`)
+      .set('Authorization', `Bearer ${store.token}`)
       .then(res => {
         expect(res.body.code).toBe(400);
       });
@@ -177,7 +179,7 @@ describe("Verify 'categories' API", () => {
     return request(baseURL)
       .get('/catalog/categories')
       .query(params)
-      .set('Authorization', `Bearer ${bearerAuthToken}`)
+      .set('Authorization', `Bearer ${store.token}`)
       .then(res => {
         expect(res.status).toBe(200);
       });
@@ -189,7 +191,7 @@ describe("Verify 'categories' API", () => {
     return request(baseURL)
       .get('/catalog/categories')
       .query(params)
-      .set('Authorization', `Bearer ${bearerAuthToken}`)
+      .set('Authorization', `Bearer ${store.token}`)
       .then(res => {
         expect(res.status).toBe(200);
       });
@@ -202,7 +204,7 @@ describe("Verify 'categories' API", () => {
     return request(baseURL)
       .get('/catalog/categories')
       .query(params)
-      .set('Authorization', `Bearer ${bearerAuthToken}`)
+      .set('Authorization', `Bearer ${store.token}`)
       .then(res => {
         index = Math.floor(Math.random() * res.body.count);
         expect(res.body).toHaveProperty('count' && 'categories');
@@ -218,7 +220,7 @@ describe("Verify 'categories' API", () => {
     return request(baseURL)
       .get('/catalog/categories')
       .query(params)
-      .set('Authorization', `Bearer ${bearerAuthToken}`)
+      .set('Authorization', `Bearer ${store.token}`)
       .then(res => {
         index = Math.floor(Math.random() * res.body.count);
         expect(typeof res.body.count).toBe('number');
