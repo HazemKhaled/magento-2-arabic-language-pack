@@ -29,10 +29,7 @@ describe('Authentication token generation as per store.', () => {
             address.address_1 &&
             address.country
           ) {
-            fs.writeFileSync(
-              'test/integration/payload/store.detail.json',
-              JSON.stringify(store)
-            );
+            fs.writeFileSync('test/data/store.json', JSON.stringify(store));
             break;
           }
         }

@@ -1,12 +1,10 @@
-import { throws } from 'assert';
-
 import request from 'supertest';
 
 // eslint-disable-next-line import/no-named-default
-import { default as storeDetail } from '../payload/store.detail.json';
+import { default as storeDetail } from '../../data/store.json';
 
 export const baseURL = process.env.MP_BASE_URL;
-export let bearerAuthToken = '';
+export const bearerAuthToken = '';
 export const invalidToken = 'Invalid Token';
 
 /* Generate basic auth token */
@@ -25,11 +23,9 @@ export async function getToken() {
     consumerKey: storeConsumerKey,
     consumerSecret: storeConsumerSecret,
   };
-  const response = await request(baseURL)
+
+  bearerAuthToken = await request(baseURL)
     .post('/token')
     .send(tokenBody)
-    .then((res: any) => {
-      return res;
-    });
-  bearerAuthToken = response.body.channel.token;
+    .then(res => res.body.channel?.token);
 }
