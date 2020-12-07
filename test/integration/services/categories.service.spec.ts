@@ -14,7 +14,6 @@ function randomCategory(baseUrl: string, token: string): Promise<Category> {
     .then(({ body: { categories } }) => arrayRandom(categories));
 }
 
-jest.setTimeout(30000);
 describe("Verify 'categories' API", () => {
   const broker = new ServiceBroker({ logger: false });
   broker.createService(StoresSchema);
