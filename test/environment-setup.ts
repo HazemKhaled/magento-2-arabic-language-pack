@@ -1,5 +1,6 @@
 import { GenericObject } from 'moleculer';
 import dotenv from 'dotenv';
+
 dotenv.config({ path: './docker/development/.env' });
 
 // Use random ports during tests

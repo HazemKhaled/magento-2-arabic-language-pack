@@ -1,7 +1,7 @@
 import { GenericObject } from 'moleculer';
 import request from 'supertest';
 
-import { getStore } from '../../utility';
+import { getStore, arrayRandom } from '../../utility';
 import { Store, Category } from '../../../utilities/types';
 
 const params: GenericObject = {};
@@ -13,10 +13,7 @@ function randomCategory(token: string): Promise<Category> {
   return request(baseURL)
     .get('/catalog/categories')
     .set('Authorization', `Bearer ${token}`)
-    .then(
-      ({ body: { categories } }) =>
-        categories[Math.floor(Math.random() * categories.length)]
-    );
+    .then(({ body: { categories } }) => arrayRandom(categories));
 }
 
 jest.setTimeout(30000);
@@ -24,7 +21,7 @@ describe("Verify 'categories' API", () => {
   let store: { store: Store; token: string };
 
   // Test data
-  let category: Category;
+  let baseCategory: Category;
   const invalidCategory = {
     parentId: 'Test-ParentId',
     treeNodeLevel: 'Test-treeNodeLevel',
@@ -32,10 +29,9 @@ describe("Verify 'categories' API", () => {
 
   beforeAll(async () => {
     store = await getStore();
-    category = await randomCategory(store.token);
+    baseCategory = await randomCategory(store.token);
   });
 
-  let index: number;
   it("Test '/catalog/categories' for 200 response code ", async () => {
     return request(baseURL)
       .get('/catalog/categories')
@@ -162,7 +158,7 @@ describe("Verify 'categories' API", () => {
   });
 
   it("Test '/catalog/categories' with valid ParentId only response code is 200  ", async () => {
-    params.parentId = category.parentId;
+    params.parentId = baseCategory.parentId;
     delete params.treeNodeLevel;
     return request(baseURL)
       .get('/catalog/categories')
@@ -174,7 +170,7 @@ describe("Verify 'categories' API", () => {
   });
 
   it("Test '/catalog/categories' with valid treeNodeLevel only and should get 200 response code ", async () => {
-    params.treeNodeLevel = category.treeNodeLevel;
+    params.treeNodeLevel = baseCategory.treeNodeLevel;
     delete params.parentId;
     return request(baseURL)
       .get('/catalog/categories')
@@ -187,19 +183,20 @@ describe("Verify 'categories' API", () => {
 
   // The below test case is failing due to the issue reported regarding combination of the query parameter. This case will pass once the issue is resolved
   it("Test '/catalog/categories' to verify response body parameters ", async () => {
-    params.parentId = category.parentId;
+    params.parentId = baseCategory.parentId;
 
     return request(baseURL)
       .get('/catalog/categories')
       .query(params)
       .set('Authorization', `Bearer ${store.token}`)
-      .then(res => {
-        index = Math.floor(Math.random() * res.body.count);
-        expect(res.body).toHaveProperty('count' && 'categories');
-        expect(res.body.categories[index]).toHaveProperty(
+      .then(({ body }) => {
+        const category = arrayRandom<Category>(body.categories);
+
+        expect(body).toHaveProperty('count' && 'categories');
+        expect(category).toHaveProperty(
           'id' && 'name' && 'parentId' && 'productsCount' && 'treeNodeLevel'
         );
-        expect(res.body.categories[index].name).toHaveProperty('en');
+        expect(category.name).toHaveProperty('en');
       });
   });
 
@@ -209,16 +206,16 @@ describe("Verify 'categories' API", () => {
       .get('/catalog/categories')
       .query(params)
       .set('Authorization', `Bearer ${store.token}`)
-      .then(res => {
-        index = Math.floor(Math.random() * res.body.count);
-        expect(typeof res.body.count).toBe('number');
-        expect(Array.isArray([res.body.categories])).toBe(true);
-        expect(typeof res.body.categories[index].id).toBe('number');
-        expect(Array.isArray([res.body.categories[index].name])).toBe(true);
-        expect(typeof res.body.categories[index].parentId).toBe('number');
-        expect(typeof res.body.categories[index].productsCount).toBe('number');
-        expect(typeof res.body.categories[index].treeNodeLevel).toBe('number');
-        expect(typeof res.body.categories[index].name.en).toBe('string');
+      .then(({ body }) => {
+        const category = arrayRandom<Category>(body.categories);
+        expect(typeof body.count).toBe('number');
+        expect(Array.isArray([body.categories])).toBe(true);
+        expect(typeof category.id).toBe('number');
+        expect(Array.isArray([category.name])).toBe(true);
+        expect(typeof category.parentId).toBe('number');
+        expect(typeof category.productsCount).toBe('number');
+        expect(typeof category.treeNodeLevel).toBe('number');
+        expect(typeof category.name.en).toBe('string');
       });
   });
 });

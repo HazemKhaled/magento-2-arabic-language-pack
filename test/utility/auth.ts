@@ -7,6 +7,8 @@ import { Store } from '../../utilities/types';
 import APISchema from '../../services/api.service';
 import StoresSchema from '../../services/stores.service';
 
+import { arrayRandom } from './utilities';
+
 export const basicAuthToken = `Basic ${Buffer.from(
   `${process.env.BASIC_USER}:${process.env.BASIC_PASS}`
 ).toString('base64')}`;
@@ -30,7 +32,7 @@ export async function getStore(): Promise<{ store: Store; token: string }> {
     .then(async ({ body: { stores } }) => {
       // Get random store
       const result: { store: Store; token: string } = {
-        store: stores[Math.floor(Math.random() * stores.length)],
+        store: arrayRandom(stores),
         token: '',
       };
 
