@@ -117,12 +117,6 @@ const TheService: ServiceSchema = {
           'POST payments/:id': 'payments.add',
           'GET payments': 'payments.get',
 
-          // Membership
-          'POST membership': 'membership.create',
-          'GET membership': 'membership.list',
-          'GET membership/:id': 'membership.mGet',
-          'PUT membership/:id': 'membership.update',
-
           // Subscription
           'POST subscription': 'subscription.create',
           'GET subscription': 'subscription.sList',

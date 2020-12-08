@@ -59,7 +59,7 @@ const TheService: ServiceSchema = {
         const membership: Membership = await ctx.call<
           Membership,
           Partial<Membership>
-        >('membership.mGet', {
+        >('membership.getOne', {
           id: subscription.membershipId || 'free',
         });
         return {
@@ -194,7 +194,7 @@ const TheService: ServiceSchema = {
         }
         const membership = await ctx
           .call<Membership, Partial<Membership>>(
-            'membership.mGet',
+            'membership.getOne',
             membershipRequestBody
           )
           .then(null, err => err);
@@ -589,7 +589,7 @@ const TheService: ServiceSchema = {
           sort: { field: 'expireDate', order: -1 },
           perPage: 2,
         });
-        const memberships = await ctx.call<Membership[]>('membership.list');
+        const memberships = await ctx.call<Membership[]>('membership.getAll');
         if (allSubBefore.length === 0) return;
         if (allSubBefore.length === 1) {
           return ctx.call<CrmResponse, Partial<CrmStore>>('crm.addTagsByUrl', {
