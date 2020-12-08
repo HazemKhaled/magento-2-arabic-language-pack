@@ -23,7 +23,7 @@ export function hmacMiddleware(): (
       if (!storeUrl || !hmac) {
         throw new MpError('HMAC Validation', 'Unprocessable Entity', 422);
       }
-      const store: any = await req.$ctx.broker.call('stores.sGet', {
+      const store: any = await req.$ctx.broker.call('stores.getOne', {
         id: storeUrl,
       });
       const isValid = validateKnawatHmac(query, store);

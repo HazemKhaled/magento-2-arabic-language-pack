@@ -17,7 +17,7 @@ export const StoresValidation: ServiceSchema = {
         },
       },
     },
-    sGet: {
+    getOne: {
       params: {
         id: {
           type: 'string',
@@ -28,14 +28,14 @@ export const StoresValidation: ServiceSchema = {
         },
       },
     },
-    list: {
+    getAll: {
       params: {
         filter: {
           type: 'string',
         },
       },
     },
-    storesList: {
+    getAllAdmin: {
       params: {
         id: {
           type: 'string',
@@ -62,7 +62,7 @@ export const StoresValidation: ServiceSchema = {
         query: 'object',
       },
     },
-    create: {
+    createOne: {
       params: {
         url: {
           type: 'url',
@@ -246,7 +246,7 @@ export const StoresValidation: ServiceSchema = {
         },
       },
     },
-    update: {
+    updateOne: {
       params: {
         id: {
           type: 'url',

@@ -92,7 +92,7 @@ export const Oms: ServiceSchema = {
 
           instance.internal_data.omsId = response.store.id;
 
-          this.broker.call('stores.update', {
+          this.broker.call('stores.updateOne', {
             id: instance.url,
             internal_data: instance.internal_data,
           });

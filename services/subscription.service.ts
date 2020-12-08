@@ -218,7 +218,7 @@ const TheService: ServiceSchema = {
 
         // Get the Store instance
         const instance: Store = await ctx
-          .call<Store, Partial<Store>>('stores.sGet', {
+          .call<Store, Partial<Store>>('stores.getOne', {
             id: ctx.params.storeId,
           })
           .then(null, err => err);
@@ -431,11 +431,11 @@ const TheService: ServiceSchema = {
               `subscription.sList:${ctx.params.grantTo || instance.url}*`
             );
             this.broker.cacher.clean(
-              `stores.sGet:${ctx.params.grantTo || instance.url}*`
+              `stores.getOne:${ctx.params.grantTo || instance.url}*`
             );
             this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
             if (ctx.params.grantTo) {
-              this.broker.cacher.clean(`stores.sGet:${instance.url}*`);
+              this.broker.cacher.clean(`stores.getOne:${instance.url}*`);
               this.broker.cacher.clean(
                 `stores.me:${grantToInstance?.consumer_key}*`
               );
@@ -565,7 +565,7 @@ const TheService: ServiceSchema = {
 
             this.broker.cacher.clean(`subscription.sGet:${store.url}**`);
             this.broker.cacher.clean(`subscription.sList:${store.url}**`);
-            this.broker.cacher.clean(`stores.sGet:${store.url}**`);
+            this.broker.cacher.clean(`stores.getOne:${store.url}**`);
             this.broker.cacher.clean(`stores.me:${store.consumer_key}**`);
             return subscription;
           })
@@ -649,7 +649,7 @@ const TheService: ServiceSchema = {
             }
             this.broker.cacher.clean(`subscription.sGet:${res.storeId}*`);
             this.broker.cacher.clean(`subscription.sList:${res.storeId}*`);
-            this.broker.cacher.clean(`stores.sGet:${res.storeId}*`);
+            this.broker.cacher.clean(`stores.getOne:${res.storeId}*`);
             this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
             return { ...res, id: res._id, _id: undefined };
           });

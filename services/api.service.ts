@@ -73,16 +73,6 @@ const TheService: ServiceSchema = {
           'PUT orders/pay/:id': 'orders.payOrder',
           'DELETE orders/:id': 'orders.deleteOrder',
 
-          // Stores
-          'GET stores/me': 'stores.me',
-          'PUT stores/me': 'stores.meUpdate',
-          'GET stores': 'stores.list',
-          'POST stores': 'stores.create',
-          'GET stores/:id': 'stores.sGet',
-          'PUT stores/:id': 'stores.update',
-          'PUT stores/:id/sync': 'stores.sync',
-          'GET admin/stores': 'stores.storesList',
-
           // Categories
           'GET catalog/categories': 'categories.list',
 

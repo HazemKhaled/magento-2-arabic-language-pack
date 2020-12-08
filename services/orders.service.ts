@@ -835,7 +835,7 @@ const TheService: ServiceSchema = {
       async handler(
         ctx: Context<OrderRequestParams, MetaParams>
       ): Promise<GenericObject> {
-        const store = await ctx.call<Store, Partial<Store>>('stores.sGet', {
+        const store = await ctx.call<Store, Partial<Store>>('stores.getOne', {
           id: ctx.meta.store.url,
         });
 
