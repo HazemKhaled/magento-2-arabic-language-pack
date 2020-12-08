@@ -10,7 +10,7 @@ npm run dev
 npm start
 
 # Run unit tests
-npm test
+`npm t unit` or `npm t integration` or `npm t` only
 
 # Run continuous test mode
 npm run ci

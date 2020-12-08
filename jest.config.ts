@@ -5,7 +5,7 @@ const config: Config.InitialOptions = {
   setupFiles: ['<rootDir>/test/environment-setup.ts'],
   coverageDirectory: '<rootDir>/coverage',
   testEnvironment: 'node',
-  moduleFileExtensions: ['ts', 'tsx', 'js'],
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'json'],
   transform: {
     '^.+\\.(ts|tsx)$': 'ts-jest',
   },

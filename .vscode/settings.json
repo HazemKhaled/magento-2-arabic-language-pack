@@ -49,7 +49,6 @@
     "**/coverage/": true,
     "**/npm-debug.log": true,
     "**/build": true,
-    "**/data": true,
     "**/.env": false
   },
   "editor.codeActionsOnSave": {

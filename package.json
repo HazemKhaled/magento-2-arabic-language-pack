@@ -20,6 +20,8 @@
     "deps": "npm-check -u",
     "ci": "jest --watch",
     "test": "jest --coverage",
+    "test:integration": "npm t integration",
+    "test:unit": "npm t unit",
     "lint": "eslint . --ext .ts,.tsx --quiet",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "openapi": "node ./utilities/scripts/docs-checker.script.js",

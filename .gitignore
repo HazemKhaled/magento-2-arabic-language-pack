@@ -4,7 +4,6 @@ coverage/
 npm-debug.log
 stats.json
 yarn-error.log
-data/
 acme.json
 .env
 deployDev.sh
@@ -22,3 +21,6 @@ gcp-key.json
 public/*
 !public/img
 !public/index.html
+
+# Test folder
+test/data/*.json
