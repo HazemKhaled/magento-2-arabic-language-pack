@@ -84,7 +84,7 @@ const TheService: ServiceSchema = {
           'GET invoices': 'invoices.get',
           'POST invoices': 'invoices.create',
           'POST invoices/:id/credits': 'invoices.applyCredits',
-          'GET invoice/:storeId/external/:id': 'invoices.renderInvoice',
+          'GET invoices/:storeId/external/:id': 'invoices.renderInvoice',
 
           // Cards
           'POST cards': 'cards.create',
