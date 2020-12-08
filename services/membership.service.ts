@@ -16,7 +16,7 @@ const MoleculerError = Errors.MoleculerError;
 const TheService: ServiceSchema = {
   name: 'membership',
   mixins: [
-    DbService('membership'),
+    new DbService('membership').start(),
     MembershipValidation,
     MembershipOpenapi,
     TaxCheck,

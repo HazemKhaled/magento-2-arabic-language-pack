@@ -13,7 +13,11 @@ import { MpError } from '../utilities/adapters';
 
 const Shipment: ServiceSchema = {
   name: 'shipment',
-  mixins: [DbService('shipment'), ShipmentValidation, ShipmentOpenapi],
+  mixins: [
+    new DbService('shipment').start(),
+    ShipmentValidation,
+    ShipmentOpenapi,
+  ],
   actions: {
     /**
      * Get shipment policies

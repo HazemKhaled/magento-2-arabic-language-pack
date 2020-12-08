@@ -27,7 +27,7 @@ const { MoleculerClientError } = Errors;
 const TheService: ServiceSchema = {
   name: 'stores',
   mixins: [
-    DbService('stores'),
+    new DbService('stores').start(),
     StoresValidation,
     StoresOpenapi,
     GCPPubSub,

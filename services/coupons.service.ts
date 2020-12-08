@@ -9,7 +9,7 @@ const MoleculerError = Errors.MoleculerError;
 
 const TheService: ServiceSchema = {
   name: 'coupons',
-  mixins: [DbService('coupons'), CouponsValidation, CouponsOpenapi],
+  mixins: [new DbService('coupons').start(), CouponsValidation, CouponsOpenapi],
   actions: {
     create: {
       auth: ['Basic'],

@@ -15,7 +15,7 @@ const MoleculerError = Errors.MoleculerError;
 
 const TaxesService: ServiceSchema = {
   name: 'taxes',
-  mixins: [DbService('taxes'), TaxesValidation, TaxOpenapi],
+  mixins: [new DbService('taxes').start(), TaxesValidation, TaxOpenapi],
   actions: {
     tCreate: {
       auth: ['Basic'],
