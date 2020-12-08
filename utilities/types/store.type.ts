@@ -15,7 +15,14 @@ export interface Store {
   name: string;
   logo: string;
   currency: string;
-  status: 'confirmed' | 'unconfirmed' | 'archived' | 'error' | 'uninstalled';
+  status:
+    | 'confirmed'
+    | 'unconfirmed'
+    | 'archived'
+    | 'error'
+    | 'uninstalled'
+    | 'pending';
+  type: string;
   url: string;
   consumer_secret: string;
   consumer_key: string;
@@ -53,6 +60,8 @@ export interface Store {
  * @interface StoreUser
  */
 export interface StoreUser {
+  first_name?: string;
+  last_name?: string;
   email: string;
   roles: string[];
 }
