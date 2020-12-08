@@ -71,7 +71,10 @@ export default class Connection
   public start(): Partial<ServiceSchema> {
     if (process.env.MONGO_URI) {
       // Mongo adapter
-      this.schema.adapter = new MongoAdapter(process.env.MONGO_URI);
+      this.schema.adapter = new MongoAdapter(process.env.MONGO_URI, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      });
       this.schema.collection = this.collection;
     } else if (process.env.NODE_ENV === 'test') {
       // NeDB memory adapter for testing
