@@ -173,7 +173,7 @@ const TheService: ServiceSchema = {
         let coupon: Coupon = null;
         if (ctx.params.coupon) {
           coupon = await ctx
-            .call<Coupon, Partial<Coupon>>('coupons.get', {
+            .call<Coupon, Partial<Coupon>>('coupons.getOne', {
               id: ctx.params.coupon,
               membership: ctx.params.membership,
               type: 'subscription',

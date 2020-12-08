@@ -11,8 +11,9 @@ const TheService: ServiceSchema = {
   name: 'coupons',
   mixins: [new DbService('coupons').start(), CouponsValidation, CouponsOpenapi],
   actions: {
-    create: {
+    createOne: {
       auth: ['Basic'],
+      rest: 'POST /',
       handler(ctx: Context<Coupon>): Promise<Coupon> {
         // Different coupon types validation
         this.couponTypeCheck(ctx.params);
@@ -20,7 +21,7 @@ const TheService: ServiceSchema = {
         return this.adapter
           .insert(this.createCouponSanitize(ctx.params))
           .then((res: Coupon) => {
-            this.broker.cacher.clean('coupons.list:**');
+            this.broker.cacher.clean('coupons.getAll:**');
             return this.normalizeId(res);
           })
           .catch((err: CommonError) => {
@@ -38,12 +39,13 @@ const TheService: ServiceSchema = {
           });
       },
     },
-    get: {
+    getOne: {
       auth: ['Basic'],
       cache: {
         keys: ['id', 'membership'],
         ttl: 60 * 60 * 24,
       },
+      rest: 'GET /:id',
       handler(ctx: Context<Coupon>): Promise<Coupon> {
         const query: CouponQueryType = {
           _id: ctx.params.id.toUpperCase(),
@@ -79,12 +81,13 @@ const TheService: ServiceSchema = {
           });
       },
     },
-    list: {
+    getAll: {
       auth: ['Basic'],
       cache: {
         ttl: 60 * 60 * 24,
         keys: ['id', 'membership', 'type', 'isValid', 'isAuto'],
       },
+      rest: 'GET /',
       handler(ctx: Context<Coupon>): Promise<Coupon[]> {
         this.couponListValidation(ctx.params);
         const query: CouponQueryType = {};
@@ -122,8 +125,9 @@ const TheService: ServiceSchema = {
           });
       },
     },
-    update: {
+    updateOne: {
       auth: ['Basic'],
+      rest: 'PUT /:id',
       async handler(ctx: Context<Coupon>): Promise<Coupon> {
         this.couponTypeCheck(ctx.params);
 
@@ -150,8 +154,8 @@ const TheService: ServiceSchema = {
               throw new MoleculerError('No Coupons found!', 404);
             }
 
-            this.broker.cacher.clean('coupons.list:**');
-            this.broker.cacher.clean(`coupons.get:${id}*`);
+            this.broker.cacher.clean('coupons.getAll:**');
+            this.broker.cacher.clean(`coupons.getOne:${id}*`);
             const coupon = dbResponse.value;
             coupon.code = coupon._id;
             delete coupon._id;
@@ -164,6 +168,7 @@ const TheService: ServiceSchema = {
     },
     updateCount: {
       auth: ['Basic'],
+      visibility: 'public',
       async handler(ctx: Context<Coupon>): Promise<Coupon | boolean> {
         return this.adapter
           .updateMany(
@@ -175,8 +180,8 @@ const TheService: ServiceSchema = {
               throw new MoleculerError('No Coupons found!', 404);
             }
 
-            this.broker.cacher.clean('coupons.list:**');
-            this.broker.cacher.clean(`coupons.get:${ctx.params.id}*`);
+            this.broker.cacher.clean('coupons.getAll:**');
+            this.broker.cacher.clean(`coupons.getOne:${ctx.params.id}*`);
             return coupon;
           })
           .catch((err: CommonError) => {

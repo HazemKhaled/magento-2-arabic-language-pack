@@ -235,7 +235,7 @@ const TheService: ServiceSchema = {
     },
     async applyCouponDiscount(couponCode, membership): Promise<void> {
       const coupon: Coupon = await this.broker
-        .call('coupons.get', {
+        .call('coupons.getOne', {
           id: couponCode,
           membership: membership.id,
           type: 'subscription',

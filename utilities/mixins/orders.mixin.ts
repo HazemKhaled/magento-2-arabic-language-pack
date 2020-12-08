@@ -297,7 +297,7 @@ export const OrdersOperations: ServiceSchema = {
         couponQuery.id = code;
       }
       let coupon = await this.broker
-        .call('coupons.list', couponQuery)
+        .call('coupons.getAll', couponQuery)
         .then(null, (err: Error) => err);
       if (coupon instanceof Error) {
         warnings.push({

@@ -123,12 +123,6 @@ const TheService: ServiceSchema = {
           'GET membership/:id': 'membership.mGet',
           'PUT membership/:id': 'membership.update',
 
-          // Coupons
-          'POST coupons': 'coupons.create',
-          'GET coupons': 'coupons.list',
-          'GET coupons/:id': 'coupons.get',
-          'PUT coupons/:id': 'coupons.update',
-
           // Subscription
           'POST subscription': 'subscription.create',
           'GET subscription': 'subscription.sList',
