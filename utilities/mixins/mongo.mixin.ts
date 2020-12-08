@@ -9,10 +9,6 @@ export default (collection: string): ServiceSchema => {
     throw new MoleculerClientError('Database connection error', 500);
   }
 
-  Object.keys(DbService.actions).map(action => {
-    DbService.actions[action].visibility = 'protected';
-  });
-
   return {
     name: 'mongo_service',
     mixins: [DbService],
