@@ -99,13 +99,6 @@ const TheService: ServiceSchema = {
           'POST payments/:id': 'payments.add',
           'GET payments': 'payments.get',
 
-          // Taxes
-          'POST tax': 'taxes.tCreate',
-          'PUT tax/:id': 'taxes.tUpdate',
-          'GET tax/:id': 'taxes.tGet',
-          'GET tax': 'taxes.tList',
-          'DELETE tax/:id': 'taxes.tDelete',
-
           // GDPR
           'POST customer/redact': 'gdpr.customerRedact',
           'POST store/redact': 'gdpr.storeRedact',

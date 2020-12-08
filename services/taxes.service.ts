@@ -16,9 +16,13 @@ const MoleculerError = Errors.MoleculerError;
 const TaxesService: ServiceSchema = {
   name: 'taxes',
   mixins: [new DbService('taxes').start(), TaxesValidation, TaxOpenapi],
+  settings: {
+    rest: 'tax',
+  },
   actions: {
-    tCreate: {
+    createOne: {
       auth: ['Basic'],
+      rest: 'POST /',
       async handler(ctx: Context<Partial<DbTax>>): Promise<RTax> {
         const taxBody: Partial<DbTax> = {
           ...ctx.params,
@@ -37,7 +41,7 @@ const TaxesService: ServiceSchema = {
         return this.adapter
           .insert(taxBody)
           .then((tax: DbTax) => {
-            this.broker.cacher.clean('taxes.tList:*');
+            this.broker.cacher.clean('taxes.getAll:*');
             this.broker.cacher.clean('taxes.tCount:*');
             return { tax: this.sanitizer(tax) };
           })
@@ -46,8 +50,9 @@ const TaxesService: ServiceSchema = {
           });
       },
     },
-    tUpdate: {
+    updateOne: {
       auth: ['Basic'],
+      rest: 'PUT /:id',
       async handler(ctx: Context<GenericObject>): Promise<RTax> {
         const { id } = ctx.params;
         const $set = ctx.params;
@@ -65,8 +70,8 @@ const TaxesService: ServiceSchema = {
               throw new MoleculerError('There is no tax with that ID', 404);
             }
 
-            this.broker.cacher.clean(`taxes.tGet:${id}*`);
-            this.broker.cacher.clean('taxes.tList:*');
+            this.broker.cacher.clean(`taxes.getOne:${id}*`);
+            this.broker.cacher.clean('taxes.getAll:*');
             this.broker.cacher.clean('taxes.tCount:*');
 
             return {
@@ -100,13 +105,14 @@ const TaxesService: ServiceSchema = {
         return taxUpdateData;
       },
     },
-    tGet: {
+    getOne: {
       auth: ['Basic'],
       cache: {
         keys: ['id'],
         // 1 day
         ttl: 60 * 60 * 24,
       },
+      rest: 'GET /:id',
       handler(ctx: Context<RTax>): RTax {
         return this.adapter
           .findById(ctx.params.id)
@@ -124,13 +130,14 @@ const TaxesService: ServiceSchema = {
           });
       },
     },
-    tList: {
+    getAll: {
       auth: ['Basic'],
       cache: {
         keys: ['page', 'perPage', 'country', 'class'],
         // 1 day
         ttl: 60 * 60 * 24,
       },
+      rest: 'GET /',
       handler(ctx: Context<TaxRequestParams>): RTax[] {
         const { country } = ctx.params;
         const classes = ctx.params.class;
@@ -166,8 +173,9 @@ const TaxesService: ServiceSchema = {
           });
       },
     },
-    tDelete: {
+    removeOne: {
       auth: ['Basic'],
+      rest: 'DELETE /:id',
       async handler(
         ctx: Context<RTax>
       ): Promise<{ tax: RTax; message: string }> {
@@ -178,8 +186,8 @@ const TaxesService: ServiceSchema = {
               throw new MoleculerError('There is no tax with that ID', 404);
             }
 
-            this.broker.cacher.clean(`taxes.tGet:${ctx.params.id}*`);
-            this.broker.cacher.clean('taxes.tList:*');
+            this.broker.cacher.clean(`taxes.getOne:${ctx.params.id}*`);
+            this.broker.cacher.clean('taxes.getAll:*');
             this.broker.cacher.clean('taxes.tCount:*');
 
             return {

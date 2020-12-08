@@ -70,7 +70,7 @@ export const TaxCheck: ServiceSchema = {
 
       // Get tax data from taxes service
       const taxData: Tax | ErrorSchema = await this.broker
-        .call('taxes.tList', {
+        .call('taxes.getAll', {
           country,
           class: taxClass.toString(),
         })

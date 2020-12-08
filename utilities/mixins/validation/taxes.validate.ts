@@ -3,7 +3,7 @@ import { ServiceSchema } from 'moleculer';
 export const TaxesValidation: ServiceSchema = {
   name: 'taxes',
   actions: {
-    tCreate: {
+    createOne: {
       params: {
         name: {
           type: 'string',
@@ -26,7 +26,7 @@ export const TaxesValidation: ServiceSchema = {
         $$strict: true,
       },
     },
-    tUpdate: {
+    updateOne: {
       params: {
         id: {
           type: 'string',
@@ -56,12 +56,12 @@ export const TaxesValidation: ServiceSchema = {
         $$strict: true,
       },
     },
-    tGet: {
+    getOne: {
       params: {
         id: 'string',
       },
     },
-    tList: {
+    getAll: {
       params: {
         page: {
           type: 'number',
@@ -97,7 +97,7 @@ export const TaxesValidation: ServiceSchema = {
         $$strict: true,
       },
     },
-    tDelete: {
+    removeOne: {
       params: {
         id: {
           type: 'string',
