@@ -90,14 +90,6 @@ const TheService: ServiceSchema = {
           'GET currencies/:currencyCode': 'currencies.getCurrency',
           'GET currencies': 'currencies.getCurrencies',
 
-          // Shipment
-          'POST shipment': 'shipment.insertShipment',
-          'PUT shipment/:id': 'shipment.updateShipment',
-          'GET shipment': 'shipment.getShipments',
-          'GET shipment/rules': 'shipment.ruleByCountry',
-          'GET shipment/couriers': 'shipment.getCouriers',
-          'GET shipment/:id': 'shipment.getShipments',
-
           // Invoices
           'GET invoices': 'invoices.get',
           'POST invoices': 'invoices.create',
