@@ -10,11 +10,11 @@ services:
     hostname: "api"
     environment:
       SERVICES: api, tasks
-      PORT: 4040
+      PORT: 80
     labels:
       traefik.enable: "true"
       traefik.backend: mp-development
-      traefik.port: 4040
+      traefik.port: 80
       traefik.frontend.entryPoints: "http,https"
       traefik.frontend.rule: "Host:dev.mp.knawat.io"
 
@@ -117,6 +117,15 @@ services:
     hostname: "shipment"
     environment:
       SERVICES: shipment
+
+  monitor:
+    build:
+      context: ../../
+    image: microes
+    restart: always
+    env_file: .env
+    environment:
+      SERVICES: apm
 
   redis:
     image: redis:alpine
