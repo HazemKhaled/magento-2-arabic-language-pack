@@ -107,9 +107,9 @@ const TheService: ServiceSchema = {
               if (res.users) {
                 res.subscription = await ctx.call<
                   Subscription,
-                  Partial<Subscription>
-                >('subscription.sGet', {
-                  id: res._id,
+                  { storeId: string }
+                >('subscription.getByStore', {
+                  storeId: res._id,
                 });
               }
               if (res?.internal_data?.omsId) {
@@ -149,9 +149,9 @@ const TheService: ServiceSchema = {
               if (res.users) {
                 res.subscription = await ctx.call<
                   Subscription,
-                  Partial<Subscription>
-                >('subscription.sGet', {
-                  id: ctx.params.id,
+                  { storeId: string }
+                >('subscription.getByStore', {
+                  storeId: ctx.params.id,
                 });
               }
               if (res?.internal_data?.omsId && !ctx.params.withoutBalance) {
@@ -482,7 +482,7 @@ const TheService: ServiceSchema = {
             `orders.list:undefined|${instance.consumer_key}*`
           );
           this.broker.cacher.clean(`invoices.get:${instance.consumer_key}*`);
-          this.broker.cacher.clean(`subscription.sGet:${instance.url}*`);
+          this.broker.cacher.clean(`subscription.getByStore:${instance.url}*`);
           this.broker.cacher.clean(`stores.getOne:${instance.url}**`);
           this.broker.cacher.clean(`stores.me:${instance.consumer_key}**`);
           return ctx.call<GenericObject, Partial<Store>>('stores.updateOne', {

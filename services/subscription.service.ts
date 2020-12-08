@@ -41,17 +41,17 @@ const TheService: ServiceSchema = {
      * @param {string} url
      * @returns {Promise<Subscription | false>}
      */
-    sGet: {
+    getByStore: {
       cache: {
-        keys: ['id'],
+        keys: ['storeId'],
         ttl: 60 * 60 * 24,
       },
       async handler(
-        ctx: Context<{ id: string }>
+        ctx: Context<{ storeId: string }>
       ): Promise<Subscription | false> {
         const subscription =
           (await this.adapter.findOne({
-            storeId: ctx.params.id,
+            storeId: ctx.params.storeId,
             status: { $ne: 'cancelled' },
             expireDate: { $gte: new Date() },
             startDate: { $lte: new Date() },
@@ -79,7 +79,7 @@ const TheService: ServiceSchema = {
         };
       },
     },
-    sList: {
+    getAll: {
       auth: ['Basic'],
       cache: {
         keys: [
@@ -95,6 +95,7 @@ const TheService: ServiceSchema = {
         ],
         ttl: 60 * 60 * 24,
       },
+      rest: 'GET /',
       async handler(
         ctx: Context<SubscriptionListParams>
       ): Promise<Subscription[] | false> {
@@ -167,8 +168,9 @@ const TheService: ServiceSchema = {
           });
       },
     },
-    create: {
+    createOne: {
       auth: ['Basic'],
+      rest: 'POST /',
       async handler(ctx: Context<Subscription, MetaParams>): Promise<unknown> {
         let coupon: Coupon = null;
         if (ctx.params.coupon) {
@@ -355,7 +357,7 @@ const TheService: ServiceSchema = {
           const storeOldSubscription = await ctx.call<
             Subscription[],
             Partial<SubscriptionListParams>
-          >('subscription.sList', {
+          >('subscription.getAll', {
             storeId: ctx.params.grantTo || ctx.params.storeId,
             expireDate: { operation: 'gte' },
             status: 'active',
@@ -425,10 +427,10 @@ const TheService: ServiceSchema = {
         return this.adapter.insert(subscriptionBody).then(
           async (res: Subscription): Promise<GenericObject> => {
             this.broker.cacher.clean(
-              `subscription.sGet:${ctx.params.grantTo || instance.url}*`
+              `subscription.getByStore:${ctx.params.grantTo || instance.url}*`
             );
             this.broker.cacher.clean(
-              `subscription.sList:${ctx.params.grantTo || instance.url}*`
+              `subscription.getAll:${ctx.params.grantTo || instance.url}*`
             );
             this.broker.cacher.clean(
               `stores.getOne:${ctx.params.grantTo || instance.url}*`
@@ -456,8 +458,9 @@ const TheService: ServiceSchema = {
         );
       },
     },
-    getSubscriptionByExpireDate: {
+    getOneByExpireDate: {
       cache: false,
+      visibility: 'public',
       async handler(ctx: Context<Subscription>): Promise<Subscription> {
         const minDate = new Date();
         minDate.setDate(minDate.getDate() - (ctx.params.afterDays || 0));
@@ -495,13 +498,13 @@ const TheService: ServiceSchema = {
         expiredSubscription._id = expiredSubscription._id.toString();
         const currentSubscription: Subscription = await ctx.call<
           Subscription,
-          Partial<Subscription>
-        >('subscription.sGet', {
-          id: expiredSubscription.storeId,
+          { storeId: string }
+        >('subscription.getByStore', {
+          storeId: expiredSubscription.storeId,
         });
         if (currentSubscription.id !== '-1') {
           await ctx.call<GenericObject, Partial<Subscription>>(
-            'subscription.updateSubscription',
+            'subscription.updateOne',
             {
               id: expiredSubscription._id,
               renewed: true,
@@ -511,18 +514,15 @@ const TheService: ServiceSchema = {
             id: expiredSubscription.storeId,
             tag: 'subscription-renew',
           });
-          return ctx.call<Subscription, Partial<Subscription>>(
-            'subscription.getSubscriptionByExpireDate',
-            {
-              afterDays: ctx.params.afterDays,
-              beforeDays: ctx.params.beforeDays,
-            }
-          );
+          return this.actions.getOneByExpireDate({
+            afterDays: ctx.params.afterDays,
+            beforeDays: ctx.params.beforeDays,
+          });
         }
         const date = new Date();
         date.setUTCHours(0, 0, 0, 0);
         ctx.call<GenericObject, Partial<Subscription>>(
-          'subscription.updateSubscription',
+          'subscription.updateOne',
           {
             id: expiredSubscription._id,
             retries: expiredSubscription.retries
@@ -537,8 +537,9 @@ const TheService: ServiceSchema = {
         return { ...expiredSubscription, id: expiredSubscription._id };
       },
     },
-    updateSubscription: {
+    updateOne: {
       auth: ['Basic'],
+      rest: 'PUT /:id',
       handler(ctx: Context<any>): Promise<Subscription> {
         let $set: Partial<Subscription> = {};
         const { params } = ctx;
@@ -563,8 +564,8 @@ const TheService: ServiceSchema = {
               }
             );
 
-            this.broker.cacher.clean(`subscription.sGet:${store.url}**`);
-            this.broker.cacher.clean(`subscription.sList:${store.url}**`);
+            this.broker.cacher.clean(`subscription.getByStore:${store.url}**`);
+            this.broker.cacher.clean(`subscription.getAll:${store.url}**`);
             this.broker.cacher.clean(`stores.getOne:${store.url}**`);
             this.broker.cacher.clean(`stores.me:${store.consumer_key}**`);
             return subscription;
@@ -575,11 +576,12 @@ const TheService: ServiceSchema = {
       },
     },
     checkCurrentSubGradingStatus: {
+      visibility: 'public',
       async handler(ctx: Context<{ id: string }>): Promise<CrmResponse> | null {
         const allSubBefore = await ctx.call<
           GenericObject,
           Partial<Subscription>
-        >('subscription.sList', {
+        >('subscription.getAll', {
           storeId: ctx.params.id,
           expireDate: {
             operation: 'gte',
@@ -619,6 +621,7 @@ const TheService: ServiceSchema = {
     },
     cancel: {
       auth: ['Basic'],
+      rest: 'DELETE /:id',
       handler(ctx): Promise<Subscription> {
         return this.adapter
           .updateById(ctx.params.id, { $set: { status: 'cancelled' } })
@@ -647,8 +650,8 @@ const TheService: ServiceSchema = {
                 404
               );
             }
-            this.broker.cacher.clean(`subscription.sGet:${res.storeId}*`);
-            this.broker.cacher.clean(`subscription.sList:${res.storeId}*`);
+            this.broker.cacher.clean(`subscription.getByStore:${res.storeId}*`);
+            this.broker.cacher.clean(`subscription.getAll:${res.storeId}*`);
             this.broker.cacher.clean(`stores.getOne:${res.storeId}*`);
             this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
             return { ...res, id: res._id, _id: undefined };

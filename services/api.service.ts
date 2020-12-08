@@ -99,12 +99,6 @@ const TheService: ServiceSchema = {
           'POST payments/:id': 'payments.add',
           'GET payments': 'payments.get',
 
-          // Subscription
-          'POST subscription': 'subscription.create',
-          'GET subscription': 'subscription.sList',
-          'PUT subscription/:id': 'subscription.updateSubscription',
-          'DELETE subscription/:id': 'subscription.cancel',
-
           // Taxes
           'POST tax': 'taxes.tCreate',
           'PUT tax/:id': 'taxes.tUpdate',

@@ -207,10 +207,10 @@ const TheService: ServiceSchema = {
           ) + (data.isInclusiveTax ? 0 : taxTotal);
 
         // Getting the current user subscription
-        const subscription = await ctx.call<Subscription, Partial<Store>>(
-          'subscription.sGet',
+        const subscription = await ctx.call<Subscription, { storeId: string }>(
+          'subscription.getByStore',
           {
-            id: store.url,
+            storeId: store.url,
           }
         );
         switch (subscription.attributes.orderProcessingType) {
@@ -340,7 +340,7 @@ const TheService: ServiceSchema = {
 
         if (order && !store.internal_data?.omsId) {
           ctx
-            .call<Store, Partial<Store>>('stores.update', {
+            .call<Store, Partial<Store>>('stores.updateOne', {
               id: store.url,
               internal_data: { omsId: result.salesorder.store.id },
             })
@@ -536,9 +536,9 @@ const TheService: ServiceSchema = {
             // Getting the current user subscription
             const subscription = await ctx.call<
               Subscription,
-              Partial<SubscriptionType>
-            >('subscription.sGet', {
-              id: store.url,
+              { storeId: string }
+            >('subscription.getByStore', {
+              storeId: store.url,
             });
             if (subscription.attributes.orderProcessingType === '%') {
               subscription.adjustment =
