@@ -4,6 +4,7 @@ coverage/
 npm-debug.log
 stats.json
 yarn-error.log
+data/
 acme.json
 .env
 deployDev.sh
