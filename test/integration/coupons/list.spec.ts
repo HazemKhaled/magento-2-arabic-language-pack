@@ -1,31 +1,23 @@
 import request from 'supertest';
-import { ServiceBroker } from 'moleculer';
+import { GenericObject } from 'moleculer';
 
-import { getStore, arrayRandom } from '../../utility';
-import { Store, Coupon } from '../../../utilities/types';
-import APISchema from '../../../services/api.service';
-import StoresSchema from '../../../services/stores.service';
-import CouponsSchema from '../../../services/coupons.service';
-
-const testUrl = '/api/__TEMPLATE__';
+import { basicAuthToken, arrayRandom } from '../../utility';
+import { startServices, stopServices } from '../tester';
 
 describe("GET '/coupons' API", () => {
-  const broker = new ServiceBroker({ logger: false });
-  broker.createService(StoresSchema);
-  broker.createService(CouponsSchema);
-  const apiService = broker.createService(APISchema);
-
-  let store: { store: Store; token: string };
+  const testUrl = '/api/coupons';
+  let baseUrl: string;
+  // let token: string;
 
   beforeAll(async () => {
-    await broker.start();
-
-    store = await getStore(apiService.server);
+    const result = await startServices(['coupons'], true);
+    baseUrl = result.baseUrl;
+    // token = result.token;
   });
-  afterAll(() => broker.stop());
+  afterAll(() => stopServices());
 
   it('Authorization', async () => {
-    return request(apiService.server)
+    return request(baseUrl)
       .get(testUrl)
       .set('Authorization', 'Invalid Token')
       .then(res => {
@@ -34,48 +26,48 @@ describe("GET '/coupons' API", () => {
   });
 
   it('Happy scenario', async () => {
-    return request(apiService.server)
+    return request(baseUrl)
       .get(testUrl)
-      .set('Authorization', `Bearer ${store.token}`)
-      .then(({ status, body: { __TEMPLATE__: items, count } }) => {
+      .set('Authorization', basicAuthToken)
+      .then(({ status, body }) => {
         expect(status).toBe(200);
 
-        const item = arrayRandom<Coupon>(items);
+        const item: GenericObject = arrayRandom(body);
 
         expect(item).toHaveProperty(
-          'id' && 'created'
-          // && more fields here
+          'code' && 'useCount'
+          // && More fields here
         );
 
-        expect(typeof count).toBe('number');
-        expect(Array.isArray(items)).toBe(true);
-        expect(typeof item.id).toBe('number');
+        // expect(typeof body.count).toBe('number');
+        expect(Array.isArray(body)).toBe(true);
+        expect(typeof item.code).toBe('string');
         // More validation here
       });
   });
 
-  it('Test paramaters', async () => {
-    return request(apiService.server)
+  it('Valid parameters', async () => {
+    return request(baseUrl)
       .get(testUrl)
       .query({
-        // Valid paramaters here
+        // Valid parameters here
       })
-      .set('Authorization', `Bearer ${store.token}`)
+      .set('Authorization', basicAuthToken)
       .then(res => {
-        expect(res.body.status).toBe(200);
+        expect(res.status).toBe(200);
         // Add more validation
       });
   });
 
-  it('Test paramaters, negative', async () => {
-    return request(apiService.server)
+  it('Invalid parameters, negative', async () => {
+    return request(baseUrl)
       .get(testUrl)
       .query({
-        // Invalid paramaters here
+        // Invalid parameters here
       })
-      .set('Authorization', `Bearer ${store.token}`)
+      .set('Authorization', basicAuthToken)
       .then(res => {
-        expect(res.body.status).toBe(422);
+        expect(res.status).toBe(200);
         // Add more validation
       });
   });
