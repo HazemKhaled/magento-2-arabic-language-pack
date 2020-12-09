@@ -1,6 +1,7 @@
 import { types } from 'util';
 
 import { Context, Errors, GenericObject, ServiceSchema } from 'moleculer';
+import { DbContextParameters, QueryFilters } from 'moleculer-db';
 
 import DbService from '../utilities/mixins/mongo.mixin';
 import { SubscriptionOpenapi } from '../utilities/mixins/openapi';
@@ -49,21 +50,23 @@ const TheService: ServiceSchema = {
       async handler(
         ctx: Context<{ storeId: string }>
       ): Promise<Subscription | false> {
-        const subscription: Subscription = await this.find({
-          query: {
-            storeId: ctx.params.storeId,
-            status: { $ne: 'cancelled' },
-            expireDate: { $gte: new Date() },
-            startDate: { $lte: new Date() },
-          },
-        }).then(([record]: Subscription[]) => record || {});
+        const subscription: Subscription = await this.actions
+          .find({
+            query: {
+              storeId: ctx.params.storeId,
+              status: { $ne: 'cancelled' },
+              expireDate: { $gte: new Date() },
+              startDate: { $lte: new Date() },
+            },
+          })
+          .then(([record]: Subscription[]) => record || {});
 
-        const membership: Membership = await ctx.call<
-          Membership,
-          Partial<Membership>
-        >('membership.getOne', {
-          id: subscription.membershipId || 'free',
-        });
+        const membership = await ctx.call<Membership, Partial<Membership>>(
+          'membership.get',
+          {
+            id: subscription.membershipId || 'free',
+          }
+        );
 
         return {
           id: (subscription._id && subscription._id.toString()) || '-1',
@@ -148,7 +151,7 @@ const TheService: ServiceSchema = {
               : new Date();
           }
         }
-        const findBody: any = { query };
+        const findBody: GenericObject = { query };
         if (ctx.params.sort) {
           findBody.sort = { [ctx.params.sort.field]: ctx.params.sort.order };
         }
@@ -158,7 +161,7 @@ const TheService: ServiceSchema = {
         findBody.offset =
           (findBody.limit || 100) *
           (ctx.params.page ? Number(ctx.params.page) - 1 : 0);
-        return this.adapter
+        return this.actions
           .find(findBody)
           .then((res: Subscription[]) => {
             return res;
@@ -223,17 +226,15 @@ const TheService: ServiceSchema = {
 
         // Get the Store instance
         const instance: Store = await ctx
-          .call<Store, Partial<Store>>('stores.getOne', {
+          .call<Store, Partial<{ id: string }>>('stores.get', {
             id: ctx.params.storeId,
           })
           .then(null, err => err);
         let grantToInstance: Store | null = null;
         if (ctx.params.grantTo) {
-          grantToInstance = await ctx.call<Store, Partial<Store>>(
-            'stores.findInstance',
-            {
-              id: ctx.params.grantTo,
-            }
+          grantToInstance = await ctx.call<Store, { id: string }>(
+            'stores.get',
+            { id: ctx.params.grantTo }
           );
         }
 
@@ -491,14 +492,14 @@ const TheService: ServiceSchema = {
           },
           status: { $ne: 'cancelled' },
         };
-        let [expiredSubscription] = await this.find({ query }).catch(
-          console.error
-        );
+        let [expiredSubscription] = await this.actions
+          .find({ query })
+          .catch(console.error);
         if (!expiredSubscription) {
           return null;
         }
         query.storeId = expiredSubscription.storeId;
-        [expiredSubscription] = await this.adapter.find({
+        [expiredSubscription] = await this.actions.find({
           query,
           sort: { expireDate: -1 },
         });
@@ -510,13 +511,11 @@ const TheService: ServiceSchema = {
           storeId: expiredSubscription.storeId,
         });
         if (currentSubscription.id !== '-1') {
-          await ctx.call<GenericObject, Partial<Subscription>>(
-            'subscription.updateOne',
-            {
-              id: expiredSubscription._id,
-              renewed: true,
-            }
-          );
+          this.actions.update({
+            id: expiredSubscription._id,
+            renewed: true,
+          });
+
           ctx.call<GenericObject, Partial<CrmStore>>('crm.addTagsByUrl', {
             id: expiredSubscription.storeId,
             tag: 'subscription-renew',
@@ -528,15 +527,13 @@ const TheService: ServiceSchema = {
         }
         const date = new Date();
         date.setUTCHours(0, 0, 0, 0);
-        ctx.call<GenericObject, Partial<Subscription>>(
-          'subscription.updateOne',
-          {
-            id: expiredSubscription._id,
-            retries: expiredSubscription.retries
-              ? [...expiredSubscription.retries, new Date(date)]
-              : [new Date(date)],
-          }
-        );
+        this.actions.update({
+          id: expiredSubscription._id,
+          retries: expiredSubscription.retries
+            ? [...expiredSubscription.retries, new Date(date)]
+            : [new Date(date)],
+        });
+
         ctx.call<GenericObject, Partial<CrmStore>>('crm.addTagsByUrl', {
           id: expiredSubscription.storeId,
           tag: 'subscription-retry-fail',
@@ -560,15 +557,13 @@ const TheService: ServiceSchema = {
           params.expireDate = new Date(params.expireDate);
         }
         $set = { ...params, ...$set, updatedAt: new Date() };
-        delete $set.id;
-        return this.adapter
-          .updateById(ctx.params.id, { $set })
+
+        return this.actions
+          .update($set)
           .then(async (subscription: Subscription) => {
-            const store: Store = await ctx.call<Store, Partial<Store>>(
-              'stores.findInstance',
-              {
-                id: subscription.storeId,
-              }
+            const store: Store = await ctx.call<Store, { id: string }>(
+              'stores.get',
+              { id: subscription.storeId }
             );
 
             this.broker.cacher.clean(`subscription.getByStore:${store.url}**`);
@@ -598,7 +593,10 @@ const TheService: ServiceSchema = {
           },
         });
 
-        const memberships = await ctx.call<Membership[]>('membership.getAll');
+        const memberships = await ctx.call<Membership[], DbContextParameters>(
+          'membership.find',
+          { pageSize: 99 }
+        );
         if (allSubBefore.length === 0) return;
         if (allSubBefore.length === 1) {
           return ctx.call<CrmResponse, Partial<CrmStore>>('crm.addTagsByUrl', {
@@ -630,14 +628,12 @@ const TheService: ServiceSchema = {
       auth: ['Basic'],
       rest: 'DELETE /:id',
       handler(ctx): Promise<Subscription> {
-        return this.adapter
-          .updateById(ctx.params.id, { $set: { status: 'cancelled' } })
+        return this.actions
+          .update({ id: ctx.params.id, status: 'cancelled' })
           .then(async (res: any) => {
-            const instance: Store = await ctx.call<Store, Partial<Store>>(
-              'stores.findInstance',
-              {
-                id: res.storeId,
-              }
+            const instance: Store = await ctx.call<Store, { id: string }>(
+              'stores.get',
+              { id: res.storeId }
             );
 
             if (res.invoiceId) {

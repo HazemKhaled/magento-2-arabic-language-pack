@@ -24,11 +24,9 @@ const TheService: ServiceSchema = {
       async handler(
         ctx: Context<PaymentRequestParams>
       ): Promise<PaymentResponse> {
-        const instance: Store = await ctx.call<Store, Partial<Store>>(
-          'stores.findInstance',
-          {
-            id: ctx.params.id,
-          }
+        const instance: Store = await ctx.call<Store, { id: string }>(
+          'stores.get',
+          { id: ctx.params.id }
         );
 
         // create OMS contact if no oms ID

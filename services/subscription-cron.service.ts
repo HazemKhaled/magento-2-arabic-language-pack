@@ -46,12 +46,9 @@ const TheService: ServiceSchema = {
           return null;
         }
 
-        const store: Store = await ctx.call<Store, Partial<Subscription>>(
-          'stores.findInstance',
-          {
-            id: subscription.storeId,
-          }
-        );
+        const store = await ctx.call<Store, { id: string }>('stores.get', {
+          id: subscription.storeId,
+        });
 
         if (store?.status !== 'confirmed') {
           return null;

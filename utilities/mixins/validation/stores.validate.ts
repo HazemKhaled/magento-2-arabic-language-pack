@@ -37,10 +37,6 @@ export const StoresValidation: ServiceSchema = {
     },
     getAllAdmin: {
       params: {
-        id: {
-          type: 'string',
-          optional: true,
-        },
         page: {
           type: 'number',
           optional: true,
@@ -55,11 +51,6 @@ export const StoresValidation: ServiceSchema = {
           convert: true,
           integer: true,
         },
-      },
-    },
-    countStores: {
-      params: {
-        query: 'object',
       },
     },
     createOne: {
@@ -556,11 +547,6 @@ export const StoresValidation: ServiceSchema = {
       },
     },
     resolveBearerToken: {
-      params: {
-        token: 'string',
-      },
-    },
-    resolveBasicToken: {
       params: {
         token: 'string',
       },

@@ -37,7 +37,7 @@ const TheService: ServiceSchema = {
         params._id = `m-${params.id || Date.now()}`;
         delete params.id;
         if (params.isDefault) {
-          const [currentDefault] = await this.find({
+          const [currentDefault]: Membership[] = await this.actions.find({
             query: {
               isDefault: true,
               active: true,
@@ -72,17 +72,25 @@ const TheService: ServiceSchema = {
       rest: 'GET /:id',
       handler(ctx: Context<MembershipRequestParams>): Promise<Membership> {
         const { active, id, country } = ctx.params;
+
+        if (id) {
+          return this.getById(id);
+        }
+
         const query: Partial<MembershipRequestParams> = { _id: id };
         if (active !== undefined) {
           query.active = active;
         }
 
-        return this.find({ query })
+        return this.actions
+          .find({ query })
           .then(async ([res]: Membership[]) => {
             if (!res) {
-              return this.find({
-                query: { isDefault: true },
-              }).then(([def]: Membership[]) => this.normalize(def));
+              return this.actions
+                .find({
+                  query: { isDefault: true },
+                })
+                .then(([def]: Membership[]) => this.normalize(def));
             }
 
             if (ctx.params.coupon) {
@@ -114,7 +122,7 @@ const TheService: ServiceSchema = {
             $or: [{ country }, { country: { $exists: false } }],
           };
         }
-        return this.adapter
+        return this.actions
           .find({ query })
           .then((res: Membership[]) => {
             if (!res.length)
@@ -140,23 +148,17 @@ const TheService: ServiceSchema = {
         ctx: Context<MembershipRequestParams>
       ): Promise<Membership> {
         const { params } = ctx;
-        const id = params.id;
-        delete params.id;
-        return this.adapter.collection
-          .updateOne(
-            { _id: id },
-            { $set: { ...params, updatedAt: new Date() } }
-          )
+
+        return this.actions
+          .update({ ...params, updatedAt: new Date() })
           .then((res: Membership) => {
             this.broker.cacher.clean('membership.getAll:**');
-            this.broker.cacher.clean(`membership.getOne:${id}**`);
+            this.broker.cacher.clean(`membership.getOne:${params.id}**`);
             if (!res) {
               throw new MoleculerError('Membership not found', 404);
             }
-            return ctx.call<Membership, Partial<Membership>>(
-              'membership.getOne',
-              { id }
-            );
+
+            return res;
           })
           .catch((err: CommonError) => {
             if (err.name === 'MoleculerError') {
@@ -239,8 +241,8 @@ const TheService: ServiceSchema = {
       });
     },
     async applyCouponDiscount(couponCode, membership): Promise<void> {
-      const coupon: Coupon = await this.broker
-        .call('coupons.getOne', {
+      const coupon: Coupon = await this.actions
+        .getOne({
           id: couponCode,
           membership: membership.id,
           type: 'subscription',

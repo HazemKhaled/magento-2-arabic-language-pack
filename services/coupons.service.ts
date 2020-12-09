@@ -61,7 +61,8 @@ const TheService: ServiceSchema = {
         if (ctx.params.type) {
           query.type = ctx.params.type;
         }
-        return this.find({ query })
+        return this.actions
+          .find({ query })
           .then(([res]: Coupon[]) => {
             if (!res) {
               throw new MoleculerError(
@@ -86,7 +87,7 @@ const TheService: ServiceSchema = {
       auth: ['Basic'],
       cache: {
         ttl: 60 * 60 * 24,
-        keys: ['id', 'membership', 'type', 'isValid', 'isAuto'],
+        keys: ['membership', 'type', 'isValid', 'isAuto'],
       },
       rest: 'GET /',
       handler(ctx: Context<Coupon>): Promise<Coupon[]> {
@@ -112,7 +113,7 @@ const TheService: ServiceSchema = {
         if (ctx.params.type) {
           query.type = ctx.params.type;
         }
-        return this.adapter
+        return this.actions
           .find({ query })
           .then((res: Coupon[]) => {
             if (res.length) return res.map(coupon => this.normalizeId(coupon));
@@ -132,9 +133,9 @@ const TheService: ServiceSchema = {
       async handler(ctx: Context<Coupon>): Promise<Coupon> {
         this.couponTypeCheck(ctx.params);
 
-        const id = ctx.params.id.toUpperCase();
         const updateBody: Partial<Coupon> = {
           ...ctx.params,
+          id: ctx.params.id.toUpperCase(),
           updatedAt: new Date(),
         };
         if (updateBody.startDate) {
@@ -143,23 +144,18 @@ const TheService: ServiceSchema = {
         if (updateBody.endDate) {
           updateBody.endDate = new Date(updateBody.endDate);
         }
-        delete updateBody.id;
-        return this.adapter.collection
-          .findOneAndUpdate(
-            { _id: id },
-            { $set: updateBody },
-            { returnOriginal: false }
-          )
-          .then((dbResponse: { value: Coupon }) => {
-            if (!dbResponse) {
+
+        return this.actions
+          .update(updateBody)
+          .then((coupon: Coupon) => {
+            if (!coupon) {
               throw new MoleculerError('No Coupons found!', 404);
             }
 
             this.broker.cacher.clean('coupons.getAll:**');
-            this.broker.cacher.clean(`coupons.getOne:${id}*`);
+            this.broker.cacher.clean(`coupons.getOne:${updateBody.id}*`);
             this.clearCache();
 
-            const coupon = dbResponse.value;
             coupon.code = coupon._id;
             delete coupon._id;
             return coupon;

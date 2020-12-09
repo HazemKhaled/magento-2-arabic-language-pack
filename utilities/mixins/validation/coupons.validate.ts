@@ -102,16 +102,6 @@ export const CouponsValidation: ServiceSchema = {
     },
     getAll: {
       params: {
-        id: [
-          {
-            type: 'string',
-            optional: true,
-          },
-          {
-            type: 'number',
-            optional: true,
-          },
-        ],
         membership: {
           type: 'string',
           optional: true,

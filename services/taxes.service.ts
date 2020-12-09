@@ -42,7 +42,7 @@ const TaxesService: ServiceSchema = {
           .insert({ entity: taxBody })
           .then((tax: DbTax) => {
             this.broker.cacher.clean('taxes.getAll:*');
-            this.broker.cacher.clean('taxes.tCount:*');
+
             return { tax: this.sanitizer(tax) };
           })
           .catch((err: CommonError) => {
@@ -54,25 +54,22 @@ const TaxesService: ServiceSchema = {
       auth: ['Basic'],
       rest: 'PUT /:id',
       async handler(ctx: Context<GenericObject>): Promise<RTax> {
-        const { id } = ctx.params;
-        const $set = ctx.params;
-        $set.updatedAt = new Date();
+        const record = ctx.params;
+        record.updatedAt = new Date();
 
-        if ($set.country) {
-          $set.country = $set.country.toUpperCase();
+        if (record.country) {
+          record.country = record.country.toUpperCase();
         }
-        delete $set.id;
 
-        const taxUpdateData = await this.adapter
-          .updateById(id, { $set })
+        const taxUpdateData = await this.actions
+          .update(record)
           .then((tax: DbTax) => {
             if (!tax) {
               throw new MoleculerError('There is no tax with that ID', 404);
             }
 
-            this.broker.cacher.clean(`taxes.getOne:${id}*`);
+            this.broker.cacher.clean(`taxes.getOne:${record.id}*`);
             this.broker.cacher.clean('taxes.getAll:*');
-            this.broker.cacher.clean('taxes.tCount:*');
 
             return {
               tax: this.sanitizer(tax),
@@ -89,15 +86,15 @@ const TaxesService: ServiceSchema = {
             'oms.updateTax',
             ['name', 'percentage'].reduce(
               (acc: GenericObject, key: string) => {
-                if (!$set[key]) {
+                if (!taxUpdateData[key]) {
                   delete acc[key];
                 }
                 return acc;
               },
               {
                 id: taxUpdateData.tax.omsId,
-                name: $set.name,
-                percentage: $set.percentage,
+                name: taxUpdateData.name,
+                percentage: taxUpdateData.percentage,
               }
             )
           );
@@ -140,7 +137,7 @@ const TaxesService: ServiceSchema = {
       handler(ctx: Context<TaxRequestParams>): RTax[] {
         const { country } = ctx.params;
         const classes = ctx.params.class;
-        const query: any = {};
+        const query: GenericObject = {};
         if (country) {
           query.country = country.toUpperCase();
         }
@@ -153,16 +150,11 @@ const TaxesService: ServiceSchema = {
         const page = Number(ctx.params.page) || 1;
         const limit = Number(ctx.params.perPage) || 50;
         const offset = (page - 1) * limit;
-        return this.adapter
+        return this.actions
           .find({ limit, offset, query })
           .then(async (res: DbTax[]) => ({
             taxes: res.map(tax => this.sanitizer(tax)),
-            total: await ctx.call<number, Partial<TaxRequestParams>>(
-              'taxes.tCount',
-              {
-                query,
-              }
-            ),
+            total: await this.actions.count({ query }),
           }))
           .catch((err: CommonError) => {
             throw new MoleculerError(
@@ -178,8 +170,8 @@ const TaxesService: ServiceSchema = {
       async handler(
         ctx: Context<RTax>
       ): Promise<{ tax: RTax; message: string }> {
-        const taxDeleteData = await this.adapter
-          .removeById(ctx.params.id)
+        const taxDeleteData = await this.actions
+          .remove(ctx.params.id)
           .then((tax: DbTax) => {
             if (!tax) {
               throw new MoleculerError('There is no tax with that ID', 404);
@@ -187,7 +179,6 @@ const TaxesService: ServiceSchema = {
 
             this.broker.cacher.clean(`taxes.getOne:${ctx.params.id}*`);
             this.broker.cacher.clean('taxes.getAll:*');
-            this.broker.cacher.clean('taxes.tCount:*');
 
             return {
               tax: this.sanitizer(tax),
@@ -208,20 +199,6 @@ const TaxesService: ServiceSchema = {
         }
 
         return taxDeleteData;
-      },
-    },
-    tCount: {
-      cache: {
-        keys: ['query'],
-        ttl: 60 * 60,
-      },
-      handler(ctx: Context<TaxRequestParams>): Promise<number> {
-        return this.adapter.count({ query: ctx.params.query }).catch(() => {
-          throw new MoleculerError(
-            'There is an error fetching the taxes total',
-            500
-          );
-        });
       },
     },
   },

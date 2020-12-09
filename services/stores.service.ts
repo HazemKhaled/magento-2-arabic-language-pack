@@ -35,9 +35,6 @@ const TheService: ServiceSchema = {
     /** Secret for JWT */
     JWT_SECRET: process.env.JWT_SECRET || 'jwt-conduit-secret',
 
-    /** Public fields */
-    fields: ['_id'],
-
     /** Validator schema for entity */
     entityValidator: {
       consumerKey: { type: 'string' },
@@ -75,14 +72,16 @@ const TheService: ServiceSchema = {
           return this.getById(ctx.params.id);
         }
 
-        return this.find({
-          query: { consumer_key: ctx.params.consumerKey },
-        }).then(([res]: Store[]) => {
-          // If the DB response not null will return the data
-          if (res !== null) return this.sanitizeResponse(res);
-          // If null return Not Found error
-          throw new MpError('Stores Service', 'Store Not Found', 404);
-        });
+        return this.actions
+          .find({
+            query: { consumer_key: ctx.params.consumerKey },
+          })
+          .then(([res]: Store[]) => {
+            // If the DB response not null will return the data
+            if (res !== null) return this.sanitizeResponse(res);
+            // If null return Not Found error
+            throw new MpError('Stores Service', 'Store Not Found', 404);
+          });
       },
     },
     /**
@@ -99,8 +98,9 @@ const TheService: ServiceSchema = {
       },
       rest: 'GET /me',
       handler(ctx: Context<unknown, MetaParams>): Promise<Store> {
-        return this.find({ query: { consumer_key: ctx.meta.user } }).then(
-          async ([res]: Store[]) => {
+        return this.actions
+          .find({ query: { consumer_key: ctx.meta.user } })
+          .then(async ([res]: Store[]) => {
             let omsData: { store: Store };
             if (res) {
               if (res.users) {
@@ -125,8 +125,7 @@ const TheService: ServiceSchema = {
             }
             // If null return Not Found error
             throw new MpError('Stores Service', 'Store Not Found', 404);
-          }
-        );
+          });
       },
     },
     /**
@@ -224,10 +223,9 @@ const TheService: ServiceSchema = {
             query.sort = { [sortArray[0]]: sortArray[1] === 'asc' ? 1 : -1 };
           }
         }
-        return this.adapter.find({ ...query }).then((res: Store[] | null) => {
+        return this.actions.find(query).then((res: Store[]) => {
           // If the DB response not null will return the data
-          if (res !== null)
-            return res.map(store => this.sanitizeResponse(store));
+          if (res) return res.map(store => this.sanitizeResponse(store));
           // If null return Not Found error
           throw new MpError('Stores Service', 'Store Not Found', 404);
         });
@@ -236,7 +234,7 @@ const TheService: ServiceSchema = {
     getAllAdmin: {
       auth: ['Basic'],
       cache: {
-        keys: ['id', 'page', 'perPage'],
+        keys: ['page', 'perPage'],
         ttl: 60 * 60 * 24,
       },
       rest: 'GET admin',
@@ -244,23 +242,15 @@ const TheService: ServiceSchema = {
         ctx: Context<StoreRequest>
       ): Promise<{ stores: Store; total: number }> {
         const query: GenericObject = {};
-        if (ctx.params.id) {
-          query._id = { $regex: new RegExp(`.*${ctx.params.id}.*`, 'i') };
-        }
         const findBody: GenericObject = { query };
-        findBody.limit = Number(ctx.params.perPage) || 50;
-        findBody.offset =
-          (Number(ctx.params.perPage) || 50) *
-          ((Number(ctx.params.page) || 1) - 1);
-        return this.adapter
-          .find(findBody)
-          .then(async (res: Store[]) => {
+        findBody.pageSize = Number(ctx.params.perPage) || 50;
+        findBody.page = Number(ctx.params.page) || 1;
+        return this.actions
+          .list(findBody)
+          .then(async (res: { rows: Store[]; total: number }) => {
             return {
-              stores: res.map(store => this.sanitizeResponse(store)),
-              total: await this.actions.countStores({
-                key: ctx.params.id,
-                query,
-              }),
+              stores: res.rows,
+              total: res.total,
             };
           })
           .catch((err: CommonError) => {
@@ -269,16 +259,6 @@ const TheService: ServiceSchema = {
             }
             throw new MoleculerError(String(err), 500);
           });
-      },
-    },
-    countStores: {
-      cache: {
-        keys: ['key'],
-        ttl: 60 * 60 * 24,
-      },
-      visibility: 'private',
-      handler(ctx: Context<StoreRequest>): number {
-        return this.adapter.count({ query: ctx.params.query });
       },
     },
     /**
@@ -313,7 +293,6 @@ const TheService: ServiceSchema = {
         if (myStore.url) {
           this.broker.cacher.clean('stores.getAll:**');
           this.broker.cacher.clean('stores.getAllAdmin:**');
-          this.broker.cacher.clean('stores.countStores:**');
           this.cacheUpdate(myStore);
         }
 
@@ -332,13 +311,10 @@ const TheService: ServiceSchema = {
       async handler(ctx: Context<Store, MetaParams>): Promise<Store> {
         // Save the ID separate into variable to use it to find the store
         const { id } = ctx.params;
-        delete ctx.params.id;
         // storeBefore
-        const storeBefore: Store = await ctx.call<Store, Partial<Store>>(
-          'stores.findInstance',
-          {
-            id,
-          }
+        const storeBefore: Store = await ctx.call<Store, { id: string }>(
+          'stores.get',
+          { id }
         );
 
         // Sanitize request params
@@ -368,8 +344,8 @@ const TheService: ServiceSchema = {
           );
         }
 
-        const myStore: Store = await this.adapter
-          .updateById(id, { $set: store })
+        const myStore: Store = await this.actions
+          .update(store)
           .then(this.sanitizeResponse)
           .catch((error: { code: number }) => {
             this.sendLogs({
@@ -449,7 +425,7 @@ const TheService: ServiceSchema = {
       rest: 'PUT /:id/sync',
       async handler(ctx): Promise<unknown> {
         const storeId = ctx.params.id;
-        const instance: Store = await ctx.call('stores.findInstance', {
+        const instance = await ctx.call<Store, { id: string }>('stores.get', {
           id: storeId,
         });
         try {

@@ -314,13 +314,6 @@ const StoresSListOpenapi = {
   tags: ['Stores'],
   parameters: [
     {
-      name: 'id',
-      in: 'query',
-      schema: {
-        type: 'string',
-      },
-    },
-    {
       name: 'page',
       in: 'query',
       schema: {

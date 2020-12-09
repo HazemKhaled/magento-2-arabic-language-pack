@@ -98,7 +98,30 @@ const ShipmentGetOpenapi = {
       },
     },
   ],
-  summary: 'Get All Shipment Policies or Get By Id',
+  summary: 'Get By Id',
+  tags: ['Shipment'],
+  responses: {
+    200: {
+      description: 'Status 200',
+      content: {
+        'application/json': {
+          schema: {
+            type: 'array',
+            items: {
+              $ref: '#/components/schemas/ShipmentPolicy',
+            },
+          },
+        },
+      },
+    },
+    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
+  },
+  security: [{ basicAuth: [] as any[] }],
+};
+
+const ShipmentListOpenapi = {
+  $path: 'get /shipment/{id}',
+  summary: 'Get All Shipment Policies',
   tags: ['Shipment'],
   responses: {
     200: {
@@ -299,6 +322,9 @@ export const ShipmentOpenapi: ServiceSchema = {
   },
   actions: {
     getAll: {
+      openapi: ShipmentListOpenapi,
+    },
+    getOne: {
       openapi: ShipmentGetOpenapi,
     },
     createOne: {

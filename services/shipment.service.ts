@@ -29,8 +29,8 @@ const Shipment: ServiceSchema = {
       auth: ['Basic'],
       cache: { ttl: 60 * 60 * 24 * 30 },
       rest: 'GET /',
-      handler(ctx: Context): ShipmentPolicy[] {
-        return this.adapter
+      handler(): ShipmentPolicy[] {
+        return this.actions
           .find()
           .then((data: ShipmentPolicy[]) => this.shipmentTransform(data));
       },
@@ -184,10 +184,8 @@ const Shipment: ServiceSchema = {
             };
           }
         }
-        return this.adapter
-          .find({
-            query,
-          })
+        return this.actions
+          .find({ query })
           .then((policies: ShipmentPolicy[]) => {
             // Get all rules
             const rules: Rule[] = policies.reduceRight(
@@ -233,7 +231,7 @@ const Shipment: ServiceSchema = {
         const query = ctx.params.country
           ? { countries: ctx.params.country }
           : {};
-        return this.adapter
+        return this.actions
           .find({ query })
           .then(
             // Get couriers and filter repeated couriers
