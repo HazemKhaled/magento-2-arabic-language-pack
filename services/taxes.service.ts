@@ -151,10 +151,10 @@ const TaxesService: ServiceSchema = {
         const limit = Number(ctx.params.perPage) || 50;
         const offset = (page - 1) * limit;
         return this.actions
-          .find({ limit, offset, query })
-          .then(async (res: DbTax[]) => ({
-            taxes: res.map(tax => this.sanitizer(tax)),
-            total: await this.actions.count({ query }),
+          .list({ limit, offset, query })
+          .then(async (res: { rows: DbTax[]; total: number }) => ({
+            taxes: res.rows.map(tax => this.sanitizer(tax)),
+            total: res.total,
           }))
           .catch((err: CommonError) => {
             throw new MoleculerError(

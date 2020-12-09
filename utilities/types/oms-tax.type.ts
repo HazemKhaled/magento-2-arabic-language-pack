@@ -1,5 +1,3 @@
-import { StringNullableChain } from 'lodash';
-
 /**
  *  Oms tax schema
  *

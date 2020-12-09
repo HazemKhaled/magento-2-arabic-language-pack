@@ -1,4 +1,4 @@
-import { Context, ServiceSchema, GenericObject } from 'moleculer';
+import { Context, ServiceSchema } from 'moleculer';
 
 import DbService from '../utilities/mixins/mongo.mixin';
 import { ShipmentOpenapi } from '../utilities/mixins/openapi';

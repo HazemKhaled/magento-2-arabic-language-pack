@@ -14,7 +14,6 @@ import {
   OrderMetaParams,
   Coupon,
   CrmStore,
-  SubscriptionType,
   updateOderRequestParams,
   DynamicRequestParams,
   InvoiceResponse,

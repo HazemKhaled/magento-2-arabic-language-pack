@@ -348,7 +348,7 @@ module.exports = {
                   const firstImport = response.items
                     .filter((item: GenericObject) => item.update._version === 1)
                     .map((item: GenericObject) => item.update._id);
-                  const update = res.filter((product: Product) =>
+                  res.filter((product: Product) =>
                     firstImport.includes(`${store.consumer_key}-${product.sku}`)
                   );
 

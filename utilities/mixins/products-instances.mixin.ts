@@ -50,7 +50,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
 
       return this.productInstanceSanitizer(product, instance, currency);
     },
-    checkProductInstance(sku, instanceKey, _source): boolean {
+    checkProductInstance(sku, instanceKey): boolean {
       return this.broker
         .call('products.search', {
           index: 'products-instances',

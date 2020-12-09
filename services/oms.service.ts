@@ -12,7 +12,6 @@ import {
   TaxRequestParams,
   DynamicRequestParams,
   CommonError,
-  Order,
 } from '../utilities/types';
 import DbService from '../utilities/mixins/mongo.mixin';
 import { OmsValidation } from '../utilities/mixins/validation';

@@ -6,11 +6,7 @@ import { MoleculerRequest, Response, NextFunction } from 'moleculer-express';
 import { Store } from '../types';
 import { MpError } from '../adapters';
 
-export function hmacMiddleware(): (
-  req: MoleculerRequest,
-  res: Response,
-  next: NextFunction
-) => Promise<void> {
+export function hmacMiddleware() {
   return async (
     req: MoleculerRequest,
     res: Response,
