@@ -69,18 +69,20 @@ const TheService: ServiceSchema = {
       },
       visibility: 'public',
       handler(
-        ctx: Context<{ id: string; consumerKey: string }>
+        ctx: Context<{ id: string; consumerKey?: string }>
       ): Promise<Store> {
-        let query: { _id?: string } | false = false;
-        if (ctx.params.id) query = { _id: ctx.params.id };
-        return this.adapter
-          .findOne(query || { consumer_key: ctx.params.consumerKey })
-          .then((res: Store | null) => {
-            // If the DB response not null will return the data
-            if (res !== null) return this.sanitizeResponse(res);
-            // If null return Not Found error
-            throw new MpError('Stores Service', 'Store Not Found', 404);
-          });
+        if (ctx.params.id) {
+          return this.getById(ctx.params.id);
+        }
+
+        return this.find({
+          query: { consumer_key: ctx.params.consumerKey },
+        }).then(([res]: Store[]) => {
+          // If the DB response not null will return the data
+          if (res !== null) return this.sanitizeResponse(res);
+          // If null return Not Found error
+          throw new MpError('Stores Service', 'Store Not Found', 404);
+        });
       },
     },
     /**
@@ -97,10 +99,9 @@ const TheService: ServiceSchema = {
       },
       rest: 'GET /me',
       handler(ctx: Context<unknown, MetaParams>): Promise<Store> {
-        return this.adapter
-          .findOne({ consumer_key: ctx.meta.user })
-          .then(async (res: Store | null) => {
-            let omsData: boolean | { store: Store } = false;
+        return this.find({ query: { consumer_key: ctx.meta.user } }).then(
+          async ([res]: Store[]) => {
+            let omsData: { store: Store };
             if (res) {
               if (res.users) {
                 res.subscription = await ctx.call<
@@ -116,6 +117,7 @@ const TheService: ServiceSchema = {
                     customerId: res.internal_data.omsId,
                   })
                   .then(null, this.logger.error)) as { store: Store };
+
                 // If the DB response not null will return the data
                 return this.sanitizeResponse(res, omsData && omsData?.store);
               }
@@ -123,7 +125,8 @@ const TheService: ServiceSchema = {
             }
             // If null return Not Found error
             throw new MpError('Stores Service', 'Store Not Found', 404);
-          });
+          }
+        );
       },
     },
     /**

@@ -61,9 +61,8 @@ const TheService: ServiceSchema = {
         if (ctx.params.type) {
           query.type = ctx.params.type;
         }
-        return this.adapter
-          .findOne(query)
-          .then((res: Coupon) => {
+        return this.find({ query })
+          .then(([res]: Coupon[]) => {
             if (!res) {
               throw new MoleculerError(
                 'No Coupon found for this ID or Membership',

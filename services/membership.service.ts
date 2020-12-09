@@ -37,9 +37,11 @@ const TheService: ServiceSchema = {
         params._id = `m-${params.id || Date.now()}`;
         delete params.id;
         if (params.isDefault) {
-          const currentDefault = await this.adapter.findOne({
-            isDefault: true,
-            active: true,
+          const [currentDefault] = await this.find({
+            query: {
+              isDefault: true,
+              active: true,
+            },
           });
           if (currentDefault) {
             throw new MoleculerError(
@@ -75,13 +77,12 @@ const TheService: ServiceSchema = {
           query.active = active;
         }
 
-        return this.adapter
-          .findOne(query)
-          .then(async (res: Membership) => {
+        return this.find({ query })
+          .then(async ([res]: Membership[]) => {
             if (!res) {
-              return this.adapter
-                .findOne({ isDefault: true })
-                .then((def: Membership) => this.normalize(def));
+              return this.find({
+                query: { isDefault: true },
+              }).then(([def]: Membership[]) => this.normalize(def));
             }
 
             if (ctx.params.coupon) {

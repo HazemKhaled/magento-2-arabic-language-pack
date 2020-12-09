@@ -49,19 +49,22 @@ const TheService: ServiceSchema = {
       async handler(
         ctx: Context<{ storeId: string }>
       ): Promise<Subscription | false> {
-        const subscription =
-          (await this.adapter.findOne({
+        const subscription: Subscription = await this.find({
+          query: {
             storeId: ctx.params.storeId,
             status: { $ne: 'cancelled' },
             expireDate: { $gte: new Date() },
             startDate: { $lte: new Date() },
-          })) || {};
+          },
+        }).then(([record]: Subscription[]) => record || {});
+
         const membership: Membership = await ctx.call<
           Membership,
           Partial<Membership>
         >('membership.getOne', {
           id: subscription.membershipId || 'free',
         });
+
         return {
           id: (subscription._id && subscription._id.toString()) || '-1',
           ...subscription,
@@ -488,9 +491,9 @@ const TheService: ServiceSchema = {
           },
           status: { $ne: 'cancelled' },
         };
-        let expiredSubscription = await this.adapter
-          .findOne(query)
-          .catch(console.error);
+        let [expiredSubscription] = await this.find({ query }).catch(
+          console.error
+        );
         if (!expiredSubscription) {
           return null;
         }
