@@ -16,14 +16,15 @@ const MoleculerError = Errors.MoleculerError;
 const TheService: ServiceSchema = {
   name: 'membership',
   mixins: [
-    DbService('membership'),
+    new DbService('membership').start(),
     MembershipValidation,
     MembershipOpenapi,
     TaxCheck,
   ],
   actions: {
-    create: {
+    createOne: {
       auth: ['Basic'],
+      rest: 'POST /',
       async handler(
         ctx: Context<MembershipRequestParams>
       ): Promise<Membership> {
@@ -49,7 +50,7 @@ const TheService: ServiceSchema = {
         return this.adapter
           .insert(params)
           .then((res: Membership) => {
-            this.broker.cacher.clean('membership.list:**');
+            this.broker.cacher.clean('membership.getAll:**');
             return this.normalize(res);
           })
           .catch((err: CommonError) => {
@@ -60,12 +61,13 @@ const TheService: ServiceSchema = {
           });
       },
     },
-    mGet: {
+    getOne: {
       auth: ['Basic'],
       cache: {
         keys: ['id', 'country', 'coupon', 'active'],
         ttl: 60 * 60 * 24,
       },
+      rest: 'GET /:id',
       handler(ctx: Context<MembershipRequestParams>): Promise<Membership> {
         const { active, id, country } = ctx.params;
         const query: Partial<MembershipRequestParams> = { _id: id };
@@ -96,12 +98,13 @@ const TheService: ServiceSchema = {
           });
       },
     },
-    list: {
+    getAll: {
       auth: ['Basic'],
       cache: {
         keys: ['country'],
         ttl: 60 * 60 * 24,
       },
+      rest: 'GET /',
       handler(ctx: Context<{ country: string }>): Promise<Membership[]> {
         const { country } = ctx.params;
         let query: { [key: string]: GenericObject } = {};
@@ -129,8 +132,9 @@ const TheService: ServiceSchema = {
           });
       },
     },
-    update: {
+    updateOne: {
       auth: ['Basic'],
+      rest: 'PUT /:id',
       async handler(
         ctx: Context<MembershipRequestParams>
       ): Promise<Membership> {
@@ -143,13 +147,13 @@ const TheService: ServiceSchema = {
             { $set: { ...params, updatedAt: new Date() } }
           )
           .then((res: Membership) => {
-            this.broker.cacher.clean('membership.list:**');
-            this.broker.cacher.clean(`membership.mGet:${id}**`);
+            this.broker.cacher.clean('membership.getAll:**');
+            this.broker.cacher.clean(`membership.getOne:${id}**`);
             if (!res) {
               throw new MoleculerError('Membership not found', 404);
             }
             return ctx.call<Membership, Partial<Membership>>(
-              'membership.mGet',
+              'membership.getOne',
               { id }
             );
           })
@@ -235,7 +239,7 @@ const TheService: ServiceSchema = {
     },
     async applyCouponDiscount(couponCode, membership): Promise<void> {
       const coupon: Coupon = await this.broker
-        .call('coupons.get', {
+        .call('coupons.getOne', {
           id: couponCode,
           membership: membership.id,
           type: 'subscription',

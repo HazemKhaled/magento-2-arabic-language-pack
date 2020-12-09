@@ -13,22 +13,42 @@ import { MpError } from '../utilities/adapters';
 
 const Shipment: ServiceSchema = {
   name: 'shipment',
-  mixins: [DbService('shipment'), ShipmentValidation, ShipmentOpenapi],
+  mixins: [
+    new DbService('shipment').start(),
+    ShipmentValidation,
+    ShipmentOpenapi,
+  ],
   actions: {
     /**
      * Get shipment policies
      *
-     * @param {string} id optional
-     * @returns
+     * @param {Context} ctx
+     * @return {*}  {ShipmentPolicy[]}
      */
-    getShipments: {
+    getAll: {
+      auth: ['Basic'],
+      cache: { ttl: 60 * 60 * 24 * 30 },
+      rest: 'GET /',
+      handler(ctx: Context): ShipmentPolicy[] {
+        return this.adapter
+          .find()
+          .then((data: ShipmentPolicy[]) => this.shipmentTransform(data));
+      },
+    },
+    /**
+     * Get one policy
+     *
+     * @param {Context<{ id: string }>} ctx
+     * @return {*}  {ShipmentPolicy}
+     */
+    getOne: {
       auth: ['Basic'],
       cache: { keys: ['id'], ttl: 60 * 60 * 24 * 30 },
-      handler(ctx: Context<ShipmentPolicy>): ShipmentPolicy | ShipmentPolicy[] {
-        return (ctx.params.id
-          ? this.adapter.findById(ctx.params.id)
-          : this.adapter.find()
-        ).then((data: ShipmentPolicy[]) => this.shipmentTransform(data));
+      rest: 'GET /:id',
+      handler(ctx: Context<{ id: string }>): ShipmentPolicy {
+        return this.adapter
+          .findById(ctx.params.id)
+          .then((data: ShipmentPolicy) => this.shipmentTransform(data));
       },
     },
     /**
@@ -37,8 +57,9 @@ const Shipment: ServiceSchema = {
      * @param {*} ctx
      * @returns
      */
-    insertShipment: {
+    createOne: {
       auth: ['Basic'],
+      rest: 'POST /',
       handler(ctx: Context<ShipmentPolicy>): ShipmentPolicy {
         // insert to DB
         return this.adapter
@@ -72,8 +93,9 @@ const Shipment: ServiceSchema = {
      * @param {*} ctx
      * @returns
      */
-    updateShipment: {
+    updateOne: {
       auth: ['Basic'],
+      rest: 'PUT /:id',
       handler(ctx: Context<ShipmentPolicy>): ShipmentPolicy {
         // update DB
         return this.adapter
@@ -107,7 +129,7 @@ const Shipment: ServiceSchema = {
      * @param {*} ctx
      * @returns
      */
-    ruleByCountry: {
+    getAllRuleByCountry: {
       auth: ['Basic'],
       cache: {
         keys: [
@@ -119,6 +141,7 @@ const Shipment: ServiceSchema = {
         ],
         ttl: 60 * 60 * 24 * 30,
       },
+      rest: 'GET /rules',
       handler(
         ctx: Context<{
           country: string;
@@ -201,7 +224,7 @@ const Shipment: ServiceSchema = {
      * @param {string} country optional
      * @returns {string[]} string array of couriers
      */
-    getCouriers: {
+    getAllCouriers: {
       auth: ['Basic'],
       cache: { keys: ['country'], ttl: 60 * 60 * 24 * 30 },
       handler(ctx: Context<ShipmentPolicy>): string[] {

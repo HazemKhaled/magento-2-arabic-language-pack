@@ -3,7 +3,7 @@ import { ServiceSchema } from 'moleculer';
 export const CouponsValidation: ServiceSchema = {
   name: 'coupons',
   actions: {
-    create: {
+    createOne: {
       params: {
         code: {
           type: 'string',
@@ -79,7 +79,7 @@ export const CouponsValidation: ServiceSchema = {
         $$strict: true,
       },
     },
-    get: {
+    getOne: {
       params: {
         id: [
           {
@@ -100,7 +100,7 @@ export const CouponsValidation: ServiceSchema = {
         },
       },
     },
-    list: {
+    getAll: {
       params: {
         id: [
           {
@@ -150,7 +150,7 @@ export const CouponsValidation: ServiceSchema = {
         ],
       },
     },
-    update: {
+    updateOne: {
       params: {
         id: {
           type: 'string',

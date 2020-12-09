@@ -309,7 +309,7 @@ const StoresListOpenapi = {
 };
 
 const StoresSListOpenapi = {
-  $path: 'get /admin/stores',
+  $path: 'get /stores/admin',
   summary: 'All Stores',
   tags: ['Stores'],
   parameters: [
@@ -595,19 +595,19 @@ export const StoresOpenapi: ServiceSchema = {
     me: {
       openapi: StoresMeOpenapi,
     },
-    get: {
+    getOne: {
       openapi: StoresGetOpenapi,
     },
-    list: {
+    getAll: {
       openapi: StoresListOpenapi,
     },
-    storesList: {
+    getAllAdmin: {
       openapi: StoresSListOpenapi,
     },
-    create: {
+    createOne: {
       openapi: StoresCreateOpenapi,
     },
-    update: {
+    updateOne: {
       openapi: StoresUpdateOpenapi,
     },
     login: {

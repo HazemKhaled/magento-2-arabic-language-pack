@@ -73,16 +73,6 @@ const TheService: ServiceSchema = {
           'PUT orders/pay/:id': 'orders.payOrder',
           'DELETE orders/:id': 'orders.deleteOrder',
 
-          // Stores
-          'GET stores/me': 'stores.me',
-          'PUT stores/me': 'stores.meUpdate',
-          'GET stores': 'stores.list',
-          'POST stores': 'stores.create',
-          'GET stores/:id': 'stores.sGet',
-          'PUT stores/:id': 'stores.update',
-          'PUT stores/:id/sync': 'stores.sync',
-          'GET admin/stores': 'stores.storesList',
-
           // Categories
           'GET catalog/categories': 'categories.list',
 
@@ -90,19 +80,11 @@ const TheService: ServiceSchema = {
           'GET currencies/:currencyCode': 'currencies.getCurrency',
           'GET currencies': 'currencies.getCurrencies',
 
-          // Shipment
-          'POST shipment': 'shipment.insertShipment',
-          'PUT shipment/:id': 'shipment.updateShipment',
-          'GET shipment': 'shipment.getShipments',
-          'GET shipment/rules': 'shipment.ruleByCountry',
-          'GET shipment/couriers': 'shipment.getCouriers',
-          'GET shipment/:id': 'shipment.getShipments',
-
           // Invoices
           'GET invoices': 'invoices.get',
           'POST invoices': 'invoices.create',
           'POST invoices/:id/credits': 'invoices.applyCredits',
-          'GET invoice/:storeId/external/:id': 'invoices.renderInvoice',
+          'GET invoices/:storeId/external/:id': 'invoices.renderInvoice',
 
           // Cards
           'POST cards': 'cards.create',
@@ -116,31 +98,6 @@ const TheService: ServiceSchema = {
           // Payments mp
           'POST payments/:id': 'payments.add',
           'GET payments': 'payments.get',
-
-          // Membership
-          'POST membership': 'membership.create',
-          'GET membership': 'membership.list',
-          'GET membership/:id': 'membership.mGet',
-          'PUT membership/:id': 'membership.update',
-
-          // Coupons
-          'POST coupons': 'coupons.create',
-          'GET coupons': 'coupons.list',
-          'GET coupons/:id': 'coupons.get',
-          'PUT coupons/:id': 'coupons.update',
-
-          // Subscription
-          'POST subscription': 'subscription.create',
-          'GET subscription': 'subscription.sList',
-          'PUT subscription/:id': 'subscription.updateSubscription',
-          'DELETE subscription/:id': 'subscription.cancel',
-
-          // Taxes
-          'POST tax': 'taxes.tCreate',
-          'PUT tax/:id': 'taxes.tUpdate',
-          'GET tax/:id': 'taxes.tGet',
-          'GET tax': 'taxes.tList',
-          'DELETE tax/:id': 'taxes.tDelete',
 
           // GDPR
           'POST customer/redact': 'gdpr.customerRedact',
