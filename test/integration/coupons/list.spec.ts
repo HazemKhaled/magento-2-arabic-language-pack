@@ -1,7 +1,7 @@
 import request from 'supertest';
 
-import { basicAuthToken, arrayRandom } from '../../utility';
-import { startServices, stopServices } from '../tester';
+import { arrayRandom } from '../../utility';
+import { startServices, stopServices, basicAuthToken } from '../tester';
 import { Coupon } from '../../../utilities/types/coupon.type';
 
 describe("GET '/coupons' API", () => {

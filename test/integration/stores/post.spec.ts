@@ -1,8 +1,8 @@
 import request from 'supertest';
 import { GenericObject } from 'moleculer';
 
-import { basicAuthToken, storeSeed, chance } from '../../utility';
-import { startServices, stopServices } from '../tester';
+import { storeSeed, chance } from '../../utility';
+import { startServices, stopServices, basicAuthToken } from '../tester';
 
 describe("Test 'Create stores' endpoints", () => {
   const testUrl = '/api/stores';
