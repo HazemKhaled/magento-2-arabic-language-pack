@@ -11,6 +11,16 @@ import Cards from '@/views/Cards';
 import Error from '@/views/Error';
 import Success from '@/views/Success';
 
+import { debounce } from './utils';
+
+const resizeCallback = debounce(() => {
+  const {innerHeight, innerWidth} = window;
+  parent.postMessage(
+    `[resize]::${JSON.stringify({innerHeight, innerWidth})}`,
+    '*'
+  );
+}, 100);
+
 export default {
   name: 'App',
   components: { Checkout, Cards, Error, Success },
@@ -27,6 +37,14 @@ export default {
       (this[key] = value)
     );
   },
+  mounted() {
+    window.addEventListener('resize', resizeCallback);
+    window.addEventListener('load', resizeCallback);
+  },
+  beforeDestroy() {
+    window.removeEventListener('resize', resizeCallback);
+    window.removeEventListener('load', resizeCallback);
+  }
 }
 </script>
 

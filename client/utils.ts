@@ -63,3 +63,19 @@ export function getErrorMessage(errObj: {
   }
   return errObj.message || errObj.data || 'unknown error';
 }
+
+/**
+ * Debouncing
+ *
+ */
+export function debounce(func: () => unknown, delay: number): () => unknown {
+  let inDebounce: ReturnType<typeof setTimeout>;
+  return function (): void {
+    // eslint-disable-next-line prefer-rest-params
+    const args = arguments;
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const self = this;
+    clearTimeout(inDebounce);
+    inDebounce = setTimeout(() => func.apply(self, args), delay);
+  };
+}

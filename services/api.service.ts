@@ -212,6 +212,11 @@ const TheService: ServiceSchema = {
         path: '/',
 
         authorization: true,
+        cors: {
+          origin: '*',
+          credentials: false,
+          maxAge: 3600,
+        },
         // Route error handler
         async onError(req: any, res: any, err: any) {
           const output = await req.$ctx.call('paymentGateway.error', {
