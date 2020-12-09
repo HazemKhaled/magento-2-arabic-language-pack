@@ -22,6 +22,8 @@ const TheService: ServiceSchema = {
           .insert({ entity: this.createCouponSanitize(ctx.params) })
           .then((res: Coupon) => {
             this.broker.cacher.clean('coupons.getAll:**');
+            this.clearCache();
+
             return this.normalizeId(res);
           })
           .catch((err: CommonError) => {
@@ -156,6 +158,8 @@ const TheService: ServiceSchema = {
 
             this.broker.cacher.clean('coupons.getAll:**');
             this.broker.cacher.clean(`coupons.getOne:${id}*`);
+            this.clearCache();
+
             const coupon = dbResponse.value;
             coupon.code = coupon._id;
             delete coupon._id;
@@ -182,6 +186,8 @@ const TheService: ServiceSchema = {
 
             this.broker.cacher.clean('coupons.getAll:**');
             this.broker.cacher.clean(`coupons.getOne:${ctx.params.id}*`);
+            this.clearCache();
+
             return coupon;
           })
           .catch((err: CommonError) => {
