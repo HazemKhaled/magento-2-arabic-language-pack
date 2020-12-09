@@ -296,8 +296,8 @@ const TheService: ServiceSchema = {
         // Sanitize request params
         const store: Store = this.sanitizeStoreParams(ctx.params, true);
 
-        const myStore: Store = await this.adapter
-          .insert(store)
+        const myStore: Store = await this.actions
+          .insert({ entity: store })
           .then((res: Store) => this.sanitizeResponse(res))
           .catch((err: { code: number }) => {
             if (err.code !== 11000) {

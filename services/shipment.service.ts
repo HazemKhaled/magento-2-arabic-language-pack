@@ -62,14 +62,16 @@ const Shipment: ServiceSchema = {
       rest: 'POST /',
       handler(ctx: Context<ShipmentPolicy>): ShipmentPolicy {
         // insert to DB
-        return this.adapter
+        return this.actions
           .insert({
-            _id: ctx.params.name,
-            countries: ctx.params.countries,
-            rules: ctx.params.rules,
-            ship_from: ctx.params.ship_from,
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            entity: {
+              _id: ctx.params.name,
+              countries: ctx.params.countries,
+              rules: ctx.params.rules,
+              ship_from: ctx.params.ship_from,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
           })
           .then(() => {
             this.broker.cacher.clean('shipment.**');

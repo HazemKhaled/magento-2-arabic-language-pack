@@ -424,38 +424,42 @@ const TheService: ServiceSchema = {
           subscriptionBody.status = 'pending';
         }
 
-        return this.adapter.insert(subscriptionBody).then(
-          async (res: Subscription): Promise<GenericObject> => {
-            this.broker.cacher.clean(
-              `subscription.getByStore:${ctx.params.grantTo || instance.url}*`
-            );
-            this.broker.cacher.clean(
-              `subscription.getAll:${ctx.params.grantTo || instance.url}*`
-            );
-            this.broker.cacher.clean(
-              `stores.getOne:${ctx.params.grantTo || instance.url}*`
-            );
-            this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
-            if (ctx.params.grantTo) {
-              this.broker.cacher.clean(`stores.getOne:${instance.url}*`);
+        return this.actions
+          .insert({
+            entity: subscriptionBody,
+          })
+          .then(
+            async (res: Subscription): Promise<GenericObject> => {
               this.broker.cacher.clean(
-                `stores.me:${grantToInstance?.consumer_key}*`
+                `subscription.getByStore:${ctx.params.grantTo || instance.url}*`
               );
-            }
-            ctx.call<GenericObject, Partial<Subscription>>(
-              'subscription.checkCurrentSubGradingStatus',
-              {
-                id: ctx.params.grantTo || ctx.params.storeId,
+              this.broker.cacher.clean(
+                `subscription.getAll:${ctx.params.grantTo || instance.url}*`
+              );
+              this.broker.cacher.clean(
+                `stores.getOne:${ctx.params.grantTo || instance.url}*`
+              );
+              this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
+              if (ctx.params.grantTo) {
+                this.broker.cacher.clean(`stores.getOne:${instance.url}*`);
+                this.broker.cacher.clean(
+                  `stores.me:${grantToInstance?.consumer_key}*`
+                );
               }
-            );
-            ctx.call<GenericObject, Partial<Store>>('crm.updateStoreById', {
-              id: ctx.params.grantTo || ctx.params.storeId,
-              membership_id: membership.id,
-              subscription_expiration: expireDate.getTime(),
-            });
-            return { ...res, id: res._id, _id: undefined };
-          }
-        );
+              ctx.call<GenericObject, Partial<Subscription>>(
+                'subscription.checkCurrentSubGradingStatus',
+                {
+                  id: ctx.params.grantTo || ctx.params.storeId,
+                }
+              );
+              ctx.call<GenericObject, Partial<Store>>('crm.updateStoreById', {
+                id: ctx.params.grantTo || ctx.params.storeId,
+                membership_id: membership.id,
+                subscription_expiration: expireDate.getTime(),
+              });
+              return { ...res, id: res._id, _id: undefined };
+            }
+          );
       },
     },
     getOneByExpireDate: {

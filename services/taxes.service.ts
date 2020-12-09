@@ -38,8 +38,8 @@ const TaxesService: ServiceSchema = {
           }
         );
         taxBody.omsId = omsTax.tax.id;
-        return this.adapter
-          .insert(taxBody)
+        return this.actions
+          .insert({ entity: taxBody })
           .then((tax: DbTax) => {
             this.broker.cacher.clean('taxes.getAll:*');
             this.broker.cacher.clean('taxes.tCount:*');

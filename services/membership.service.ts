@@ -47,8 +47,8 @@ const TheService: ServiceSchema = {
             );
           }
         }
-        return this.adapter
-          .insert(params)
+        return this.actions
+          .insert({ entity: params })
           .then((res: Membership) => {
             this.broker.cacher.clean('membership.getAll:**');
             return this.normalize(res);

@@ -18,8 +18,8 @@ const TheService: ServiceSchema = {
         // Different coupon types validation
         this.couponTypeCheck(ctx.params);
 
-        return this.adapter
-          .insert(this.createCouponSanitize(ctx.params))
+        return this.actions
+          .insert({ entity: this.createCouponSanitize(ctx.params) })
           .then((res: Coupon) => {
             this.broker.cacher.clean('coupons.getAll:**');
             return this.normalizeId(res);
