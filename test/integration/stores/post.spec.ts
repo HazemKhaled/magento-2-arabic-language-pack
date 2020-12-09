@@ -1,29 +1,26 @@
 import request from 'supertest';
-import { GenericObject, ServiceBroker } from 'moleculer';
+import { GenericObject } from 'moleculer';
 
-import { getStore, basicAuthToken, storeSeed, chance } from '../../utility';
-import { Store } from '../../../utilities/types';
-import APISchema from '../../../services/api.service';
-import StoresSchema from '../../../services/stores.service';
-
-const broker = new ServiceBroker({ logger: false });
-broker.createService(StoresSchema);
-const apiService = broker.createService(APISchema);
-
-// Test data
-let store: { store: Store; token: string };
-
-beforeAll(async () => {
-  await broker.start();
-
-  store = await getStore(apiService.server);
-});
-afterAll(() => broker.stop());
+import { basicAuthToken, storeSeed, chance } from '../../utility';
+import { startServices, stopServices } from '../tester';
 
 describe("Test 'Create stores' endpoints", () => {
+  const testUrl = '/api/stores';
+  let baseUrl: string;
+  // let token: string;
+  // let store: Store;
+
+  beforeAll(async () => {
+    const result = await startServices(['categories'], true);
+    baseUrl = result.baseUrl;
+    // token = result.token;
+    // store = result.store;
+  });
+  afterAll(() => stopServices());
+
   it("Test '/stores' to create store verify 200 with full response", async () => {
-    return request(apiService.server)
-      .post('/api/stores')
+    return request(baseUrl)
+      .post(testUrl)
       .set('Authorization', basicAuthToken)
       .send(storeSeed())
       .then(res => {
@@ -49,8 +46,8 @@ describe("Test 'Create stores' endpoints", () => {
   });
 
   it("Test '/stores' and verify response body parameter data type for valid data ", async () => {
-    return request(apiService.server)
-      .post('/api/stores')
+    return request(baseUrl)
+      .post(testUrl)
       .set('Authorization', basicAuthToken)
       .send(storeSeed())
       .then(res => {
@@ -67,8 +64,8 @@ describe("Test 'Create stores' endpoints", () => {
   });
 
   it("Test '/stores' and verify for duplicate store data response code is 422 and has appropriate message ", async () => {
-    return request(apiService.server)
-      .post('/api/stores')
+    return request(baseUrl)
+      .post(testUrl)
       .set('Authorization', basicAuthToken)
       .send(storeSeed())
       .then(res => {
@@ -78,8 +75,8 @@ describe("Test 'Create stores' endpoints", () => {
   });
 
   it("Test '/stores' and verify for invalid token, response code is 401 ", async () => {
-    return request(apiService.server)
-      .post('/api/stores')
+    return request(baseUrl)
+      .post(testUrl)
       .set('Authorization', 'invalid token')
       .send(storeSeed())
       .then(res => {
@@ -88,10 +85,10 @@ describe("Test 'Create stores' endpoints", () => {
   });
 
   it("Test '/stores' and verify if required any field is missed then the response code is 422 and has appropriate message", async () => {
-    const { url, ...storeWithoutUrl } = storeSeed();
+    const { url: _deleted_var, ...storeWithoutUrl } = storeSeed();
 
-    return request(apiService.server)
-      .post('/api/stores')
+    return request(baseUrl)
+      .post(testUrl)
       .set('Authorization', basicAuthToken)
       .send(storeWithoutUrl)
       .then(res => {
@@ -105,14 +102,14 @@ describe("Test 'Create stores' endpoints", () => {
 
   // Below case fails due to invalid URL. Once more validation for URL is implemented The case will pass.
   it("Test '/stores' and verify for invalid URL, status and type response code is 422 and have appropriate message", async () => {
-    const storePayload = storeSeed() as GenericObject;
+    const storePayload = storeSeed();
 
     storePayload.url = 'https://Invalid URL';
-    storePayload.status = 'Invalid Status';
+    (storePayload as GenericObject).status = 'Invalid Status';
     storePayload.type = 'Invalid Type';
 
-    return request(apiService.server)
-      .post('/api/stores')
+    return request(baseUrl)
+      .post(testUrl)
       .set('Authorization', basicAuthToken)
       .send(storePayload)
       .then(res => {
@@ -130,8 +127,8 @@ describe("Test 'Create stores' endpoints", () => {
   });
 
   it("Test '/stores' and verify for not secured URL response code is 200", async () => {
-    return request(apiService.server)
-      .post('/api/stores')
+    return request(baseUrl)
+      .post(testUrl)
       .set('Authorization', basicAuthToken)
       .send({ ...storeSeed(), url: chance.url({ protocol: 'http' }) })
       .then(res => {
@@ -141,8 +138,8 @@ describe("Test 'Create stores' endpoints", () => {
   it("Test '/stores' and verify if currency has more than three character response code is 422 and has appropriate message", async () => {
     // Providing invalid length of character for country
 
-    return request(apiService.server)
-      .post('/api/stores')
+    return request(baseUrl)
+      .post(testUrl)
       .set('Authorization', basicAuthToken)
       .send({ ...storeSeed(), currency: 'USDD' })
       .then(res => {
@@ -158,8 +155,8 @@ describe("Test 'Create stores' endpoints", () => {
 
     // Providing invalid length of character for country
     storePayload.address.country = 'TKS';
-    return request(apiService.server)
-      .post('/api/stores')
+    return request(baseUrl)
+      .post(testUrl)
       .set('Authorization', basicAuthToken)
       .send(storePayload)
       .then(res => {
@@ -178,8 +175,8 @@ describe("Test 'Create stores' endpoints", () => {
     storePayload.type = 'wrong type';
     storePayload.status = 'wrong status';
 
-    return request(apiService.server)
-      .post('/api/stores')
+    return request(baseUrl)
+      .post(testUrl)
       .set('Authorization', basicAuthToken)
       .send(storePayload)
       .then(res => {
@@ -196,8 +193,8 @@ describe("Test 'Create stores' endpoints", () => {
 
     // Updated role to have only one role.
     storePayload.users[0].roles = ['orders'];
-    return request(apiService.server)
-      .post('/api/stores')
+    return request(baseUrl)
+      .post(testUrl)
       .set('Authorization', basicAuthToken)
       .send(storePayload)
       .then(res => {

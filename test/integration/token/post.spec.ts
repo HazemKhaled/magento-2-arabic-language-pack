@@ -1,18 +1,14 @@
 import request from 'supertest';
-import { ServiceBroker } from 'moleculer';
 
-import { getStore } from '../../utility';
 import { Store } from '../../../utilities/types';
-import APISchema from '../../../services/api.service';
-import StoresSchema from '../../../services/stores.service';
+import { startServices, stopServices } from '../tester';
 
 describe("Test '/token' cases", () => {
-  const broker = new ServiceBroker({ logger: false });
-  broker.createService(StoresSchema);
-  const apiService = broker.createService(APISchema);
+  const testUrl = '/api/token';
+  let baseUrl: string;
+  let store: Store;
 
   // Test data
-  let store: { store: Store; token: string };
   const invalidKeys = {
     consumerKey: '1234',
     consumerSecret: '1234',
@@ -23,18 +19,18 @@ describe("Test '/token' cases", () => {
   };
 
   beforeAll(async () => {
-    await broker.start();
-
-    store = await getStore(apiService.server);
-
-    validKeys.consumerKey = store.store.consumer_key;
-    validKeys.consumerSecret = store.store.consumer_secret;
+    const result = await startServices(['categories'], true);
+    baseUrl = result.baseUrl;
+    // token = result.token;
+    store = result.store;
+    validKeys.consumerKey = store.consumer_key;
+    validKeys.consumerSecret = store.consumer_secret;
   });
-  afterAll(() => broker.stop());
+  afterAll(() => stopServices());
 
   it("Test '/token' to verify 200 response code.", async () => {
-    return request(apiService.server)
-      .post('/api/token')
+    return request(baseUrl)
+      .post(testUrl)
       .send(validKeys)
       .then(res => {
         expect(res.status).toBe(200);
@@ -42,8 +38,8 @@ describe("Test '/token' cases", () => {
   });
 
   it("Test '/token' verify token is generated", async () => {
-    return request(apiService.server)
-      .post('/api/token')
+    return request(baseUrl)
+      .post(testUrl)
       .send(validKeys)
       .then(res => {
         expect(res.status).toBe(200);
@@ -52,8 +48,8 @@ describe("Test '/token' cases", () => {
   });
 
   it("Test '/token' verify response body parameters for successful API execution", async () => {
-    return request(apiService.server)
-      .post('/api/token')
+    return request(baseUrl)
+      .post(testUrl)
       .send(validKeys)
       .then(res => {
         expect(res.status).toBe(200);
@@ -65,8 +61,8 @@ describe("Test '/token' cases", () => {
   });
 
   it("Test '/token' verify response body parameters for successful API execution", async () => {
-    return request(apiService.server)
-      .post('/api/token')
+    return request(baseUrl)
+      .post(testUrl)
       .send(validKeys)
       .then(res => {
         expect(typeof res.body.channel).toBe('object');
@@ -79,8 +75,8 @@ describe("Test '/token' cases", () => {
   });
 
   it("Test '/token' without consumerKey verify response code is 422 and has appropriate message", async () => {
-    return request(apiService.server)
-      .post('/api/token')
+    return request(baseUrl)
+      .post(testUrl)
       .send({ consumerSecret: validKeys.consumerSecret })
       .then(res => {
         expect(res.status).toBe(422);
@@ -92,8 +88,8 @@ describe("Test '/token' cases", () => {
   });
 
   it("Test '/token' without consumerSecret verify response code is 422 and has appropriate message", async () => {
-    return request(apiService.server)
-      .post('/api/token')
+    return request(baseUrl)
+      .post(testUrl)
       .send({ consumerKey: validKeys.consumerKey })
       .then(res => {
         expect(res.status).toBe(422);
@@ -105,15 +101,15 @@ describe("Test '/token' cases", () => {
   });
 
   it("Test '/token' to verify 422 response code without passing any body parameters.", async () => {
-    return request(apiService.server)
-      .post('/api/token')
+    return request(baseUrl)
+      .post(testUrl)
       .then(res => {
         expect(res.status).toBe(422);
       });
   });
 
   it("Test '/token' to verify 404 response code for invalid endpoint.", async () => {
-    return request(apiService.server)
+    return request(baseUrl)
       .post('/invalid/token')
       .send(validKeys)
       .then(res => {
@@ -122,8 +118,8 @@ describe("Test '/token' cases", () => {
   });
 
   it("Test '/token' to verify 422 response code for invalid Body parameter", async () => {
-    return request(apiService.server)
-      .post('/api/token')
+    return request(baseUrl)
+      .post(testUrl)
       .send(invalidKeys)
       .then(res => {
         expect(res.status).toBe(422);
@@ -131,8 +127,8 @@ describe("Test '/token' cases", () => {
   });
   // Below test case failed as the response body is different from the response body generated for invalid consumerSecret. This will pass once the bug is fixed
   it("Test '/token' to verify 401 response code for invalid consumer_key", async () => {
-    return request(apiService.server)
-      .post('/api/token')
+    return request(baseUrl)
+      .post(testUrl)
       .send({
         consumerKey: 'Invalid Key',
         consumerSecret: validKeys.consumerSecret,
@@ -146,8 +142,8 @@ describe("Test '/token' cases", () => {
   });
 
   it("Test '/token' to verify 401 response code for invalid consumer_secret.", async () => {
-    return request(apiService.server)
-      .post('/api/token')
+    return request(baseUrl)
+      .post(testUrl)
       .send({
         consumerKey: validKeys.consumerKey,
         consumerSecret: 'Invalid Secret',
@@ -163,8 +159,8 @@ describe("Test '/token' cases", () => {
 
   // Test case failed as it was expected not to generate token. This case will pass once defect is fixed.
   it("Test '/token' to verify for invalid body parameters token is not generated", async () => {
-    return request(apiService.server)
-      .post('/api/token')
+    return request(baseUrl)
+      .post(testUrl)
       .send({
         consumerKey: validKeys.consumerKey,
         consumerSecret: 'Invalid Secret',
@@ -175,8 +171,8 @@ describe("Test '/token' cases", () => {
   });
 
   it("Test '/token' by passing 'null' as value in body parameter has response code 422 with appropriate validation message", async () => {
-    return request(apiService.server)
-      .post('/api/token')
+    return request(baseUrl)
+      .post(testUrl)
       .send({
         consumerKey: null,
         consumerSecret: null,

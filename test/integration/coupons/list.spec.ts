@@ -1,8 +1,8 @@
 import request from 'supertest';
-import { GenericObject } from 'moleculer';
 
 import { basicAuthToken, arrayRandom } from '../../utility';
 import { startServices, stopServices } from '../tester';
+import { Coupon } from '../../../utilities/types/coupon.type';
 
 describe("GET '/coupons' API", () => {
   const testUrl = '/api/coupons';
@@ -10,7 +10,7 @@ describe("GET '/coupons' API", () => {
   // let token: string;
 
   beforeAll(async () => {
-    const result = await startServices(['coupons'], true);
+    const result = await startServices(['coupons']);
     baseUrl = result.baseUrl;
     // token = result.token;
   });
@@ -32,7 +32,7 @@ describe("GET '/coupons' API", () => {
       .then(({ status, body }) => {
         expect(status).toBe(200);
 
-        const item: GenericObject = arrayRandom(body);
+        const item = arrayRandom<Coupon>(body);
 
         expect(item).toHaveProperty(
           'code' && 'useCount'
