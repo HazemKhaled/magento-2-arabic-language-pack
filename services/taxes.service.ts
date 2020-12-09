@@ -114,8 +114,7 @@ const TaxesService: ServiceSchema = {
       },
       rest: 'GET /:id',
       handler(ctx: Context<RTax>): RTax {
-        return this.adapter
-          .findById(ctx.params.id)
+        return this.getById(ctx.params.id)
           .then((tax: DbTax) => {
             if (tax) {
               return { tax: this.sanitizer(tax) };

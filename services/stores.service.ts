@@ -142,42 +142,40 @@ const TheService: ServiceSchema = {
       },
       rest: 'GET /:id',
       handler(ctx: Context<StoreRequest>): Promise<Store> {
-        return this.adapter
-          .findById(ctx.params.id)
-          .then(async (res: Store | null) => {
-            if (res) {
-              if (res.users) {
-                res.subscription = await ctx.call<
-                  Subscription,
-                  { storeId: string }
-                >('subscription.getByStore', {
-                  storeId: ctx.params.id,
-                });
-              }
-              if (res?.internal_data?.omsId && !ctx.params.withoutBalance) {
-                const omsData = (await ctx
-                  .call<null, Partial<Store>>('oms.getCustomer', {
-                    customerId: res.internal_data.omsId,
-                  })
-                  .then(null, this.logger.error)) as { store: Store };
+        return this.getById(ctx.params.id).then(async (res: Store | null) => {
+          if (res) {
+            if (res.users) {
+              res.subscription = await ctx.call<
+                Subscription,
+                { storeId: string }
+              >('subscription.getByStore', {
+                storeId: ctx.params.id,
+              });
+            }
+            if (res?.internal_data?.omsId && !ctx.params.withoutBalance) {
+              const omsData = (await ctx
+                .call<null, Partial<Store>>('oms.getCustomer', {
+                  customerId: res.internal_data.omsId,
+                })
+                .then(null, this.logger.error)) as { store: Store };
 
-                // If the DB response not null will return the data
-                if (!omsData) {
-                  this.logger.warn('Can not get balance', ctx.params);
-                } else {
-                  return this.sanitizeResponse(res, omsData.store);
-                }
+              // If the DB response not null will return the data
+              if (!omsData) {
+                this.logger.warn('Can not get balance', ctx.params);
+              } else {
+                return this.sanitizeResponse(res, omsData.store);
               }
             }
+          }
 
-            // return store even if we didn't get balance from OMS
-            if (res) {
-              return this.sanitizeResponse(res);
-            }
+          // return store even if we didn't get balance from OMS
+          if (res) {
+            return this.sanitizeResponse(res);
+          }
 
-            // If null return Not Found error
-            throw new MpError('Stores Service', 'Store Not Found', 404);
-          });
+          // If null return Not Found error
+          throw new MpError('Stores Service', 'Store Not Found', 404);
+        });
       },
     },
     /**

@@ -46,9 +46,9 @@ const Shipment: ServiceSchema = {
       cache: { keys: ['id'], ttl: 60 * 60 * 24 * 30 },
       rest: 'GET /:id',
       handler(ctx: Context<{ id: string }>): ShipmentPolicy {
-        return this.adapter
-          .findById(ctx.params.id)
-          .then((data: ShipmentPolicy) => this.shipmentTransform(data));
+        return this.getById(ctx.params.id).then((data: ShipmentPolicy) =>
+          this.shipmentTransform(data)
+        );
       },
     },
     /**
@@ -73,7 +73,7 @@ const Shipment: ServiceSchema = {
           })
           .then(() => {
             this.broker.cacher.clean('shipment.**');
-            return this.adapter.findById(ctx.params.name);
+            return this.getById(ctx.params.name);
           })
           .then((data: ShipmentPolicy) => this.shipmentTransform(data))
           .catch((err: CommonError) => {
@@ -112,7 +112,7 @@ const Shipment: ServiceSchema = {
           )
           .then(() => {
             this.broker.cacher.clean('shipment.**');
-            return this.adapter.findById(ctx.params.id);
+            return this.getById(ctx.params.id);
           })
           .then((data: ShipmentPolicy) => this.shipmentTransform(data))
           .catch((err: CommonError) => {
