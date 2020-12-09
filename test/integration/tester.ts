@@ -21,7 +21,7 @@ const broker = new ServiceBroker({ logger: false });
  * }>}
  */
 export async function startServices(
-  servicesToTest: string[],
+  servicesToTest: string[] = [],
   tokenRequired = false
 ): Promise<{
   baseUrl: string;
