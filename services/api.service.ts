@@ -270,8 +270,8 @@ const TheService: ServiceSchema = {
               .call<Store, { token: string }>('stores.resolveBearerToken', {
                 token,
               })
-              .then(user => {
-                if (!user) {
+              .then(store => {
+                if (!store) {
                   return this.Promise.reject(
                     new UnAuthorizedError(
                       ERR_INVALID_TOKEN,
@@ -279,33 +279,26 @@ const TheService: ServiceSchema = {
                     )
                   );
                 }
-                if (user) {
-                  this.logger.info(
-                    'Authenticated via JWT: ',
-                    user.consumer_key
-                  );
-                  // Reduce user fields (it will be transferred to other nodes)
-                  ctx.meta.user = user.consumer_key;
-                  ctx.meta.token = token;
-                  ctx.meta.storeId = user.url;
-                  ctx.meta.store = user;
-                }
-                return user;
+
+                this.logger.info('Authenticated via JWT: ', store.consumer_key);
+                // Reduce user fields (it will be transferred to other nodes)
+                ctx.meta.user = store.consumer_key;
+                ctx.meta.token = token;
+                ctx.meta.storeId = store.url;
+                ctx.meta.store = store;
+
+                return store;
               });
           }
 
           // Verify Base64 Basic auth
           if (type === 'Basic') {
-            return ctx
-              .call<Store, { token: string }>('stores.resolveBasicToken', {
-                token,
-              })
-              .then(user => {
-                if (user) {
-                  ctx.meta.token = token;
-                }
-                return user;
-              });
+            return this.resolveBasicToken(token).then(user => {
+              if (user) {
+                ctx.meta.token = token;
+              }
+              return user;
+            });
           }
         })
         .then((user: Store) => {
@@ -318,6 +311,26 @@ const TheService: ServiceSchema = {
 
           return user;
         });
+    },
+
+    /**
+     * Get user by JWT token (for API GW authentication)
+     *
+     * @param {string} token
+     * @returns {(Promise<GenericObject | boolean>)}
+     */
+    resolveBasicToken(token: string): Promise<GenericObject | boolean> {
+      return fetch(`${process.env.AUTH_BASEURL}/login`, {
+        headers: {
+          Authorization: `Basic ${token}`,
+        },
+      }).then(res => {
+        if (res.ok) {
+          return res.json();
+        }
+
+        return false;
+      });
     },
     /**
      * Log order errors

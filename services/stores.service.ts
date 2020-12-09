@@ -1,5 +1,4 @@
 import { Context, Errors, GenericObject, ServiceSchema } from 'moleculer';
-import fetch from 'node-fetch';
 import jwt from 'jsonwebtoken';
 import { v1 as uuidv1, v4 as uuidv4 } from 'uuid';
 
@@ -21,8 +20,7 @@ import {
 import { StoresValidation } from '../utilities/mixins/validation';
 import { GCPPubSub } from '../utilities/mixins';
 
-const MoleculerError = Errors.MoleculerError;
-const { MoleculerClientError } = Errors;
+const { MoleculerError } = Errors;
 
 const TheService: ServiceSchema = {
   name: 'stores',
@@ -639,41 +637,6 @@ const TheService: ServiceSchema = {
           })
           .catch(() => {
             return false;
-          });
-      },
-    },
-
-    /**
-     * Get user by JWT token (for API GW authentication)
-     *
-     * @actions
-     * @param {String} token - user:pass base64
-     *
-     * @returns {Object} true or false
-     */
-    resolveBasicToken: {
-      cache: {
-        keys: ['token'],
-        ttl: 60 * 60 * 24,
-      },
-      visibility: 'public',
-      handler(
-        ctx: Context<Partial<StoreRequest>>
-      ): Promise<GenericObject | boolean> {
-        return fetch(`${process.env.AUTH_BASEURL}/login`, {
-          headers: {
-            Authorization: `Basic ${ctx.params.token}`,
-          },
-        })
-          .then(res => {
-            if (res.ok) {
-              return res.json();
-            }
-
-            return false;
-          })
-          .catch(error => {
-            throw new MoleculerClientError(error);
           });
       },
     },
