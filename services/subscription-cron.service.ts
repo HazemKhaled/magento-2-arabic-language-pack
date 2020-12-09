@@ -29,7 +29,7 @@ const TheService: ServiceSchema = {
       async handler(ctx: Context): Promise<null | Subscription> {
         const subscription: any = await ctx
           .call<GenericObject, Partial<Subscription>>(
-            'subscription.getSubscriptionByExpireDate',
+            'subscription.getOneByExpireDate',
             {
               afterDays: 6 * 30,
               beforeDays: 1,
@@ -67,7 +67,7 @@ const TheService: ServiceSchema = {
           });
           if (createSubResponse.id) {
             ctx.call<GenericObject, Partial<Subscription>>(
-              'subscription.updateSubscription',
+              'subscription.updateOne',
               {
                 id: String(subscription.id),
                 renewed: true,

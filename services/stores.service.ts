@@ -27,7 +27,7 @@ const { MoleculerClientError } = Errors;
 const TheService: ServiceSchema = {
   name: 'stores',
   mixins: [
-    DbService('stores'),
+    new DbService('stores').start(),
     StoresValidation,
     StoresOpenapi,
     GCPPubSub,
@@ -69,7 +69,10 @@ const TheService: ServiceSchema = {
         keys: ['consumerKey', 'id'],
         ttl: 60 * 60 * 24,
       },
-      handler(ctx: Context<StoreRequest>): Promise<Store> {
+      visibility: 'public',
+      handler(
+        ctx: Context<{ id: string; consumerKey: string }>
+      ): Promise<Store> {
         let query: { _id?: string } | false = false;
         if (ctx.params.id) query = { _id: ctx.params.id };
         return this.adapter
@@ -94,6 +97,7 @@ const TheService: ServiceSchema = {
         keys: ['#user'],
         ttl: 60 * 60 * 24,
       },
+      rest: 'GET /me',
       handler(ctx: Context<unknown, MetaParams>): Promise<Store> {
         return this.adapter
           .findOne({ consumer_key: ctx.meta.user })
@@ -103,9 +107,9 @@ const TheService: ServiceSchema = {
               if (res.users) {
                 res.subscription = await ctx.call<
                   Subscription,
-                  Partial<Subscription>
-                >('subscription.sGet', {
-                  id: res._id,
+                  { storeId: string }
+                >('subscription.getByStore', {
+                  storeId: res._id,
                 });
               }
               if (res?.internal_data?.omsId) {
@@ -130,12 +134,13 @@ const TheService: ServiceSchema = {
      * @param {string} id
      * @returns {Store}
      */
-    sGet: {
+    getOne: {
       auth: ['Basic'],
       cache: {
         keys: ['id', 'withoutBalance'],
         ttl: 60 * 60 * 24,
       },
+      rest: 'GET /:id',
       handler(ctx: Context<StoreRequest>): Promise<Store> {
         return this.adapter
           .findById(ctx.params.id)
@@ -144,9 +149,9 @@ const TheService: ServiceSchema = {
               if (res.users) {
                 res.subscription = await ctx.call<
                   Subscription,
-                  Partial<Subscription>
-                >('subscription.sGet', {
-                  id: ctx.params.id,
+                  { storeId: string }
+                >('subscription.getByStore', {
+                  storeId: ctx.params.id,
                 });
               }
               if (res?.internal_data?.omsId && !ctx.params.withoutBalance) {
@@ -181,12 +186,13 @@ const TheService: ServiceSchema = {
      * @param {Object} filter
      * @returns {Store[]}
      */
-    list: {
+    getAll: {
       auth: ['Basic'],
       cache: {
         keys: ['filter'],
         ttl: 60 * 60 * 24,
       },
+      rest: 'GET /',
       handler(ctx: Context<StoreRequest>): string | Promise<Store[]> {
         let params: {
           where?: GenericObject;
@@ -228,12 +234,13 @@ const TheService: ServiceSchema = {
         });
       },
     },
-    storesList: {
+    getAllAdmin: {
       auth: ['Basic'],
       cache: {
         keys: ['id', 'page', 'perPage'],
         ttl: 60 * 60 * 24,
       },
+      rest: 'GET admin',
       handler(
         ctx: Context<StoreRequest>
       ): Promise<{ stores: Store; total: number }> {
@@ -251,13 +258,10 @@ const TheService: ServiceSchema = {
           .then(async (res: Store[]) => {
             return {
               stores: res.map(store => this.sanitizeResponse(store)),
-              total: await ctx.call<number, Partial<Store>>(
-                'stores.countStores',
-                {
-                  key: ctx.params.id,
-                  query,
-                }
-              ),
+              total: await this.actions.countStores({
+                key: ctx.params.id,
+                query,
+              }),
             };
           })
           .catch((err: CommonError) => {
@@ -273,6 +277,7 @@ const TheService: ServiceSchema = {
         keys: ['key'],
         ttl: 60 * 60 * 24,
       },
+      visibility: 'private',
       handler(ctx: Context<StoreRequest>): number {
         return this.adapter.count({ query: ctx.params.query });
       },
@@ -283,11 +288,12 @@ const TheService: ServiceSchema = {
      * @param {Store} createValidation
      * @returns {Store}
      */
-    create: {
+    createOne: {
       auth: ['Basic'],
+      rest: 'POST /',
       async handler(ctx: Context<StoreRequest>): Promise<Store> {
         // Clear cache
-        this.broker.cacher.clean(`stores.sGet:${ctx.params.url}**`);
+        this.broker.cacher.clean(`stores.getOne:${ctx.params.url}**`);
 
         // Sanitize request params
         const store: Store = this.sanitizeStoreParams(ctx.params, true);
@@ -306,8 +312,8 @@ const TheService: ServiceSchema = {
           });
 
         if (myStore.url) {
-          this.broker.cacher.clean('stores.list:**');
-          this.broker.cacher.clean('stores.storesList:**');
+          this.broker.cacher.clean('stores.getAll:**');
+          this.broker.cacher.clean('stores.getAllAdmin:**');
           this.broker.cacher.clean('stores.countStores:**');
           this.cacheUpdate(myStore);
         }
@@ -321,8 +327,9 @@ const TheService: ServiceSchema = {
      * @param {Store} updateValidation
      * @returns {Store}
      */
-    update: {
+    updateOne: {
       auth: ['Basic'],
+      rest: 'PUT /:id',
       async handler(ctx: Context<Store, MetaParams>): Promise<Store> {
         // Save the ID separate into variable to use it to find the store
         const { id } = ctx.params;
@@ -395,8 +402,8 @@ const TheService: ServiceSchema = {
           `stores.findInstance:${myStore.consumer_key}*`
         );
         this.broker.cacher.clean(`stores.findInstance:*${myStore.url}*`);
-        this.broker.cacher.clean('stores.list**');
-        this.broker.cacher.clean('stores.storesList:**');
+        this.broker.cacher.clean('stores.getAll**');
+        this.broker.cacher.clean('stores.getAllAdmin:**');
         this.broker.cacher.clean(`products.list:${myStore.consumer_key}*`);
         this.broker.cacher.clean(
           `products.getInstanceProduct:${myStore.consumer_key}*`
@@ -427,7 +434,7 @@ const TheService: ServiceSchema = {
         this.emitProfitUpdateEvent(myStore, storeBefore);
 
         ctx.emit('stores.event', {
-          event: 'stores.update',
+          event: 'stores.updateOne',
           storeId: myStore.url,
           res: myStore,
         });
@@ -440,6 +447,7 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 * 3,
         keys: ['id', 'timestamp'],
       },
+      rest: 'PUT /:id/sync',
       async handler(ctx): Promise<unknown> {
         const storeId = ctx.params.id;
         const instance: Store = await ctx.call('stores.findInstance', {
@@ -474,10 +482,10 @@ const TheService: ServiceSchema = {
             `orders.list:undefined|${instance.consumer_key}*`
           );
           this.broker.cacher.clean(`invoices.get:${instance.consumer_key}*`);
-          this.broker.cacher.clean(`subscription.sGet:${instance.url}*`);
-          this.broker.cacher.clean(`stores.sGet:${instance.url}**`);
+          this.broker.cacher.clean(`subscription.getByStore:${instance.url}*`);
+          this.broker.cacher.clean(`stores.getOne:${instance.url}**`);
           this.broker.cacher.clean(`stores.me:${instance.consumer_key}**`);
-          return ctx.call<GenericObject, Partial<Store>>('stores.update', {
+          return ctx.call<GenericObject, Partial<Store>>('stores.updateOne', {
             id: storeId,
             internal_data: instance.internal_data,
             stock_date: '2010-01-01T00:00:00.000Z',
@@ -504,6 +512,7 @@ const TheService: ServiceSchema = {
 
     meUpdate: {
       auth: ['Bearer'],
+      rest: 'PUT /me',
       handler(ctx): Promise<Store> {
         const { store } = ctx.meta;
         const { url: id } = store;
@@ -522,7 +531,7 @@ const TheService: ServiceSchema = {
           );
         }
 
-        return ctx.call<Store, Partial<Store>>('stores.update', {
+        return ctx.call<Store, Partial<Store>>('stores.updateOne', {
           ...ctx.params,
           id,
         });
@@ -603,6 +612,7 @@ const TheService: ServiceSchema = {
         keys: ['token'],
         ttl: 60 * 60 * 24 * 30,
       },
+      visibility: 'public',
       handler(ctx: Context<Partial<StoreRequest>>): Promise<GenericObject> {
         return new this.Promise((resolve: any, reject: any) => {
           jwt.verify(
@@ -648,6 +658,7 @@ const TheService: ServiceSchema = {
         keys: ['token'],
         ttl: 60 * 60 * 24,
       },
+      visibility: 'public',
       handler(
         ctx: Context<Partial<StoreRequest>>
       ): Promise<GenericObject | boolean> {
@@ -818,16 +829,18 @@ const TheService: ServiceSchema = {
     },
 
     async cacheUpdate(_myStore): Promise<void> {
-      const store = await this.broker.call('stores.sGet', { id: _myStore.url });
+      const store = await this.broker.call('stores.getOne', {
+        id: _myStore.url,
+      });
       const myStore = {
         ...store,
         ..._myStore,
       };
 
       // Set normal with balance
-      this.broker.cacher.set(`stores.sGet:${myStore.url}|undefined`, myStore);
+      this.broker.cacher.set(`stores.getOne:${myStore.url}|undefined`, myStore);
       // Set withoutBalance
-      this.broker.cacher.set(`stores.sGet:${myStore.url}|1`, myStore);
+      this.broker.cacher.set(`stores.getOne:${myStore.url}|1`, myStore);
       this.broker.cacher.set(`stores.me:${myStore.consumer_key}`, myStore);
     },
     isProfitUpdate(store, storeBefore): boolean {

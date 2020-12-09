@@ -21,7 +21,7 @@ const MoleculerError = Errors.MoleculerError;
 
 const TheService: ServiceSchema = {
   name: 'oms',
-  mixins: [OmsValidation, DbService('omsRequests')],
+  mixins: [new DbService('omsRequests').start(), OmsValidation],
   settings: {
     auth: Buffer.from(
       `${process.env.BASIC_USER}:${process.env.BASIC_PASS}`

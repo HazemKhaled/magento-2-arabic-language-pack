@@ -221,7 +221,7 @@ export const OrdersOperations: ServiceSchema = {
           delete ruleQuery.ship_from_country;
         }
         const shipment_rule = await ctx
-          .call<Rule[], RuleParms>('shipment.ruleByCountry', ruleQuery)
+          .call<Rule[], RuleParms>('shipment.getAllRuleByCountry', ruleQuery)
           .then(rules => rules.sort((a: Rule, b: Rule) => a.cost - b.cost));
         if (shipment_rule.length) {
           shipmentRules = [...shipment_rule];
@@ -297,7 +297,7 @@ export const OrdersOperations: ServiceSchema = {
         couponQuery.id = code;
       }
       let coupon = await this.broker
-        .call('coupons.list', couponQuery)
+        .call('coupons.getAll', couponQuery)
         .then(null, (err: Error) => err);
       if (coupon instanceof Error) {
         warnings.push({

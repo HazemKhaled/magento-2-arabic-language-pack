@@ -1,5 +1,4 @@
-import { ServiceBroker } from 'moleculer';
-import { Errors } from 'moleculer';
+import { ServiceBroker, Errors } from 'moleculer';
 
 import TestService from '../../../services/orders.service';
 

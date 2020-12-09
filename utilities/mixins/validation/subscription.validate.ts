@@ -3,14 +3,14 @@ import { ServiceSchema } from 'moleculer';
 export const SubscriptionValidation: ServiceSchema = {
   name: 'subscription',
   actions: {
-    sGet: {
+    getByStore: {
       params: {
-        id: {
+        storeId: {
           type: 'string',
         },
       },
     },
-    sList: {
+    getAll: {
       params: {
         storeId: {
           type: 'string',
@@ -133,7 +133,7 @@ export const SubscriptionValidation: ServiceSchema = {
         $$strict: true,
       },
     },
-    create: {
+    createOne: {
       params: {
         storeId: {
           type: 'url',
@@ -185,13 +185,13 @@ export const SubscriptionValidation: ServiceSchema = {
         $$strict: true,
       },
     },
-    getSubscriptionByExpireDate: {
+    getOneByExpireDate: {
       params: {
         afterDays: { type: 'number', optional: true },
         beforeDays: { type: 'number', optional: true },
       },
     },
-    updateSubscription: {
+    updateOne: {
       params: {
         id: {
           type: 'string',

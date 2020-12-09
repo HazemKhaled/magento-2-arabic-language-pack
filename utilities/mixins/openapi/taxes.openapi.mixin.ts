@@ -249,19 +249,19 @@ export const TaxOpenapi: ServiceSchema = {
     },
   },
   actions: {
-    tCreate: {
+    createOne: {
       openapi: TaxCreate,
     },
-    tUpdate: {
+    updateOne: {
       openapi: TaxUpdate,
     },
-    tGet: {
+    getOne: {
       openapi: TaxGet,
     },
-    tList: {
+    getAll: {
       openapi: TaxList,
     },
-    tDelete: {
+    removeOne: {
       openapi: TaxDelete,
     },
   },

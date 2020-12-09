@@ -204,16 +204,16 @@ export const CouponsOpenapi: ServiceSchema = {
     },
   },
   actions: {
-    create: {
+    createOne: {
       openapi: CouponsCreateOpenapi,
     },
-    update: {
+    updateOne: {
       openapi: CouponsUpdateOpenapi,
     },
-    get: {
+    getOne: {
       openapi: CouponsGetOpenapi,
     },
-    list: {
+    getAll: {
       openapi: CouponsListOpenapi,
     },
   },
