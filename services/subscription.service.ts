@@ -357,14 +357,14 @@ const TheService: ServiceSchema = {
           startDate = new Date(ctx.params.date.start);
           expireDate = new Date(ctx.params.date.expire);
         } else {
-          const storeOldSubscription = await ctx.call<
-            Subscription[],
-            Partial<SubscriptionListParams>
-          >('subscription.getAll', {
-            storeId: ctx.params.grantTo || ctx.params.storeId,
-            expireDate: { operation: 'gte' },
-            status: 'active',
+          const storeOldSubscription: Subscription[] = this.actions.find({
+            query: {
+              storeId: ctx.params.grantTo || ctx.params.storeId,
+              expireDate: { operation: 'gte' },
+              status: 'active',
+            },
           });
+
           startDate.setUTCHours(0, 0, 0, 0);
           if (storeOldSubscription.length > 0) {
             storeOldSubscription.forEach((subscription: Subscription) => {
@@ -585,19 +585,19 @@ const TheService: ServiceSchema = {
     checkCurrentSubGradingStatus: {
       visibility: 'public',
       async handler(ctx: Context<{ id: string }>): Promise<CrmResponse> | null {
-        const allSubBefore = await ctx.call<
-          GenericObject,
-          Partial<Subscription>
-        >('subscription.getAll', {
-          storeId: ctx.params.id,
-          expireDate: {
-            operation: 'gte',
-            date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7),
+        const allSubBefore = this.actions.find({
+          query: {
+            storeId: ctx.params.id,
+            expireDate: {
+              operation: 'gte',
+              date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7),
+            },
+            status: 'active',
+            sort: { field: 'expireDate', order: -1 },
+            perPage: 2,
           },
-          status: 'active',
-          sort: { field: 'expireDate', order: -1 },
-          perPage: 2,
         });
+
         const memberships = await ctx.call<Membership[]>('membership.getAll');
         if (allSubBefore.length === 0) return;
         if (allSubBefore.length === 1) {

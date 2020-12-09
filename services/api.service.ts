@@ -293,7 +293,7 @@ const TheService: ServiceSchema = {
 
           // Verify Base64 Basic auth
           if (type === 'Basic') {
-            return this.resolveBasicToken(token).then(user => {
+            return this.resolveBasicToken(token).then((user: unknown) => {
               if (user) {
                 ctx.meta.token = token;
               }

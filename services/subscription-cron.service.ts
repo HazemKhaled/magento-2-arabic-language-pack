@@ -61,7 +61,7 @@ const TheService: ServiceSchema = {
           const createSubResponse: Subscription = await ctx.call<
             Subscription,
             Partial<Subscription>
-          >('subscription.create', {
+          >('subscription.createOne', {
             storeId: subscription.storeId,
             membership: subscription.membershipId,
           });

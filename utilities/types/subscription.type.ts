@@ -7,11 +7,11 @@
 export interface Subscription {
   _id?: string;
   id?: string;
-  membershipId: number;
+  membershipId: string;
   storeId: string;
   invoiceId: string;
   startDate: Date;
-  expireDate: any;
+  expireDate: Date;
   status: 'confirmed' | 'pending' | 'cancelled' | 'active';
   reference?: string;
   donor?: string;
