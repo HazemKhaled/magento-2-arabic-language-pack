@@ -41,7 +41,7 @@ export default {
   methods: {
     resizeCallback() {
       const el = this.$refs.page.$el;
-      const rect = el.getClientBoundingRect();
+      const rect = el.getBoundingClientRect();
       parent.postMessage(
         `[resize]::${JSON.stringify(rect)}`,
         '*'
