@@ -287,13 +287,6 @@ export default {
     handleCardFocus() {
       this.$refs.creditCard?.$el.scrollIntoView({ behavior: 'smooth' });
     },
-    handlePayingFromBalance() {
-      this.isSubmitting = true;
-
-      // TODO: handle paying purchase_units
-
-      // TODO: handle payment fail
-    },
     handlePayment(payload) {
       const { origin, search } = window.location;
       const url = `${origin}/api/paymentGateway/checkout${search}`;
@@ -306,10 +299,6 @@ export default {
         },
       })
         .then(res => {
-          this.showToastr({
-            type: 'success',
-            message: 'Payment success',
-          });
           if (res.location && res.code === 302) {
             return (window.location = res.location);
           }

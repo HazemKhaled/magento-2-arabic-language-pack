@@ -12,7 +12,7 @@ export default {
   name: 'Success',
   mounted() {
     parent.postMessage(
-    `[success]::${{message: this.$t('toastr.payment__success') }}`,
+    `[success]::${JSON.stringify({message: this.$t('toastr.payment__success') })}`,
     '*'
   );
   }
