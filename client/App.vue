@@ -1,5 +1,6 @@
 <template>
   <component
+    ref="page"
     :is="component"
     v-bind="$data"
   />
@@ -14,9 +15,10 @@ import Success from '@/views/Success';
 import { debounce } from './utils';
 
 const resizeCallback = debounce(() => {
-  const {innerHeight, innerWidth} = window;
+  const el = this.$refs.page.$el;
+  const rect = el.getClientBoundingRect();
   parent.postMessage(
-    `[resize]::${JSON.stringify({innerHeight, innerWidth})}`,
+    `[resize]::${JSON.stringify(rect)}`,
     '*'
   );
 }, 100);
