@@ -1,8 +1,9 @@
 <template lang="pug">
-.page.page--cards
-  Error(v-if="!cards.length" :error="{ code: 404 }")
-    p You don't have any payment credit cards
-  .checkout__form(v-else)
+Error(v-if="!cards.length" :error="{ code: 404 }")
+  p You don't have any payment credit cards
+
+.page.page--cards(v-else)
+  .checkout__form
     .checkout__body
       ul.checkout__cards-list
         template(v-if='isLoading')

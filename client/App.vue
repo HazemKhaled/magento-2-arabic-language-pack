@@ -59,10 +59,6 @@ export default {
   display: flex
   flex-direction: column
   margin: 0 auto
-  max-width: 700px
-  width: 100vw
-  max-height: 800px
-  height: 100vh
   border: 1px solid $gray
   border-radius: 8px
 
@@ -76,4 +72,10 @@ export default {
   border-color: $red
 .page--success
   border-color: $green
+
+.page--checkout
+  max-width: 700px
+  width: 100vw
+  max-height: 800px
+  height: 100vh
 </style>
