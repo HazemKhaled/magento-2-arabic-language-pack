@@ -251,6 +251,7 @@ export default {
     handleFormSubmit(event) {
       // If from already submitted do nothing
       if (this.isSubmitting) return;
+      this.isSubmitting = true;
 
       // Handle paying from balance
       // If there is no remaining payment return
@@ -282,7 +283,6 @@ export default {
             id: this.cardId,
           };
       this.handlePayment({ card });
-      this.isSubmitting = true;
     },
     handleCardFocus() {
       this.$refs.creditCard?.$el.scrollIntoView({ behavior: 'smooth' });
