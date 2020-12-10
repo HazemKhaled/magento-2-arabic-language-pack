@@ -3,20 +3,6 @@ import { ServiceSchema } from 'moleculer';
 export const StoresValidation: ServiceSchema = {
   name: 'stores',
   actions: {
-    findInstance: {
-      params: {
-        consumerKey: {
-          type: 'string',
-          convert: true,
-          optional: true,
-        },
-        id: {
-          type: 'string',
-          convert: true,
-          optional: true,
-        },
-      },
-    },
     getOne: {
       params: {
         id: {

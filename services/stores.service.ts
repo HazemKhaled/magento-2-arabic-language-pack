@@ -53,38 +53,6 @@ const TheService: ServiceSchema = {
   },
   actions: {
     /**
-     * This function is used locally by mp to get an instance with consumerKey
-     *
-     * @param {String} consumerKey
-     * @returns {Store}
-     */
-    findInstance: {
-      auth: ['Basic'],
-      cache: {
-        keys: ['consumerKey', 'id'],
-        ttl: 60 * 60 * 24,
-      },
-      visibility: 'public',
-      handler(
-        ctx: Context<{ id: string; consumerKey?: string }>
-      ): Promise<Store> {
-        if (ctx.params.id) {
-          return this.getById(ctx.params.id);
-        }
-
-        return this.actions
-          .find({
-            query: { consumer_key: ctx.params.consumerKey },
-          })
-          .then(([res]: Store[]) => {
-            // If the DB response not null will return the data
-            if (res !== null) return this.sanitizeResponse(res);
-            // If null return Not Found error
-            throw new MpError('Stores Service', 'Store Not Found', 404);
-          });
-      },
-    },
-    /**
      * Get the store for the authenticated token
      *
      * @param {}
@@ -373,10 +341,6 @@ const TheService: ServiceSchema = {
           });
 
         // Clean cache if store updated
-        this.broker.cacher.clean(
-          `stores.findInstance:${myStore.consumer_key}*`
-        );
-        this.broker.cacher.clean(`stores.findInstance:*${myStore.url}*`);
         this.broker.cacher.clean('stores.getAll**');
         this.broker.cacher.clean('stores.getAllAdmin:**');
         this.broker.cacher.clean(`products.list:${myStore.consumer_key}*`);
@@ -527,8 +491,10 @@ const TheService: ServiceSchema = {
       handler(ctx: Context<StoreRequest, StoreMeta>): Promise<GenericObject> {
         const { consumerKey, consumerSecret } = ctx.params;
 
-        return this.broker
-          .call('stores.findInstance', { consumerKey, consumerSecret })
+        return this.actions
+          .find({
+            query: { consumer_key: consumerKey },
+          })
           .then((instance: Store) => {
             if (
               consumerKey === instance.consumer_key &&
@@ -541,9 +507,6 @@ const TheService: ServiceSchema = {
                 currency: instance.currency,
               };
             }
-            this.broker.cacher.clean(
-              `stores.findInstance:${ctx.params.consumerKey}`
-            );
 
             ctx.meta.$statusCode = 401;
             ctx.meta.$statusMessage = 'Unauthorized Error';
@@ -605,14 +568,16 @@ const TheService: ServiceSchema = {
           .then(async (decoded: { id: string }) => {
             if (decoded.id) {
               // Get instance info
-              const instance = await this.broker.call('stores.findInstance', {
-                consumerKey: decoded.id,
+              const [instance]: Store[] = this.actions.find({
+                query: { consumerKey: decoded.id },
               });
 
               if (instance.status) {
                 return instance;
               }
             }
+
+            return false;
           })
           .catch(() => {
             return false;
