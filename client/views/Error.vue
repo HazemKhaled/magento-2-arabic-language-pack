@@ -17,8 +17,9 @@ export default {
   },
   mounted() {
     parent.postMessage(
-    `[error]::${JSON.stringify(this.error)}`,
-    '*'
+      `[error]::${JSON.stringify(this.error)}`,
+      '*'
+    );
   },
 }
 </script>
