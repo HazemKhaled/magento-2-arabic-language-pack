@@ -15,5 +15,10 @@ export default {
       type: Object
     }
   },
+  mounted() {
+    parent.postMessage(
+    `[error]::${JSON.stringify(this.error)}`,
+    '*'
+  },
 }
 </script>

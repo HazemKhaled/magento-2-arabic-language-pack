@@ -14,15 +14,6 @@ import Success from '@/views/Success';
 
 import { debounce } from './utils';
 
-const resizeCallback = debounce(() => {
-  const el = this.$refs.page.$el;
-  const rect = el.getClientBoundingRect();
-  parent.postMessage(
-    `[resize]::${JSON.stringify(rect)}`,
-    '*'
-  );
-}, 100);
-
 export default {
   name: 'App',
   components: { Checkout, Cards, Error, Success },
@@ -40,12 +31,22 @@ export default {
     );
   },
   mounted() {
-    window.addEventListener('resize', resizeCallback);
-    window.addEventListener('load', resizeCallback);
+    window.addEventListener('resize', this.resizeCallback);
+    window.addEventListener('load', this.resizeCallback);
   },
   beforeDestroy() {
-    window.removeEventListener('resize', resizeCallback);
-    window.removeEventListener('load', resizeCallback);
+    window.removeEventListener('resize', this.resizeCallback);
+    window.removeEventListener('load', this.resizeCallback);
+  },
+  methods: {
+    resizeCallback() {
+      const el = this.$refs.page.$el;
+      const rect = el.getClientBoundingRect();
+      parent.postMessage(
+        `[resize]::${JSON.stringify(rect)}`,
+        '*'
+      );
+    }
   }
 }
 </script>
