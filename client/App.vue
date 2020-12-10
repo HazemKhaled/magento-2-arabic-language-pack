@@ -61,6 +61,7 @@ export default {
   margin: 0 auto
   border: 1px solid $gray
   border-radius: 8px
+  height: 100vh
 
 .page--error,
 .page--success
@@ -77,5 +78,4 @@ export default {
   max-width: 700px
   width: 100vw
   max-height: 800px
-  height: 100vh
 </style>
