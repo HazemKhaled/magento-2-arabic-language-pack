@@ -113,7 +113,7 @@ module.exports = {
               },
             });
           }
-          if (ctx.params.hasExternalId) {
+          if (ctx.params.hasExternalId !== undefined) {
             switch (Boolean(Number(ctx.params.hasExternalId))) {
               case true:
                 query.bool.must.push({
