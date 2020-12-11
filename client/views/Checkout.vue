@@ -1,13 +1,11 @@
 <template lang="pug">
 .page.page--checkout
-  Toastr(
-    v-if='isToastrVisible',
-    @remove='() => (isToastrVisible = false)',
-    :data='toastrData'
-  ) {{ toastrMessage }}
-
   .spinner(v-if='isSubmitting')
-  form.checkout__form(name='checkoutForm', @submit.prevent='handleFormSubmit')
+  form.checkout__form(
+    name='checkoutForm',
+    method='POST',
+    :action='formUrl',
+  )
     .checkout__body
       .checkout__header
         h2 {{ $t("checkout.payWith") }}
@@ -49,7 +47,12 @@
       .row(v-if='false')
         .checkbox
           label.checkbox__label
-            input.checkbox__input(type='checkbox', v-model='useSecurePayment')
+            input.checkbox__input(
+              type='checkbox',
+              name='non_3d',
+              :value='!useSecurePayment',
+              @input='e => (useSecurePayment = e.target.value)'
+            )
             span {{ $t("checkout.secure") }}
 
       .row(v-if='!cardId')
@@ -58,6 +61,7 @@
             input.checkbox__input(
               type='checkbox',
               name='store_card',
+              :value="1"
               v-model='saveCard'
             )
             span {{ $t("checkout.saveCard") }}
@@ -72,6 +76,13 @@
             )
             span.checkbox__label
               | {{ $t("checkout.useBalance") }} ({{ fixed2(balance * currency.rate) }} {{ currency.currencyCode }})
+
+      //- Form data
+      .row(v-show='false')
+        input(name='balance_only', type="number", :value='useBalance && useBalanceOnly ? 1 : 0')
+        input(name='is_new', type="number", :value='!cardId ? 1 : 0')
+        input(name='card_id', type="text", :value='cardId')
+        input(v-for="[key, value] in Object.entries(card)", :name="key", :value="value")
 
     .checkout__footer
       details.checkout__summary
@@ -121,7 +132,8 @@
 
       button.button.button--primary.button--block.checkout__submit(
         type='submit',
-        :disable='isSubmitting'
+        :disable='isSubmitting',
+        @click='handleFormSubmit'
       )
         template(v-if='useBalanceOnly')
           | {{ $t("checkout.confirm") }}
@@ -134,7 +146,6 @@ import qs from 'qs';
 import CreditCardPlaceholder from '@/components/CreditCardPlaceholder';
 import CreditCard from '@/components/CreditCard';
 import AppIcon from '@/components/AppIcon';
-import Toastr from '@/components/Toastr';
 
 import { fixed2, round, $fetch, getErrorMessage } from '../utils';
 import { isArray } from 'util';
@@ -145,7 +156,6 @@ export default {
     CreditCardPlaceholder,
     CreditCard,
     AppIcon,
-    Toastr,
   },
   props: {
     cards: {
@@ -175,11 +185,6 @@ export default {
     cardId: '',
     card: {},
 
-    // toastr
-    isToastrVisible: false,
-    toastrMessage: '',
-    toastrData: { type: 'error' },
-
     // Will get it from query params
     purchaseUnites: [],
   }),
@@ -200,6 +205,10 @@ export default {
     },
     useBalanceOnly() {
       return !this.paymentTotal;
+    },
+    formUrl() {
+      const { origin, search } = window.location;
+      return `${origin}/api/paymentGateway/checkout${search}`;
     },
     amount() {
       return this.purchaseUnites.reduce((acc, crr) => {
@@ -251,13 +260,6 @@ export default {
     handleFormSubmit(event) {
       // If from already submitted do nothing
       if (this.isSubmitting) return;
-      this.isSubmitting = true;
-
-      // Handle paying from balance
-      // If there is no remaining payment return
-      if (this.useBalanceOnly) {
-        return this.handlePayment({ balance: true });
-      }
 
       // Handle paying from a new card
       if (!this.cardId) {
@@ -267,56 +269,14 @@ export default {
         // check if agreed to terms and conditions
         if (!this.hasAgreed || this.$refs.creditCard.errors.length) {
           this.showErrors = true;
+          event.preventDefault();
           return;
         }
       }
-
-      // Submit the form
-      const card = !this.cardId
-        ? {
-            is_new: true,
-            store_card: this.saveCard ? 1 : 0,
-            ...this.card,
-          }
-        : {
-            is_new: false,
-            id: this.cardId,
-          };
-      this.handlePayment({ card });
+      this.isSubmitting = true;
     },
     handleCardFocus() {
       this.$refs.creditCard?.$el.scrollIntoView({ behavior: 'smooth' });
-    },
-    handlePayment(payload) {
-      const { origin, search } = window.location;
-      const url = `${origin}/api/paymentGateway/checkout${search}`;
-
-      return $fetch(url, {
-        method: 'POST',
-        body: JSON.stringify(payload),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-        .then(res => {
-          if (res.location && res.code === 302) {
-            return (window.location = res.location);
-          }
-          document.write(res);
-        })
-        .catch(error => {
-          console.error('error', error);
-          this.showToastr({
-            type: 'error',
-            message: getErrorMessage(error),
-          });
-        })
-        .finally(() => (this.isSubmitting = false));
-    },
-    showToastr(data) {
-      this.toastrData = data;
-      this.toastrMessage = data.message;
-      this.isToastrVisible = true;
     },
     fixed2,
   },

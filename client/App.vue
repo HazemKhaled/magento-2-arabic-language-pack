@@ -62,6 +62,8 @@ export default {
   border: 1px solid $gray
   border-radius: 8px
   height: 100vh
+  max-width: 700px
+  width: 100vw
 
 .page--error,
 .page--success
@@ -75,7 +77,5 @@ export default {
   border-color: $green
 
 .page--checkout
-  max-width: 700px
-  width: 100vw
   max-height: 800px
 </style>

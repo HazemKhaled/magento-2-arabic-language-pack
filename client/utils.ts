@@ -18,18 +18,13 @@ export function round(number: number): number {
  */
 export function $fetch(url: string, ...args: any[]): Promise<any> {
   return fetch(url, ...args).then(async res => {
-    const jsonRes = await res.json().catch(error => {
-      console.error(res, error);
-      return {};
-    });
+    // Try to get HTML or JSON data
+    const parsedRes = await res.json().catch(() => res.text().catch(() => res));
 
     if (res.ok) {
-      return jsonRes;
+      return parsedRes;
     }
-    throw {
-      statusCode: res.status,
-      ...jsonRes,
-    };
+    throw parsedRes;
   });
 }
 
