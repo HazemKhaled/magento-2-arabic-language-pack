@@ -92,7 +92,7 @@ export function OpenApiMixin(): ServiceSchema {
 
             // https://swagger.io/specification/#infoObject
             info: {
-              title: `${pkg.name.toUpperCase()} API Documentation`,
+              title: `Merchants API Documentation`,
               'x-logo': {
                 url: 'https://knawat.com/wp-content/uploads/2017/12/logo.png',
                 backgroundColor: '#ef6530',
