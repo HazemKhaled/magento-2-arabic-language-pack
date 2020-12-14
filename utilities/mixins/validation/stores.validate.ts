@@ -162,11 +162,13 @@ export const StoresValidation: ServiceSchema = {
                 type: 'string',
                 min: 3,
                 optional: true,
+                pattern: '^[A-Za-z ]{3,}$',
               },
               last_name: {
                 type: 'string',
                 min: 3,
                 optional: true,
+                pattern: '^[A-Za-z ]{3,}$',
               },
               email: {
                 type: 'email',
@@ -200,10 +202,12 @@ export const StoresValidation: ServiceSchema = {
             first_name: {
               type: 'string',
               min: 3,
+              pattern: '^[A-Za-z ]{3,}$',
             },
             last_name: {
               type: 'string',
               min: 3,
+              pattern: '^[A-Za-z ]{3,}$',
             },
             company: {
               type: 'string',
@@ -355,11 +359,13 @@ export const StoresValidation: ServiceSchema = {
                 type: 'string',
                 min: 3,
                 optional: true,
+                pattern: '^[A-Za-z ]{3,}$',
               },
               last_name: {
                 type: 'string',
                 min: 3,
                 optional: true,
+                pattern: '^[A-Za-z ]{3,}$',
               },
               email: {
                 type: 'email',
@@ -394,10 +400,12 @@ export const StoresValidation: ServiceSchema = {
             first_name: {
               type: 'string',
               min: 3,
+              pattern: '^[A-Za-z ]{3,}$',
             },
             last_name: {
               type: 'string',
               min: 3,
+              pattern: '^[A-Za-z ]{3,}$',
             },
             company: {
               type: 'string',
@@ -483,11 +491,13 @@ export const StoresValidation: ServiceSchema = {
               type: 'string',
               min: 3,
               optional: true,
+              pattern: '^[A-Za-z ]{3,}$',
             },
             last_name: {
               type: 'string',
               min: 3,
               optional: true,
+              pattern: '^[A-Za-z ]{3,}$',
             },
             company: {
               type: 'string',
