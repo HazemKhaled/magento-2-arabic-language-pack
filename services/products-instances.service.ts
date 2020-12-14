@@ -143,7 +143,7 @@ module.exports = {
         }
         return ctx
           .call<ElasticSearchResponse, Partial<ElasticSearchType>>(
-            'products.count',
+            'products-instances.count',
             {
               index: 'products-instances',
               body: {
@@ -338,10 +338,13 @@ module.exports = {
             });
 
             return ctx
-              .call<GenericObject, Partial<Product>>('products.bulk', {
-                index: 'products-instances',
-                body: bulk,
-              })
+              .call<GenericObject, Partial<Product>>(
+                'products-instances.bulk',
+                {
+                  index: 'products-instances',
+                  body: bulk,
+                }
+              )
               .then(async (response: GenericObject) => {
                 // Update products import quantity
                 if (response.items) {
@@ -429,7 +432,7 @@ module.exports = {
         if (ctx.params.variations) body.variations = ctx.params.variations;
         if (ctx.params.error) body.error = ctx.params.error;
         return ctx
-          .call<GenericObject, Partial<Product>>('products.update', {
+          .call<GenericObject, Partial<Product>>('products-instances.update', {
             index: 'products-instances',
             type: '_doc',
             id: `${ctx.meta.user}-${ctx.params.sku}`,
@@ -493,7 +496,7 @@ module.exports = {
         return bulk.length === 0
           ? []
           : this.broker
-              .call('products.bulk', {
+              .call('products-instances.bulk', {
                 index: 'products-instances',
                 type: '_doc',
                 body: bulk,

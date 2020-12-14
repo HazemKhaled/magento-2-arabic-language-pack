@@ -52,7 +52,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
     },
     checkProductInstance(sku, instanceKey): boolean {
       return this.broker
-        .call('products.search', {
+        .call('products-instances.search', {
           index: 'products-instances',
           _source: ['sku'],
           body: {
@@ -504,7 +504,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
       id
     ): Promise<{ status: string; message: string; sku: string }> {
       return this.broker
-        .call('products.update', {
+        .call('products-instances.update', {
           index: 'products-instances',
           type: '_doc',
           id: `${id}-${sku}`,
