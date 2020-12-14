@@ -239,7 +239,7 @@ const Shipment: ServiceSchema = {
           : {};
 
         return ctx
-          .call<ShipmentPolicy[], { query: GenericObject }>('shipment.find', {
+          .call<ShipmentPolicy[], GenericObject>('shipment.find', {
             query,
           })
           .then(

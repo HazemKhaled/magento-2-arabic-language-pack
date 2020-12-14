@@ -88,14 +88,16 @@ const TheService: ServiceSchema = {
         }
 
         return ctx
-          .call<Membership[], { query: GenericObject }>('membership.find', {
+          .call<Membership[], GenericObject>('membership.find', {
             query,
           })
           .then(async ([res]) => {
             if (!res) {
-              return this.call('membership.find', {
-                query: { isDefault: true },
-              }).then(([def]: Membership[]) => this.normalize(def));
+              return ctx
+                .call<Membership[], GenericObject>('membership.find', {
+                  query: { isDefault: true },
+                })
+                .then(([def]) => this.normalize(def));
             }
 
             if (ctx.params.coupon) {
@@ -128,7 +130,7 @@ const TheService: ServiceSchema = {
           };
         }
         return ctx
-          .call<Membership[], { query: GenericObject }>('membership.find', {
+          .call<Membership[], GenericObject>('membership.find', {
             query,
           })
           .then((res: Membership[]) => {

@@ -35,8 +35,8 @@ export interface Store {
   languages: string[];
   credit: number;
   debit: number;
-  internal_data: { [key: string]: any };
-  external_data: { [key: string]: any };
+  internal_data: GenericObject;
+  external_data: GenericObject;
   subscription: Subscription;
   address: OrderAddress;
   customerId: string;

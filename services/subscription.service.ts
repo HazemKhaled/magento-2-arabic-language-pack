@@ -51,7 +51,7 @@ const TheService: ServiceSchema = {
         ctx: Context<{ storeId: string }>
       ): Promise<Subscription | false> {
         const subscription = await ctx
-          .call<Subscription[], { query: GenericObject }>('subscription.find', {
+          .call<Subscription[], GenericObject>('subscription.find', {
             query: {
               storeId: ctx.params.storeId,
               status: { $ne: 'cancelled' },
@@ -497,7 +497,7 @@ const TheService: ServiceSchema = {
         };
         let [expiredSubscription] = await ctx.call<
           Subscription[],
-          { query: GenericObject }
+          GenericObject
         >('subscription.find', {
           query,
         });
@@ -506,13 +506,13 @@ const TheService: ServiceSchema = {
           return null;
         }
         query.storeId = expiredSubscription.storeId;
-        [expiredSubscription] = await ctx.call<
-          Subscription[],
-          { query: GenericObject; sort: GenericObject }
-        >('subscription.find', {
-          query,
-          sort: { expireDate: -1 },
-        });
+        [expiredSubscription] = await ctx.call<Subscription[], GenericObject>(
+          'subscription.find',
+          {
+            query,
+            sort: { expireDate: -1 },
+          }
+        );
         expiredSubscription._id = expiredSubscription._id.toString();
         const currentSubscription: Subscription = await ctx.call<
           Subscription,

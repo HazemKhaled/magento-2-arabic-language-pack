@@ -259,14 +259,14 @@ export const ProductsInstancesMixin: ServiceSchema = {
     ): Promise<{ page: any; totalProducts: any }> {
       page = parseInt(page, 10) || 1;
       let search = [];
-      const mustNot: { [key: string]: any } = [{ term: { deleted: true } }];
+      const mustNot: GenericObject = [{ term: { deleted: true } }];
       const getSortField = (): string => {
         if (!sort || sort.field === 'created') return 'createdAt';
         return sort.field;
       };
 
       if (!scrollId) {
-        const searchQuery: { [key: string]: any } = {
+        const searchQuery: GenericObject = {
           index: 'products-instances',
           scroll: '1m',
           size: process.env.SCROLL_LIMIT,
