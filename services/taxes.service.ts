@@ -2,13 +2,7 @@ import { Context, Errors, GenericObject, ServiceSchema } from 'moleculer';
 
 import DbService from '../utilities/mixins/mongo.mixin';
 import { TaxOpenapi } from '../utilities/mixins/openapi';
-import {
-  DbTax,
-  RTax,
-  TaxRequestParams,
-  DynamicRequestParams,
-  CommonError,
-} from '../utilities/types';
+import { DbTax, TaxRequestParams, CommonError } from '../utilities/types';
 import { TaxesValidation } from '../utilities/mixins/validation';
 
 const MoleculerError = Errors.MoleculerError;
@@ -23,7 +17,7 @@ const TaxesService: ServiceSchema = {
     createOne: {
       auth: ['Basic'],
       rest: 'POST /',
-      async handler(ctx: Context<Partial<DbTax>>): Promise<RTax> {
+      async handler(ctx: Context<Partial<DbTax>>): Promise<DbTax> {
         const taxBody: Partial<DbTax> = {
           ...ctx.params,
           createdAt: new Date(),
@@ -53,7 +47,7 @@ const TaxesService: ServiceSchema = {
     updateOne: {
       auth: ['Basic'],
       rest: 'PUT /:id',
-      async handler(ctx: Context<GenericObject>): Promise<RTax> {
+      async handler(ctx: Context<GenericObject>): Promise<DbTax> {
         const record = ctx.params;
         record.updatedAt = new Date();
 
@@ -82,7 +76,7 @@ const TaxesService: ServiceSchema = {
             );
           });
         if (taxUpdateData.tax) {
-          ctx.call<GenericObject, DynamicRequestParams>(
+          ctx.call<GenericObject, GenericObject>(
             'oms.updateTax',
             ['name', 'percentage'].reduce(
               (acc: GenericObject, key: string) => {
@@ -110,7 +104,7 @@ const TaxesService: ServiceSchema = {
         ttl: 60 * 60 * 24,
       },
       rest: 'GET /:id',
-      handler(ctx: Context<RTax>): RTax {
+      handler(ctx: Context<DbTax>): DbTax {
         return this.getById(ctx.params.id)
           .then((tax: DbTax) => {
             if (tax) {
@@ -134,7 +128,7 @@ const TaxesService: ServiceSchema = {
         ttl: 60 * 60 * 24,
       },
       rest: 'GET /',
-      handler(ctx: Context<TaxRequestParams>): RTax[] {
+      handler(ctx: Context<TaxRequestParams>): DbTax[] {
         const { country } = ctx.params;
         const classes = ctx.params.class;
         const query: GenericObject = {};
@@ -168,8 +162,8 @@ const TaxesService: ServiceSchema = {
       auth: ['Basic'],
       rest: 'DELETE /:id',
       async handler(
-        ctx: Context<RTax>
-      ): Promise<{ tax: RTax; message: string }> {
+        ctx: Context<DbTax>
+      ): Promise<{ tax: DbTax; message: string }> {
         const taxDeleteData = await this.actions
           .remove(ctx.params.id)
           .then((tax: DbTax) => {
@@ -203,7 +197,7 @@ const TaxesService: ServiceSchema = {
     },
   },
   methods: {
-    sanitizer(dbTax: DbTax): RTax {
+    sanitizer(dbTax: DbTax): DbTax {
       const id = dbTax._id;
       delete dbTax._id;
       return { id, ...dbTax };

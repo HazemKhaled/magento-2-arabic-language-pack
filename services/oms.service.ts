@@ -1,4 +1,4 @@
-import { Context, Errors, ServiceSchema } from 'moleculer';
+import { Context, Errors, ServiceSchema, GenericObject } from 'moleculer';
 import fetch from 'node-fetch';
 
 import {
@@ -10,7 +10,6 @@ import {
   StoreRequest,
   CreateCustomerRequest,
   TaxRequestParams,
-  DynamicRequestParams,
   CommonError,
 } from '../utilities/types';
 import DbService from '../utilities/mixins/mongo.mixin';
@@ -119,7 +118,7 @@ const TheService: ServiceSchema = {
       },
     },
     listOrders: {
-      handler(ctx: Context<DynamicRequestParams>) {
+      handler(ctx: Context<GenericObject>) {
         const params: { [key: string]: string } = { ...ctx.params };
         delete params.customerId;
         return this.request({
@@ -139,8 +138,8 @@ const TheService: ServiceSchema = {
 
     // Payments
     createPayment: {
-      handler(ctx: Context<DynamicRequestParams>) {
-        const body: DynamicRequestParams = {
+      handler(ctx: Context<GenericObject>) {
+        const body: GenericObject = {
           ...ctx.params,
           customerId: undefined,
         };
@@ -152,7 +151,7 @@ const TheService: ServiceSchema = {
       },
     },
     listPayments: {
-      handler(ctx: Context<DynamicRequestParams>) {
+      handler(ctx: Context<GenericObject>) {
         const params: { [key: string]: string } = { ...ctx.params };
         delete params.customerId;
         return this.request({

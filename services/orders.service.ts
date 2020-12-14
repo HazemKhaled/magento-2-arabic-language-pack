@@ -15,7 +15,6 @@ import {
   Coupon,
   CrmStore,
   updateOderRequestParams,
-  DynamicRequestParams,
   InvoiceResponse,
   InvoiceRequestParams,
   CommonError,
@@ -757,7 +756,7 @@ const TheService: ServiceSchema = {
           if (!keys.includes(key)) return;
           queryParams[key] = ctx.params[key];
         });
-        const orders = await ctx.call<OrderOMSResponse, DynamicRequestParams>(
+        const orders = await ctx.call<OrderOMSResponse, GenericObject>(
           'oms.listOrders',
           {
             customerId: store.internal_data.omsId,

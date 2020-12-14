@@ -5,7 +5,6 @@ import {
   Payment,
   PaymentInvoice,
   PaymentRequestParams,
-  GetPaymentRequestParams,
   MetaParams,
   Store,
   PaymentResponse,
@@ -96,7 +95,7 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 * 24,
       },
       async handler(
-        ctx: Context<GetPaymentRequestParams, MetaParams>
+        ctx: Context<GenericObject, MetaParams>
       ): Promise<{ payments: Payment[] }> {
         const { store } = ctx.meta;
         const keys: { [key: string]: string } = {

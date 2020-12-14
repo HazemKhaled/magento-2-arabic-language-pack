@@ -1,10 +1,9 @@
-import { Context, Errors, ServiceSchema } from 'moleculer';
+import { Context, Errors, ServiceSchema, GenericObject } from 'moleculer';
 
 import { InvoicesOpenapi } from '../utilities/mixins/openapi';
 import {
   Invoice,
   InvoiceRequestParams,
-  DynamicRequestParams,
   MetaParams,
   Store,
   Order,
@@ -30,7 +29,7 @@ const TheService: ServiceSchema = {
         ttl: 60,
       },
       handler(
-        ctx: Context<DynamicRequestParams, MetaParams>
+        ctx: Context<GenericObject, MetaParams>
       ): Promise<{ invoices: Invoice[] }> {
         const { store } = ctx.meta;
 

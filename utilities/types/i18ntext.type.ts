@@ -40,16 +40,6 @@ export interface MetaParams {
 }
 
 /**
- * Dynamic Request Params
- *
- * @export
- * @interface DynamicRequestParams
- */
-export interface DynamicRequestParams {
-  [key: string]: string;
-}
-
-/**
  * Common Error interface
  *
  * @export
