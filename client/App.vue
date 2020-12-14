@@ -31,11 +31,15 @@ export default {
     );
   },
   mounted() {
-    window.addEventListener('resize', this.resizeCallback);
+    const el = this.$refs.page.$el;
+
+    el.addEventListener('resize', this.resizeCallback);
     window.addEventListener('load', this.resizeCallback);
   },
   beforeDestroy() {
-    window.removeEventListener('resize', this.resizeCallback);
+    const el = this.$refs.page.$el;
+
+    el.removeEventListener('resize', this.resizeCallback);
     window.removeEventListener('load', this.resizeCallback);
   },
   methods: {
@@ -61,7 +65,7 @@ export default {
   margin: 0 auto
   border: 1px solid $gray
   border-radius: 8px
-  height: 100vh
+  min-height: 100vh
   max-width: 700px
   width: 100vw
 
