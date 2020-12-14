@@ -17,7 +17,7 @@ export interface Subscription {
   donor?: string;
   renewed?: string | boolean;
   autoRenew?: string;
-  retries?: number | any[];
+  retries?: Date[];
   createdAt?: Date;
   updatedAt?: Date;
   coupon?: string;

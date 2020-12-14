@@ -18,8 +18,10 @@ const TheService: ServiceSchema = {
         // Different coupon types validation
         this.couponTypeCheck(ctx.params);
 
-        return this.actions
-          .insert({ entity: this.createCouponSanitize(ctx.params) })
+        return ctx
+          .call<Coupon, { entity: Coupon }>('coupons.insert', {
+            entity: this.createCouponSanitize(ctx.params),
+          })
           .then((res: Coupon) => {
             this.broker.cacher.clean('coupons.getAll:**');
             this.clearCache();
@@ -61,9 +63,9 @@ const TheService: ServiceSchema = {
         if (ctx.params.type) {
           query.type = ctx.params.type;
         }
-        return this.actions
-          .find({ query })
-          .then(([res]: Coupon[]) => {
+        return ctx
+          .call<Coupon[], { query: CouponQueryType }>('coupons.find', { query })
+          .then(([res]) => {
             if (!res) {
               throw new MoleculerError(
                 'No Coupon found for this ID or Membership',
@@ -113,9 +115,9 @@ const TheService: ServiceSchema = {
         if (ctx.params.type) {
           query.type = ctx.params.type;
         }
-        return this.actions
-          .find({ query })
-          .then((res: Coupon[]) => {
+        return ctx
+          .call<Coupon[], { query: CouponQueryType }>('coupons.find', { query })
+          .then(res => {
             if (res.length) return res.map(coupon => this.normalizeId(coupon));
             throw new MoleculerError('No Coupons found!', 404);
           })
@@ -133,7 +135,7 @@ const TheService: ServiceSchema = {
       async handler(ctx: Context<Coupon>): Promise<Coupon> {
         this.couponTypeCheck(ctx.params);
 
-        const updateBody: Partial<Coupon> = {
+        const updateBody: Coupon = {
           ...ctx.params,
           id: ctx.params.id.toUpperCase(),
           updatedAt: new Date(),
@@ -145,8 +147,8 @@ const TheService: ServiceSchema = {
           updateBody.endDate = new Date(updateBody.endDate);
         }
 
-        return this.actions
-          .update(updateBody)
+        return ctx
+          .call<Coupon, Coupon>('coupons.update', updateBody)
           .then((coupon: Coupon) => {
             if (!coupon) {
               throw new MoleculerError('No Coupons found!', 404);

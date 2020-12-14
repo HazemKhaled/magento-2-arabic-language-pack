@@ -1,7 +1,7 @@
 import { types } from 'util';
 
 import { Context, Errors, GenericObject, ServiceSchema } from 'moleculer';
-import { DbContextParameters, QueryFilters } from 'moleculer-db';
+import { DbContextParameters } from 'moleculer-db';
 
 import DbService from '../utilities/mixins/mongo.mixin';
 import { SubscriptionOpenapi } from '../utilities/mixins/openapi';
@@ -50,8 +50,8 @@ const TheService: ServiceSchema = {
       async handler(
         ctx: Context<{ storeId: string }>
       ): Promise<Subscription | false> {
-        const subscription: Subscription = await this.actions
-          .find({
+        const subscription = await ctx
+          .call<Subscription[], { query: GenericObject }>('subscription.find', {
             query: {
               storeId: ctx.params.storeId,
               status: { $ne: 'cancelled' },
@@ -59,7 +59,7 @@ const TheService: ServiceSchema = {
               startDate: { $lte: new Date() },
             },
           })
-          .then(([record]: Subscription[]) => record || {});
+          .then(([record]) => record);
 
         const membership = await ctx.call<Membership, Partial<Membership>>(
           'membership.get',
@@ -104,7 +104,7 @@ const TheService: ServiceSchema = {
       rest: 'GET /',
       async handler(
         ctx: Context<SubscriptionListParams>
-      ): Promise<Subscription[] | false> {
+      ): Promise<Subscription[]> {
         const query: GenericObject = {};
         if (ctx.params.storeId) {
           query.storeId = ctx.params.storeId;
@@ -161,8 +161,8 @@ const TheService: ServiceSchema = {
         findBody.offset =
           (findBody.limit || 100) *
           (ctx.params.page ? Number(ctx.params.page) - 1 : 0);
-        return this.actions
-          .find(findBody)
+        return ctx
+          .call<Subscription[], GenericObject>('subscription.find', findBody)
           .then((res: Subscription[]) => {
             return res;
           })
@@ -358,7 +358,10 @@ const TheService: ServiceSchema = {
           startDate = new Date(ctx.params.date.start);
           expireDate = new Date(ctx.params.date.expire);
         } else {
-          const storeOldSubscription: Subscription[] = this.actions.find({
+          const storeOldSubscription = await ctx.call<
+            Subscription[],
+            GenericObject
+          >('subscription.find', {
             query: {
               storeId: ctx.params.grantTo || ctx.params.storeId,
               expireDate: { operation: 'gte' },
@@ -428,8 +431,8 @@ const TheService: ServiceSchema = {
           subscriptionBody.status = 'pending';
         }
 
-        return this.actions
-          .insert({
+        return ctx
+          .call<Subscription, { entity: Subscription }>('subscription.insert', {
             entity: subscriptionBody,
           })
           .then(
@@ -492,14 +495,21 @@ const TheService: ServiceSchema = {
           },
           status: { $ne: 'cancelled' },
         };
-        let [expiredSubscription] = await this.actions
-          .find({ query })
-          .catch(console.error);
+        let [expiredSubscription] = await ctx.call<
+          Subscription[],
+          { query: GenericObject }
+        >('subscription.find', {
+          query,
+        });
+
         if (!expiredSubscription) {
           return null;
         }
         query.storeId = expiredSubscription.storeId;
-        [expiredSubscription] = await this.actions.find({
+        [expiredSubscription] = await ctx.call<
+          Subscription[],
+          { query: GenericObject; sort: GenericObject }
+        >('subscription.find', {
           query,
           sort: { expireDate: -1 },
         });
@@ -511,7 +521,7 @@ const TheService: ServiceSchema = {
           storeId: expiredSubscription.storeId,
         });
         if (currentSubscription.id !== '-1') {
-          this.actions.update({
+          ctx.call<void, Partial<Subscription>>('subscription.update', {
             id: expiredSubscription._id,
             renewed: true,
           });
@@ -520,14 +530,18 @@ const TheService: ServiceSchema = {
             id: expiredSubscription.storeId,
             tag: 'subscription-renew',
           });
-          return this.actions.getOneByExpireDate({
-            afterDays: ctx.params.afterDays,
-            beforeDays: ctx.params.beforeDays,
-          });
+          return ctx.call<Subscription, GenericObject>(
+            'subscription.getOneByExpireDate',
+            {
+              afterDays: ctx.params.afterDays,
+              beforeDays: ctx.params.beforeDays,
+            }
+          );
         }
         const date = new Date();
         date.setUTCHours(0, 0, 0, 0);
-        this.actions.update({
+
+        ctx.call<void, Partial<Subscription>>('subscription.update', {
           id: expiredSubscription._id,
           retries: expiredSubscription.retries
             ? [...expiredSubscription.retries, new Date(date)]
@@ -558,9 +572,12 @@ const TheService: ServiceSchema = {
         }
         $set = { ...params, ...$set, updatedAt: new Date() };
 
-        return this.actions
-          .update($set)
-          .then(async (subscription: Subscription) => {
+        return ctx
+          .call<Subscription, Partial<Subscription>>(
+            'subscription.update',
+            $set
+          )
+          .then(async subscription => {
             const store: Store = await ctx.call<Store, { id: string }>(
               'stores.get',
               { id: subscription.storeId }
@@ -580,18 +597,22 @@ const TheService: ServiceSchema = {
     checkCurrentSubGradingStatus: {
       visibility: 'public',
       async handler(ctx: Context<{ id: string }>): Promise<CrmResponse> | null {
-        const allSubBefore = this.actions.find({
-          query: {
-            storeId: ctx.params.id,
-            expireDate: {
-              operation: 'gte',
-              date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7),
+        const allSubBefore = await ctx.call<Subscription[], GenericObject>(
+          'subscription.find',
+          {
+            query: {
+              storeId: ctx.params.id,
+              expireDate: {
+                operation: 'gte',
+                date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7),
+              },
+              status: 'active',
             },
-            status: 'active',
+
             sort: { field: 'expireDate', order: -1 },
-            perPage: 2,
-          },
-        });
+            limit: 2,
+          }
+        );
 
         const memberships = await ctx.call<Membership[], DbContextParameters>(
           'membership.find',
@@ -628,10 +649,13 @@ const TheService: ServiceSchema = {
       auth: ['Basic'],
       rest: 'DELETE /:id',
       handler(ctx): Promise<Subscription> {
-        return this.actions
-          .update({ id: ctx.params.id, status: 'cancelled' })
-          .then(async (res: any) => {
-            const instance: Store = await ctx.call<Store, { id: string }>(
+        return ctx
+          .call<Subscription, Partial<Subscription>>('subscription.update', {
+            id: ctx.params.id,
+            status: 'cancelled',
+          })
+          .then(async res => {
+            const instance = await ctx.call<Store, { id: string }>(
               'stores.get',
               { id: res.storeId }
             );

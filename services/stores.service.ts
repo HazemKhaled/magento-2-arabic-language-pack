@@ -20,7 +20,7 @@ import {
 import { StoresValidation } from '../utilities/mixins/validation';
 import { GCPPubSub } from '../utilities/mixins';
 
-const { MoleculerError } = Errors;
+const { MoleculerError, ValidationError } = Errors;
 
 const TheService: ServiceSchema = {
   name: 'stores',
@@ -66,9 +66,11 @@ const TheService: ServiceSchema = {
       },
       rest: 'GET /me',
       handler(ctx: Context<unknown, MetaParams>): Promise<Store> {
-        return this.actions
-          .find({ query: { consumer_key: ctx.meta.user } })
-          .then(async ([res]: Store[]) => {
+        return ctx
+          .call<Store[], { query: { consumer_key: string } }>('stores.find', {
+            query: { consumer_key: ctx.meta.user },
+          })
+          .then(async ([res]) => {
             let omsData: { store: Store };
             if (res) {
               if (res.users) {
@@ -159,7 +161,7 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 * 24,
       },
       rest: 'GET /',
-      handler(ctx: Context<StoreRequest>): string | Promise<Store[]> {
+      handler(ctx: Context<StoreRequest>): Promise<Store[]> {
         let params: {
           where?: GenericObject;
           limit?: number;
@@ -170,7 +172,7 @@ const TheService: ServiceSchema = {
         try {
           params = JSON.parse(ctx.params.filter);
         } catch (err) {
-          return 'Inputs Error!';
+          throw new ValidationError('Filter Error');
         }
         if (params.limit && params.limit > 100) {
           params.limit = 100;
@@ -191,12 +193,14 @@ const TheService: ServiceSchema = {
             query.sort = { [sortArray[0]]: sortArray[1] === 'asc' ? 1 : -1 };
           }
         }
-        return this.actions.find(query).then((res: Store[]) => {
-          // If the DB response not null will return the data
-          if (res) return res.map(store => this.sanitizeResponse(store));
-          // If null return Not Found error
-          throw new MpError('Stores Service', 'Store Not Found', 404);
-        });
+        return ctx
+          .call<Store[], GenericObject>('stores.find', query)
+          .then(res => {
+            // If the DB response not null will return the data
+            if (res) return res.map(store => this.sanitizeResponse(store));
+            // If null return Not Found error
+            throw new MpError('Stores Service', 'Store Not Found', 404);
+          });
       },
     },
     getAllAdmin: {
@@ -208,14 +212,18 @@ const TheService: ServiceSchema = {
       rest: 'GET admin',
       handler(
         ctx: Context<StoreRequest>
-      ): Promise<{ stores: Store; total: number }> {
+      ): Promise<{ stores: Store[]; total: number }> {
         const query: GenericObject = {};
         const findBody: GenericObject = { query };
         findBody.pageSize = Number(ctx.params.perPage) || 50;
         findBody.page = Number(ctx.params.page) || 1;
-        return this.actions
-          .list(findBody)
-          .then(async (res: { rows: Store[]; total: number }) => {
+
+        return ctx
+          .call<{ rows: Store[]; total: number }, GenericObject>(
+            'stores.list',
+            findBody
+          )
+          .then(async res => {
             return {
               stores: res.rows,
               total: res.total,
@@ -245,9 +253,11 @@ const TheService: ServiceSchema = {
         // Sanitize request params
         const store: Store = this.sanitizeStoreParams(ctx.params, true);
 
-        const myStore: Store = await this.actions
-          .insert({ entity: store })
-          .then((res: Store) => this.sanitizeResponse(res))
+        const myStore = await ctx
+          .call<Store, { entity: Store }>('stores.insert', {
+            entity: store,
+          })
+          .then(res => this.sanitizeResponse(res) as Store)
           .catch((err: { code: number }) => {
             if (err.code !== 11000) {
               this.logger.error('Create store', err);
@@ -312,8 +322,8 @@ const TheService: ServiceSchema = {
           );
         }
 
-        const myStore: Store = await this.actions
-          .update(store)
+        const responseStore = await ctx
+          .call<Store, Store>('stores.update', store)
           .then(this.sanitizeResponse)
           .catch((error: { code: number }) => {
             this.sendLogs({
@@ -339,6 +349,9 @@ const TheService: ServiceSchema = {
               ],
             };
           });
+
+        // Workaround for Store type, clean it up
+        const myStore = responseStore as Store;
 
         // Clean cache if store updated
         this.broker.cacher.clean('stores.getAll**');
@@ -491,11 +504,11 @@ const TheService: ServiceSchema = {
       handler(ctx: Context<StoreRequest, StoreMeta>): Promise<GenericObject> {
         const { consumerKey, consumerSecret } = ctx.params;
 
-        return this.actions
-          .find({
+        return ctx
+          .call<Store[], { query: { consumer_key: string } }>('stores.find', {
             query: { consumer_key: consumerKey },
           })
-          .then((instance: Store) => {
+          .then(([instance]) => {
             if (
               consumerKey === instance.consumer_key &&
               consumerSecret === instance.consumer_secret
@@ -517,9 +530,7 @@ const TheService: ServiceSchema = {
               ],
             };
           })
-          .then((user: StoreUser) =>
-            this.transformEntity(user, true, ctx.meta.token)
-          )
+          .then(user => this.transformEntity(user, true, ctx.meta.token))
           .catch(() => {
             this.broker.cacher.clean(
               `stores.resolveBearerToken:${ctx.meta.token}`
@@ -568,8 +579,11 @@ const TheService: ServiceSchema = {
           .then(async (decoded: { id: string }) => {
             if (decoded.id) {
               // Get instance info
-              const [instance]: Store[] = this.actions.find({
-                query: { consumerKey: decoded.id },
+              const [instance] = await ctx.call<
+                Store[],
+                { query: { consumer_key: string } }
+              >('stores.find', {
+                query: { consumer_key: decoded.id },
               });
 
               if (instance.status) {

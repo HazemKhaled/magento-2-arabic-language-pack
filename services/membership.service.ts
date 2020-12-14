@@ -37,7 +37,10 @@ const TheService: ServiceSchema = {
         params._id = `m-${params.id || Date.now()}`;
         delete params.id;
         if (params.isDefault) {
-          const [currentDefault]: Membership[] = await this.actions.find({
+          const [currentDefault] = await ctx.call<
+            Membership[],
+            { query: Partial<Membership> }
+          >('membership.find', {
             query: {
               isDefault: true,
               active: true,
@@ -49,8 +52,10 @@ const TheService: ServiceSchema = {
             );
           }
         }
-        return this.actions
-          .insert({ entity: params })
+        return ctx
+          .call<Membership, { entity: Membership }>('membership.insert', {
+            entity: params,
+          })
           .then((res: Membership) => {
             this.broker.cacher.clean('membership.getAll:**');
             return this.normalize(res);
@@ -82,15 +87,15 @@ const TheService: ServiceSchema = {
           query.active = active;
         }
 
-        return this.actions
-          .find({ query })
-          .then(async ([res]: Membership[]) => {
+        return ctx
+          .call<Membership[], { query: GenericObject }>('membership.find', {
+            query,
+          })
+          .then(async ([res]) => {
             if (!res) {
-              return this.actions
-                .find({
-                  query: { isDefault: true },
-                })
-                .then(([def]: Membership[]) => this.normalize(def));
+              return this.call('membership.find', {
+                query: { isDefault: true },
+              }).then(([def]: Membership[]) => this.normalize(def));
             }
 
             if (ctx.params.coupon) {
@@ -122,12 +127,14 @@ const TheService: ServiceSchema = {
             $or: [{ country }, { country: { $exists: false } }],
           };
         }
-        return this.actions
-          .find({ query })
+        return ctx
+          .call<Membership[], { query: GenericObject }>('membership.find', {
+            query,
+          })
           .then((res: Membership[]) => {
             if (!res.length)
               throw new MoleculerError('No Membership found!', 404);
-            const cMemberships = res.filter(m => m.country === country);
+            const cMemberships = res.filter(me => me.country === country);
             return this.listNormalize(
               cMemberships.length ? cMemberships : res,
               country
@@ -144,13 +151,14 @@ const TheService: ServiceSchema = {
     updateOne: {
       auth: ['Basic'],
       rest: 'PUT /:id',
-      async handler(
-        ctx: Context<MembershipRequestParams>
-      ): Promise<Membership> {
+      async handler(ctx: Context<Membership>): Promise<Membership> {
         const { params } = ctx;
 
-        return this.actions
-          .update({ ...params, updatedAt: new Date() })
+        return ctx
+          .call<Membership, Membership>('membership.update', {
+            ...params,
+            updatedAt: new Date(),
+          })
           .then((res: Membership) => {
             this.broker.cacher.clean('membership.getAll:**');
             this.broker.cacher.clean(`membership.getOne:${params.id}**`);
@@ -241,13 +249,11 @@ const TheService: ServiceSchema = {
       });
     },
     async applyCouponDiscount(couponCode, membership): Promise<void> {
-      const coupon: Coupon = await this.actions
-        .getOne({
-          id: couponCode,
-          membership: membership.id,
-          type: 'subscription',
-        })
-        .then(null, (err: unknown) => err);
+      const coupon: Coupon = await this.call('coupon.getOne', {
+        id: couponCode,
+        membership: membership.id,
+        type: 'subscription',
+      }).then(null, (err: unknown) => err);
       if (coupon instanceof Error) {
         throw new MoleculerError(coupon.message, Number(coupon.code));
       }

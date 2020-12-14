@@ -248,7 +248,7 @@ const TheService: ServiceSchema = {
       })
         .then(async res => {
           const parsedRes = await res.json();
-          this.actions.insert({
+          this.call('oms.insert', {
             entity: {
               module: path.replace(/([a-z]+)[/|?].*/, '$1'),
               path,
