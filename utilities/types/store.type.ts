@@ -121,7 +121,7 @@ export interface CreateCustomerRequest {
   comparedPrice: number;
   comparedOperator: number;
   currency: string;
-  languages: any;
+  languages: string[];
   shippingMethods: GenericObject;
   billing: {
     first_name: string;

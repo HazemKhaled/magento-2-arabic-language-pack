@@ -256,7 +256,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
         maxScroll = 0,
         sort,
       }
-    ): Promise<{ page: any; totalProducts: any }> {
+    ): Promise<{ page: number; totalProducts: number }> {
       page = parseInt(page, 10) || 1;
       let search = [];
       const mustNot: GenericObject = [{ term: { deleted: true } }];
