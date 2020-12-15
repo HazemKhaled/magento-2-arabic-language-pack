@@ -74,7 +74,7 @@ async function getStore(
   baseUrl: string
 ): Promise<{ store: Store; token: string }> {
   return request(baseUrl)
-    .get('/api/admin/stores')
+    .get('/api/stores/admin')
     .set('Authorization', basicAuthToken)
     .then(async ({ body: { stores } }) => {
       // Get random store
