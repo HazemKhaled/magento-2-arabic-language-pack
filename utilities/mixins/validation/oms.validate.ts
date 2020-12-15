@@ -355,6 +355,7 @@ export const OmsValidation: ServiceSchema = {
             phone: { type: 'string', optional: true },
           },
         },
+        taxNumber: { type: 'string', optional: true },
       },
     },
     createTax: {

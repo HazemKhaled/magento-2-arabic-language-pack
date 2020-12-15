@@ -434,7 +434,7 @@ const TheService: ServiceSchema = {
         this.emitProfitUpdateEvent(myStore, storeBefore);
 
         ctx.emit('stores.event', {
-          event: 'stores.updateOne',
+          event: 'stores.update',
           storeId: myStore.url,
           res: myStore,
         });
