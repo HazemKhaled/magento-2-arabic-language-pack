@@ -33,9 +33,7 @@ const TaxesService: ServiceSchema = {
         );
         taxBody.omsId = omsTax.tax.id;
         return ctx
-          .call<DbTax, { entity: Partial<DbTax> }>('taxes.insert', {
-            entity: taxBody,
-          })
+          .call<DbTax, Partial<DbTax>>('taxes.create', taxBody)
           .then(tax => {
             this.broker.cacher.clean('taxes.getAll:*');
 

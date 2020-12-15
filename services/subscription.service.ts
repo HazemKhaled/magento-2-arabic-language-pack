@@ -440,9 +440,10 @@ const TheService: ServiceSchema = {
         }
 
         return ctx
-          .call<Subscription, { entity: Subscription }>('subscription.insert', {
-            entity: subscriptionBody,
-          })
+          .call<Subscription, Subscription>(
+            'subscription.create',
+            subscriptionBody
+          )
           .then(
             async (res: Subscription): Promise<GenericObject> => {
               this.broker.cacher.clean(

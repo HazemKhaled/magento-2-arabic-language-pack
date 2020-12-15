@@ -19,9 +19,10 @@ const TheService: ServiceSchema = {
         this.couponTypeCheck(ctx.params);
 
         return ctx
-          .call<Coupon, { entity: Coupon }>('coupons.insert', {
-            entity: this.createCouponSanitize(ctx.params),
-          })
+          .call<Coupon, Coupon>(
+            'coupons.create',
+            this.createCouponSanitize(ctx.params)
+          )
           .then(res => {
             this.broker.cacher.clean('coupons.getAll:**');
 

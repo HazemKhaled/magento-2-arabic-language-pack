@@ -63,19 +63,14 @@ const Shipment: ServiceSchema = {
       handler(ctx: Context<ShipmentPolicy>): Promise<ShipmentPolicy> {
         // insert to DB
         return ctx
-          .call<ShipmentPolicy, { entity: Partial<ShipmentPolicy> }>(
-            'shipment.insert',
-            {
-              entity: {
-                _id: ctx.params.name,
-                countries: ctx.params.countries,
-                rules: ctx.params.rules,
-                ship_from: ctx.params.ship_from,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-              },
-            }
-          )
+          .call<ShipmentPolicy, Partial<ShipmentPolicy>>('shipment.create', {
+            _id: ctx.params.name,
+            countries: ctx.params.countries,
+            rules: ctx.params.rules,
+            ship_from: ctx.params.ship_from,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          })
           .then(data => {
             this.broker.cacher.clean('shipment.**');
             return this.shipmentTransform(data);

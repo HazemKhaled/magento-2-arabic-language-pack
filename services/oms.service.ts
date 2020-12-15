@@ -247,18 +247,16 @@ const TheService: ServiceSchema = {
       })
         .then(async res => {
           const parsedRes = await res.json();
-          this.call('oms.insert', {
-            entity: {
-              module: path.replace(/([a-z]+)[/|?].*/, '$1'),
-              path,
-              method,
-              body,
-              params,
-              status: res.status,
-              ok: res.ok,
-              createdAt: new Date(),
-              res: parsedRes,
-            },
+          this.call('oms.create', {
+            module: path.replace(/([a-z]+)[/|?].*/, '$1'),
+            path,
+            method,
+            body,
+            params,
+            status: res.status,
+            ok: res.ok,
+            createdAt: new Date(),
+            res: parsedRes,
           });
           if (!res.ok) {
             throw new MoleculerError(

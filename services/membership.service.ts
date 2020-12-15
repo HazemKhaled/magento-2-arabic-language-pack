@@ -53,9 +53,7 @@ const TheService: ServiceSchema = {
           }
         }
         return ctx
-          .call<Membership, { entity: Membership }>('membership.insert', {
-            entity: params,
-          })
+          .call<Membership, Membership>('membership.create', params)
           .then(res => {
             this.broker.cacher.clean('membership.getAll:**');
             return this.normalize(res);
