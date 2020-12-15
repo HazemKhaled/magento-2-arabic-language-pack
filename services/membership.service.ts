@@ -56,7 +56,7 @@ const TheService: ServiceSchema = {
           .call<Membership, { entity: Membership }>('membership.insert', {
             entity: params,
           })
-          .then((res: Membership) => {
+          .then(res => {
             this.broker.cacher.clean('membership.getAll:**');
             return this.normalize(res);
           })
@@ -133,7 +133,7 @@ const TheService: ServiceSchema = {
           .call<Membership[], GenericObject>('membership.find', {
             query,
           })
-          .then((res: Membership[]) => {
+          .then(res => {
             if (!res.length)
               throw new MoleculerError('No Membership found!', 404);
             const cMemberships = res.filter(me => me.country === country);
@@ -161,7 +161,7 @@ const TheService: ServiceSchema = {
             ...params,
             updatedAt: new Date(),
           })
-          .then((res: Membership) => {
+          .then(res => {
             this.broker.cacher.clean('membership.getAll:**');
             this.broker.cacher.clean(`membership.getOne:${params.id}**`);
             if (!res) {

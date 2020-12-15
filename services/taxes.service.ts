@@ -17,7 +17,7 @@ const TaxesService: ServiceSchema = {
     createOne: {
       auth: ['Basic'],
       rest: 'POST /',
-      async handler(ctx: Context<Partial<DbTax>>): Promise<DbTax> {
+      async handler(ctx: Context<Partial<DbTax>>): Promise<{ tax: DbTax }> {
         const taxBody: Partial<DbTax> = {
           ...ctx.params,
           createdAt: new Date(),
@@ -32,12 +32,14 @@ const TaxesService: ServiceSchema = {
           }
         );
         taxBody.omsId = omsTax.tax.id;
-        return this.actions
-          .insert({ entity: taxBody })
-          .then((tax: DbTax) => {
+        return ctx
+          .call<DbTax, { entity: Partial<DbTax> }>('taxes.insert', {
+            entity: taxBody,
+          })
+          .then(tax => {
             this.broker.cacher.clean('taxes.getAll:*');
 
-            return { tax: this.sanitizer(tax) };
+            return { tax: this.sanitizer(tax) as DbTax };
           })
           .catch((err: CommonError) => {
             throw new MoleculerError(String(err), 500);
@@ -47,7 +49,7 @@ const TaxesService: ServiceSchema = {
     updateOne: {
       auth: ['Basic'],
       rest: 'PUT /:id',
-      async handler(ctx: Context<GenericObject>): Promise<DbTax> {
+      async handler(ctx: Context<Partial<DbTax>>): Promise<DbTax> {
         const record = ctx.params;
         record.updatedAt = new Date();
 
@@ -55,9 +57,9 @@ const TaxesService: ServiceSchema = {
           record.country = record.country.toUpperCase();
         }
 
-        const taxUpdateData = await this.actions
-          .update(record)
-          .then((tax: DbTax) => {
+        const taxUpdateData = await ctx
+          .call<DbTax, Partial<DbTax>>('taxes.update', record)
+          .then(tax => {
             if (!tax) {
               throw new MoleculerError('There is no tax with that ID', 404);
             }
@@ -65,9 +67,7 @@ const TaxesService: ServiceSchema = {
             this.broker.cacher.clean(`taxes.getOne:${record.id}*`);
             this.broker.cacher.clean('taxes.getAll:*');
 
-            return {
-              tax: this.sanitizer(tax),
-            };
+            return this.sanitizer(tax) as DbTax;
           })
           .catch((err: CommonError) => {
             throw new MoleculerError(
@@ -75,24 +75,15 @@ const TaxesService: ServiceSchema = {
               err.code < 500 ? err.code : 500
             );
           });
-        if (taxUpdateData.tax) {
-          ctx.call<GenericObject, GenericObject>(
-            'oms.updateTax',
-            ['name', 'percentage'].reduce(
-              (acc: GenericObject, key: string) => {
-                if (!taxUpdateData[key]) {
-                  delete acc[key];
-                }
-                return acc;
-              },
-              {
-                id: taxUpdateData.tax.omsId,
-                name: taxUpdateData.name,
-                percentage: taxUpdateData.percentage,
-              }
-            )
-          );
+
+        if (taxUpdateData.omsId) {
+          ctx.call<GenericObject, GenericObject>('oms.updateTax', {
+            id: taxUpdateData.omsId,
+            name: taxUpdateData.name,
+            percentage: taxUpdateData.percentage,
+          });
         }
+
         return taxUpdateData;
       },
     },
@@ -164,9 +155,9 @@ const TaxesService: ServiceSchema = {
       async handler(
         ctx: Context<DbTax>
       ): Promise<{ tax: DbTax; message: string }> {
-        const taxDeleteData = await this.actions
-          .remove(ctx.params.id)
-          .then((tax: DbTax) => {
+        const taxDeleteData = await ctx
+          .call<DbTax, string>('taxes.remove', ctx.params.id)
+          .then(tax => {
             if (!tax) {
               throw new MoleculerError('There is no tax with that ID', 404);
             }

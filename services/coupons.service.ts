@@ -22,7 +22,7 @@ const TheService: ServiceSchema = {
           .call<Coupon, { entity: Coupon }>('coupons.insert', {
             entity: this.createCouponSanitize(ctx.params),
           })
-          .then((res: Coupon) => {
+          .then(res => {
             this.broker.cacher.clean('coupons.getAll:**');
             this.clearCache();
 
@@ -149,7 +149,7 @@ const TheService: ServiceSchema = {
 
         return ctx
           .call<Coupon, Coupon>('coupons.update', updateBody)
-          .then((coupon: Coupon) => {
+          .then(coupon => {
             if (!coupon) {
               throw new MoleculerError('No Coupons found!', 404);
             }
@@ -176,7 +176,7 @@ const TheService: ServiceSchema = {
             { _id: ctx.params.id.toUpperCase() },
             { $inc: { useCount: 1 } }
           )
-          .then((coupon: Coupon) => {
+          .then((coupon: unknown) => {
             if (!coupon) {
               throw new MoleculerError('No Coupons found!', 404);
             }

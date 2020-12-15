@@ -11,7 +11,6 @@ import {
   Subscription,
   Store,
   MetaParams,
-  Payment,
   Invoice,
   CrmStore,
   CommonError,
@@ -163,7 +162,7 @@ const TheService: ServiceSchema = {
           (ctx.params.page ? Number(ctx.params.page) - 1 : 0);
         return ctx
           .call<Subscription[], GenericObject>('subscription.find', findBody)
-          .then((res: Subscription[]) => {
+          .then(res => {
             return res;
           })
           .catch((err: CommonError) => {

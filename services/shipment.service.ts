@@ -32,7 +32,7 @@ const Shipment: ServiceSchema = {
       handler(ctx): Promise<ShipmentPolicy[]> {
         return ctx
           .call<ShipmentPolicy[]>('shipment.find')
-          .then((data: ShipmentPolicy[]) => this.shipmentTransform(data));
+          .then(data => this.shipmentTransform(data));
       },
     },
     /**
@@ -190,7 +190,7 @@ const Shipment: ServiceSchema = {
           .call<ShipmentPolicy[], { query: RuleQuery }>('shipment.find', {
             query,
           })
-          .then((policies: ShipmentPolicy[]) => {
+          .then(policies => {
             // Get all rules
             const rules: Rule[] = policies.reduceRight(
               (accumulator: Rule[], policy: ShipmentPolicy): Rule[] =>

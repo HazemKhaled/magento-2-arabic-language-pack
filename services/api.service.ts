@@ -258,7 +258,7 @@ const TheService: ServiceSchema = {
       route: unknown,
       req: IncomingRequest & MoleculerRequest
     ): Promise<Store | boolean> {
-      const { $endpoint, $action, headers } = req as GenericObject;
+      const { $endpoint, headers } = req as GenericObject;
       // Pass if no auth required
       if (!$endpoint.action.auth) {
         return this.Promise.resolve();
@@ -318,7 +318,7 @@ const TheService: ServiceSchema = {
             });
           }
         })
-        .then((user: Store) => {
+        .then((user: unknown) => {
           if (!user) {
             throw new UnAuthorizedError(
               ERR_INVALID_TOKEN,
