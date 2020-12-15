@@ -24,7 +24,6 @@ const TheService: ServiceSchema = {
           })
           .then(res => {
             this.broker.cacher.clean('coupons.getAll:**');
-            this.clearCache();
 
             return this.normalizeId(res);
           })
@@ -156,7 +155,6 @@ const TheService: ServiceSchema = {
 
             this.broker.cacher.clean('coupons.getAll:**');
             this.broker.cacher.clean(`coupons.getOne:${updateBody.id}*`);
-            this.clearCache();
 
             coupon.code = coupon._id;
             delete coupon._id;
