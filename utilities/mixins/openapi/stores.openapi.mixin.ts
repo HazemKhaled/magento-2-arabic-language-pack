@@ -199,6 +199,9 @@ const StoreSchema = {
         phone: {
           type: 'string',
         },
+        taxNumber: {
+          type: 'string',
+        },
       },
     },
     debit: {
@@ -487,6 +490,9 @@ const MeUpdate = {
                   format: 'email',
                 },
                 phone: {
+                  type: 'string',
+                },
+                taxNumber: {
                   type: 'string',
                 },
               },
