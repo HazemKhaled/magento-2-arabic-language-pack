@@ -104,13 +104,6 @@ const TheService: ServiceSchema = {
           'POST store/redact': 'gdpr.storeRedact',
           'POST customer/data_request': 'gdpr.customerDataRequest',
 
-          // CRM
-          'GET crm/:module': 'crm.findRecords',
-          'POST crm/:module': 'crm.createRecord',
-          'PUT crm/:module/:id': 'crm.updateRecord',
-          'POST crm/:module/:id/tags/add': 'crm.addTagsToRecord',
-          'DELETE crm/:module/:id/tags/remove': 'crm.removeTagsFromRecord',
-
           // Async API
           'async/(.*)': 'tasks.handle',
         },
