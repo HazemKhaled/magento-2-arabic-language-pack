@@ -1,4 +1,4 @@
-import { Context, Errors, ServiceSchema } from 'moleculer';
+import { Context, Errors, GenericObject, ServiceSchema } from 'moleculer';
 
 import { InvoicesOpenapi } from '../utilities/mixins/openapi';
 import {
@@ -149,20 +149,28 @@ const TheService: ServiceSchema = {
     applyCredits: {
       auth: ['Bearer'],
       async handler(
-        ctx: Context<Partial<InvoiceRequestParams>>
+        ctx: Context<Partial<InvoiceRequestParams>, { store?: Store }>
       ): Promise<InvoiceResponse> {
-        const store: Store = await ctx.call<Store>('stores.me');
-
+        const store: Store =
+          ctx.meta.store || (await ctx.call<Store>('stores.me'));
         const { params } = ctx;
+
         if (
           params.useSavedPaymentMethods &&
           store.credit < params.paymentAmount
         ) {
           if (process.env.PAYMENT_AUTO_CHARGE_CC_INVOICE) {
             await ctx
-              .call<void, Partial<StoreRequest>>('paymentGateway.charge', {
-                storeId: store.url,
-                amount: params.paymentAmount - store.credit,
+              .call<void, Partial<GenericObject>>('paymentGateway.charge', {
+                store: store.url,
+                purchase_units: [
+                  {
+                    amount: {
+                      value: params.paymentAmount - store.credit,
+                      currency: 'USD',
+                    },
+                  },
+                ],
               })
               .then(null, err => {
                 if (err.type === 'SERVICE_NOT_FOUND')

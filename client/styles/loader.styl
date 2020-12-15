@@ -5,14 +5,11 @@
   width: 90%
   height: 1em
   border-radius: 2px
-  background: linear-gradient(to right, alpha($shimmerColor, 0) 0, $shimmerColor 30%, $shimmerColor 70%, alpha($shimmerColor, 0) 100%)
+  background: linear-gradient(to right, $color-shimmer-alpha 0, $color-shimmer 30%, $color-shimmer 70%, $color-shimmer-alpha 100%)
   background-color: $light
   background-size: 200px 100%
   background-repeat: no-repeat
   animation: loader-shimmer 1.5s linear infinite forwards
-
-  .rtls &
-    animation: loader-shimmer-rtl 1.5s linear infinite forwards
 
   + .text-loader
     max-width: 150px
@@ -24,10 +21,3 @@
 
   100%
     background-position-x: 600px
-
-@keyframes loader-shimmer-rtl
-  0%
-    background-position-x: 200px
-
-  100%
-    background-position-x: -600px

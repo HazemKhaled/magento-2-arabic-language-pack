@@ -1,10 +1,12 @@
 import { Context, ServiceSchema, GenericObject } from 'moleculer';
 import ApiGateway from 'moleculer-web';
 import compression from 'compression';
+import { MoleculerRequest } from 'moleculer-express';
 
 import { Log, Store, AuthorizeMeta, IncomingRequest } from '../utilities/types';
 import { OpenApiMixin } from '../utilities/mixins/openapi.mixin';
-import { hmacMiddleware, webpackMiddlewares } from '../utilities/middleware';
+import { webpackMiddlewares } from '../utilities/middleware';
+import { authorizeHmac } from '../utilities/lib';
 
 const {
   UnAuthorizedError,
@@ -86,16 +88,7 @@ const TheService: ServiceSchema = {
           'POST invoices/:id/credits': 'invoices.applyCredits',
           'GET invoices/:storeId/external/:id': 'invoices.renderInvoice',
 
-          // Cards
-          'POST cards': 'cards.create',
-          'PUT cards/:id': 'cards.update',
-          'GET cards/:id': 'cards.get',
-          'DELETE cards/:id': 'cards.delete',
-
-          // paymentGateway
-          'POST paymentGateway/:type/transaction': 'paymentGateway.transaction',
-
-          // Payments mp
+          // Payments
           'POST payments/:id': 'payments.add',
           'GET payments': 'payments.get',
 
@@ -218,7 +211,25 @@ const TheService: ServiceSchema = {
       {
         path: '/',
 
-        authorization: false,
+        authorization: true,
+        cors: {
+          origin: '*',
+          credentials: false,
+          maxAge: 3600,
+        },
+        // Route error handler
+        async onError(req: any, res: any, err: any) {
+          const output = await req.$ctx.call('paymentGateway.error', {
+            error: {
+              code: err.code,
+              message: err.message,
+              data: err.data,
+            },
+          });
+
+          res.setHeader('Content-Type', 'text/html');
+          res.end(output);
+        },
         use: [
           compression(),
           // Webpack middleware
@@ -226,7 +237,8 @@ const TheService: ServiceSchema = {
           ApiGateway.serveStatic('public'),
         ],
         aliases: {
-          'GET checkout': [hmacMiddleware(), 'payments.checkout'],
+          'GET checkout': 'paymentGateway.get',
+          'GET cards/list': 'paymentGateway.cardsList',
         },
       },
     ],
@@ -244,16 +256,21 @@ const TheService: ServiceSchema = {
     authorize(
       ctx: Context<void, AuthorizeMeta>,
       route: unknown,
-      req: IncomingRequest
+      req: IncomingRequest & MoleculerRequest
     ): Promise<Store | boolean> {
+      const { $endpoint, $action, headers } = req as GenericObject;
       // Pass if no auth required
-      if (!req.$endpoint.action.auth) {
+      if (!$endpoint.action.auth) {
         return this.Promise.resolve();
       }
 
+      if ($endpoint.action.auth.includes('Hmac')) {
+        return authorizeHmac(ctx, req);
+      }
+
       // if no authorization in the header
-      if (!req.headers.authorization) {
-        throw new UnAuthorizedError(ERR_NO_TOKEN, req.headers);
+      if (!headers.authorization) {
+        throw new UnAuthorizedError(ERR_NO_TOKEN, headers);
       }
 
       // If token or token type are missing, throw error
@@ -275,7 +292,7 @@ const TheService: ServiceSchema = {
                   return this.Promise.reject(
                     new UnAuthorizedError(
                       ERR_INVALID_TOKEN,
-                      req.headers.authorization
+                      headers.authorization
                     )
                   );
                 }

@@ -258,14 +258,23 @@ const TheService: ServiceSchema = {
         if (instance.credit < total && !ctx.params.postpaid) {
           if (process.env.PAYMENT_AUTO_CHARGE_CC_SUBSCRIPTION) {
             await ctx
-              .call<GenericObject, Partial<Payment>>('paymentGateway.charge', {
-                storeId: instance.url,
-                amount: total - instance.credit,
-                description: `${membership.name?.en} subscription ${
-                  membership.paymentFrequencyType
-                }ly renewal ${ctx.params.grantTo || ctx.params.storeId}`,
-                force: true,
-              })
+              .call<GenericObject, Partial<GenericObject>>(
+                'paymentGateway.charge',
+                {
+                  store: instance.url,
+                  purchase_units: [
+                    {
+                      amount: {
+                        value: total - instance.credit,
+                        currency: 'USD',
+                      },
+                      description: `${membership.name?.en} subscription ${
+                        membership.paymentFrequencyType
+                      }ly renewal ${ctx.params.grantTo || ctx.params.storeId}`,
+                    },
+                  ],
+                }
+              )
               .then(null, err => {
                 if (err.type === 'SERVICE_NOT_FOUND')
                   throw new MpError(
