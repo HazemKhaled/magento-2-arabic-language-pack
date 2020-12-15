@@ -37,9 +37,6 @@ export const InvoicePage: ServiceSchema = {
                       <h2 class="invoice-store-name">
                         ${store.name}
                       </h2>
-                      <h3 class="invoice-store-url">
-                        ${store.url}
-                      </h3>
                       <div class="invoice-store-details">
                         ${
                           store.internal_data?.invoice
@@ -188,17 +185,22 @@ export const InvoicePage: ServiceSchema = {
                     </tfoot>
                   </table>
                   ${
-                    store.internal_data &&
-                    store.internal_data.invoice &&
-                    store.internal_data.invoice.notices
+                    store.internal_data?.invoice?.notices
                       ? `<div class="invoice-notices">
                         ${store.internal_data.invoice.notices}
-                    </div>`
+                      </div>`
                       : ''
                   }
                 </main>
                 <footer class="invoice-footer">
                   Invoice was created on a computer and is valid without the signature and seal.
+                  ${
+                    store.internal_data?.invoice?.store_url
+                      ? `<p class="invoice-store-url">
+                        ${store.internal_data.invoice.store_url}
+                      </p>`
+                      : ''
+                  }
                 </footer>
               </div>
 
@@ -250,8 +252,10 @@ export const InvoicePage: ServiceSchema = {
                 }
 
                 .invoice-store-url {
-                  font-size: 14px;
+                  font-size: 12px;
                   font-weight: 500;
+                  opacity: 0.6;
+                  margin-top: 6px;
                 }
 
                 .invoice-table {

@@ -1,99 +1,101 @@
 <template lang="pug">
-.checkout
-  form.checkout-form(
+.page.page--checkout
+  .spinner(v-if='isSubmitting')
+  form.checkout__form(
     name='checkoutForm',
-    action='https://www.paytr.com/odeme',
-    method='post',
+    method='POST',
+    :action='formUrl',
   )
-    .checkout-body
-      .checkout-header
+    .checkout__body
+      .checkout__header
         h2 {{ $t("checkout.payWith") }}
 
-      ul.checkout-cards-list
-        template(v-if='isFetchingCards')
+      ul.checkout__cards-list
+        template(v-if='isLoading')
           li(v-for='card in 2', :key='card')
-            label.checkout-card
-              input(type='radio')
-              CreditCardPlaceholder(:isLoading="true")
+            label.checkout__card
+              input.checkout__card-input(type='radio')
+              CreditCardPlaceholder(:isLoading='true')
 
         template(v-else)
-          li(v-for='card in cardsList', :key='card.ctoken')
-            label.checkout-card
-              input(
+          li(v-for='card in cards', :key='card._id')
+            label.checkout__card
+              input.checkout__card-input(
                 type='radio',
-                :id='`ctoken-${card.ctoken}`',
+                :id='`cardId-${card._id}`',
                 name='payment_type',
-                :value='card.ctoken',
-                v-model='ctoken'
+                :value='card._id',
+                v-model='cardId'
               )
               CreditCardPlaceholder(:cardData='card', :canDelete='false')
 
-          li.checkout-card
-            input#ctoken-none(
+          li.checkout__card
+            input.checkout__card-input(
               type='radio',
               name='payment_type',
               value='',
-              v-model='ctoken',
+              v-model='cardId',
               @change='handleCardFocus'
             )
-            template(v-if='ctoken')
-              button.btn(@click='ctoken = ""')
+            template(v-if='cardId')
+              button.button(@click='cardId = ""')
                 AppIcon(name='plus')
                 | {{ $t("checkout.useNewCreditCard") }}
             template(v-else)
               CreditCard(ref='creditCard', v-model='card')
 
-      .row
-        .col-xs-12(v-if='false')
-          .checkbox
-            label.checkbox-label
-              input.checkbox-input(type='checkbox', v-model='useSecurePayment')
-              span {{ $t("checkout.secure") }}
-        .col-xs-12(v-if='!ctoken')
-          .checkbox
-            label.checkbox-label
-              input.checkbox-input(
-                type='checkbox',
-                name='store_card',
-                v-model='saveCard'
-              )
-              span {{ $t("checkout.saveCard") }}
-        .col-xs-12(v-if='canUseBalance')
-          .checkbox
-            label.checkbox-label
-              input.checkbox-input(
-                type='checkbox',
-                name='use_balance',
-                v-model='useBalance'
-              )
-              span {{ $t("checkout.useBalance") }} ({{ currency }}{{ balance }})
+      .row(v-if='false')
+        .checkbox
+          label.checkbox__label
+            input.checkbox__input(
+              type='checkbox',
+              name='non_3d',
+              :value='!useSecurePayment',
+              @input='e => (useSecurePayment = e.target.value)'
+            )
+            span {{ $t("checkout.secure") }}
 
-        template(v-if='paytr')
-          input(
-            type='hidden',
-            v-for='[name, value] in Object.entries(paytr)',
-            :name='name',
-            :value='value'
-          )
-        template(v-if='card')
-          input(
-            type='hidden',
-            v-for='[name, value] in Object.entries(card)',
-            :name='name',
-            :value='value'
-          )
-        template(v-if='ctoken')
-          input(type='hidden', name='ctoken', :value='ctoken')
+      .row(v-if='!cardId')
+        .checkbox
+          label.checkbox__label
+            input.checkbox__input(
+              type='checkbox',
+              name='store_card',
+              :value="1"
+              v-model='saveCard'
+            )
+            span {{ $t("checkout.saveCard") }}
 
-    .checkout-footer
-      details.checkout-summary
-        summary {{ $t("ledger.summary") }}
-        .checkout-summary-list
-          template(v-for="unit in purchaseUnites")
-            .checkout-summary-description {{ unit.description }}
+      .row(v-if='canUseBalance')
+        .checkbox
+          label.checkbox__label
+            input.checkbox__input(
+              type='checkbox',
+              name='use_balance',
+              v-model='useBalance'
+            )
+            span.checkbox__label
+              | {{ $t("checkout.useBalance") }} ({{ fixed2(balance * currency.rate) }} {{ currency.currencyCode }})
+
+      //- Form data
+      .row(v-show='false')
+        input(name='balance_only', type="number", :value='useBalance && useBalanceOnly ? 1 : 0')
+        input(name='is_new', type="number", :value='!cardId ? 1 : 0')
+        input(name='card_id', type="text", :value='cardId')
+        input(v-for="[key, value] in Object.entries(card)", :name="key", :value="value")
+
+    .checkout__footer
+      details.checkout__summary
+        summary {{ $t("checkout.summary") }}
+        template(v-for='unit in purchaseUnites')
+          .checkout__summary-description(v-if='unit.description')
+            | {{ unit.description }}
+          .checkout__summary-list
             template(v-if='unit.type === "order"')
-              span {{ $t("ledger.orderId") }}
-              span {{ unit.data.order }}
+              span
+                | {{ $t("checkout.orderId") }}: 
+                b {{ unit.data.externalId }}
+              span {{ unit.amount.value }} {{ unit.amount.currency_code }}
 
             template(v-if='unit.type === "subscription"')
               span {{ $t("membership.plan") }} :
@@ -103,32 +105,35 @@
 
             template(v-if='unit.type === "charge"')
               span {{ $t("checkout.charge") }}
-              span {{ unit.currency_code }}{{ unit.value }}
+              span {{ unit.amount.value }} {{ unit.amount.currency_code }}
         hr
-        .checkout-summary-list
+        .checkout__summary-list
           span {{ $t("checkout.total") }}
-          span {{ currency }}{{ amount }}
-          template(v-if='useBalance')
-            span {{ $t("checkout.balanceDeduction") }}
-            span -{{ currency }}{{ fixed2(usedBalance) }}
+          span {{ fixed2(amount * currency.rate) }} {{ currency.currencyCode }}
+        .checkout__summary-list(v-if='useBalance')
+          span {{ $t("checkout.balanceDeduction") }}
+          span -{{ fixed2(usedBalance * currency.rate) }} {{ currency.currencyCode }}
 
-      .checkbox(v-if='!ctoken', :class='{ "has-errors": !hasAgreed && showErrors }')
-        label.checkbox-label(for='termsAgree')
-          input#termsAgree.checkbox-input(
+      .checkbox(
+        v-if='!cardId',
+        :class='{ "checkbox--errors": !hasAgreed && showErrors }'
+      )
+        label.checkbox__label(for='termsAgree')
+          input#termsAgree.checkbox__input(
             type='checkbox',
             name='terms-agree',
             v-model='hasAgreed'
           )
           span(v-html='$t("checkout.agreePrivacyPolicy")')
 
-      dl.checkout-total
+      dl.checkout__total
         dt {{ $t("checkout.total") }} :
-        dd {{ fixed2(paymentTotal) }} {{ currency }}
+        dd {{ fixed2(paymentTotal * currency.rate) }} {{ currency.currencyCode }}
 
-      button.checkout-submit.btn.btn-block.btn-primary.btn-lg(
+      button.button.button--primary.button--block.checkout__submit(
         type='submit',
-        :class='{ "is-loading": submitting }',
-        :disable='isFetchingData || submitting'
+        :disable='isSubmitting',
+        @click='handleFormSubmit'
       )
         template(v-if='useBalanceOnly')
           | {{ $t("checkout.confirm") }}
@@ -140,14 +145,34 @@
 import qs from 'qs';
 import CreditCardPlaceholder from '@/components/CreditCardPlaceholder';
 import CreditCard from '@/components/CreditCard';
+import AppIcon from '@/components/AppIcon';
 
-import { fixed2, round } from '../utils';
+import { fixed2, round, $fetch, getErrorMessage } from '../utils';
+import { isArray } from 'util';
 
 export default {
   name: 'Checkout',
   components: {
     CreditCardPlaceholder,
     CreditCard,
+    AppIcon,
+  },
+  props: {
+    cards: {
+      type: Array,
+      default: () => [],
+    },
+    store: {
+      type: Object,
+      default: () => ({}),
+    },
+    currency: {
+      type: Object,
+      default: () => ({
+        currencyCode: 'USD',
+        rate: 1,
+      }),
+    },
   },
   data: () => ({
     useSecurePayment: true,
@@ -155,28 +180,25 @@ export default {
     useBalance: false,
     saveCard: true,
     isLoading: true,
-    isFetchingData: true,
-    isFetchingCards: true,
-    submitting: false,
+    isSubmitting: false,
     showErrors: false,
-    currencyRate: 1,
-    currency: '',
-    cardsList: [],
-    ctoken: '',
+    cardId: '',
     card: {},
-    paytr: {},
+
+    // Will get it from query params
     purchaseUnites: [],
   }),
   computed: {
-    utoken() {
-      return this.activeStore.external_data?.paytr?.utoken;
-    },
     balance() {
-      return round((this.activeStore.credit || 0) * this.currencyRate);
+      return this.store.credit || 0;
     },
     canUseBalance() {
-      // TODO: handle charging balance
-      return this.balance;
+      // Can use balance only if there's no any charge unit
+      if (this.purchaseUnites.some(({ type }) => type === 'charge')) {
+        return false;
+      }
+
+      return this.balance > 0;
     },
     usedBalance() {
       return this.useBalance ? Math.min(this.balance, this.amount) : 0;
@@ -184,62 +206,41 @@ export default {
     useBalanceOnly() {
       return !this.paymentTotal;
     },
+    formUrl() {
+      const { origin, search } = window.location;
+      return `${origin}/api/paymentGateway/checkout${search}`;
+    },
     amount() {
       return this.purchaseUnites.reduce((acc, crr) => {
         acc += Number(crr.amount.value);
         return acc;
-      }, 0)
+      }, 0);
     },
     paymentTotal() {
       return this.amount - this.usedBalance;
     },
     subscriptionDisclaimer() {
-      const subscription = this.purchaseUnites.find(({ type }) => type === 'subscription');
+      const subscription = this.purchaseUnites.find(
+        ({ type }) => type === 'subscription'
+      );
       if (!subscription) return '';
 
       const { frequencyType, originalPrice } = subscription;
+      const { currencyCode, rate } = this.currency;
 
       return this.$t('checkout.subscriptionDisclaimer', {
-        currentPrice: `${this.currency}${fixed2(this.paymentTotal)}`,
+        currentPrice: `${currencyCode}${fixed2(this.paymentTotal * rate)}`,
         frequency: this.$t(`checkout.paymentType__${frequencyType}`),
-        originalPrice: `${this.currency}${fixed2(originalPrice)}`,
+        originalPrice: `${currencyCode}${fixed2(originalPrice * rate)}`,
       });
-    },
-    paytrParams() {
-      return {
-        amount: this.paymentTotal,
-        purchase_units: this.purchaseUnits,
-        useSecurePayment: this.useSecurePayment,
-        gateway: 'paytr',
-      };
-    },
-    activeStore() {
-      // TODO: get current store
-
-      return {};
     },
   },
   watch: {
-    utoken: {
-      handler() {
-        this.listCards();
-      },
-      immediate: true,
-    },
-    canUseBalance: {
-      handler(val) {
-        this.useBalance = val;
-      },
-      immediate: true,
-    },
-    ctoken(val) {
+    cardId(val) {
       this.useSecurePayment = true;
       if (!val) {
         this.$nextTick(this.handleCardFocus);
       }
-    },
-    paytrParams() {
-      this.updatePaytr();
     },
   },
   mounted() {
@@ -247,159 +248,104 @@ export default {
     const queryParams = qs.parse(search);
 
     this.purchaseUnites = queryParams['purchase_units'] || [];
-    this.currency = this.purchaseUnites[0].amount.currency_code;
+    this.useBalance = this.canUseBalance;
 
-    this.updatePaytr();
-    this.isLoading = false;
+    if (this.cards?.length) {
+      this.cardId = this.cards[0]?._id;
+    }
+
+    this.$nextTick(() => (this.isLoading = false));
   },
   methods: {
-    updatePaytr() {
-      this.isFetchingData = true;
-      const params = this.paytrParams;
-      // TODO: get paytr params
-    },
     handleFormSubmit(event) {
       // If from already submitted do nothing
-      if (this.submitting) {
-        return event.preventDefault();
-      }
-
-      // Handle paying from balance
-      // If there is no remaining payment return
-      if (this.useBalanceOnly) {
-        this.handlePayingFromBalance();
-        return event.preventDefault();
-      }
+      if (this.isSubmitting) return;
 
       // Handle paying from a new card
-      if (!this.ctoken) {
+      if (!this.cardId) {
         // Validate the card data
         this.$refs.creditCard.validateAll();
 
         // check if agreed to terms and conditions
         if (!this.hasAgreed || this.$refs.creditCard.errors.length) {
           this.showErrors = true;
-          return event.preventDefault();
+          event.preventDefault();
+          return;
         }
       }
-
-      // Submit the form
-      this.storePayment();
-      this.submitting = true;
+      this.isSubmitting = true;
     },
     handleCardFocus() {
       this.$refs.creditCard?.$el.scrollIntoView({ behavior: 'smooth' });
     },
-    handlePayingFromBalance() {
-      this.submitting = true;
-
-      // TODO: handle paying purchase_units
-
-      // TODO: handle payment fail
-    },
-    storePayment() {
-      // Save transaction reference
-      const payment = {
-        id: this.paytr.merchant_oid,
-        requestDateTime: new Date().toISOString(),
-        amount: this.paymentTotal,
-        purchase_units: this.purchaseUnits,
-        store: this.activeStore.url,
-        debug: this.debug,
-        gateway: 'paytr',
-        status: 0,
-      };
-
-      opener?.dataLayer.push({ payment });
-
-      // TODO: add transaction
-    },
-    listCards() {
-      if (!this.utoken) {
-        this.cardsList = [];
-        this.isFetchingCards = false;
-        return;
-      }
-      this.isFetchingCards = true;
-      
-      // TODO: List cards
-    },
     fixed2,
   },
-}
+};
 </script>
 
 <style lang="stylus">
 @import '../styles/colors.styl'
 
-.checkout
-  position: relative
-  display: flex
-  flex-direction: column
-  margin: 0 auto
-  max-width: 500px
-  max-height: 100vh
-  height: 650px
-  border: 1px solid $gray
-  border-radius: 8px
-
-.checkout-form
+.checkout__form
   display: flex
   flex-direction: column
   height: 100%
 
-.checkout-header
+.checkout__header
   display: flex
   justify-content: space-between
-  padding: 10px 20px
+  margin-bottom: 20px
+  h2
+    margin: 0
 
-.checkout-body
+.checkout__body
   flex: 1
   overflow: auto
-  padding: 0 20px 40px
+  padding: 20px
 
-.checkout-footer
-  padding: 10px 20px
-  box-shadow: 0 -15px 20px -15px alpha($gray, 0.5)
+.checkout__footer
+  padding: 20px
+  box-shadow: 0 -15px 20px -15px $color-shadow
 
-.checkout-total
+.checkout__total
   display: flex
-  margin-top: 10px
   justify-content: space-between
+  margin-top: 10px
   color: $red
   >dt
     align-self: flex-start
   >dd
     align-self: flex-end
 
-.checkout-summary
-  border: 1px solid $gray
+.checkout__summary
   padding: 10px
+  border: 1px solid $gray
   border-radius: 10px
 
-.checkout-summary-list
+.checkout__summary-list
   display: flex
-  justify-content: space-between
   flex-wrap: wrap
+  justify-content: space-between
   margin: 2px 0
-  > span
-    align-self: flex-start
-    width: 50%
 
-.checkout-card
+.checkout__card
   display: flex
   margin-bottom: 20px
-  >input
-    margin-top: 15px
-  .credit-card-wrapper
-    margin-bottom: 0
 
-.checkbox.has-errors
+.checkout__card-input,
+.checkbox__input
+  margin: 0
+  margin-inline-end: 10px
+
+.checkout__card-input
+  margin-top: 10px
+
+.checkbox--errors
   color: $red
-  .checkbox-input
+  .checkbox__input
     border-color: $red
 
-.checkout-cards-list
+.checkout__cards-list
   margin: 0
   padding: 0
   list-style: none
@@ -407,12 +353,26 @@ export default {
     display: flex
   label
     width: 100%
-  .credit-card-wrapper
-    margin: 0 10px
-  .btn
-    margin: 0 10px
-    padding: 15px
+  .button
+    padding: 15px 10px
     width: 100%
     border: 1px solid $gray
     border-radius: 8px
+    background-color: $gray
+    color: $dark
+
+// Errors
+.checkout-errors-image
+  padding: 50px
+  img
+    max-width: 100%
+
+.checkout-errors-code
+  margin-bottom: 20px
+  color: $red
+  text-align: center
+  font-size: 40px
+
+.checkout-errors-message
+  text-align: center
 </style>

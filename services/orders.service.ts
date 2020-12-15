@@ -833,24 +833,28 @@ const TheService: ServiceSchema = {
       async handler(
         ctx: Context<OrderRequestParams, MetaParams>
       ): Promise<GenericObject> {
-        const store = await ctx.call<Store, Partial<Store>>('stores.get', {
-          id: ctx.meta.store.url,
-        });
+        const { storeId, id } = ctx.params;
+
+        const storeDoc: Partial<Store> =
+          ctx.meta.store ||
+          (await ctx.call<Store, Partial<Store>>('stores.getOne', {
+            id: storeId,
+          }));
+
+        ctx.meta.store = storeDoc;
+        if (!storeDoc) {
+          throw new MpError('Orders Service', 'No store provided', 422);
+        }
 
         const order = await ctx.call<Order, Partial<OrderRequestParams>>(
           'orders.getOrder',
-          {
-            order_id: ctx.params.id,
-          }
+          { order_id: id }
         );
-
         if (order.financialStatus === 'paid') {
-          return {
-            message: 'This order is already paid!',
-          };
+          return { message: 'This order is already paid!' };
         }
 
-        if (order.total > store.credit) {
+        if (order.total > storeDoc.credit) {
           throw new MpError(
             'Orders Service',
             "You don't have enough balance",
@@ -875,7 +879,7 @@ const TheService: ServiceSchema = {
             } = await ctx.call<InvoiceResponse, Partial<InvoiceRequestParams>>(
               'invoices.createOrderInvoice',
               {
-                storeId: store.url,
+                storeId: storeDoc.url,
                 orderId: order.id,
               }
             ));
@@ -884,7 +888,7 @@ const TheService: ServiceSchema = {
           await ctx.call<unknown, Partial<InvoiceRequestParams>>(
             'invoices.markInvoiceSent',
             {
-              omsId: ctx.meta.store.internal_data.omsId,
+              omsId: storeDoc.internal_data.omsId,
               invoiceId,
             }
           );
@@ -930,7 +934,7 @@ const TheService: ServiceSchema = {
           order.status = 'paid';
           order.financialStatus = 'paid';
           order.fulfillmentStatus = 'processing';
-          this.cacheUpdate(order, store);
+          this.cacheUpdate(order, storeDoc);
 
           return applyCreditRes;
         }
@@ -1191,7 +1195,7 @@ const TheService: ServiceSchema = {
      * @returns
      */
     orderData(params: Order, instance: Store, create = false) {
-      const data: Order = {
+      const data: Order & { store?: Partial<Store> } = {
         status: params.status,
         items: params.items || params.line_items,
         shipping: params.shipping,
