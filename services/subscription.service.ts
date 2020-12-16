@@ -63,7 +63,7 @@ const TheService: ServiceSchema = {
         const membership = await ctx.call<Membership, Partial<Membership>>(
           'membership.get',
           {
-            id: subscription.membershipId || 'free',
+            id: String(subscription.membershipId) || 'free',
           }
         );
 

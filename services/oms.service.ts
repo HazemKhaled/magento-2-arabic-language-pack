@@ -38,6 +38,7 @@ const TheService: ServiceSchema = {
 
         delete params.omsId;
         return this.request({
+          ctx,
           path: `invoices/${ctx.params.omsId}`,
           params,
         });
@@ -46,6 +47,7 @@ const TheService: ServiceSchema = {
     createInvoice: {
       handler(ctx: Context<OmsRequestParams>) {
         return this.request({
+          ctx,
           path: 'invoices',
           method: 'post',
           body: ctx.params,
@@ -56,6 +58,7 @@ const TheService: ServiceSchema = {
       handler(ctx: Context<InvoiceRequestParams>) {
         const { omsId, invoiceId, status } = ctx.params;
         return this.request({
+          ctx,
           path: `invoices/${omsId}/${invoiceId}/status/${status}`,
           method: 'post',
         });
@@ -64,6 +67,7 @@ const TheService: ServiceSchema = {
     applyInvoiceCredits: {
       handler(ctx: Context<InvoiceRequestParams>) {
         return this.request({
+          ctx,
           path: `invoices/${ctx.params.customerId}/${ctx.params.invoiceId}/credits`,
           method: 'post',
         });
@@ -72,6 +76,7 @@ const TheService: ServiceSchema = {
     createSalesOrderInvoice: {
       handler(ctx: Context<InvoiceRequestParams>) {
         return this.request({
+          ctx,
           path: `invoices/${ctx.params.customerId}/${ctx.params.orderId}`,
           method: 'post',
         });
@@ -80,6 +85,7 @@ const TheService: ServiceSchema = {
     markInvoiceToSent: {
       handler(ctx: Context<InvoiceRequestParams>) {
         return this.request({
+          ctx,
           path: `invoices/${ctx.params.customerId}/${ctx.params.invoiceId}/sent`,
           method: 'post',
         });
@@ -90,6 +96,7 @@ const TheService: ServiceSchema = {
     createNewOrder: {
       handler(ctx: Context<CreateOrderRequestParams>) {
         return this.request({
+          ctx,
           path: 'orders',
           method: 'post',
           body: ctx.params,
@@ -104,6 +111,7 @@ const TheService: ServiceSchema = {
           orderId: undefined,
         };
         return this.request({
+          ctx,
           path: `orders/${ctx.params.customerId}/${ctx.params.orderId}`,
           method: 'put',
           body,
@@ -113,6 +121,7 @@ const TheService: ServiceSchema = {
     getOrderById: {
       handler(ctx: Context<OrderRequestParams>) {
         return this.request({
+          ctx,
           path: `orders/${ctx.params.customerId}/${ctx.params.orderId}`,
         });
       },
@@ -122,6 +131,7 @@ const TheService: ServiceSchema = {
         const params: { [key: string]: string } = { ...ctx.params };
         delete params.customerId;
         return this.request({
+          ctx,
           path: `orders/${ctx.params.customerId}`,
           params,
         });
@@ -130,6 +140,7 @@ const TheService: ServiceSchema = {
     deleteOrderById: {
       handler(ctx: Context<OrderRequestParams>) {
         return this.request({
+          ctx,
           path: `orders/${ctx.params.customerId}/${ctx.params.orderId}`,
           method: 'delete',
         });
@@ -144,6 +155,7 @@ const TheService: ServiceSchema = {
           customerId: undefined,
         };
         return this.request({
+          ctx,
           path: `payments/${ctx.params.customerId}`,
           method: 'post',
           body,
@@ -155,6 +167,7 @@ const TheService: ServiceSchema = {
         const params: { [key: string]: string } = { ...ctx.params };
         delete params.customerId;
         return this.request({
+          ctx,
           path: `payments/${ctx.params.customerId}`,
           params,
         });
@@ -165,6 +178,7 @@ const TheService: ServiceSchema = {
     getCustomer: {
       handler(ctx: Context<StoreRequest>) {
         return this.request({
+          ctx,
           path: `stores/${ctx.params.customerId}`,
         });
       },
@@ -172,6 +186,7 @@ const TheService: ServiceSchema = {
     getCustomerByUrl: {
       handler(ctx: Context<StoreRequest>) {
         return this.request({
+          ctx,
           path: `stores?url=${encodeURIComponent(ctx.params.storeId)}`,
         });
       },
@@ -179,6 +194,7 @@ const TheService: ServiceSchema = {
     createCustomer: {
       handler(ctx: Context<CreateCustomerRequest>) {
         return this.request({
+          ctx,
           path: 'stores',
           method: 'post',
           body: ctx.params,
@@ -189,6 +205,7 @@ const TheService: ServiceSchema = {
     createTax: {
       handler(ctx: Context<TaxRequestParams>) {
         return this.request({
+          ctx,
           path: 'tax',
           method: 'post',
           body: ctx.params,
@@ -201,6 +218,7 @@ const TheService: ServiceSchema = {
         const body = ctx.params;
         delete body.id;
         return this.request({
+          ctx,
           path: `tax/${id}`,
           method: 'put',
           body,
@@ -210,6 +228,7 @@ const TheService: ServiceSchema = {
     deleteTax: {
       handler(ctx: Context<TaxRequestParams>) {
         return this.request({
+          ctx,
           path: `tax/${ctx.params.id}`,
           method: 'delete',
         });
@@ -218,6 +237,7 @@ const TheService: ServiceSchema = {
   },
   methods: {
     request({
+      ctx,
       path,
       method = 'get',
       body,
@@ -247,7 +267,7 @@ const TheService: ServiceSchema = {
       })
         .then(async res => {
           const parsedRes = await res.json();
-          this.call('oms.create', {
+          ctx.call('oms.create', {
             module: path.replace(/([a-z]+)[/|?].*/, '$1'),
             path,
             method,

@@ -34,12 +34,6 @@ const TheService: ServiceSchema = {
   settings: {
     /** Secret for JWT */
     JWT_SECRET: process.env.JWT_SECRET || 'jwt-conduit-secret',
-
-    /** Validator schema for entity */
-    entityValidator: {
-      consumerKey: { type: 'string' },
-      consumerSecret: { type: 'string' },
-    },
   },
   events: {
     'stores.event': function ({ event, storeId, res }: EventArguments): void {
@@ -585,7 +579,7 @@ const TheService: ServiceSchema = {
               });
 
               if (instance.status) {
-                return instance;
+                return this.sanitizeResponse(instance);
               }
             }
 
