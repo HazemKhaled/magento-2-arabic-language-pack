@@ -243,6 +243,7 @@ const TheService: ServiceSchema = {
       body,
       params,
     }: {
+      ctx: Context;
       path: string;
       method: string;
       body: { [key: string]: unknown };
