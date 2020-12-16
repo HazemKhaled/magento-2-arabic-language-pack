@@ -13,7 +13,6 @@ const CategoriesSettingsOpenapi = {
               type: 'number',
             },
             name: {
-              required: ['productsCount', 'treeNodeLevel'],
               type: 'object',
               properties: {
                 tr: {
@@ -25,16 +24,16 @@ const CategoriesSettingsOpenapi = {
                 ar: {
                   type: 'string',
                 },
-                treeNodeLevel: {
-                  type: 'number',
-                },
-                productsCount: {
-                  type: 'number',
-                },
-                parentId: {
-                  type: 'number',
-                },
               },
+            },
+            treeNodeLevel: {
+              type: 'number',
+            },
+            productsCount: {
+              type: 'number',
+            },
+            parentId: {
+              type: 'number',
             },
           },
         },
