@@ -61,8 +61,6 @@ export const Oms: ServiceSchema = {
           method => method.name
         );
       }
-      body.stockDate = params.stock_date;
-      body.priceDate = params.price_date;
       body.taxNumber = taxNumber;
 
       // Remove the billing if doesn't has the required fields

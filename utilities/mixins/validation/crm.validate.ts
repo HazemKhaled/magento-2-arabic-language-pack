@@ -34,26 +34,6 @@ export const CrmValidation: ServiceSchema = {
           ],
           optional: true,
         },
-        stock_date: {
-          type: 'date',
-          optional: true,
-          convert: true,
-        },
-        stock_status: {
-          type: 'enum',
-          values: ['idle', 'in-progress'],
-          optional: true,
-        },
-        price_date: {
-          type: 'date',
-          optional: true,
-          convert: true,
-        },
-        price_status: {
-          type: 'enum',
-          values: ['idle', 'in-progress'],
-          optional: true,
-        },
         sale_price: {
           type: 'number',
           optional: true,

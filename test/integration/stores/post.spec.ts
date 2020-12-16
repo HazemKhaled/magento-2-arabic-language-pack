@@ -30,8 +30,6 @@ describe("Test 'Create stores' endpoints", () => {
             'consumer_secret' &&
             'created' &&
             'status' &&
-            'stock_date' &&
-            'stock_status' &&
             'currency' &&
             'languages' &&
             'address' &&

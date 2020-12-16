@@ -42,10 +42,6 @@ export interface Store {
   customerId: string;
   key: string;
   query: GenericObject;
-  stock_date: string;
-  price_date: string;
-  stock_status: string;
-  price_status: string;
   errors?: GenericObject;
   message?: string;
   code?: number;

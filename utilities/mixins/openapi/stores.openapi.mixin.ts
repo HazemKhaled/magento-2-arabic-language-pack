@@ -56,24 +56,6 @@ const StoreSchema = {
       type: 'string',
       format: 'date',
     },
-    stock_date: {
-      type: 'string',
-      format: 'date',
-    },
-    stock_status: {
-      type: 'string',
-      default: 'idle',
-      enum: ['idle', 'in-progress'],
-    },
-    price_date: {
-      type: 'string',
-      format: 'date',
-    },
-    price_status: {
-      type: 'string',
-      default: 'idle',
-      enum: ['idle', 'in-progress'],
-    },
     sale_price: {
       type: 'number',
       default: 1.7,

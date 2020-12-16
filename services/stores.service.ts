@@ -438,10 +438,6 @@ const TheService: ServiceSchema = {
           return ctx.call<GenericObject, Partial<Store>>('stores.updateOne', {
             id: storeId,
             internal_data: instance.internal_data,
-            stock_date: '2010-01-01T00:00:00.000Z',
-            price_date: '2010-01-01T00:00:00.000Z',
-            stock_status: 'idle',
-            price_status: 'idle',
           });
         } catch (err) {
           ctx.meta.$statusCode = err.status || err.error?.statusCode || 500;
@@ -615,10 +611,6 @@ const TheService: ServiceSchema = {
         store.created = new Date();
         store.updated = new Date();
         store.status = params.status || 'pending';
-        store.stock_date = new Date();
-        store.stock_status = 'idle';
-        store.price_date = new Date();
-        store.price_status = 'idle';
         store.sale_price = 1.7;
         store.sale_price_operator = 1;
         store.compared_at_price = 1.7;
@@ -653,10 +645,6 @@ const TheService: ServiceSchema = {
         'status',
         'type',
         'updated',
-        'stock_date',
-        'stock_status',
-        'price_date',
-        'price_status',
         'sale_price',
         'sale_price_operator',
         'compared_at_price',
