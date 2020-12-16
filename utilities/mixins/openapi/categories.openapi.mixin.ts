@@ -12,20 +12,7 @@ const CategoriesSettingsOpenapi = {
             id: {
               type: 'number',
             },
-            name: {
-              type: 'object',
-              properties: {
-                tr: {
-                  type: 'string',
-                },
-                en: {
-                  type: 'string',
-                },
-                ar: {
-                  type: 'string',
-                },
-              },
-            },
+            name: { $ref: '#/components/schemas/I18nString' },
             treeNodeLevel: {
               type: 'number',
             },
