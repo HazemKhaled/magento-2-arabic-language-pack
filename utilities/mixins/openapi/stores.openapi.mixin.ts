@@ -242,6 +242,20 @@ const StoresGetOpenapi = {
         type: 'string',
       },
     },
+    {
+      name: 'withoutBalance',
+      in: 'query',
+      schema: {
+        type: 'boolean',
+      },
+    },
+    {
+      name: 'withoutSubscription',
+      in: 'query',
+      schema: {
+        type: 'boolean',
+      },
+    },
   ],
   responses: {
     200: {

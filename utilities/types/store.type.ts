@@ -86,7 +86,8 @@ export interface StoreRequest {
   id: string;
   consumerKey: string;
   consumerSecret: string;
-  withoutBalance: string;
+  withoutBalance: boolean;
+  withoutSubscription: boolean;
   filter: string;
   perPage: number;
   page: number;
