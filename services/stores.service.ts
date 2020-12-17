@@ -15,6 +15,7 @@ import {
   EventArguments,
   Subscription,
   CommonError,
+  OmsStore,
 } from '../utilities/types';
 import { StoresValidation } from '../utilities/mixins/validation';
 import { GCPPubSub } from '../utilities/mixins';
@@ -76,8 +77,8 @@ const TheService: ServiceSchema = {
               }
               if (res?.internal_data?.omsId) {
                 omsData = (await ctx
-                  .call<null, Partial<Store>>('oms.getCustomer', {
-                    customerId: res.internal_data.omsId,
+                  .call<null, Partial<{ id: string }>>('oms.getCustomer', {
+                    id: res.internal_data.omsId,
                   })
                   .then(null, this.logger.error)) as { store: Store };
 
@@ -125,8 +126,8 @@ const TheService: ServiceSchema = {
 
             if (res?.internal_data?.omsId && !ctx.params.withoutBalance) {
               const omsData = (await ctx
-                .call<null, Partial<Store>>('oms.getCustomer', {
-                  customerId: res.internal_data.omsId,
+                .call<null, Partial<{ id: string }>>('oms.getCustomer', {
+                  id: res.internal_data.omsId,
                 })
                 .then(null, this.logger.error)) as { store: Store };
 

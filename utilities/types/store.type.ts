@@ -36,17 +36,13 @@ export interface Store {
   credit: number;
   debit: number;
   internal_data: GenericObject;
-  external_data: GenericObject;
+  external_data: { omsId: string } & GenericObject;
   subscription: Subscription;
-  address: OrderAddress;
-  customerId: string;
-  key: string;
-  query: GenericObject;
-  errors?: GenericObject;
-  message?: string;
-  code?: number;
-  membership_id?: string;
-  subscription_expiration?: number | string;
+  address: StoreAddress;
+}
+
+export interface StoreAddress extends OrderAddress {
+  taxNumber?: string;
 }
 
 /**
@@ -139,6 +135,7 @@ export interface CreateCustomerRequest {
 export interface CrmData extends Store {
   last_order_date?: string;
   membership_id?: string;
+  subscription_expiration?: Date;
 }
 
 /**

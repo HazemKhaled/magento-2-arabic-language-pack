@@ -68,7 +68,10 @@ const TheService: ServiceSchema = {
     create: {
       auth: ['Basic'],
       async handler(ctx: Context<InvoiceRequestParams>): Promise<unknown> {
-        const instance = await ctx.call<Store, { id: string }>('stores.get', {
+        const instance = await ctx.call<
+          Store & { errors: unknown },
+          { id: string }
+        >('stores.get', {
           id: ctx.params.storeId,
         });
 

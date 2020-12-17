@@ -224,12 +224,27 @@ const TheService: ServiceSchema = {
         const discount = membership.discount;
 
         // Get the Store instance
-        const instance: Store = await ctx
-          .call<Store, Partial<{ id: string }>>('stores.get', {
+        const instance = await ctx
+          .call<Store | unknown, Partial<{ id: string }>>('stores.get', {
             id: ctx.params.storeId,
           })
-          .then(null, err => err);
-        let grantToInstance: Store | null = null;
+          .then(store => {
+            // Check for instance errors
+            if ((store as { errors: Error[] }).errors) {
+              throw new MoleculerError(
+                (store as { errors: Error[] }).errors[0].message,
+                404
+              );
+            }
+
+            if (isNativeError(store)) {
+              throw new MoleculerError(store.message, 500);
+            }
+
+            return store as Store;
+          });
+
+        let grantToInstance: Store;
         if (ctx.params.grantTo) {
           grantToInstance = await ctx.call<Store, { id: string }>(
             'stores.get',
@@ -237,14 +252,6 @@ const TheService: ServiceSchema = {
           );
         }
 
-        // Check for instance errors
-        if (instance.errors) {
-          throw new MoleculerError(instance.errors[0].message, 404);
-        }
-
-        if (isNativeError(instance as { message: string; code: number })) {
-          throw new MoleculerError(instance.message, instance.code || 500);
-        }
         let total = Number((cost - discount).toFixed(2));
 
         // Get taxes info
@@ -468,7 +475,7 @@ const TheService: ServiceSchema = {
                   id: ctx.params.grantTo || ctx.params.storeId,
                 }
               );
-              ctx.call<void, Partial<Store>>('crm.updateStoreById', {
+              ctx.call<void, Partial<unknown>>('crm.updateStoreById', {
                 id: ctx.params.grantTo || ctx.params.storeId,
                 membership_id: membership.id,
                 subscription_expiration: expireDate.getTime(),
