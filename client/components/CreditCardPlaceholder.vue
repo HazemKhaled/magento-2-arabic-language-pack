@@ -1,54 +1,95 @@
 <template lang="pug">
-.credit-card-wrapper
+.cc__wrapper
+  .spinner(v-if="isSubmitting")
   template(v-if='isLoading')
-    .credit-card-data
+    .cc__data
       .text-loader(v-for='n in 3', :key='n')
 
   template(v-else)
-    .credit-card-data
-      .credit-card-number
+    .cc__data
+      button.cc__delete-button(
+        v-if='canDelete',
+        @click='handleCardDelete'
+      )
+        AppIcon(name='delete')
+        span.cc__delete-text {{ $t("checkout.delete") }}
+
+      AppIcon.cc_icon(focusable='false', viewBox='0 0 576 512', :name="brand", fallback="unknown")
+      .cc__number
         span {{ cNumber }}
-      .credit-card-text
-        | {{ $t('checkout.expires') }}: {{ cardData.month }} / {{ cardData.year }}
-      .credit-card-name
-        | {{ cardData.c_name }}
-    button.btn.credit-card-delete(v-if='canDelete', @click='deleteCard')
-      AppIcon(name='delete')
+      .cc__text
+        | {{ $t('checkout.expires') }}:  {{ expires }}
+      .cc__title
+        | {{ cardData.title }}
 </template>
 
 <script>
+import AppIcon from '@/components/AppIcon';
+
+import { $fetch } from '../utils';
+
 export default {
   name: 'CreditCardPlaceholder',
+  components: {
+    AppIcon,
+  },
   props: {
     cardData: {
       type: Object,
       default: () => ({}),
     },
+    canDelete: {
+      type: Boolean,
+      default: false,
+    },
     isLoading: {
       type: Boolean,
     },
-    canDelete: {
-      type: Boolean,
-      default: true,
-    },
   },
+  data: () => ({
+    isSubmitting: false,
+  }),
   computed: {
     cNumber() {
       return `${'*'.repeat(4)} `.repeat(3) + this.cardData.last_4;
     },
+    brand() {
+      return this.cardData.brand;
+    },
+    expires() {
+      const { exp_month, exp_year } = this.cardData;
+      return `${exp_month.toString().padStart(2, '0') }/${ exp_year }`
+    }
   },
   methods: {
-    deleteCard() {
-      this.$emit('delete');
+    async handleCardDelete() {
+      const { origin, search } = window.location;
+      const id = this.cardData._id;
+      const url = `${origin}/api/paymentGateway/cards/${id}${search}`;
+
+      this.isSubmitting = true;
+
+      try {
+       await $fetch(url, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+      } catch(error) {
+        console.error(error);
+      } finally {
+        location.reload();
+      }
     },
-  },
+  }
 };
 </script>
 
 <style lang="stylus">
 @import '../styles/colors.styl'
 
-.credit-card-wrapper
+.cc__wrapper
   position: relative
   flex: 1
   margin: 0 0 10px
@@ -61,12 +102,13 @@ export default {
   justify-content: space-between
   align-items: flex-start
 
-.credit-card-data
+.cc__data
   width: 100%
   display: flex
   flex-direction column
+  color: $dark
 
-.credit-card-number
+.cc__number
   font-size: 16px
   font-weight: bold
   line-height: 1.5
@@ -74,15 +116,44 @@ export default {
   margin-bottom: 10px
   text-align: center
 
-.credit-card-name
-.credit-card-text
+.cc__title
+.cc__text
   font-size: 12px
   line-height: 1.5
   text-transform: uppercase
 
-.credit-card-delete
-  background-color: transparent
+.cc_icon
+  position: absolute
+  bottom: 15px
+  right: 15px
+  width: 20px
+  color: $dark
+
+.cc__delete-button
+  position: absolute
+  top: 15px
+  right: 15px
+  height: 20px
+  border: 0
   padding: 0
+  background-color: transparent
+  color: $dark
+  cursor: pointer
+
+  .icon
+    font-size: 16px
+
   &:hover
     color: $red
+    .cc__delete-text
+      max-width: 200px
+
+.cc__delete-text
+  font-size: 12px
+  font-weight: bold
+  display: inline-block
+  max-width: 0
+  overflow: hidden
+  vertical-align: middle
+  transition: max-width 0.2s
 </style>

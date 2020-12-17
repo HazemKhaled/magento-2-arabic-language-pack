@@ -8,12 +8,17 @@ export const Oms: ServiceSchema = {
   methods: {
     createOmsStore(params) {
       const body: Partial<OmsStore> = {};
-
+      let taxNumber = '';
       params.users.forEach((user: User) => {
         // Backward compatibility since zoho require contact last
         if (!user.last_name)
           user.last_name = String(params.name).padEnd(3, '_');
       });
+
+      if (params.address?.taxNumber) {
+        taxNumber = params.address.taxNumber;
+        delete params.address.taxNumber;
+      }
 
       // Sanitized params keys
       const keys: string[] = [
@@ -58,7 +63,7 @@ export const Oms: ServiceSchema = {
       }
       body.stockDate = params.stock_date;
       body.priceDate = params.price_date;
-      console.log(body);
+      body.taxNumber = taxNumber;
 
       // Remove the billing if doesn't has the required fields
       // Billing required fields
@@ -92,7 +97,7 @@ export const Oms: ServiceSchema = {
 
           instance.internal_data.omsId = response.store.id;
 
-          this.broker.call('stores.update', {
+          this.broker.call('stores.updateOne', {
             id: instance.url,
             internal_data: instance.internal_data,
           });

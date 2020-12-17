@@ -189,6 +189,7 @@ const country: string[] = [
   'PM',
   'VC',
   'WS',
+  'XK',
   'SM',
   'ST',
   'SA',

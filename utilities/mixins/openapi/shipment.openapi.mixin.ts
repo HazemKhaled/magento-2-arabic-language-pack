@@ -298,19 +298,19 @@ export const ShipmentOpenapi: ServiceSchema = {
     },
   },
   actions: {
-    getShipments: {
+    getAll: {
       openapi: ShipmentGetOpenapi,
     },
-    insertShipment: {
+    createOne: {
       openapi: ShipmentInsertOpenapi,
     },
-    updateShipment: {
+    updateOne: {
       openapi: ShipmentUpdateOpenapi,
     },
-    ruleByCountry: {
+    getAllRuleByCountry: {
       openapi: ShipmentRuleByCountryOpenapi,
     },
-    getCouriers: {
+    getAllCouriers: {
       openapi: ShipmentGetCurriersOpenapi,
     },
   },

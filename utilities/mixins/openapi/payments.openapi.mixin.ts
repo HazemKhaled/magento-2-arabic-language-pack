@@ -305,8 +305,5 @@ export const PaymentsOpenapi: ServiceSchema = {
     get: {
       openapi: PaymentsGetOpenapi,
     },
-    checkout: {
-      openapi: PaymentsCheckoutOpenapi,
-    },
   },
 };

@@ -13,11 +13,10 @@ import {
 import { PaymentsValidation } from '../utilities/mixins/validation';
 import { Oms } from '../utilities/mixins/oms.mixin';
 import { MpError } from '../utilities/adapters';
-import { CheckoutPage } from '../utilities/mixins';
 
 const TheService: ServiceSchema = {
   name: 'payments',
-  mixins: [PaymentsValidation, PaymentsOpenapi, Oms, CheckoutPage],
+  mixins: [PaymentsValidation, PaymentsOpenapi, Oms],
   actions: {
     add: {
       auth: ['Basic'],
@@ -139,13 +138,6 @@ const TheService: ServiceSchema = {
         );
       },
     },
-
-    checkout: {
-      handler(ctx: Context<unknown, MetaParams>): string {
-        ctx.meta.$responseType = 'text/html';
-        return this.renderCheckoutPage();
-      },
-    },
   },
   methods: {
     sanitizePayment(payment: Payment): PaymentResponse {
@@ -170,9 +162,11 @@ const TheService: ServiceSchema = {
       });
     },
     async cacheUpdate(payment, instance): Promise<void> {
-      const store = await this.broker.call('stores.sGet', { id: instance.url });
+      const store = await this.broker.call('stores.getOne', {
+        id: instance.url,
+      });
       store.credit = (store.credit || 0) + payment.amount;
-      this.broker.cacher.set(`stores.sGet:${store.url}|undefined`, store);
+      this.broker.cacher.set(`stores.getOne:${store.url}|undefined`, store);
       this.broker.cacher.set(`stores.me:${store.consumer_key}`, store);
     },
   },

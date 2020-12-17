@@ -1,10 +1,12 @@
 import { Context, ServiceSchema, GenericObject } from 'moleculer';
 import ApiGateway from 'moleculer-web';
 import compression from 'compression';
+import { MoleculerRequest } from 'moleculer-express';
 
 import { Log, Store, AuthorizeMeta, IncomingRequest } from '../utilities/types';
 import { OpenApiMixin } from '../utilities/mixins/openapi.mixin';
-import { hmacMiddleware, webpackMiddlewares } from '../utilities/middleware';
+import { webpackMiddlewares } from '../utilities/middleware';
+import { authorizeHmac } from '../utilities/lib';
 
 const {
   UnAuthorizedError,
@@ -73,16 +75,6 @@ const TheService: ServiceSchema = {
           'PUT orders/pay/:id': 'orders.payOrder',
           'DELETE orders/:id': 'orders.deleteOrder',
 
-          // Stores
-          'GET stores/me': 'stores.me',
-          'PUT stores/me': 'stores.meUpdate',
-          'GET stores': 'stores.list',
-          'POST stores': 'stores.create',
-          'GET stores/:id': 'stores.sGet',
-          'PUT stores/:id': 'stores.update',
-          'PUT stores/:id/sync': 'stores.sync',
-          'GET admin/stores': 'stores.storesList',
-
           // Categories
           'GET catalog/categories': 'categories.list',
 
@@ -90,57 +82,15 @@ const TheService: ServiceSchema = {
           'GET currencies/:currencyCode': 'currencies.getCurrency',
           'GET currencies': 'currencies.getCurrencies',
 
-          // Shipment
-          'POST shipment': 'shipment.insertShipment',
-          'PUT shipment/:id': 'shipment.updateShipment',
-          'GET shipment': 'shipment.getShipments',
-          'GET shipment/rules': 'shipment.ruleByCountry',
-          'GET shipment/couriers': 'shipment.getCouriers',
-          'GET shipment/:id': 'shipment.getShipments',
-
           // Invoices
           'GET invoices': 'invoices.get',
           'POST invoices': 'invoices.create',
           'POST invoices/:id/credits': 'invoices.applyCredits',
-          'GET invoice/:storeId/external/:id': 'invoices.renderInvoice',
+          'GET invoices/:storeId/external/:id': 'invoices.renderInvoice',
 
-          // Cards
-          'POST cards': 'cards.create',
-          'PUT cards/:id': 'cards.update',
-          'GET cards/:id': 'cards.get',
-          'DELETE cards/:id': 'cards.delete',
-
-          // paymentGateway
-          'POST paymentGateway/:type/transaction': 'paymentGateway.transaction',
-
-          // Payments mp
+          // Payments
           'POST payments/:id': 'payments.add',
           'GET payments': 'payments.get',
-
-          // Membership
-          'POST membership': 'membership.create',
-          'GET membership': 'membership.list',
-          'GET membership/:id': 'membership.mGet',
-          'PUT membership/:id': 'membership.update',
-
-          // Coupons
-          'POST coupons': 'coupons.create',
-          'GET coupons': 'coupons.list',
-          'GET coupons/:id': 'coupons.get',
-          'PUT coupons/:id': 'coupons.update',
-
-          // Subscription
-          'POST subscription': 'subscription.create',
-          'GET subscription': 'subscription.sList',
-          'PUT subscription/:id': 'subscription.updateSubscription',
-          'DELETE subscription/:id': 'subscription.cancel',
-
-          // Taxes
-          'POST tax': 'taxes.tCreate',
-          'PUT tax/:id': 'taxes.tUpdate',
-          'GET tax/:id': 'taxes.tGet',
-          'GET tax': 'taxes.tList',
-          'DELETE tax/:id': 'taxes.tDelete',
 
           // GDPR
           'POST customer/redact': 'gdpr.customerRedact',
@@ -261,7 +211,25 @@ const TheService: ServiceSchema = {
       {
         path: '/',
 
-        authorization: false,
+        authorization: true,
+        cors: {
+          origin: '*',
+          credentials: false,
+          maxAge: 3600,
+        },
+        // Route error handler
+        async onError(req: any, res: any, err: any) {
+          const output = await req.$ctx.call('paymentGateway.error', {
+            error: {
+              code: err.code,
+              message: err.message,
+              data: err.data,
+            },
+          });
+
+          res.setHeader('Content-Type', 'text/html');
+          res.end(output);
+        },
         use: [
           compression(),
           // Webpack middleware
@@ -269,7 +237,8 @@ const TheService: ServiceSchema = {
           ApiGateway.serveStatic('public'),
         ],
         aliases: {
-          'GET checkout': [hmacMiddleware(), 'payments.checkout'],
+          'GET checkout': 'paymentGateway.get',
+          'GET cards/list': 'paymentGateway.cardsList',
         },
       },
     ],
@@ -287,16 +256,21 @@ const TheService: ServiceSchema = {
     authorize(
       ctx: Context<void, AuthorizeMeta>,
       route: unknown,
-      req: IncomingRequest
+      req: IncomingRequest & MoleculerRequest
     ): Promise<Store | boolean> {
+      const { $endpoint, $action, headers } = req as GenericObject;
       // Pass if no auth required
-      if (!req.$endpoint.action.auth) {
+      if (!$endpoint.action.auth) {
         return this.Promise.resolve();
       }
 
+      if ($endpoint.action.auth.includes('Hmac')) {
+        return authorizeHmac(ctx, req);
+      }
+
       // if no authorization in the header
-      if (!req.headers.authorization) {
-        throw new UnAuthorizedError(ERR_NO_TOKEN, req.headers);
+      if (!headers.authorization) {
+        throw new UnAuthorizedError(ERR_NO_TOKEN, headers);
       }
 
       // If token or token type are missing, throw error
@@ -318,7 +292,7 @@ const TheService: ServiceSchema = {
                   return this.Promise.reject(
                     new UnAuthorizedError(
                       ERR_INVALID_TOKEN,
-                      req.headers.authorization
+                      headers.authorization
                     )
                   );
                 }

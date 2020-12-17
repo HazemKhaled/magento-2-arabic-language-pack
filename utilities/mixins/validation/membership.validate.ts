@@ -3,7 +3,7 @@ import { ServiceSchema } from 'moleculer';
 export const MembershipValidation: ServiceSchema = {
   name: 'membership',
   actions: {
-    create: {
+    createOne: {
       params: {
         id: {
           type: 'string',
@@ -104,7 +104,7 @@ export const MembershipValidation: ServiceSchema = {
         $$strict: true,
       },
     },
-    update: {
+    updateOne: {
       params: {
         id: {
           type: 'string',
@@ -215,7 +215,7 @@ export const MembershipValidation: ServiceSchema = {
         $$strict: true,
       },
     },
-    mGet: {
+    getOne: {
       params: {
         id: [
           {
@@ -240,7 +240,7 @@ export const MembershipValidation: ServiceSchema = {
         },
       },
     },
-    list: {
+    getAll: {
       params: {
         country: {
           type: 'string',

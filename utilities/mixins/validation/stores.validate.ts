@@ -17,7 +17,7 @@ export const StoresValidation: ServiceSchema = {
         },
       },
     },
-    sGet: {
+    getOne: {
       params: {
         id: {
           type: 'string',
@@ -28,14 +28,14 @@ export const StoresValidation: ServiceSchema = {
         },
       },
     },
-    list: {
+    getAll: {
       params: {
         filter: {
           type: 'string',
         },
       },
     },
-    storesList: {
+    getAllAdmin: {
       params: {
         id: {
           type: 'string',
@@ -62,7 +62,7 @@ export const StoresValidation: ServiceSchema = {
         query: 'object',
       },
     },
-    create: {
+    createOne: {
       params: {
         url: {
           type: 'url',
@@ -162,11 +162,13 @@ export const StoresValidation: ServiceSchema = {
                 type: 'string',
                 min: 3,
                 optional: true,
+                pattern: '^[A-Za-z ]{3,}$',
               },
               last_name: {
                 type: 'string',
                 min: 3,
                 optional: true,
+                pattern: '^[A-Za-z ]{3,}$',
               },
               email: {
                 type: 'email',
@@ -200,10 +202,12 @@ export const StoresValidation: ServiceSchema = {
             first_name: {
               type: 'string',
               min: 3,
+              pattern: '^[A-Za-z ]{3,}$',
             },
             last_name: {
               type: 'string',
               min: 3,
+              pattern: '^[A-Za-z ]{3,}$',
             },
             company: {
               type: 'string',
@@ -242,11 +246,16 @@ export const StoresValidation: ServiceSchema = {
               optional: true,
               convert: true,
             },
+            taxNumber: {
+              type: 'string',
+              optional: true,
+              convert: true,
+            },
           },
         },
       },
     },
-    update: {
+    updateOne: {
       params: {
         id: {
           type: 'url',
@@ -350,11 +359,13 @@ export const StoresValidation: ServiceSchema = {
                 type: 'string',
                 min: 3,
                 optional: true,
+                pattern: '^[A-Za-z ]{3,}$',
               },
               last_name: {
                 type: 'string',
                 min: 3,
                 optional: true,
+                pattern: '^[A-Za-z ]{3,}$',
               },
               email: {
                 type: 'email',
@@ -389,10 +400,12 @@ export const StoresValidation: ServiceSchema = {
             first_name: {
               type: 'string',
               min: 3,
+              pattern: '^[A-Za-z ]{3,}$',
             },
             last_name: {
               type: 'string',
               min: 3,
+              pattern: '^[A-Za-z ]{3,}$',
             },
             company: {
               type: 'string',
@@ -426,6 +439,11 @@ export const StoresValidation: ServiceSchema = {
               optional: true,
             },
             phone: {
+              type: 'string',
+              optional: true,
+              convert: true,
+            },
+            taxNumber: {
               type: 'string',
               optional: true,
               convert: true,
@@ -473,11 +491,13 @@ export const StoresValidation: ServiceSchema = {
               type: 'string',
               min: 3,
               optional: true,
+              pattern: '^[A-Za-z ]{3,}$',
             },
             last_name: {
               type: 'string',
               min: 3,
               optional: true,
+              pattern: '^[A-Za-z ]{3,}$',
             },
             company: {
               type: 'string',
@@ -514,6 +534,11 @@ export const StoresValidation: ServiceSchema = {
               optional: true,
             },
             phone: {
+              type: 'string',
+              optional: true,
+              convert: true,
+            },
+            taxNumber: {
               type: 'string',
               optional: true,
               convert: true,

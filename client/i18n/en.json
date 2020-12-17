@@ -1,6 +1,8 @@
 {
   "checkout": {
+    "delete": "Delete",
     "cardNumber": "Card Number",
+    "orderId": "Order Id",
     "cardName": "Card Name",
     "cvc": "CVC",
     "expiry": "MM / YY",
@@ -9,6 +11,7 @@
     "expires": "Expires",
     "confirm": "Confirm",
     "secure": "Use 3D Secure",
+    "summary": "Summary",
     "charge": "Charge balance with",
     "balanceDeduction": "Balance deduction",
     "useBalance": "Use balance",
@@ -23,5 +26,9 @@
     "subscriptionDisclaimer": "You will pay {currentPrice} and renew {frequency} for {originalPrice}",
     "paymentType__month": "monthly",
     "paymentType__year": "yearly"
+  },
+
+  "toastr": {
+    "payment__success": "Payment success"
   }
 }

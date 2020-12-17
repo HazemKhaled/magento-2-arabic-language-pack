@@ -320,13 +320,13 @@ export const SubscriptionOpenapi: ServiceSchema = {
     },
   },
   actions: {
-    sList: {
+    getAll: {
       openapi: SubscriptionListOpenapi,
     },
-    create: {
+    createOne: {
       openapi: SubscriptionCreateOpenapi,
     },
-    updateSubscription: {
+    updateOne: {
       openapi: SubscriptionUpdateOpenapi,
     },
     cancel: {

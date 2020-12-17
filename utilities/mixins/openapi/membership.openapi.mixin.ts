@@ -283,16 +283,16 @@ export const MembershipOpenapi: ServiceSchema = {
     },
   },
   actions: {
-    create: {
+    createOne: {
       openapi: MembershipCreateOpenapi,
     },
-    update: {
+    updateOne: {
       openapi: MembershipUpdateOpenapi,
     },
-    mGet: {
+    getOne: {
       openapi: MembershipGetOpenapi,
     },
-    list: {
+    getAll: {
       openapi: MembershipListOpenapi,
     },
   },

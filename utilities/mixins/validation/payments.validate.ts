@@ -1,18 +1,5 @@
 import { ServiceSchema } from 'moleculer';
 
-const checkoutValueProps = {
-  currency_code: {
-    type: 'enum',
-    // Allow only USD and try
-    values: ['USD', 'TRY'],
-  },
-  value: {
-    type: 'number',
-    convert: true,
-    positive: true,
-  },
-};
-
 export const PaymentsValidation: ServiceSchema = {
   name: 'payments',
   actions: {
@@ -93,60 +80,6 @@ export const PaymentsValidation: ServiceSchema = {
         payment_mode: {
           type: 'string',
           optional: true,
-        },
-      },
-    },
-    checkout: {
-      params: {
-        store: {
-          type: 'string',
-        },
-        hmac: {
-          type: 'string',
-        },
-        purchase_units: {
-          type: 'array',
-          items: {
-            type: 'object',
-            props: {
-              description: {
-                type: 'string',
-                optional: true,
-              },
-              type: {
-                type: 'enum',
-                values: ['order', 'subscription', 'charge'],
-              },
-              data: 'object',
-              amount: {
-                type: 'object',
-                props: {
-                  ...checkoutValueProps,
-                  breakdown: {
-                    type: 'object',
-                    optional: true,
-                    props: {
-                      item_total: {
-                        type: 'object',
-                        optional: true,
-                        props: checkoutValueProps,
-                      },
-                      shipping: {
-                        type: 'object',
-                        optional: true,
-                        props: checkoutValueProps,
-                      },
-                      tax_total: {
-                        type: 'object',
-                        optional: true,
-                        props: checkoutValueProps,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
         },
       },
     },

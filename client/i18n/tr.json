@@ -1,6 +1,8 @@
 {
   "checkout": {
+    "delete": "Sil",
     "cardNumber": "Kart Numarası",
+    "orderId": "Sipariş Kimliği",
     "cardName": "Kart Adı",
     "cvc": "CVC",
     "expiry": "AA / YY",
@@ -8,6 +10,7 @@
     "payNow": "Şimdi öde",
     "expires": "Sona eriyor",
     "secure": "3D güvenliği kullan",
+    "summary": "Özet",
     "charge": "İle şarj dengesi",
     "confirm": "Onaylamak",
     "balanceDeduction": "Bakiye kesintisi",
@@ -21,5 +24,8 @@
     "subscriptionDisclaimer": "{originalPrice} için {currentPrice} ödeyecek ve her {frequency} yenileyeceksiniz.",
     "paymentType__month": "aylık",
     "paymentType__year": "yıllık"
+  },
+  "toastr": {
+    "payment__success": "Başarılı ödeme"
   }
 }

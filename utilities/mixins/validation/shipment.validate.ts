@@ -5,7 +5,7 @@ import country from '../../static/country';
 export const ShipmentValidation: ServiceSchema = {
   name: 'shipment',
   actions: {
-    getShipments: {
+    getAll: {
       params: {
         id: {
           type: 'string',
@@ -13,7 +13,7 @@ export const ShipmentValidation: ServiceSchema = {
         },
       },
     },
-    insertShipment: {
+    createOne: {
       params: {
         name: {
           type: 'string',
@@ -80,7 +80,7 @@ export const ShipmentValidation: ServiceSchema = {
         },
       },
     },
-    updateShipment: {
+    updateOne: {
       params: {
         id: {
           type: 'string',
@@ -147,7 +147,7 @@ export const ShipmentValidation: ServiceSchema = {
         },
       },
     },
-    ruleByCountry: {
+    getAllRuleByCountry: {
       params: {
         country: {
           type: 'enum',
@@ -171,7 +171,7 @@ export const ShipmentValidation: ServiceSchema = {
         },
       },
     },
-    getCouriers: {
+    getAllCouriers: {
       params: {
         country: {
           type: 'enum',
