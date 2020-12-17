@@ -2,6 +2,7 @@ import { Context, ServiceSchema, GenericObject } from 'moleculer';
 import ApiGateway from 'moleculer-web';
 import compression from 'compression';
 import { MoleculerRequest } from 'moleculer-express';
+import fetch from 'node-fetch';
 
 import { Log, Store, AuthorizeMeta, IncomingRequest } from '../utilities/types';
 import { OpenApiMixin } from '../utilities/mixins/openapi.mixin';
