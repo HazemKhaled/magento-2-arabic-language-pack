@@ -109,10 +109,6 @@ export interface CreateCustomerRequest {
   companyName: string;
   status: string;
   platform: string;
-  stockDate: Date;
-  stockStatus: string;
-  priceDate: Date;
-  priceStatus: string;
   salePrice: number;
   saleOperator: number;
   comparedPrice: number;
