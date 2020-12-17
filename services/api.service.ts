@@ -4,7 +4,7 @@ import compression from 'compression';
 import { MoleculerRequest } from 'moleculer-express';
 import fetch from 'node-fetch';
 
-import { Log, Store, AuthorizeMeta, IncomingRequest } from '../utilities/types';
+import { Log, Store, MetaParams, IncomingRequest } from '../utilities/types';
 import { OpenApiMixin } from '../utilities/mixins/openapi.mixin';
 import { webpackMiddlewares } from '../utilities/middleware';
 import { authorizeHmac } from '../utilities/lib';
@@ -249,13 +249,13 @@ const TheService: ServiceSchema = {
     /**
      * Authorize the request
      *
-     * @param {Context<void, AuthorizeMeta>} ctx
+     * @param {Context<void, MetaParams>} ctx
      * @param {unknown} route
      * @param {IncomingRequest} req
      * @returns {(Promise<Store | boolean>)}
      */
     authorize(
-      ctx: Context<void, AuthorizeMeta>,
+      ctx: Context<void, MetaParams>,
       route: unknown,
       req: IncomingRequest & MoleculerRequest
     ): Promise<Store | boolean> {

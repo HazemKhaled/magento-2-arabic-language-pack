@@ -12,7 +12,6 @@ import {
   StoreUser,
   StoreRequest,
   MetaParams,
-  StoreMeta,
   EventArguments,
   Subscription,
   CommonError,
@@ -282,7 +281,7 @@ const TheService: ServiceSchema = {
         // Save the ID separate into variable to use it to find the store
         const { id } = ctx.params;
         // storeBefore
-        const storeBefore: Store = await ctx.call<Store, { id: string }>(
+        const storeBefore = await ctx.call<Store, { id: string }>(
           'stores.get',
           { id }
         );
@@ -429,7 +428,7 @@ const TheService: ServiceSchema = {
           this.broker.cacher.clean(`subscription.getByStore:${instance.url}*`);
           this.broker.cacher.clean(`stores.getOne:${instance.url}**`);
           this.broker.cacher.clean(`stores.me:${instance.consumer_key}**`);
-          return ctx.call<GenericObject, Partial<Store>>('stores.updateOne', {
+          return ctx.call<Store, Partial<Store>>('stores.updateOne', {
             id: storeId,
             internal_data: instance.internal_data,
           });
@@ -489,7 +488,7 @@ const TheService: ServiceSchema = {
      * @returns {Object} Logged in user with token
      */
     login: {
-      handler(ctx: Context<StoreRequest, StoreMeta>): Promise<GenericObject> {
+      handler(ctx: Context<StoreRequest, MetaParams>): Promise<GenericObject> {
         const { consumerKey, consumerSecret } = ctx.params;
 
         return ctx

@@ -68,10 +68,9 @@ const TheService: ServiceSchema = {
     create: {
       auth: ['Basic'],
       async handler(ctx: Context<InvoiceRequestParams>): Promise<unknown> {
-        const instance: Store = await ctx.call<Store, { id: string }>(
-          'stores.get',
-          { id: ctx.params.storeId }
-        );
+        const instance = await ctx.call<Store, { id: string }>('stores.get', {
+          id: ctx.params.storeId,
+        });
 
         if (instance.errors) {
           throw new MoleculerError('Store not found', 404);
@@ -212,10 +211,9 @@ const TheService: ServiceSchema = {
       async handler(
         ctx: Context<InvoiceRequestParams>
       ): Promise<{ invoice: Invoice; code?: number; message?: string }> {
-        const instance: Store = await ctx.call<Store, { id: string }>(
-          'stores.get',
-          { id: ctx.params.storeId }
-        );
+        const instance = await ctx.call<Store, { id: string }>('stores.get', {
+          id: ctx.params.storeId,
+        });
 
         return ctx
           .call<null, Partial<InvoiceRequestParams>>(
@@ -252,21 +250,15 @@ const TheService: ServiceSchema = {
       async handler(
         ctx: Context<InvoiceRequestParams, MetaParams>
       ): Promise<unknown> {
-        const store: Store = await ctx.call<Store, { id: string }>(
-          'stores.get',
-          { id: ctx.params.storeId }
-        );
-        const orders: Order[] = await ctx.call<Order[], Partial<Order>>(
-          'orders.list',
-          {
-            externalId: ctx.params.id,
-          }
-        );
-        const order: Order = await ctx.call<Order, Partial<OrderRequestParams>>(
+        const store = await ctx.call<Store, { id: string }>('stores.get', {
+          id: ctx.params.storeId,
+        });
+        const orders = await ctx.call<Order[], Partial<Order>>('orders.list', {
+          externalId: ctx.params.id,
+        });
+        const order = await ctx.call<Order, Partial<OrderRequestParams>>(
           'orders.getOrder',
-          {
-            order_id: orders[0].id,
-          }
+          { order_id: orders[0].id }
         );
         ctx.meta.$responseType = 'text/html';
         return this.renderInvoice(store, order);

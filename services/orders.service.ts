@@ -207,9 +207,7 @@ const TheService: ServiceSchema = {
         // Getting the current user subscription
         const subscription = await ctx.call<Subscription, { storeId: string }>(
           'subscription.getByStore',
-          {
-            storeId: store.url,
-          }
+          { storeId: store.url }
         );
         switch (subscription.attributes.orderProcessingType) {
           case '$':
@@ -349,14 +347,14 @@ const TheService: ServiceSchema = {
         // TODO: Move to hook after create, and write this code into coupon service
         // If coupon used update quantity
         if (data.coupon) {
-          ctx.call<Coupon | boolean, Partial<Coupon>>('coupons.updateCount', {
+          ctx.call<void, Partial<Coupon>>('coupons.updateCount', {
             id: data.coupon,
           });
         }
 
         // TODO: Move to hook after create, and write this code into CRM service
         // Update CRM last update
-        ctx.call<CrmStore, Partial<CrmStore>>('crm.updateStoreById', {
+        ctx.call<void, Partial<CrmStore>>('crm.updateStoreById', {
           id: store.url,
           last_order_date: Date.now(),
         });
@@ -835,7 +833,7 @@ const TheService: ServiceSchema = {
       ): Promise<GenericObject> {
         const { storeId, id } = ctx.params;
 
-        const storeDoc: Partial<Store> =
+        const storeDoc =
           ctx.meta.store ||
           (await ctx.call<Store, Partial<Store>>('stores.getOne', {
             id: storeId,

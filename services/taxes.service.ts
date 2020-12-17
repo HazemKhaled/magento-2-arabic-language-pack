@@ -75,7 +75,7 @@ const TaxesService: ServiceSchema = {
           });
 
         if (taxUpdateData.omsId) {
-          ctx.call<GenericObject, GenericObject>('oms.updateTax', {
+          ctx.call<void, GenericObject>('oms.updateTax', {
             id: taxUpdateData.omsId,
             name: taxUpdateData.name,
             percentage: taxUpdateData.percentage,
@@ -176,7 +176,7 @@ const TaxesService: ServiceSchema = {
           });
 
         if (taxDeleteData.tax) {
-          ctx.call<GenericObject, Partial<TaxRequestParams>>('oms.deleteTax', {
+          ctx.call<void, Partial<TaxRequestParams>>('oms.deleteTax', {
             id: taxDeleteData.tax.omsId,
           });
         }

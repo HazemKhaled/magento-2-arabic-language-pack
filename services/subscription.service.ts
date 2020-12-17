@@ -462,13 +462,13 @@ const TheService: ServiceSchema = {
                   `stores.me:${grantToInstance?.consumer_key}*`
                 );
               }
-              ctx.call<GenericObject, Partial<Subscription>>(
+              ctx.call<void, Partial<Subscription>>(
                 'subscription.checkCurrentSubGradingStatus',
                 {
                   id: ctx.params.grantTo || ctx.params.storeId,
                 }
               );
-              ctx.call<GenericObject, Partial<Store>>('crm.updateStoreById', {
+              ctx.call<void, Partial<Store>>('crm.updateStoreById', {
                 id: ctx.params.grantTo || ctx.params.storeId,
                 membership_id: membership.id,
                 subscription_expiration: expireDate.getTime(),
@@ -523,7 +523,7 @@ const TheService: ServiceSchema = {
           }
         );
         expiredSubscription._id = expiredSubscription._id.toString();
-        const currentSubscription: Subscription = await ctx.call<
+        const currentSubscription = await ctx.call<
           Subscription,
           { storeId: string }
         >('subscription.getByStore', {
@@ -535,7 +535,7 @@ const TheService: ServiceSchema = {
             renewed: true,
           });
 
-          ctx.call<GenericObject, Partial<CrmStore>>('crm.addTagsByUrl', {
+          ctx.call<void, Partial<CrmStore>>('crm.addTagsByUrl', {
             id: expiredSubscription.storeId,
             tag: 'subscription-renew',
           });
@@ -557,7 +557,7 @@ const TheService: ServiceSchema = {
             : [new Date(date)],
         });
 
-        ctx.call<GenericObject, Partial<CrmStore>>('crm.addTagsByUrl', {
+        ctx.call<void, Partial<CrmStore>>('crm.addTagsByUrl', {
           id: expiredSubscription.storeId,
           tag: 'subscription-retry-fail',
         });
@@ -567,7 +567,7 @@ const TheService: ServiceSchema = {
     updateOne: {
       auth: ['Basic'],
       rest: 'PUT /:id',
-      handler(ctx: Context<any>): Promise<Subscription> {
+      handler(ctx: Context<Partial<Subscription>>): Promise<Subscription> {
         let $set: Partial<Subscription> = {};
         const { params } = ctx;
         if (ctx.params.retries) {
@@ -587,10 +587,9 @@ const TheService: ServiceSchema = {
             $set
           )
           .then(async subscription => {
-            const store: Store = await ctx.call<Store, { id: string }>(
-              'stores.get',
-              { id: subscription.storeId }
-            );
+            const store = await ctx.call<Store, { id: string }>('stores.get', {
+              id: subscription.storeId,
+            });
 
             this.broker.cacher.clean(`subscription.getByStore:${store.url}**`);
             this.broker.cacher.clean(`subscription.getAll:${store.url}**`);
@@ -670,14 +669,11 @@ const TheService: ServiceSchema = {
             );
 
             if (res.invoiceId) {
-              ctx.call<GenericObject, Partial<Invoice>>(
-                'invoices.updateInvoiceStatus',
-                {
-                  omsId: instance?.internal_data?.omsId,
-                  invoiceId: res.invoiceId,
-                  status: 'void',
-                }
-              );
+              ctx.call<void, Partial<Invoice>>('invoices.updateInvoiceStatus', {
+                omsId: instance?.internal_data?.omsId,
+                invoiceId: res.invoiceId,
+                status: 'void',
+              });
             }
             if (!res) {
               throw new MpError(

@@ -55,7 +55,7 @@ const TheService: ServiceSchema = {
         }
 
         try {
-          const createSubResponse: Subscription = await ctx.call<
+          const createSubResponse = await ctx.call<
             Subscription,
             Partial<Subscription>
           >('subscription.createOne', {
@@ -63,14 +63,11 @@ const TheService: ServiceSchema = {
             membership: subscription.membershipId,
           });
           if (createSubResponse.id) {
-            ctx.call<GenericObject, Partial<Subscription>>(
-              'subscription.updateOne',
-              {
-                id: String(subscription.id),
-                renewed: true,
-              }
-            );
-            ctx.call<GenericObject, Partial<CrmStore>>('crm.addTagsByUrl', {
+            ctx.call<void, Partial<Subscription>>('subscription.updateOne', {
+              id: String(subscription.id),
+              renewed: true,
+            });
+            ctx.call<void, Partial<CrmStore>>('crm.addTagsByUrl', {
               id: subscription.storeId,
               tag: 'subscription-renew',
             });

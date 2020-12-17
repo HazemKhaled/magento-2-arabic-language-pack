@@ -20,26 +20,6 @@ export interface I18n {
 }
 
 /**
- * MetaParams
- * @exports
- * @interface MetaParams
- */
-export interface MetaParams {
-  store: {
-    internal_data?: {
-      omsId?: string;
-    };
-    consumer_key?: string;
-    url?: string;
-  };
-  $statusCode?: number;
-  $statusMessage?: string;
-  $responseType?: string;
-  user?: any;
-  storeId?: string;
-}
-
-/**
  * Common Error interface
  *
  * @export

@@ -2,7 +2,7 @@ import { Context, GenericObject } from 'moleculer';
 
 import { Subscription } from './subscription.type';
 import { OrderAddress } from './order.type';
-import { MetaParams } from './i18ntext.type';
+
 /**
  * Store Type definition
  *
@@ -132,16 +132,6 @@ export interface CreateCustomerRequest {
     email: string;
     phone: string;
   };
-}
-
-/**
- * Store Meta Definition
- *
- * @export
- * @interface StoreRequest
- */
-export interface StoreMeta extends MetaParams {
-  token: string;
 }
 
 /**
