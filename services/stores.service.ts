@@ -92,7 +92,7 @@ const TheService: ServiceSchema = {
       },
     },
     /**
-     * Get store with it's url
+     * Get store by url with subscription and OMS info
      *
      * @param {string} id
      * @returns {Store}
@@ -100,14 +100,21 @@ const TheService: ServiceSchema = {
     getOne: {
       auth: ['Basic'],
       cache: {
-        keys: ['id', 'withoutBalance'],
+        keys: ['id', 'withoutBalance', 'withoutSubscription'],
         ttl: 60 * 60 * 24,
       },
       rest: 'GET /:id',
       handler(ctx: Context<StoreRequest>): Promise<Store> {
-        return this.getById(ctx.params.id).then(async (res: Store | null) => {
-          if (res) {
-            if (res.users) {
+        return ctx
+          .call<Store, { id: string }>('stores.get', { id: ctx.params.id })
+          .then(async res => {
+            if (!res) {
+              // If null return Not Found error
+              throw new MpError('Stores Service', 'Store Not Found', 404);
+            }
+
+            // get subscription details
+            if (!ctx.params.withoutSubscription) {
               res.subscription = await ctx.call<
                 Subscription,
                 { storeId: string }
@@ -115,6 +122,7 @@ const TheService: ServiceSchema = {
                 storeId: ctx.params.id,
               });
             }
+
             if (res?.internal_data?.omsId && !ctx.params.withoutBalance) {
               const omsData = (await ctx
                 .call<null, Partial<Store>>('oms.getCustomer', {
@@ -129,16 +137,10 @@ const TheService: ServiceSchema = {
                 return this.sanitizeResponse(res, omsData.store);
               }
             }
-          }
 
-          // return store even if we didn't get balance from OMS
-          if (res) {
+            // return store even if we didn't get balance from OMS
             return this.sanitizeResponse(res);
-          }
-
-          // If null return Not Found error
-          throw new MpError('Stores Service', 'Store Not Found', 404);
-        });
+          });
       },
     },
     /**
