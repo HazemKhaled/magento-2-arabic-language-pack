@@ -104,7 +104,7 @@ export interface SalesOrder {
     url: string;
   };
   status: string;
-  subStatuses: [];
+  subStatuses: string[];
   createDate: Date;
   updateDate: Date;
   items: OrderItem[];

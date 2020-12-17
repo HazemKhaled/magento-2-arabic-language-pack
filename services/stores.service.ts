@@ -15,7 +15,6 @@ import {
   EventArguments,
   Subscription,
   CommonError,
-  OmsStore,
 } from '../utilities/types';
 import { StoresValidation } from '../utilities/mixins/validation';
 import { GCPPubSub } from '../utilities/mixins';

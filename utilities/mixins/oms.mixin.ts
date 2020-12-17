@@ -1,4 +1,4 @@
-import { ServiceSchema } from 'moleculer';
+import { ServiceSchema, GenericObject } from 'moleculer';
 
 import { MpError } from '../adapters';
 import { OmsStore, Store } from '../types';
@@ -7,7 +7,7 @@ export const Oms: ServiceSchema = {
   name: 'oms',
   methods: {
     createOmsStore(params: Store): OmsStore {
-      const body: Partial<OmsStore> = {};
+      const body: Partial<GenericObject> = {};
       let taxNumber = '';
 
       params.users.forEach(user => {
@@ -37,7 +37,9 @@ export const Oms: ServiceSchema = {
         'shipping_methods',
         'address',
       ];
-      const transformObj: { [_name in keyof Partial<Store>]: string } = {
+      const transformObj: {
+        [_name in keyof Partial<Store>]: keyof Partial<OmsStore>;
+      } = {
         type: 'platform',
         compared_at_price: 'comparedPrice',
         compared_at_price_operator: 'comparedOperator',
@@ -50,7 +52,7 @@ export const Oms: ServiceSchema = {
       keys.forEach(key => {
         if (!params[key]) return;
 
-        const keyName = transformObj[key] || key;
+        const keyName = (transformObj[key] || key) as keyof OmsStore;
         body[keyName] = (params[key] as { $date: Date }).$date || params[key];
       });
       // if no attributes no create
