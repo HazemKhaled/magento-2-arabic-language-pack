@@ -88,11 +88,13 @@ export const Oms: ServiceSchema = {
     setOmsId(instance: Store): void {
       return this.createOmsStore(instance)
         .then((response: { store: OmsStore }) => {
-          instance.internal_data = instance.internal_data || {};
-
           if (!response.store?.id) throw response;
 
-          instance.internal_data.omsId = response.store.id;
+          if (!instance.internal_data) {
+            instance.internal_data = { omsId: response.store.id };
+          } else {
+            instance.internal_data.omsId = response.store.id;
+          }
 
           this.broker.call('stores.updateOne', {
             id: instance.url,

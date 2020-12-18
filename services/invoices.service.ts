@@ -68,16 +68,17 @@ const TheService: ServiceSchema = {
     create: {
       auth: ['Basic'],
       async handler(ctx: Context<InvoiceRequestParams>): Promise<unknown> {
-        const instance = await ctx.call<
-          Store & { errors: unknown },
-          { id: string }
-        >('stores.get', {
-          id: ctx.params.storeId,
-        });
+        const instance = await ctx
+          .call<Store & { errors: unknown }, { id: string }>('stores.get', {
+            id: ctx.params.storeId,
+          })
+          .then(store => {
+            if (store.errors) {
+              throw new MoleculerError('Store not found', 404);
+            }
 
-        if (instance.errors) {
-          throw new MoleculerError('Store not found', 404);
-        }
+            return store as Store;
+          });
 
         const { items, discount } = ctx.params;
         // Total items cost

@@ -35,8 +35,8 @@ export interface Store {
   languages: string[];
   credit: number;
   debit: number;
-  internal_data: GenericObject;
-  external_data: { omsId: string } & GenericObject;
+  internal_data: { omsId: string } & GenericObject;
+  external_data: GenericObject;
   subscription: Subscription;
   address: StoreAddress;
 }
