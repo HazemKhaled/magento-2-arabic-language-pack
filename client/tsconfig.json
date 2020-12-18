@@ -1,0 +1,9 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "target": "es5",
+    "module": "es2015"
+  },
+  "include": ["./**/*.ts", "./**/*.vue"],
+  "files": ["../types/vue-smin.d.ts"]
+}
