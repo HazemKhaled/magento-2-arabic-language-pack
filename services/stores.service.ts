@@ -71,7 +71,7 @@ const TheService: ServiceSchema = {
                   Subscription,
                   { storeId: string }
                 >('subscription.getByStore', {
-                  storeId: res._id,
+                  storeId: res.url,
                 });
               }
               if (res?.internal_data?.omsId) {
