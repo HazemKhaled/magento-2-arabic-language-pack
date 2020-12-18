@@ -164,7 +164,7 @@ const TheService: ServiceSchema = {
             err.code === 401 ||
             err.name === 'NotFoundError'
           ) {
-            res.end(
+            return res.end(
               JSON.stringify({
                 name: err.name,
                 message: err.message,
@@ -174,6 +174,7 @@ const TheService: ServiceSchema = {
               })
             );
           }
+
           if (err.code === 500 || !err.code) {
             const log = await this.sendLogs({
               topic: `${String(req.$params?.topic)}`
@@ -190,7 +191,7 @@ const TheService: ServiceSchema = {
             }).catch((err: unknown) => this.broker.logger.error(err));
 
             if (log) {
-              res.end(
+              return res.end(
                 JSON.stringify({
                   errors: [
                     {
@@ -201,7 +202,8 @@ const TheService: ServiceSchema = {
               );
             }
           }
-          res.end(
+
+          return res.end(
             JSON.stringify({
               errors: [{ message: err.message || 'Internal Server Error!' }],
             })
