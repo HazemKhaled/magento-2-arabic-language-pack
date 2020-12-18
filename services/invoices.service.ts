@@ -51,18 +51,17 @@ const TheService: ServiceSchema = {
             omsId: store?.internal_data?.omsId,
             ...queryParams,
           })
-          .then(
-            async ({ response: { invoices } }) => {
-              return {
-                invoices: invoices.map((invoice: Invoice) =>
-                  this.invoiceSanitize(invoice)
-                ),
-              };
-            },
-            err => {
-              throw new MoleculerError(err.message, err.code || 500);
-            }
-          );
+          .then((response: GenericObject) => {
+            const invoices = response.invoices;
+            return {
+              invoices: invoices.map((invoice: Invoice) =>
+                this.invoiceSanitize(invoice)
+              ),
+            };
+          })
+          .catch(err => {
+            throw new MoleculerError(err.message, err.code || 500);
+          });
       },
     },
     create: {
