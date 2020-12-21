@@ -45,7 +45,7 @@ const TheService: ServiceSchema = {
         path: '/api',
 
         authorization: true,
-        whitelist: [/^(?!api|$node|paymentGateway)\w+/],
+        whitelist: [/^(?!api|$node)\w+/],
         autoAliases: true,
 
         aliases: {
