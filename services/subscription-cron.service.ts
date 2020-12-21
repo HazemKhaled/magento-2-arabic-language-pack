@@ -46,34 +46,28 @@ const TheService: ServiceSchema = {
           return null;
         }
 
-        const store: Store = await ctx.call<Store, Partial<Subscription>>(
-          'stores.findInstance',
-          {
-            id: subscription.storeId,
-          }
-        );
+        const store = await ctx.call<Store, { id: string }>('stores.get', {
+          id: subscription.storeId,
+        });
 
         if (store?.status !== 'confirmed') {
           return null;
         }
 
         try {
-          const createSubResponse: Subscription = await ctx.call<
+          const createSubResponse = await ctx.call<
             Subscription,
             Partial<Subscription>
-          >('subscription.create', {
+          >('subscription.createOne', {
             storeId: subscription.storeId,
             membership: subscription.membershipId,
           });
           if (createSubResponse.id) {
-            ctx.call<GenericObject, Partial<Subscription>>(
-              'subscription.updateOne',
-              {
-                id: String(subscription.id),
-                renewed: true,
-              }
-            );
-            ctx.call<GenericObject, Partial<CrmStore>>('crm.addTagsByUrl', {
+            ctx.call<void, Partial<Subscription>>('subscription.updateOne', {
+              id: String(subscription.id),
+              renewed: true,
+            });
+            ctx.call<void, Partial<CrmStore>>('crm.addTagsByUrl', {
               id: subscription.storeId,
               tag: 'subscription-renew',
             });

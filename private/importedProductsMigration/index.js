@@ -6,6 +6,7 @@ let config = {
   currentWorkingDate: undefined,
   currentRemainingLaps: undefined,
   currentFinishEstimation: undefined,
+  lastError: undefined
 };
 
 const appSearchClient = new AppSearchClient(
@@ -52,7 +53,11 @@ async function run() {
       scroll: '1m',
     });
 
-    await updateProducts(productsInstances);
+    try {
+      await updateProducts(productsInstances);
+    } catch (error) {
+      config.lastError = error;
+    }
 
     progressUpdate(startDate, i, laps);
 
@@ -62,18 +67,18 @@ async function run() {
 async function updateProducts(instances) {
   const skus = getSkusArray(instances);
 
-  const products = await appSearchClient.getDocuments('catalog', skus);
+  const products = await appSearchClient.getDocuments(process.env.APP_SEARCH_ENGINE, skus);
 
   const updateArr = getUpdateArray(products, instances);
 
   if (updateArr.length) {
-    await appSearchClient.updateDocuments('catalog', updateArr);
+    await appSearchClient.updateDocuments(process.env.APP_SEARCH_ENGINE, updateArr);
     updatedProductsSkusToFile(updateArr);
   }
 
   saveNotFoundProducts(products, instances);
 
-  config.currentWorkingDate = instances[instances.length-1]._source.createdAt;
+  config.currentWorkingDate = instances[instances.length - 1]._source.createdAt;
 }
 
 function getUpdateArray(products, instances) {
@@ -85,8 +90,8 @@ function getUpdateArray(products, instances) {
         instances.reduce(
           (accumulator, { _source: { sku, siteUrl } }) =>
             sku === p.sku &&
-            !(p.imported || []).includes(siteUrl) &&
-            !accumulator.includes(siteUrl)
+              !(p.imported || []).includes(siteUrl) &&
+              !accumulator.includes(siteUrl)
               ? accumulator.push(siteUrl) && accumulator
               : accumulator,
           [],
@@ -163,12 +168,13 @@ function updateConfig() {
 }
 
 function progressUpdate(startDate, i, laps) {
-  finishTimeEstimation = ((Date.now() - startDate) / (i+1)) * (laps - i) / 1000 / 60;
+  finishTimeEstimation = ((Date.now() - startDate) / (i + 1)) * (laps - i) / 1000 / 60;
   clearConsoleAndScrollBackBuffer();
   console.log('Migration Script In Progress');
-  console.log('Progress: ', ((i + 1)/laps*100).toFixed(2), '%');
-  console.log('Time Estimation: ', finishTimeEstimation.toFixed(2), 'Minutes');
+  console.log('Progress: ', ((i + 1) / laps * 100).toFixed(2), '%');
+  console.log('Time Estimation: ', (finishTimeEstimation / 60).toFixed(2), 'Hours');
   console.log('Last working date: ', config.currentWorkingDate);
+  console.log('Last Error: ', config.lastError);
   if (i === laps) console.log('Mission Finished!');
   config.currentRemainingLaps = laps - i;
   config.currentFinishEstimation = finishTimeEstimation;
@@ -183,11 +189,11 @@ function clearConsoleAndScrollBackBuffer() {
 function updatedProductsSkusToFile(updateArray) {
   return fs.appendFile('./skus.txt', updateArray.reduce((a, obj) => {
     return `${a}${obj.id},`;
-  }, ''), () => {});
+  }, ''), () => { });
 }
 
 function updateMissingInstancesProductsFile(idArr) {
-  return fs.appendFile('./missingInstanceData.txt', `${JSON.stringify(idArr).slice(1,-1)},`, () => {});
+  return fs.appendFile('./missingInstanceData.txt', `${JSON.stringify(idArr).slice(1, -1)},`, () => { });
 }
 
 function saveNotFoundProducts(productsList, instances) {
@@ -211,5 +217,5 @@ process.on('exit', () => {
   updateConfig();
 });
 
-run().catch(e => {console.error(e); updateConfig();});
+run().catch(e => { console.error(e); updateConfig(); });
 

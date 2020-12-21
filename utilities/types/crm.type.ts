@@ -1,7 +1,4 @@
-import { String } from 'lodash';
 import { GenericObject } from 'moleculer';
-
-import { I18nText } from './i18ntext.type';
 
 /**
  * CRM Response Type definition

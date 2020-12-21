@@ -1,6 +1,7 @@
 import { types } from 'util';
 
 import { Context, Errors, GenericObject, ServiceSchema } from 'moleculer';
+import { DbContextParameters } from 'moleculer-db';
 
 import DbService from '../utilities/mixins/mongo.mixin';
 import { SubscriptionOpenapi } from '../utilities/mixins/openapi';
@@ -10,7 +11,6 @@ import {
   Subscription,
   Store,
   MetaParams,
-  Payment,
   Invoice,
   CrmStore,
   CommonError,
@@ -49,19 +49,24 @@ const TheService: ServiceSchema = {
       async handler(
         ctx: Context<{ storeId: string }>
       ): Promise<Subscription | false> {
-        const subscription =
-          (await this.adapter.findOne({
-            storeId: ctx.params.storeId,
-            status: { $ne: 'cancelled' },
-            expireDate: { $gte: new Date() },
-            startDate: { $lte: new Date() },
-          })) || {};
-        const membership: Membership = await ctx.call<
-          Membership,
-          Partial<Membership>
-        >('membership.getOne', {
-          id: subscription.membershipId || 'free',
-        });
+        const subscription = await ctx
+          .call<Subscription[], GenericObject>('subscription.find', {
+            query: {
+              storeId: ctx.params.storeId,
+              status: { $ne: 'cancelled' },
+              expireDate: { $gte: new Date() },
+              startDate: { $lte: new Date() },
+            },
+          })
+          .then(([record]) => record);
+
+        const membership = await ctx.call<Membership, Partial<Membership>>(
+          'membership.get',
+          {
+            id: subscription.membershipId || 'free',
+          }
+        );
+
         return {
           id: (subscription._id && subscription._id.toString()) || '-1',
           ...subscription,
@@ -98,7 +103,7 @@ const TheService: ServiceSchema = {
       rest: 'GET /',
       async handler(
         ctx: Context<SubscriptionListParams>
-      ): Promise<Subscription[] | false> {
+      ): Promise<Subscription[]> {
         const query: GenericObject = {};
         if (ctx.params.storeId) {
           query.storeId = ctx.params.storeId;
@@ -145,7 +150,7 @@ const TheService: ServiceSchema = {
               : new Date();
           }
         }
-        const findBody: any = { query };
+        const findBody: GenericObject = { query };
         if (ctx.params.sort) {
           findBody.sort = { [ctx.params.sort.field]: ctx.params.sort.order };
         }
@@ -155,9 +160,9 @@ const TheService: ServiceSchema = {
         findBody.offset =
           (findBody.limit || 100) *
           (ctx.params.page ? Number(ctx.params.page) - 1 : 0);
-        return this.adapter
-          .find(findBody)
-          .then((res: Subscription[]) => {
+        return ctx
+          .call<Subscription[], GenericObject>('subscription.find', findBody)
+          .then(res => {
             return res;
           })
           .catch((err: CommonError) => {
@@ -219,29 +224,34 @@ const TheService: ServiceSchema = {
         const discount = membership.discount;
 
         // Get the Store instance
-        const instance: Store = await ctx
-          .call<Store, Partial<Store>>('stores.getOne', {
+        const instance = await ctx
+          .call<Store | unknown, Partial<{ id: string }>>('stores.get', {
             id: ctx.params.storeId,
           })
-          .then(null, err => err);
-        let grantToInstance: Store | null = null;
-        if (ctx.params.grantTo) {
-          grantToInstance = await ctx.call<Store, Partial<Store>>(
-            'stores.findInstance',
-            {
-              id: ctx.params.grantTo,
+          .then(store => {
+            // Check for instance errors
+            if ((store as { errors: Error[] }).errors) {
+              throw new MoleculerError(
+                (store as { errors: Error[] }).errors[0].message,
+                404
+              );
             }
+
+            if (isNativeError(store)) {
+              throw new MoleculerError(store.message, 500);
+            }
+
+            return store as Store;
+          });
+
+        let grantToInstance: Store;
+        if (ctx.params.grantTo) {
+          grantToInstance = await ctx.call<Store, { id: string }>(
+            'stores.get',
+            { id: ctx.params.grantTo }
           );
         }
 
-        // Check for instance errors
-        if (instance.errors) {
-          throw new MoleculerError(instance.errors[0].message, 404);
-        }
-
-        if (isNativeError(instance as { message: string; code: number })) {
-          throw new MoleculerError(instance.message, instance.code || 500);
-        }
         let total = Number((cost - discount).toFixed(2));
 
         // Get taxes info
@@ -258,14 +268,23 @@ const TheService: ServiceSchema = {
         if (instance.credit < total && !ctx.params.postpaid) {
           if (process.env.PAYMENT_AUTO_CHARGE_CC_SUBSCRIPTION) {
             await ctx
-              .call<GenericObject, Partial<Payment>>('paymentGateway.charge', {
-                storeId: instance.url,
-                amount: total - instance.credit,
-                description: `${membership.name?.en} subscription ${
-                  membership.paymentFrequencyType
-                }ly renewal ${ctx.params.grantTo || ctx.params.storeId}`,
-                force: true,
-              })
+              .call<GenericObject, Partial<GenericObject>>(
+                'paymentGateway.charge',
+                {
+                  store: instance.url,
+                  purchase_units: [
+                    {
+                      amount: {
+                        value: total - instance.credit,
+                        currency: 'USD',
+                      },
+                      description: `${membership.name?.en} subscription ${
+                        membership.paymentFrequencyType
+                      }ly renewal ${ctx.params.grantTo || ctx.params.storeId}`,
+                    },
+                  ],
+                }
+              )
               .then(null, err => {
                 if (err.type === 'SERVICE_NOT_FOUND')
                   throw new MpError(
@@ -356,12 +375,15 @@ const TheService: ServiceSchema = {
         } else {
           const storeOldSubscription = await ctx.call<
             Subscription[],
-            Partial<SubscriptionListParams>
-          >('subscription.getAll', {
-            storeId: ctx.params.grantTo || ctx.params.storeId,
-            expireDate: { operation: 'gte' },
-            status: 'active',
+            GenericObject
+          >('subscription.find', {
+            query: {
+              storeId: ctx.params.grantTo || ctx.params.storeId,
+              expireDate: { operation: 'gte' },
+              status: 'active',
+            },
           });
+
           startDate.setUTCHours(0, 0, 0, 0);
           if (storeOldSubscription.length > 0) {
             storeOldSubscription.forEach((subscription: Subscription) => {
@@ -424,38 +446,43 @@ const TheService: ServiceSchema = {
           subscriptionBody.status = 'pending';
         }
 
-        return this.adapter.insert(subscriptionBody).then(
-          async (res: Subscription): Promise<GenericObject> => {
-            this.broker.cacher.clean(
-              `subscription.getByStore:${ctx.params.grantTo || instance.url}*`
-            );
-            this.broker.cacher.clean(
-              `subscription.getAll:${ctx.params.grantTo || instance.url}*`
-            );
-            this.broker.cacher.clean(
-              `stores.getOne:${ctx.params.grantTo || instance.url}*`
-            );
-            this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
-            if (ctx.params.grantTo) {
-              this.broker.cacher.clean(`stores.getOne:${instance.url}*`);
+        return ctx
+          .call<Subscription, Subscription>(
+            'subscription.create',
+            subscriptionBody
+          )
+          .then(
+            async (res: Subscription): Promise<GenericObject> => {
               this.broker.cacher.clean(
-                `stores.me:${grantToInstance?.consumer_key}*`
+                `subscription.getByStore:${ctx.params.grantTo || instance.url}*`
               );
-            }
-            ctx.call<GenericObject, Partial<Subscription>>(
-              'subscription.checkCurrentSubGradingStatus',
-              {
-                id: ctx.params.grantTo || ctx.params.storeId,
+              this.broker.cacher.clean(
+                `subscription.getAll:${ctx.params.grantTo || instance.url}*`
+              );
+              this.broker.cacher.clean(
+                `stores.getOne:${ctx.params.grantTo || instance.url}*`
+              );
+              this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
+              if (ctx.params.grantTo) {
+                this.broker.cacher.clean(`stores.getOne:${instance.url}*`);
+                this.broker.cacher.clean(
+                  `stores.me:${grantToInstance?.consumer_key}*`
+                );
               }
-            );
-            ctx.call<GenericObject, Partial<Store>>('crm.updateStoreById', {
-              id: ctx.params.grantTo || ctx.params.storeId,
-              membership_id: membership.id,
-              subscription_expiration: expireDate.getTime(),
-            });
-            return { ...res, id: res._id, _id: undefined };
-          }
-        );
+              ctx.call<void, Partial<Subscription>>(
+                'subscription.checkCurrentSubGradingStatus',
+                {
+                  id: ctx.params.grantTo || ctx.params.storeId,
+                }
+              );
+              ctx.call<void, Partial<unknown>>('crm.updateStoreById', {
+                id: ctx.params.grantTo || ctx.params.storeId,
+                membership_id: membership.id,
+                subscription_expiration: expireDate.getTime(),
+              });
+              return { ...res, id: res._id, _id: undefined };
+            }
+          );
       },
     },
     getOneByExpireDate: {
@@ -484,53 +511,60 @@ const TheService: ServiceSchema = {
           },
           status: { $ne: 'cancelled' },
         };
-        let expiredSubscription = await this.adapter
-          .findOne(query)
-          .catch(console.error);
+        let [expiredSubscription] = await ctx.call<
+          Subscription[],
+          GenericObject
+        >('subscription.find', {
+          query,
+        });
+
         if (!expiredSubscription) {
           return null;
         }
         query.storeId = expiredSubscription.storeId;
-        [expiredSubscription] = await this.adapter.find({
-          query,
-          sort: { expireDate: -1 },
-        });
+        [expiredSubscription] = await ctx.call<Subscription[], GenericObject>(
+          'subscription.find',
+          {
+            query,
+            sort: { expireDate: -1 },
+          }
+        );
         expiredSubscription._id = expiredSubscription._id.toString();
-        const currentSubscription: Subscription = await ctx.call<
+        const currentSubscription = await ctx.call<
           Subscription,
           { storeId: string }
         >('subscription.getByStore', {
           storeId: expiredSubscription.storeId,
         });
         if (currentSubscription.id !== '-1') {
-          await ctx.call<GenericObject, Partial<Subscription>>(
-            'subscription.updateOne',
-            {
-              id: expiredSubscription._id,
-              renewed: true,
-            }
-          );
-          ctx.call<GenericObject, Partial<CrmStore>>('crm.addTagsByUrl', {
+          ctx.call<void, Partial<Subscription>>('subscription.update', {
+            id: expiredSubscription._id,
+            renewed: true,
+          });
+
+          ctx.call<void, Partial<CrmStore>>('crm.addTagsByUrl', {
             id: expiredSubscription.storeId,
             tag: 'subscription-renew',
           });
-          return this.actions.getOneByExpireDate({
-            afterDays: ctx.params.afterDays,
-            beforeDays: ctx.params.beforeDays,
-          });
+          return ctx.call<Subscription, GenericObject>(
+            'subscription.getOneByExpireDate',
+            {
+              afterDays: ctx.params.afterDays,
+              beforeDays: ctx.params.beforeDays,
+            }
+          );
         }
         const date = new Date();
         date.setUTCHours(0, 0, 0, 0);
-        ctx.call<GenericObject, Partial<Subscription>>(
-          'subscription.updateOne',
-          {
-            id: expiredSubscription._id,
-            retries: expiredSubscription.retries
-              ? [...expiredSubscription.retries, new Date(date)]
-              : [new Date(date)],
-          }
-        );
-        ctx.call<GenericObject, Partial<CrmStore>>('crm.addTagsByUrl', {
+
+        ctx.call<void, Partial<Subscription>>('subscription.update', {
+          id: expiredSubscription._id,
+          retries: expiredSubscription.retries
+            ? [...expiredSubscription.retries, new Date(date)]
+            : [new Date(date)],
+        });
+
+        ctx.call<void, Partial<CrmStore>>('crm.addTagsByUrl', {
           id: expiredSubscription.storeId,
           tag: 'subscription-retry-fail',
         });
@@ -540,7 +574,7 @@ const TheService: ServiceSchema = {
     updateOne: {
       auth: ['Basic'],
       rest: 'PUT /:id',
-      handler(ctx: Context<any>): Promise<Subscription> {
+      handler(ctx: Context<Partial<Subscription>>): Promise<Subscription> {
         let $set: Partial<Subscription> = {};
         const { params } = ctx;
         if (ctx.params.retries) {
@@ -553,16 +587,16 @@ const TheService: ServiceSchema = {
           params.expireDate = new Date(params.expireDate);
         }
         $set = { ...params, ...$set, updatedAt: new Date() };
-        delete $set.id;
-        return this.adapter
-          .updateById(ctx.params.id, { $set })
-          .then(async (subscription: Subscription) => {
-            const store: Store = await ctx.call<Store, Partial<Store>>(
-              'stores.findInstance',
-              {
-                id: subscription.storeId,
-              }
-            );
+
+        return ctx
+          .call<Subscription, Partial<Subscription>>(
+            'subscription.update',
+            $set
+          )
+          .then(async subscription => {
+            const store = await ctx.call<Store, { id: string }>('stores.get', {
+              id: subscription.storeId,
+            });
 
             this.broker.cacher.clean(`subscription.getByStore:${store.url}**`);
             this.broker.cacher.clean(`subscription.getAll:${store.url}**`);
@@ -578,20 +612,27 @@ const TheService: ServiceSchema = {
     checkCurrentSubGradingStatus: {
       visibility: 'public',
       async handler(ctx: Context<{ id: string }>): Promise<CrmResponse> | null {
-        const allSubBefore = await ctx.call<
-          GenericObject,
-          Partial<Subscription>
-        >('subscription.getAll', {
-          storeId: ctx.params.id,
-          expireDate: {
-            operation: 'gte',
-            date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7),
-          },
-          status: 'active',
-          sort: { field: 'expireDate', order: -1 },
-          perPage: 2,
-        });
-        const memberships = await ctx.call<Membership[]>('membership.getAll');
+        const allSubBefore = await ctx.call<Subscription[], GenericObject>(
+          'subscription.find',
+          {
+            query: {
+              storeId: ctx.params.id,
+              expireDate: {
+                operation: 'gte',
+                date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7),
+              },
+              status: 'active',
+            },
+
+            sort: { field: 'expireDate', order: -1 },
+            limit: 2,
+          }
+        );
+
+        const memberships = await ctx.call<Membership[], DbContextParameters>(
+          'membership.find',
+          { pageSize: 99 }
+        );
         if (allSubBefore.length === 0) return;
         if (allSubBefore.length === 1) {
           return ctx.call<CrmResponse, Partial<CrmStore>>('crm.addTagsByUrl', {
@@ -623,25 +664,23 @@ const TheService: ServiceSchema = {
       auth: ['Basic'],
       rest: 'DELETE /:id',
       handler(ctx): Promise<Subscription> {
-        return this.adapter
-          .updateById(ctx.params.id, { $set: { status: 'cancelled' } })
-          .then(async (res: any) => {
-            const instance: Store = await ctx.call<Store, Partial<Store>>(
-              'stores.findInstance',
-              {
-                id: res.storeId,
-              }
+        return ctx
+          .call<Subscription, Partial<Subscription>>('subscription.update', {
+            id: ctx.params.id,
+            status: 'cancelled',
+          })
+          .then(async res => {
+            const instance = await ctx.call<Store, { id: string }>(
+              'stores.get',
+              { id: res.storeId }
             );
 
             if (res.invoiceId) {
-              ctx.call<GenericObject, Partial<Invoice>>(
-                'invoices.updateInvoiceStatus',
-                {
-                  omsId: instance?.internal_data?.omsId,
-                  invoiceId: res.invoiceId,
-                  status: 'void',
-                }
-              );
+              ctx.call<void, Partial<Invoice>>('invoices.updateInvoiceStatus', {
+                omsId: instance?.internal_data?.omsId,
+                invoiceId: res.invoiceId,
+                status: 'void',
+              });
             }
             if (!res) {
               throw new MpError(

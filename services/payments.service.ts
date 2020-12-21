@@ -5,7 +5,6 @@ import {
   Payment,
   PaymentInvoice,
   PaymentRequestParams,
-  GetPaymentRequestParams,
   MetaParams,
   Store,
   PaymentResponse,
@@ -13,23 +12,19 @@ import {
 import { PaymentsValidation } from '../utilities/mixins/validation';
 import { Oms } from '../utilities/mixins/oms.mixin';
 import { MpError } from '../utilities/adapters';
-import { CheckoutPage } from '../utilities/mixins';
 
 const TheService: ServiceSchema = {
   name: 'payments',
-  mixins: [PaymentsValidation, PaymentsOpenapi, Oms, CheckoutPage],
+  mixins: [PaymentsValidation, PaymentsOpenapi, Oms],
   actions: {
     add: {
       auth: ['Basic'],
       async handler(
         ctx: Context<PaymentRequestParams>
       ): Promise<PaymentResponse> {
-        const instance: Store = await ctx.call<Store, Partial<Store>>(
-          'stores.findInstance',
-          {
-            id: ctx.params.id,
-          }
-        );
+        const instance = await ctx.call<Store, { id: string }>('stores.get', {
+          id: ctx.params.id,
+        });
 
         // create OMS contact if no oms ID
         if (!instance?.internal_data?.omsId) {
@@ -98,7 +93,7 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 * 24,
       },
       async handler(
-        ctx: Context<GetPaymentRequestParams, MetaParams>
+        ctx: Context<GenericObject, MetaParams>
       ): Promise<{ payments: Payment[] }> {
         const { store } = ctx.meta;
         const keys: { [key: string]: string } = {
@@ -137,13 +132,6 @@ const TheService: ServiceSchema = {
           'No Record Found For This Store!',
           404
         );
-      },
-    },
-
-    checkout: {
-      handler(ctx: Context<unknown, MetaParams>): string {
-        ctx.meta.$responseType = 'text/html';
-        return this.renderCheckoutPage();
       },
     },
   },

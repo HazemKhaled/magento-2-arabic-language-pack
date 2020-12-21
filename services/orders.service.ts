@@ -14,9 +14,7 @@ import {
   OrderMetaParams,
   Coupon,
   CrmStore,
-  SubscriptionType,
   updateOderRequestParams,
-  DynamicRequestParams,
   InvoiceResponse,
   InvoiceRequestParams,
   CommonError,
@@ -209,9 +207,7 @@ const TheService: ServiceSchema = {
         // Getting the current user subscription
         const subscription = await ctx.call<Subscription, { storeId: string }>(
           'subscription.getByStore',
-          {
-            storeId: store.url,
-          }
+          { storeId: store.url }
         );
         switch (subscription.attributes.orderProcessingType) {
           case '$':
@@ -351,14 +347,14 @@ const TheService: ServiceSchema = {
         // TODO: Move to hook after create, and write this code into coupon service
         // If coupon used update quantity
         if (data.coupon) {
-          ctx.call<Coupon | boolean, Partial<Coupon>>('coupons.updateCount', {
+          ctx.call<void, Partial<Coupon>>('coupons.updateCount', {
             id: data.coupon,
           });
         }
 
         // TODO: Move to hook after create, and write this code into CRM service
         // Update CRM last update
-        ctx.call<CrmStore, Partial<CrmStore>>('crm.updateStoreById', {
+        ctx.call<void, Partial<CrmStore>>('crm.updateStoreById', {
           id: store.url,
           last_order_date: Date.now(),
         });
@@ -758,7 +754,7 @@ const TheService: ServiceSchema = {
           if (!keys.includes(key)) return;
           queryParams[key] = ctx.params[key];
         });
-        const orders = await ctx.call<OrderOMSResponse, DynamicRequestParams>(
+        const orders = await ctx.call<OrderOMSResponse, GenericObject>(
           'oms.listOrders',
           {
             customerId: store.internal_data.omsId,
@@ -835,24 +831,28 @@ const TheService: ServiceSchema = {
       async handler(
         ctx: Context<OrderRequestParams, MetaParams>
       ): Promise<GenericObject> {
-        const store = await ctx.call<Store, Partial<Store>>('stores.getOne', {
-          id: ctx.meta.store.url,
-        });
+        const { storeId, id } = ctx.params;
+
+        const storeDoc =
+          ctx.meta.store ||
+          (await ctx.call<Store, Partial<Store>>('stores.getOne', {
+            id: storeId,
+          }));
+
+        ctx.meta.store = storeDoc;
+        if (!storeDoc) {
+          throw new MpError('Orders Service', 'No store provided', 422);
+        }
 
         const order = await ctx.call<Order, Partial<OrderRequestParams>>(
           'orders.getOrder',
-          {
-            order_id: ctx.params.id,
-          }
+          { order_id: id }
         );
-
         if (order.financialStatus === 'paid') {
-          return {
-            message: 'This order is already paid!',
-          };
+          return { message: 'This order is already paid!' };
         }
 
-        if (order.total > store.credit) {
+        if (order.total > storeDoc.credit) {
           throw new MpError(
             'Orders Service',
             "You don't have enough balance",
@@ -877,7 +877,7 @@ const TheService: ServiceSchema = {
             } = await ctx.call<InvoiceResponse, Partial<InvoiceRequestParams>>(
               'invoices.createOrderInvoice',
               {
-                storeId: store.url,
+                storeId: storeDoc.url,
                 orderId: order.id,
               }
             ));
@@ -886,7 +886,7 @@ const TheService: ServiceSchema = {
           await ctx.call<unknown, Partial<InvoiceRequestParams>>(
             'invoices.markInvoiceSent',
             {
-              omsId: ctx.meta.store.internal_data.omsId,
+              omsId: storeDoc.internal_data.omsId,
               invoiceId,
             }
           );
@@ -932,7 +932,7 @@ const TheService: ServiceSchema = {
           order.status = 'paid';
           order.financialStatus = 'paid';
           order.fulfillmentStatus = 'processing';
-          this.cacheUpdate(order, store);
+          this.cacheUpdate(order, storeDoc);
 
           return applyCreditRes;
         }
@@ -1193,7 +1193,7 @@ const TheService: ServiceSchema = {
      * @returns
      */
     orderData(params: Order, instance: Store, create = false) {
-      const data: Order = {
+      const data: Order & { store?: Partial<Store> } = {
         status: params.status,
         items: params.items || params.line_items,
         shipping: params.shipping,

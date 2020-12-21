@@ -27,7 +27,6 @@ export interface Order {
   shipmentDate?: Date;
   shipping_method: string;
   discount?: number;
-  store?: GenericObject;
   orderNumber?: string;
   taxTotal?: number;
   adjustment?: number;
@@ -105,7 +104,7 @@ export interface SalesOrder {
     url: string;
   };
   status: string;
-  subStatuses: [];
+  subStatuses: string[];
   createDate: Date;
   updateDate: Date;
   items: OrderItem[];
@@ -290,6 +289,7 @@ export interface OrderRequestParams extends Order {
   orderId: string;
   order_id: string;
   limit: number;
+  storeId?: string;
 }
 
 /**

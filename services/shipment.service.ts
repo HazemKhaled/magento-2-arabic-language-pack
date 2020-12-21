@@ -29,10 +29,10 @@ const Shipment: ServiceSchema = {
       auth: ['Basic'],
       cache: { ttl: 60 * 60 * 24 * 30 },
       rest: 'GET /',
-      handler(ctx: Context): ShipmentPolicy[] {
-        return this.adapter
-          .find()
-          .then((data: ShipmentPolicy[]) => this.shipmentTransform(data));
+      handler(ctx): Promise<ShipmentPolicy[]> {
+        return ctx
+          .call<ShipmentPolicy[]>('shipment.find')
+          .then(data => this.shipmentTransform(data));
       },
     },
     /**
@@ -46,9 +46,9 @@ const Shipment: ServiceSchema = {
       cache: { keys: ['id'], ttl: 60 * 60 * 24 * 30 },
       rest: 'GET /:id',
       handler(ctx: Context<{ id: string }>): ShipmentPolicy {
-        return this.adapter
-          .findById(ctx.params.id)
-          .then((data: ShipmentPolicy) => this.shipmentTransform(data));
+        return this.getById(ctx.params.id).then((data: ShipmentPolicy) =>
+          this.shipmentTransform(data)
+        );
       },
     },
     /**
@@ -60,10 +60,10 @@ const Shipment: ServiceSchema = {
     createOne: {
       auth: ['Basic'],
       rest: 'POST /',
-      handler(ctx: Context<ShipmentPolicy>): ShipmentPolicy {
+      handler(ctx: Context<ShipmentPolicy>): Promise<ShipmentPolicy> {
         // insert to DB
-        return this.adapter
-          .insert({
+        return ctx
+          .call<ShipmentPolicy, Partial<ShipmentPolicy>>('shipment.create', {
             _id: ctx.params.name,
             countries: ctx.params.countries,
             rules: ctx.params.rules,
@@ -71,11 +71,10 @@ const Shipment: ServiceSchema = {
             createdAt: new Date(),
             updatedAt: new Date(),
           })
-          .then(() => {
+          .then(data => {
             this.broker.cacher.clean('shipment.**');
-            return this.adapter.findById(ctx.params.name);
+            return this.shipmentTransform(data);
           })
-          .then((data: ShipmentPolicy) => this.shipmentTransform(data))
           .catch((err: CommonError) => {
             if (err.name === 'MoleculerError') {
               throw new MpError('Shipment Service', err.message, err.code);
@@ -112,7 +111,7 @@ const Shipment: ServiceSchema = {
           )
           .then(() => {
             this.broker.cacher.clean('shipment.**');
-            return this.adapter.findById(ctx.params.id);
+            return this.getById(ctx.params.id);
           })
           .then((data: ShipmentPolicy) => this.shipmentTransform(data))
           .catch((err: CommonError) => {
@@ -149,7 +148,7 @@ const Shipment: ServiceSchema = {
           ship_from_city: string;
           ship_from_country: string;
         }>
-      ): Rule[] {
+      ): Promise<Rule[]> {
         // find policies with matched rules
         const query: RuleQuery = {
           countries: ctx.params.country,
@@ -182,17 +181,18 @@ const Shipment: ServiceSchema = {
             };
           }
         }
-        return this.adapter
-          .find({
+        return ctx
+          .call<ShipmentPolicy[], { query: RuleQuery }>('shipment.find', {
             query,
           })
-          .then((policies: ShipmentPolicy[]) => {
+          .then(policies => {
             // Get all rules
             const rules: Rule[] = policies.reduceRight(
               (accumulator: Rule[], policy: ShipmentPolicy): Rule[] =>
                 accumulator.concat(policy.rules),
               []
             );
+
             return (
               rules
                 // Filter rules
@@ -203,6 +203,7 @@ const Shipment: ServiceSchema = {
                 )
                 // Reformat the rules
                 .map(rule => ({
+                  ...rule,
                   courier: rule.courier,
                   cost: Number(rule.cost),
                   duration: `${rule.delivery_days_min}-${rule.delivery_days_max}`,
@@ -227,12 +228,15 @@ const Shipment: ServiceSchema = {
     getAllCouriers: {
       auth: ['Basic'],
       cache: { keys: ['country'], ttl: 60 * 60 * 24 * 30 },
-      handler(ctx: Context<ShipmentPolicy>): string[] {
+      handler(ctx: Context<ShipmentPolicy>): Promise<string[]> {
         const query = ctx.params.country
           ? { countries: ctx.params.country }
           : {};
-        return this.adapter
-          .find({ query })
+
+        return ctx
+          .call<ShipmentPolicy[], GenericObject>('shipment.find', {
+            query,
+          })
           .then(
             // Get couriers and filter repeated couriers
             (polices: ShipmentPolicy[]) =>

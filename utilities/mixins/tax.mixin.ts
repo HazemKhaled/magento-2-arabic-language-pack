@@ -1,6 +1,6 @@
 import { ServiceSchema } from 'moleculer';
 
-import { Store, Tax, OrderItem } from '../types';
+import { Store, DbTax, OrderItem } from '../types';
 
 import { Mail } from './mail.mixin';
 
@@ -24,7 +24,7 @@ export const TaxCheck: ServiceSchema = {
     async getItemTax(
       instance: Store | string,
       item: OrderItem
-    ): Promise<{ code: number; message: string } | Tax> {
+    ): Promise<{ code: number; message: string } | DbTax> {
       // Check if the store billing address country is available
       if (typeof instance !== 'string' && !this.checkAddressCountry(instance)) {
         return {
@@ -69,13 +69,13 @@ export const TaxCheck: ServiceSchema = {
       const taxClass = item.taxClass;
 
       // Get tax data from taxes service
-      const taxData: Tax | ErrorSchema = await this.broker
+      const taxData: DbTax | ErrorSchema = await this.broker
         .call('taxes.getAll', {
           country,
           class: taxClass.toString(),
         })
         .then(
-          (res: { taxes: Tax[] }) => res.taxes[0],
+          (res: { taxes: DbTax[] }) => res.taxes[0],
           (err: any) => [
             {
               code: 4444,
@@ -100,8 +100,8 @@ export const TaxCheck: ServiceSchema = {
       }
 
       // If no percentage set it to zero
-      if (!(taxData as Tax).percentage && !(taxData as ErrorSchema).code) {
-        (taxData as Tax).percentage = 0;
+      if (!(taxData as DbTax).percentage && !(taxData as ErrorSchema).code) {
+        (taxData as DbTax).percentage = 0;
       }
 
       return taxData;
@@ -158,6 +158,6 @@ export const TaxCheck: ServiceSchema = {
   },
 };
 
-interface ValueTax extends Tax {
+interface ValueTax extends DbTax {
   value?: number;
 }

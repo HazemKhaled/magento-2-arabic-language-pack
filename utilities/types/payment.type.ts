@@ -80,13 +80,3 @@ export interface PaymentRequestParams {
   reference: string;
   description: string;
 }
-
-/**
- * Get Invoice Request Params
- *
- * @export
- * @interface GetPaymentRequestParams
- */
-export interface GetPaymentRequestParams {
-  [key: string]: string;
-}

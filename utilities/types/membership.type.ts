@@ -1,3 +1,5 @@
+import { GenericObject } from 'moleculer';
+
 import { I18n } from './i18ntext.type';
 
 /**
@@ -19,7 +21,7 @@ export interface Membership {
   discount: number;
   paymentFrequency: number;
   paymentFrequencyType: 'month' | 'year';
-  attributes: { [key: string]: any };
+  attributes: GenericObject;
   createdAt: Date;
   updatedAt: Date;
   isDefault: boolean;

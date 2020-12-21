@@ -1,10 +1,13 @@
 import { Context, ServiceSchema, GenericObject } from 'moleculer';
 import ApiGateway from 'moleculer-web';
 import compression from 'compression';
+import { MoleculerRequest } from 'moleculer-express';
+import fetch from 'node-fetch';
 
-import { Log, Store, AuthorizeMeta, IncomingRequest } from '../utilities/types';
+import { Log, Store, MetaParams, IncomingRequest } from '../utilities/types';
 import { OpenApiMixin } from '../utilities/mixins/openapi.mixin';
-import { hmacMiddleware, webpackMiddlewares } from '../utilities/middleware';
+import { webpackMiddlewares } from '../utilities/middleware';
+import { authorizeHmac } from '../utilities/lib';
 
 const {
   UnAuthorizedError,
@@ -42,7 +45,7 @@ const TheService: ServiceSchema = {
         path: '/api',
 
         authorization: true,
-        whitelist: [/^(?!api|$node)\w+/],
+        whitelist: [/^(?!api|$node|paymentGateway)\w+/],
         autoAliases: true,
 
         aliases: {
@@ -86,16 +89,7 @@ const TheService: ServiceSchema = {
           'POST invoices/:id/credits': 'invoices.applyCredits',
           'GET invoices/:storeId/external/:id': 'invoices.renderInvoice',
 
-          // Cards
-          'POST cards': 'cards.create',
-          'PUT cards/:id': 'cards.update',
-          'GET cards/:id': 'cards.get',
-          'DELETE cards/:id': 'cards.delete',
-
-          // paymentGateway
-          'POST paymentGateway/:type/transaction': 'paymentGateway.transaction',
-
-          // Payments mp
+          // Payments
           'POST payments/:id': 'payments.add',
           'GET payments': 'payments.get',
 
@@ -164,7 +158,7 @@ const TheService: ServiceSchema = {
             err.code === 401 ||
             err.name === 'NotFoundError'
           ) {
-            res.end(
+            return res.end(
               JSON.stringify({
                 name: err.name,
                 message: err.message,
@@ -174,6 +168,7 @@ const TheService: ServiceSchema = {
               })
             );
           }
+
           if (err.code === 500 || !err.code) {
             const log = await this.sendLogs({
               topic: `${String(req.$params?.topic)}`
@@ -190,7 +185,7 @@ const TheService: ServiceSchema = {
             }).catch((err: unknown) => this.broker.logger.error(err));
 
             if (log) {
-              res.end(
+              return res.end(
                 JSON.stringify({
                   errors: [
                     {
@@ -201,7 +196,8 @@ const TheService: ServiceSchema = {
               );
             }
           }
-          res.end(
+
+          return res.end(
             JSON.stringify({
               errors: [{ message: err.message || 'Internal Server Error!' }],
             })
@@ -211,7 +207,25 @@ const TheService: ServiceSchema = {
       {
         path: '/',
 
-        authorization: false,
+        authorization: true,
+        cors: {
+          origin: '*',
+          credentials: false,
+          maxAge: 3600,
+        },
+        // Route error handler
+        async onError(req: any, res: any, err: any) {
+          const output = await req.$ctx.call('paymentGateway.error', {
+            error: {
+              code: err.code,
+              message: err.message,
+              data: err.data,
+            },
+          });
+
+          res.setHeader('Content-Type', 'text/html');
+          res.end(output);
+        },
         use: [
           compression(),
           // Webpack middleware
@@ -219,7 +233,8 @@ const TheService: ServiceSchema = {
           ApiGateway.serveStatic('public'),
         ],
         aliases: {
-          'GET checkout': [hmacMiddleware(), 'payments.checkout'],
+          'GET checkout': 'paymentGateway.get',
+          'GET cards/list': 'paymentGateway.cardsList',
         },
       },
     ],
@@ -229,24 +244,29 @@ const TheService: ServiceSchema = {
     /**
      * Authorize the request
      *
-     * @param {Context<void, AuthorizeMeta>} ctx
+     * @param {Context<void, MetaParams>} ctx
      * @param {unknown} route
      * @param {IncomingRequest} req
      * @returns {(Promise<Store | boolean>)}
      */
     authorize(
-      ctx: Context<void, AuthorizeMeta>,
+      ctx: Context<void, MetaParams>,
       route: unknown,
-      req: IncomingRequest
+      req: IncomingRequest & MoleculerRequest
     ): Promise<Store | boolean> {
+      const { $endpoint, headers } = req as GenericObject;
       // Pass if no auth required
-      if (!req.$endpoint.action.auth) {
+      if (!$endpoint.action.auth) {
         return this.Promise.resolve();
       }
 
+      if ($endpoint.action.auth.includes('Hmac')) {
+        return authorizeHmac(ctx, req);
+      }
+
       // if no authorization in the header
-      if (!req.headers.authorization) {
-        throw new UnAuthorizedError(ERR_NO_TOKEN, req.headers);
+      if (!headers.authorization) {
+        throw new UnAuthorizedError(ERR_NO_TOKEN, headers);
       }
 
       // If token or token type are missing, throw error
@@ -263,45 +283,38 @@ const TheService: ServiceSchema = {
               .call<Store, { token: string }>('stores.resolveBearerToken', {
                 token,
               })
-              .then(user => {
-                if (!user) {
+              .then(store => {
+                if (!store) {
                   return this.Promise.reject(
                     new UnAuthorizedError(
                       ERR_INVALID_TOKEN,
-                      req.headers.authorization
+                      headers.authorization
                     )
                   );
                 }
-                if (user) {
-                  this.logger.info(
-                    'Authenticated via JWT: ',
-                    user.consumer_key
-                  );
-                  // Reduce user fields (it will be transferred to other nodes)
-                  ctx.meta.user = user.consumer_key;
-                  ctx.meta.token = token;
-                  ctx.meta.storeId = user.url;
-                  ctx.meta.store = user;
-                }
-                return user;
+
+                this.logger.info('Authenticated via JWT: ', store.consumer_key);
+                // Reduce user fields (it will be transferred to other nodes)
+                ctx.meta.user = store.consumer_key;
+                ctx.meta.token = token;
+                ctx.meta.storeId = store.url;
+                ctx.meta.store = store;
+
+                return store;
               });
           }
 
           // Verify Base64 Basic auth
           if (type === 'Basic') {
-            return ctx
-              .call<Store, { token: string }>('stores.resolveBasicToken', {
-                token,
-              })
-              .then(user => {
-                if (user) {
-                  ctx.meta.token = token;
-                }
-                return user;
-              });
+            return this.resolveBasicToken(token).then((user: unknown) => {
+              if (user) {
+                ctx.meta.token = token;
+              }
+              return user;
+            });
           }
         })
-        .then((user: Store) => {
+        .then((user: unknown) => {
           if (!user) {
             throw new UnAuthorizedError(
               ERR_INVALID_TOKEN,
@@ -311,6 +324,26 @@ const TheService: ServiceSchema = {
 
           return user;
         });
+    },
+
+    /**
+     * Get user by JWT token (for API GW authentication)
+     *
+     * @param {string} token
+     * @returns {(Promise<GenericObject | boolean>)}
+     */
+    resolveBasicToken(token: string): Promise<GenericObject | boolean> {
+      return fetch(`${process.env.AUTH_BASEURL}/login`, {
+        headers: {
+          Authorization: `Basic ${token}`,
+        },
+      }).then(res => {
+        if (res.ok) {
+          return res.json();
+        }
+
+        return false;
+      });
     },
     /**
      * Log order errors

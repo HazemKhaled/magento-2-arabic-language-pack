@@ -6,6 +6,9 @@ export const ShipmentValidation: ServiceSchema = {
   name: 'shipment',
   actions: {
     getAll: {
+      params: {},
+    },
+    getOne: {
       params: {
         id: {
           type: 'string',

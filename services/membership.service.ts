@@ -37,9 +37,14 @@ const TheService: ServiceSchema = {
         params._id = `m-${params.id || Date.now()}`;
         delete params.id;
         if (params.isDefault) {
-          const currentDefault = await this.adapter.findOne({
-            isDefault: true,
-            active: true,
+          const [currentDefault] = await ctx.call<
+            Membership[],
+            { query: Partial<Membership> }
+          >('membership.find', {
+            query: {
+              isDefault: true,
+              active: true,
+            },
           });
           if (currentDefault) {
             throw new MoleculerError(
@@ -47,9 +52,9 @@ const TheService: ServiceSchema = {
             );
           }
         }
-        return this.adapter
-          .insert(params)
-          .then((res: Membership) => {
+        return ctx
+          .call<Membership, Membership>('membership.create', params)
+          .then(res => {
             this.broker.cacher.clean('membership.getAll:**');
             return this.normalize(res);
           })
@@ -70,18 +75,27 @@ const TheService: ServiceSchema = {
       rest: 'GET /:id',
       handler(ctx: Context<MembershipRequestParams>): Promise<Membership> {
         const { active, id, country } = ctx.params;
+
+        if (id) {
+          return this.getById(id);
+        }
+
         const query: Partial<MembershipRequestParams> = { _id: id };
         if (active !== undefined) {
           query.active = active;
         }
 
-        return this.adapter
-          .findOne(query)
-          .then(async (res: Membership) => {
+        return ctx
+          .call<Membership[], GenericObject>('membership.find', {
+            query,
+          })
+          .then(async ([res]) => {
             if (!res) {
-              return this.adapter
-                .findOne({ isDefault: true })
-                .then((def: Membership) => this.normalize(def));
+              return ctx
+                .call<Membership[], GenericObject>('membership.find', {
+                  query: { isDefault: true },
+                })
+                .then(([def]) => this.normalize(def));
             }
 
             if (ctx.params.coupon) {
@@ -113,12 +127,14 @@ const TheService: ServiceSchema = {
             $or: [{ country }, { country: { $exists: false } }],
           };
         }
-        return this.adapter
-          .find({ query })
-          .then((res: Membership[]) => {
+        return ctx
+          .call<Membership[], GenericObject>('membership.find', {
+            query,
+          })
+          .then(res => {
             if (!res.length)
               throw new MoleculerError('No Membership found!', 404);
-            const cMemberships = res.filter(m => m.country === country);
+            const cMemberships = res.filter(me => me.country === country);
             return this.listNormalize(
               cMemberships.length ? cMemberships : res,
               country
@@ -135,27 +151,22 @@ const TheService: ServiceSchema = {
     updateOne: {
       auth: ['Basic'],
       rest: 'PUT /:id',
-      async handler(
-        ctx: Context<MembershipRequestParams>
-      ): Promise<Membership> {
+      async handler(ctx: Context<Membership>): Promise<Membership> {
         const { params } = ctx;
-        const id = params.id;
-        delete params.id;
-        return this.adapter.collection
-          .updateOne(
-            { _id: id },
-            { $set: { ...params, updatedAt: new Date() } }
-          )
-          .then((res: Membership) => {
+
+        return ctx
+          .call<Membership, Membership>('membership.update', {
+            ...params,
+            updatedAt: new Date(),
+          })
+          .then(res => {
             this.broker.cacher.clean('membership.getAll:**');
-            this.broker.cacher.clean(`membership.getOne:${id}**`);
+            this.broker.cacher.clean(`membership.getOne:${params.id}**`);
             if (!res) {
               throw new MoleculerError('Membership not found', 404);
             }
-            return ctx.call<Membership, Partial<Membership>>(
-              'membership.getOne',
-              { id }
-            );
+
+            return res;
           })
           .catch((err: CommonError) => {
             if (err.name === 'MoleculerError') {
@@ -238,13 +249,11 @@ const TheService: ServiceSchema = {
       });
     },
     async applyCouponDiscount(couponCode, membership): Promise<void> {
-      const coupon: Coupon = await this.broker
-        .call('coupons.getOne', {
-          id: couponCode,
-          membership: membership.id,
-          type: 'subscription',
-        })
-        .then(null, (err: unknown) => err);
+      const coupon: Coupon = await this.call('coupon.getOne', {
+        id: couponCode,
+        membership: membership.id,
+        type: 'subscription',
+      }).then(null, (err: unknown) => err);
       if (coupon instanceof Error) {
         throw new MoleculerError(coupon.message, Number(coupon.code));
       }

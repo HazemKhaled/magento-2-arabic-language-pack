@@ -1,15 +1,13 @@
-import { Context, Errors, ServiceSchema } from 'moleculer';
+import { Context, Errors, GenericObject, ServiceSchema } from 'moleculer';
 
 import { InvoicesOpenapi } from '../utilities/mixins/openapi';
 import {
   Invoice,
   InvoiceRequestParams,
-  DynamicRequestParams,
   MetaParams,
   Store,
   Order,
   OrderRequestParams,
-  StoreRequest,
   InvoiceResponse,
 } from '../utilities/types';
 import { InvoicesValidation } from '../utilities/mixins/validation';
@@ -30,7 +28,7 @@ const TheService: ServiceSchema = {
         ttl: 60,
       },
       handler(
-        ctx: Context<DynamicRequestParams, MetaParams>
+        ctx: Context<GenericObject, MetaParams>
       ): Promise<{ invoices: Invoice[] }> {
         const { store } = ctx.meta;
 
@@ -53,33 +51,33 @@ const TheService: ServiceSchema = {
             omsId: store?.internal_data?.omsId,
             ...queryParams,
           })
-          .then(
-            async ({ response: { invoices } }) => {
-              return {
-                invoices: invoices.map((invoice: Invoice) =>
-                  this.invoiceSanitize(invoice)
-                ),
-              };
-            },
-            err => {
-              throw new MoleculerError(err.message, err.code || 500);
-            }
-          );
+          .then((response: GenericObject) => {
+            const invoices = response.invoices;
+            return {
+              invoices: invoices.map((invoice: Invoice) =>
+                this.invoiceSanitize(invoice)
+              ),
+            };
+          })
+          .catch(err => {
+            throw new MoleculerError(err.message, err.code || 500);
+          });
       },
     },
     create: {
       auth: ['Basic'],
       async handler(ctx: Context<InvoiceRequestParams>): Promise<unknown> {
-        const instance: Store = await ctx.call<Store, Partial<Store>>(
-          'stores.findInstance',
-          {
+        const instance = await ctx
+          .call<Store & { errors: unknown }, { id: string }>('stores.get', {
             id: ctx.params.storeId,
-          }
-        );
+          })
+          .then(store => {
+            if (store.errors) {
+              throw new MoleculerError('Store not found', 404);
+            }
 
-        if (instance.errors) {
-          throw new MoleculerError('Store not found', 404);
-        }
+            return store as Store;
+          });
 
         const { items, discount } = ctx.params;
         // Total items cost
@@ -149,20 +147,28 @@ const TheService: ServiceSchema = {
     applyCredits: {
       auth: ['Bearer'],
       async handler(
-        ctx: Context<Partial<InvoiceRequestParams>>
+        ctx: Context<Partial<InvoiceRequestParams>, { store?: Store }>
       ): Promise<InvoiceResponse> {
-        const store: Store = await ctx.call<Store>('stores.me');
-
+        const store: Store =
+          ctx.meta.store || (await ctx.call<Store>('stores.me'));
         const { params } = ctx;
+
         if (
           params.useSavedPaymentMethods &&
           store.credit < params.paymentAmount
         ) {
           if (process.env.PAYMENT_AUTO_CHARGE_CC_INVOICE) {
             await ctx
-              .call<void, Partial<StoreRequest>>('paymentGateway.charge', {
-                storeId: store.url,
-                amount: params.paymentAmount - store.credit,
+              .call<void, Partial<GenericObject>>('paymentGateway.charge', {
+                store: store.url,
+                purchase_units: [
+                  {
+                    amount: {
+                      value: params.paymentAmount - store.credit,
+                      currency: 'USD',
+                    },
+                  },
+                ],
               })
               .then(null, err => {
                 if (err.type === 'SERVICE_NOT_FOUND')
@@ -208,12 +214,9 @@ const TheService: ServiceSchema = {
       async handler(
         ctx: Context<InvoiceRequestParams>
       ): Promise<{ invoice: Invoice; code?: number; message?: string }> {
-        const instance: Store = await ctx.call<Store, Partial<Store>>(
-          'stores.findInstance',
-          {
-            id: ctx.params.storeId,
-          }
-        );
+        const instance = await ctx.call<Store, { id: string }>('stores.get', {
+          id: ctx.params.storeId,
+        });
 
         return ctx
           .call<null, Partial<InvoiceRequestParams>>(
@@ -250,23 +253,15 @@ const TheService: ServiceSchema = {
       async handler(
         ctx: Context<InvoiceRequestParams, MetaParams>
       ): Promise<unknown> {
-        const store: Store = await ctx.call<Store, Partial<Store>>(
-          'stores.findInstance',
-          {
-            id: ctx.params.storeId,
-          }
-        );
-        const orders: Order[] = await ctx.call<Order[], Partial<Order>>(
-          'orders.list',
-          {
-            externalId: ctx.params.id,
-          }
-        );
-        const order: Order = await ctx.call<Order, Partial<OrderRequestParams>>(
+        const store = await ctx.call<Store, { id: string }>('stores.get', {
+          id: ctx.params.storeId,
+        });
+        const orders = await ctx.call<Order[], Partial<Order>>('orders.list', {
+          externalId: ctx.params.id,
+        });
+        const order = await ctx.call<Order, Partial<OrderRequestParams>>(
           'orders.getOrder',
-          {
-            order_id: orders[0].id,
-          }
+          { order_id: orders[0].id }
         );
         ctx.meta.$responseType = 'text/html';
         return this.renderInvoice(store, order);

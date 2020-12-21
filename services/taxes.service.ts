@@ -2,13 +2,7 @@ import { Context, Errors, GenericObject, ServiceSchema } from 'moleculer';
 
 import DbService from '../utilities/mixins/mongo.mixin';
 import { TaxOpenapi } from '../utilities/mixins/openapi';
-import {
-  DbTax,
-  RTax,
-  TaxRequestParams,
-  DynamicRequestParams,
-  CommonError,
-} from '../utilities/types';
+import { DbTax, TaxRequestParams, CommonError } from '../utilities/types';
 import { TaxesValidation } from '../utilities/mixins/validation';
 
 const MoleculerError = Errors.MoleculerError;
@@ -23,7 +17,7 @@ const TaxesService: ServiceSchema = {
     createOne: {
       auth: ['Basic'],
       rest: 'POST /',
-      async handler(ctx: Context<Partial<DbTax>>): Promise<RTax> {
+      async handler(ctx: Context<Partial<DbTax>>): Promise<{ tax: DbTax }> {
         const taxBody: Partial<DbTax> = {
           ...ctx.params,
           createdAt: new Date(),
@@ -38,12 +32,12 @@ const TaxesService: ServiceSchema = {
           }
         );
         taxBody.omsId = omsTax.tax.id;
-        return this.adapter
-          .insert(taxBody)
-          .then((tax: DbTax) => {
+        return ctx
+          .call<DbTax, Partial<DbTax>>('taxes.create', taxBody)
+          .then(tax => {
             this.broker.cacher.clean('taxes.getAll:*');
-            this.broker.cacher.clean('taxes.tCount:*');
-            return { tax: this.sanitizer(tax) };
+
+            return { tax: this.sanitizer(tax) as DbTax };
           })
           .catch((err: CommonError) => {
             throw new MoleculerError(String(err), 500);
@@ -53,30 +47,25 @@ const TaxesService: ServiceSchema = {
     updateOne: {
       auth: ['Basic'],
       rest: 'PUT /:id',
-      async handler(ctx: Context<GenericObject>): Promise<RTax> {
-        const { id } = ctx.params;
-        const $set = ctx.params;
-        $set.updatedAt = new Date();
+      async handler(ctx: Context<Partial<DbTax>>): Promise<DbTax> {
+        const record = ctx.params;
+        record.updatedAt = new Date();
 
-        if ($set.country) {
-          $set.country = $set.country.toUpperCase();
+        if (record.country) {
+          record.country = record.country.toUpperCase();
         }
-        delete $set.id;
 
-        const taxUpdateData = await this.adapter
-          .updateById(id, { $set })
-          .then((tax: DbTax) => {
+        const taxUpdateData = await ctx
+          .call<DbTax, Partial<DbTax>>('taxes.update', record)
+          .then(tax => {
             if (!tax) {
               throw new MoleculerError('There is no tax with that ID', 404);
             }
 
-            this.broker.cacher.clean(`taxes.getOne:${id}*`);
+            this.broker.cacher.clean(`taxes.getOne:${record.id}*`);
             this.broker.cacher.clean('taxes.getAll:*');
-            this.broker.cacher.clean('taxes.tCount:*');
 
-            return {
-              tax: this.sanitizer(tax),
-            };
+            return this.sanitizer(tax) as DbTax;
           })
           .catch((err: CommonError) => {
             throw new MoleculerError(
@@ -84,24 +73,15 @@ const TaxesService: ServiceSchema = {
               err.code < 500 ? err.code : 500
             );
           });
-        if (taxUpdateData.tax) {
-          ctx.call<GenericObject, DynamicRequestParams>(
-            'oms.updateTax',
-            ['name', 'percentage'].reduce(
-              (acc: GenericObject, key: string) => {
-                if (!$set[key]) {
-                  delete acc[key];
-                }
-                return acc;
-              },
-              {
-                id: taxUpdateData.tax.omsId,
-                name: $set.name,
-                percentage: $set.percentage,
-              }
-            )
-          );
+
+        if (taxUpdateData.omsId) {
+          ctx.call<void, GenericObject>('oms.updateTax', {
+            id: taxUpdateData.omsId,
+            name: taxUpdateData.name,
+            percentage: taxUpdateData.percentage,
+          });
         }
+
         return taxUpdateData;
       },
     },
@@ -113,9 +93,8 @@ const TaxesService: ServiceSchema = {
         ttl: 60 * 60 * 24,
       },
       rest: 'GET /:id',
-      handler(ctx: Context<RTax>): RTax {
-        return this.adapter
-          .findById(ctx.params.id)
+      handler(ctx: Context<DbTax>): DbTax {
+        return this.getById(ctx.params.id)
           .then((tax: DbTax) => {
             if (tax) {
               return { tax: this.sanitizer(tax) };
@@ -138,10 +117,10 @@ const TaxesService: ServiceSchema = {
         ttl: 60 * 60 * 24,
       },
       rest: 'GET /',
-      handler(ctx: Context<TaxRequestParams>): RTax[] {
+      handler(ctx: Context<TaxRequestParams>): DbTax[] {
         const { country } = ctx.params;
         const classes = ctx.params.class;
-        const query: any = {};
+        const query: GenericObject = {};
         if (country) {
           query.country = country.toUpperCase();
         }
@@ -154,16 +133,11 @@ const TaxesService: ServiceSchema = {
         const page = Number(ctx.params.page) || 1;
         const limit = Number(ctx.params.perPage) || 50;
         const offset = (page - 1) * limit;
-        return this.adapter
-          .find({ limit, offset, query })
-          .then(async (res: DbTax[]) => ({
-            taxes: res.map(tax => this.sanitizer(tax)),
-            total: await ctx.call<number, Partial<TaxRequestParams>>(
-              'taxes.tCount',
-              {
-                query,
-              }
-            ),
+        return this.actions
+          .list({ limit, offset, query })
+          .then(async (res: { rows: DbTax[]; total: number }) => ({
+            taxes: res.rows.map(tax => this.sanitizer(tax)),
+            total: res.total,
           }))
           .catch((err: CommonError) => {
             throw new MoleculerError(
@@ -177,18 +151,17 @@ const TaxesService: ServiceSchema = {
       auth: ['Basic'],
       rest: 'DELETE /:id',
       async handler(
-        ctx: Context<RTax>
-      ): Promise<{ tax: RTax; message: string }> {
-        const taxDeleteData = await this.adapter
-          .removeById(ctx.params.id)
-          .then((tax: DbTax) => {
+        ctx: Context<DbTax>
+      ): Promise<{ tax: DbTax; message: string }> {
+        const taxDeleteData = await ctx
+          .call<DbTax, string>('taxes.remove', ctx.params.id)
+          .then(tax => {
             if (!tax) {
               throw new MoleculerError('There is no tax with that ID', 404);
             }
 
             this.broker.cacher.clean(`taxes.getOne:${ctx.params.id}*`);
             this.broker.cacher.clean('taxes.getAll:*');
-            this.broker.cacher.clean('taxes.tCount:*');
 
             return {
               tax: this.sanitizer(tax),
@@ -203,7 +176,7 @@ const TaxesService: ServiceSchema = {
           });
 
         if (taxDeleteData.tax) {
-          ctx.call<GenericObject, Partial<TaxRequestParams>>('oms.deleteTax', {
+          ctx.call<void, Partial<TaxRequestParams>>('oms.deleteTax', {
             id: taxDeleteData.tax.omsId,
           });
         }
@@ -211,23 +184,9 @@ const TaxesService: ServiceSchema = {
         return taxDeleteData;
       },
     },
-    tCount: {
-      cache: {
-        keys: ['query'],
-        ttl: 60 * 60,
-      },
-      handler(ctx: Context<TaxRequestParams>): Promise<number> {
-        return this.adapter.count({ query: ctx.params.query }).catch(() => {
-          throw new MoleculerError(
-            'There is an error fetching the taxes total',
-            500
-          );
-        });
-      },
-    },
   },
   methods: {
-    sanitizer(dbTax: DbTax): RTax {
+    sanitizer(dbTax: DbTax): DbTax {
       const id = dbTax._id;
       delete dbTax._id;
       return { id, ...dbTax };
