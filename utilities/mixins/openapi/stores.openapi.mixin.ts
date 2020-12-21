@@ -56,24 +56,6 @@ const StoreSchema = {
       type: 'string',
       format: 'date',
     },
-    stock_date: {
-      type: 'string',
-      format: 'date',
-    },
-    stock_status: {
-      type: 'string',
-      default: 'idle',
-      enum: ['idle', 'in-progress'],
-    },
-    price_date: {
-      type: 'string',
-      format: 'date',
-    },
-    price_status: {
-      type: 'string',
-      default: 'idle',
-      enum: ['idle', 'in-progress'],
-    },
     sale_price: {
       type: 'number',
       default: 1.7,
@@ -260,6 +242,20 @@ const StoresGetOpenapi = {
         type: 'string',
       },
     },
+    {
+      name: 'withoutBalance',
+      in: 'query',
+      schema: {
+        type: 'boolean',
+      },
+    },
+    {
+      name: 'withoutSubscription',
+      in: 'query',
+      schema: {
+        type: 'boolean',
+      },
+    },
   ],
   responses: {
     200: {
@@ -316,13 +312,6 @@ const StoresSListOpenapi = {
   summary: 'All Stores',
   tags: ['Stores'],
   parameters: [
-    {
-      name: 'id',
-      in: 'query',
-      schema: {
-        type: 'string',
-      },
-    },
     {
       name: 'page',
       in: 'query',

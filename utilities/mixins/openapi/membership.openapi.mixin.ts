@@ -4,30 +4,9 @@ const MembershipSchema = {
   type: 'object',
   properties: {
     id: { type: 'string' },
-    name: {
-      type: 'object',
-      properties: {
-        tr: { type: 'string' },
-        en: { type: 'string' },
-        ar: { type: 'string' },
-      },
-    },
-    tagline: {
-      type: 'object',
-      properties: {
-        tr: { type: 'string' },
-        en: { type: 'string' },
-        ar: { type: 'string' },
-      },
-    },
-    description: {
-      type: 'object',
-      properties: {
-        tr: { type: 'string' },
-        en: { type: 'string' },
-        ar: { type: 'string' },
-      },
-    },
+    name: { $ref: '#/components/schemas/I18nString' },
+    tagline: { $ref: '#/components/schemas/I18nString' },
+    description: { $ref: '#/components/schemas/I18nString' },
     sort: { type: 'number' },
     active: { type: 'boolean' },
     public: { type: 'boolean' },
@@ -77,30 +56,9 @@ const MembershipResponse = {
       schema: {
         type: 'object',
         properties: {
-          name: {
-            type: 'object',
-            properties: {
-              tr: { type: 'string' },
-              en: { type: 'string' },
-              ar: { type: 'string' },
-            },
-          },
-          tagline: {
-            type: 'object',
-            properties: {
-              tr: { type: 'string' },
-              en: { type: 'string' },
-              ar: { type: 'string' },
-            },
-          },
-          description: {
-            type: 'object',
-            properties: {
-              tr: { type: 'string' },
-              en: { type: 'string' },
-              ar: { type: 'string' },
-            },
-          },
+          name: { $ref: '#/components/schemas/I18nString' },
+          tagline: { $ref: '#/components/schemas/I18nString' },
+          description: { $ref: '#/components/schemas/I18nString' },
           sort: { type: 'number' },
           active: { type: 'boolean' },
           public: { type: 'boolean' },

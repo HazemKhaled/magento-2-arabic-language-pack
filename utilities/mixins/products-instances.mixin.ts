@@ -50,9 +50,9 @@ export const ProductsInstancesMixin: ServiceSchema = {
 
       return this.productInstanceSanitizer(product, instance, currency);
     },
-    checkProductInstance(sku, instanceKey, _source): boolean {
+    checkProductInstance(sku, instanceKey): boolean {
       return this.broker
-        .call('products.search', {
+        .call('products-instances.search', {
           index: 'products-instances',
           _source: ['sku'],
           body: {
@@ -256,17 +256,17 @@ export const ProductsInstancesMixin: ServiceSchema = {
         maxScroll = 0,
         sort,
       }
-    ): Promise<{ page: any; totalProducts: any }> {
+    ): Promise<{ page: number; totalProducts: number }> {
       page = parseInt(page, 10) || 1;
       let search = [];
-      const mustNot: { [key: string]: any } = [{ term: { deleted: true } }];
+      const mustNot: GenericObject = [{ term: { deleted: true } }];
       const getSortField = (): string => {
         if (!sort || sort.field === 'created') return 'createdAt';
         return sort.field;
       };
 
       if (!scrollId) {
-        const searchQuery: { [key: string]: any } = {
+        const searchQuery: GenericObject = {
           index: 'products-instances',
           scroll: '1m',
           size: process.env.SCROLL_LIMIT,
@@ -504,7 +504,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
       id
     ): Promise<{ status: string; message: string; sku: string }> {
       return this.broker
-        .call('products.update', {
+        .call('products-instances.update', {
           index: 'products-instances',
           type: '_doc',
           id: `${id}-${sku}`,

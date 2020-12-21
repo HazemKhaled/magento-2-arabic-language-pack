@@ -5,7 +5,6 @@ import {
   Payment,
   PaymentInvoice,
   PaymentRequestParams,
-  GetPaymentRequestParams,
   MetaParams,
   Store,
   PaymentResponse,
@@ -23,12 +22,9 @@ const TheService: ServiceSchema = {
       async handler(
         ctx: Context<PaymentRequestParams>
       ): Promise<PaymentResponse> {
-        const instance: Store = await ctx.call<Store, Partial<Store>>(
-          'stores.findInstance',
-          {
-            id: ctx.params.id,
-          }
-        );
+        const instance = await ctx.call<Store, { id: string }>('stores.get', {
+          id: ctx.params.id,
+        });
 
         // create OMS contact if no oms ID
         if (!instance?.internal_data?.omsId) {
@@ -97,7 +93,7 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 * 24,
       },
       async handler(
-        ctx: Context<GetPaymentRequestParams, MetaParams>
+        ctx: Context<GenericObject, MetaParams>
       ): Promise<{ payments: Payment[] }> {
         const { store } = ctx.meta;
         const keys: { [key: string]: string } = {

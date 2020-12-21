@@ -1,5 +1,3 @@
-import { StringNullableChain } from 'lodash';
-
 /**
  *  Oms tax schema
  *
@@ -7,20 +5,12 @@ import { StringNullableChain } from 'lodash';
  * @interface OmsTax
  */
 export interface OmsTax {
-  name: string;
-  percentage: number;
-  type: 'tax' | 'compound_tax';
-}
-
-/**
- * OMS Tax response schema
- *
- * @export
- * @interface OmsTaxResponse
- * @extends {OmsTax}
- */
-export interface OmsTaxResponse extends OmsTax {
-  id: string;
+  id?: string;
+  name?: string;
+  amount?: number;
+  percentage?: number;
+  type?: 'tax' | 'compound_tax';
+  isEditable?: boolean;
 }
 
 export interface OmsRequestParams {

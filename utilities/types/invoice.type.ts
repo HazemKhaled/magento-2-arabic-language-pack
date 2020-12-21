@@ -1,4 +1,3 @@
-import { GenericObject } from 'moleculer';
 /**
  * Invoice type
  *

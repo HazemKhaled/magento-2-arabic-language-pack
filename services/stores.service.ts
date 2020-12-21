@@ -1,5 +1,4 @@
 import { Context, Errors, GenericObject, ServiceSchema } from 'moleculer';
-import fetch from 'node-fetch';
 import jwt from 'jsonwebtoken';
 import { v1 as uuidv1, v4 as uuidv4 } from 'uuid';
 
@@ -13,7 +12,6 @@ import {
   StoreUser,
   StoreRequest,
   MetaParams,
-  StoreMeta,
   EventArguments,
   Subscription,
   CommonError,
@@ -21,8 +19,7 @@ import {
 import { StoresValidation } from '../utilities/mixins/validation';
 import { GCPPubSub } from '../utilities/mixins';
 
-const MoleculerError = Errors.MoleculerError;
-const { MoleculerClientError } = Errors;
+const { MoleculerError, ValidationError } = Errors;
 
 const TheService: ServiceSchema = {
   name: 'stores',
@@ -36,15 +33,6 @@ const TheService: ServiceSchema = {
   settings: {
     /** Secret for JWT */
     JWT_SECRET: process.env.JWT_SECRET || 'jwt-conduit-secret',
-
-    /** Public fields */
-    fields: ['_id'],
-
-    /** Validator schema for entity */
-    entityValidator: {
-      consumerKey: { type: 'string' },
-      consumerSecret: { type: 'string' },
-    },
   },
   events: {
     'stores.event': function ({ event, storeId, res }: EventArguments): void {
@@ -57,34 +45,6 @@ const TheService: ServiceSchema = {
     },
   },
   actions: {
-    /**
-     * This function is used locally by mp to get an instance with consumerKey
-     *
-     * @param {String} consumerKey
-     * @returns {Store}
-     */
-    findInstance: {
-      auth: ['Basic'],
-      cache: {
-        keys: ['consumerKey', 'id'],
-        ttl: 60 * 60 * 24,
-      },
-      visibility: 'public',
-      handler(
-        ctx: Context<{ id: string; consumerKey: string }>
-      ): Promise<Store> {
-        let query: { _id?: string } | false = false;
-        if (ctx.params.id) query = { _id: ctx.params.id };
-        return this.adapter
-          .findOne(query || { consumer_key: ctx.params.consumerKey })
-          .then((res: Store | null) => {
-            // If the DB response not null will return the data
-            if (res !== null) return this.sanitizeResponse(res);
-            // If null return Not Found error
-            throw new MpError('Stores Service', 'Store Not Found', 404);
-          });
-      },
-    },
     /**
      * Get the store for the authenticated token
      *
@@ -99,25 +59,28 @@ const TheService: ServiceSchema = {
       },
       rest: 'GET /me',
       handler(ctx: Context<unknown, MetaParams>): Promise<Store> {
-        return this.adapter
-          .findOne({ consumer_key: ctx.meta.user })
-          .then(async (res: Store | null) => {
-            let omsData: boolean | { store: Store } = false;
+        return ctx
+          .call<Store[], { query: { consumer_key: string } }>('stores.find', {
+            query: { consumer_key: ctx.meta.user },
+          })
+          .then(async ([res]) => {
+            let omsData: { store: Store };
             if (res) {
               if (res.users) {
                 res.subscription = await ctx.call<
                   Subscription,
                   { storeId: string }
                 >('subscription.getByStore', {
-                  storeId: res._id,
+                  storeId: res.url,
                 });
               }
               if (res?.internal_data?.omsId) {
                 omsData = (await ctx
-                  .call<null, Partial<Store>>('oms.getCustomer', {
-                    customerId: res.internal_data.omsId,
+                  .call<null, Partial<{ id: string }>>('oms.getCustomer', {
+                    id: res.internal_data.omsId,
                   })
                   .then(null, this.logger.error)) as { store: Store };
+
                 // If the DB response not null will return the data
                 return this.sanitizeResponse(res, omsData && omsData?.store);
               }
@@ -129,7 +92,7 @@ const TheService: ServiceSchema = {
       },
     },
     /**
-     * Get store with it's url
+     * Get store by url with subscription and OMS info
      *
      * @param {string} id
      * @returns {Store}
@@ -137,46 +100,46 @@ const TheService: ServiceSchema = {
     getOne: {
       auth: ['Basic'],
       cache: {
-        keys: ['id', 'withoutBalance'],
+        keys: ['id', 'withoutBalance', 'withoutSubscription'],
         ttl: 60 * 60 * 24,
       },
       rest: 'GET /:id',
       handler(ctx: Context<StoreRequest>): Promise<Store> {
-        return this.adapter
-          .findById(ctx.params.id)
-          .then(async (res: Store | null) => {
-            if (res) {
-              if (res.users) {
-                res.subscription = await ctx.call<
-                  Subscription,
-                  { storeId: string }
-                >('subscription.getByStore', {
-                  storeId: ctx.params.id,
-                });
-              }
-              if (res?.internal_data?.omsId && !ctx.params.withoutBalance) {
-                const omsData = (await ctx
-                  .call<null, Partial<Store>>('oms.getCustomer', {
-                    customerId: res.internal_data.omsId,
-                  })
-                  .then(null, this.logger.error)) as { store: Store };
+        return ctx
+          .call<Store, { id: string }>('stores.get', { id: ctx.params.id })
+          .then(async res => {
+            if (!res) {
+              // If null return Not Found error
+              throw new MpError('Stores Service', 'Store Not Found', 404);
+            }
 
-                // If the DB response not null will return the data
-                if (!omsData) {
-                  this.logger.warn('Can not get balance', ctx.params);
-                } else {
-                  return this.sanitizeResponse(res, omsData.store);
-                }
+            // get subscription details
+            if (!ctx.params.withoutSubscription) {
+              res.subscription = await ctx.call<
+                Subscription,
+                { storeId: string }
+              >('subscription.getByStore', {
+                storeId: ctx.params.id,
+              });
+            }
+
+            if (res?.internal_data?.omsId && !ctx.params.withoutBalance) {
+              const omsData = (await ctx
+                .call<null, Partial<{ id: string }>>('oms.getCustomer', {
+                  id: res.internal_data.omsId,
+                })
+                .then(null, this.logger.error)) as { store: Store };
+
+              // If the DB response not null will return the data
+              if (!omsData) {
+                this.logger.warn('Can not get balance', ctx.params);
+              } else {
+                return this.sanitizeResponse(res, omsData.store);
               }
             }
 
             // return store even if we didn't get balance from OMS
-            if (res) {
-              return this.sanitizeResponse(res);
-            }
-
-            // If null return Not Found error
-            throw new MpError('Stores Service', 'Store Not Found', 404);
+            return this.sanitizeResponse(res);
           });
       },
     },
@@ -193,7 +156,7 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 * 24,
       },
       rest: 'GET /',
-      handler(ctx: Context<StoreRequest>): string | Promise<Store[]> {
+      handler(ctx: Context<StoreRequest>): Promise<Store[]> {
         let params: {
           where?: GenericObject;
           limit?: number;
@@ -204,7 +167,7 @@ const TheService: ServiceSchema = {
         try {
           params = JSON.parse(ctx.params.filter);
         } catch (err) {
-          return 'Inputs Error!';
+          throw new ValidationError('Filter Error');
         }
         if (params.limit && params.limit > 100) {
           params.limit = 100;
@@ -225,43 +188,40 @@ const TheService: ServiceSchema = {
             query.sort = { [sortArray[0]]: sortArray[1] === 'asc' ? 1 : -1 };
           }
         }
-        return this.adapter.find({ ...query }).then((res: Store[] | null) => {
-          // If the DB response not null will return the data
-          if (res !== null)
-            return res.map(store => this.sanitizeResponse(store));
-          // If null return Not Found error
-          throw new MpError('Stores Service', 'Store Not Found', 404);
-        });
+        return ctx
+          .call<Store[], GenericObject>('stores.find', query)
+          .then(res => {
+            // If the DB response not null will return the data
+            if (res) return res.map(store => this.sanitizeResponse(store));
+            // If null return Not Found error
+            throw new MpError('Stores Service', 'Store Not Found', 404);
+          });
       },
     },
     getAllAdmin: {
       auth: ['Basic'],
       cache: {
-        keys: ['id', 'page', 'perPage'],
+        keys: ['page', 'perPage'],
         ttl: 60 * 60 * 24,
       },
       rest: 'GET admin',
       handler(
         ctx: Context<StoreRequest>
-      ): Promise<{ stores: Store; total: number }> {
+      ): Promise<{ stores: Store[]; total: number }> {
         const query: GenericObject = {};
-        if (ctx.params.id) {
-          query._id = { $regex: new RegExp(`.*${ctx.params.id}.*`, 'i') };
-        }
         const findBody: GenericObject = { query };
-        findBody.limit = Number(ctx.params.perPage) || 50;
-        findBody.offset =
-          (Number(ctx.params.perPage) || 50) *
-          ((Number(ctx.params.page) || 1) - 1);
-        return this.adapter
-          .find(findBody)
-          .then(async (res: Store[]) => {
+        findBody.pageSize = Number(ctx.params.perPage) || 50;
+        findBody.page = Number(ctx.params.page) || 1;
+
+        return ctx
+          .call<{ rows: Store[]; total: number }, GenericObject>(
+            'stores.list',
+            findBody
+          )
+          .then(async res => {
             return {
-              stores: res.map(store => this.sanitizeResponse(store)),
-              total: await this.actions.countStores({
-                key: ctx.params.id,
-                query,
-              }),
+              stores: res.rows,
+              total: res.total,
             };
           })
           .catch((err: CommonError) => {
@@ -270,16 +230,6 @@ const TheService: ServiceSchema = {
             }
             throw new MoleculerError(String(err), 500);
           });
-      },
-    },
-    countStores: {
-      cache: {
-        keys: ['key'],
-        ttl: 60 * 60 * 24,
-      },
-      visibility: 'private',
-      handler(ctx: Context<StoreRequest>): number {
-        return this.adapter.count({ query: ctx.params.query });
       },
     },
     /**
@@ -298,9 +248,9 @@ const TheService: ServiceSchema = {
         // Sanitize request params
         const store: Store = this.sanitizeStoreParams(ctx.params, true);
 
-        const myStore: Store = await this.adapter
-          .insert(store)
-          .then((res: Store) => this.sanitizeResponse(res))
+        const myStore = await ctx
+          .call<Store, Store>('stores.create', store)
+          .then(res => this.sanitizeResponse(res) as Store)
           .catch((err: { code: number }) => {
             if (err.code !== 11000) {
               this.logger.error('Create store', err);
@@ -314,7 +264,6 @@ const TheService: ServiceSchema = {
         if (myStore.url) {
           this.broker.cacher.clean('stores.getAll:**');
           this.broker.cacher.clean('stores.getAllAdmin:**');
-          this.broker.cacher.clean('stores.countStores:**');
           this.cacheUpdate(myStore);
         }
 
@@ -333,13 +282,10 @@ const TheService: ServiceSchema = {
       async handler(ctx: Context<Store, MetaParams>): Promise<Store> {
         // Save the ID separate into variable to use it to find the store
         const { id } = ctx.params;
-        delete ctx.params.id;
         // storeBefore
-        const storeBefore: Store = await ctx.call<Store, Partial<Store>>(
-          'stores.findInstance',
-          {
-            id,
-          }
+        const storeBefore = await ctx.call<Store, { id: string }>(
+          'stores.get',
+          { id }
         );
 
         // Sanitize request params
@@ -369,8 +315,8 @@ const TheService: ServiceSchema = {
           );
         }
 
-        const myStore: Store = await this.adapter
-          .updateById(id, { $set: store })
+        const responseStore = await ctx
+          .call<Store, Store>('stores.update', store)
           .then(this.sanitizeResponse)
           .catch((error: { code: number }) => {
             this.sendLogs({
@@ -397,11 +343,10 @@ const TheService: ServiceSchema = {
             };
           });
 
+        // Workaround for Store type, clean it up
+        const myStore = responseStore as Store;
+
         // Clean cache if store updated
-        this.broker.cacher.clean(
-          `stores.findInstance:${myStore.consumer_key}*`
-        );
-        this.broker.cacher.clean(`stores.findInstance:*${myStore.url}*`);
         this.broker.cacher.clean('stores.getAll**');
         this.broker.cacher.clean('stores.getAllAdmin:**');
         this.broker.cacher.clean(`products.list:${myStore.consumer_key}*`);
@@ -450,7 +395,7 @@ const TheService: ServiceSchema = {
       rest: 'PUT /:id/sync',
       async handler(ctx): Promise<unknown> {
         const storeId = ctx.params.id;
-        const instance: Store = await ctx.call('stores.findInstance', {
+        const instance = await ctx.call<Store, { id: string }>('stores.get', {
           id: storeId,
         });
         try {
@@ -485,13 +430,9 @@ const TheService: ServiceSchema = {
           this.broker.cacher.clean(`subscription.getByStore:${instance.url}*`);
           this.broker.cacher.clean(`stores.getOne:${instance.url}**`);
           this.broker.cacher.clean(`stores.me:${instance.consumer_key}**`);
-          return ctx.call<GenericObject, Partial<Store>>('stores.updateOne', {
+          return ctx.call<Store, Partial<Store>>('stores.updateOne', {
             id: storeId,
             internal_data: instance.internal_data,
-            stock_date: '2010-01-01T00:00:00.000Z',
-            price_date: '2010-01-01T00:00:00.000Z',
-            stock_status: 'idle',
-            price_status: 'idle',
           });
         } catch (err) {
           ctx.meta.$statusCode = err.status || err.error?.statusCode || 500;
@@ -549,12 +490,14 @@ const TheService: ServiceSchema = {
      * @returns {Object} Logged in user with token
      */
     login: {
-      handler(ctx: Context<StoreRequest, StoreMeta>): Promise<GenericObject> {
+      handler(ctx: Context<StoreRequest, MetaParams>): Promise<GenericObject> {
         const { consumerKey, consumerSecret } = ctx.params;
 
-        return this.broker
-          .call('stores.findInstance', { consumerKey, consumerSecret })
-          .then((instance: Store) => {
+        return ctx
+          .call<Store[], { query: { consumer_key: string } }>('stores.find', {
+            query: { consumer_key: consumerKey },
+          })
+          .then(([instance]) => {
             if (
               consumerKey === instance.consumer_key &&
               consumerSecret === instance.consumer_secret
@@ -566,9 +509,6 @@ const TheService: ServiceSchema = {
                 currency: instance.currency,
               };
             }
-            this.broker.cacher.clean(
-              `stores.findInstance:${ctx.params.consumerKey}`
-            );
 
             ctx.meta.$statusCode = 401;
             ctx.meta.$statusMessage = 'Unauthorized Error';
@@ -579,9 +519,7 @@ const TheService: ServiceSchema = {
               ],
             };
           })
-          .then((user: StoreUser) =>
-            this.transformEntity(user, true, ctx.meta.token)
-          )
+          .then(user => this.transformEntity(user, true, ctx.meta.token))
           .catch(() => {
             this.broker.cacher.clean(
               `stores.resolveBearerToken:${ctx.meta.token}`
@@ -630,52 +568,22 @@ const TheService: ServiceSchema = {
           .then(async (decoded: { id: string }) => {
             if (decoded.id) {
               // Get instance info
-              const instance = await this.broker.call('stores.findInstance', {
-                consumerKey: decoded.id,
+              const [instance] = await ctx.call<
+                Store[],
+                { query: { consumer_key: string } }
+              >('stores.find', {
+                query: { consumer_key: decoded.id },
               });
 
               if (instance.status) {
-                return instance;
+                return this.sanitizeResponse(instance);
               }
             }
+
+            return false;
           })
           .catch(() => {
             return false;
-          });
-      },
-    },
-
-    /**
-     * Get user by JWT token (for API GW authentication)
-     *
-     * @actions
-     * @param {String} token - user:pass base64
-     *
-     * @returns {Object} true or false
-     */
-    resolveBasicToken: {
-      cache: {
-        keys: ['token'],
-        ttl: 60 * 60 * 24,
-      },
-      visibility: 'public',
-      handler(
-        ctx: Context<Partial<StoreRequest>>
-      ): Promise<GenericObject | boolean> {
-        return fetch(`${process.env.AUTH_BASEURL}/login`, {
-          headers: {
-            Authorization: `Basic ${ctx.params.token}`,
-          },
-        })
-          .then(res => {
-            if (res.ok) {
-              return res.json();
-            }
-
-            return false;
-          })
-          .catch(error => {
-            throw new MoleculerClientError(error);
           });
       },
     },
@@ -698,10 +606,6 @@ const TheService: ServiceSchema = {
         store.created = new Date();
         store.updated = new Date();
         store.status = params.status || 'pending';
-        store.stock_date = new Date();
-        store.stock_status = 'idle';
-        store.price_date = new Date();
-        store.price_status = 'idle';
         store.sale_price = 1.7;
         store.sale_price_operator = 1;
         store.compared_at_price = 1.7;
@@ -736,10 +640,6 @@ const TheService: ServiceSchema = {
         'status',
         'type',
         'updated',
-        'stock_date',
-        'stock_status',
-        'price_date',
-        'price_status',
         'sale_price',
         'sale_price_operator',
         'compared_at_price',

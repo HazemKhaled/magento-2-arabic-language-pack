@@ -250,10 +250,6 @@ const TheService: ServiceSchema = {
       const crmParams: GenericObject = {
         type: 'Platform',
         status: 'Store_Status',
-        stock_date: 'Stock_Date',
-        stock_status: 'Stock_Status',
-        price_date: 'Price_Date',
-        price_status: 'Price_Status',
         sale_price: 'Sale_Price',
         sale_price_operator: 'Sale_Operator',
         compared_at_price: 'Compared_Price',

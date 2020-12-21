@@ -2,8 +2,9 @@ import { Context, ServiceSchema, GenericObject } from 'moleculer';
 import ApiGateway from 'moleculer-web';
 import compression from 'compression';
 import { MoleculerRequest } from 'moleculer-express';
+import fetch from 'node-fetch';
 
-import { Log, Store, AuthorizeMeta, IncomingRequest } from '../utilities/types';
+import { Log, Store, MetaParams, IncomingRequest } from '../utilities/types';
 import { OpenApiMixin } from '../utilities/mixins/openapi.mixin';
 import { webpackMiddlewares } from '../utilities/middleware';
 import { authorizeHmac } from '../utilities/lib';
@@ -44,7 +45,7 @@ const TheService: ServiceSchema = {
         path: '/api',
 
         authorization: true,
-        whitelist: [/^(?!api|$node)\w+/],
+        whitelist: [/^(?!api|$node|paymentGateway)\w+/],
         autoAliases: true,
 
         aliases: {
@@ -250,17 +251,17 @@ const TheService: ServiceSchema = {
     /**
      * Authorize the request
      *
-     * @param {Context<void, AuthorizeMeta>} ctx
+     * @param {Context<void, MetaParams>} ctx
      * @param {unknown} route
      * @param {IncomingRequest} req
      * @returns {(Promise<Store | boolean>)}
      */
     authorize(
-      ctx: Context<void, AuthorizeMeta>,
+      ctx: Context<void, MetaParams>,
       route: unknown,
       req: IncomingRequest & MoleculerRequest
     ): Promise<Store | boolean> {
-      const { $endpoint, $action, headers } = req as GenericObject;
+      const { $endpoint, headers } = req as GenericObject;
       // Pass if no auth required
       if (!$endpoint.action.auth) {
         return this.Promise.resolve();
@@ -289,8 +290,8 @@ const TheService: ServiceSchema = {
               .call<Store, { token: string }>('stores.resolveBearerToken', {
                 token,
               })
-              .then(user => {
-                if (!user) {
+              .then(store => {
+                if (!store) {
                   return this.Promise.reject(
                     new UnAuthorizedError(
                       ERR_INVALID_TOKEN,
@@ -298,36 +299,29 @@ const TheService: ServiceSchema = {
                     )
                   );
                 }
-                if (user) {
-                  this.logger.info(
-                    'Authenticated via JWT: ',
-                    user.consumer_key
-                  );
-                  // Reduce user fields (it will be transferred to other nodes)
-                  ctx.meta.user = user.consumer_key;
-                  ctx.meta.token = token;
-                  ctx.meta.storeId = user.url;
-                  ctx.meta.store = user;
-                }
-                return user;
+
+                this.logger.info('Authenticated via JWT: ', store.consumer_key);
+                // Reduce user fields (it will be transferred to other nodes)
+                ctx.meta.user = store.consumer_key;
+                ctx.meta.token = token;
+                ctx.meta.storeId = store.url;
+                ctx.meta.store = store;
+
+                return store;
               });
           }
 
           // Verify Base64 Basic auth
           if (type === 'Basic') {
-            return ctx
-              .call<Store, { token: string }>('stores.resolveBasicToken', {
-                token,
-              })
-              .then(user => {
-                if (user) {
-                  ctx.meta.token = token;
-                }
-                return user;
-              });
+            return this.resolveBasicToken(token).then((user: unknown) => {
+              if (user) {
+                ctx.meta.token = token;
+              }
+              return user;
+            });
           }
         })
-        .then((user: Store) => {
+        .then((user: unknown) => {
           if (!user) {
             throw new UnAuthorizedError(
               ERR_INVALID_TOKEN,
@@ -337,6 +331,26 @@ const TheService: ServiceSchema = {
 
           return user;
         });
+    },
+
+    /**
+     * Get user by JWT token (for API GW authentication)
+     *
+     * @param {string} token
+     * @returns {(Promise<GenericObject | boolean>)}
+     */
+    resolveBasicToken(token: string): Promise<GenericObject | boolean> {
+      return fetch(`${process.env.AUTH_BASEURL}/login`, {
+        headers: {
+          Authorization: `Basic ${token}`,
+        },
+      }).then(res => {
+        if (res.ok) {
+          return res.json();
+        }
+
+        return false;
+      });
     },
     /**
      * Log order errors

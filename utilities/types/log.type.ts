@@ -1,6 +1,6 @@
 import { GenericObject } from 'moleculer';
 
-import { MetaParams } from './i18ntext.type';
+import { MetaParams } from './authenticate.type';
 
 /**
  * Log Type definition

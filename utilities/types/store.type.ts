@@ -2,7 +2,7 @@ import { Context, GenericObject } from 'moleculer';
 
 import { Subscription } from './subscription.type';
 import { OrderAddress } from './order.type';
-import { MetaParams } from './i18ntext.type';
+
 /**
  * Store Type definition
  *
@@ -35,22 +35,14 @@ export interface Store {
   languages: string[];
   credit: number;
   debit: number;
-  internal_data: { [key: string]: any };
-  external_data: { [key: string]: any };
+  internal_data: { omsId: string } & GenericObject;
+  external_data: GenericObject;
   subscription: Subscription;
-  address: OrderAddress;
-  customerId: string;
-  key: string;
-  query: GenericObject;
-  stock_date: string;
-  price_date: string;
-  stock_status: string;
-  price_status: string;
-  errors?: GenericObject;
-  message?: string;
-  code?: number;
-  membership_id?: string;
-  subscription_expiration?: number | string;
+  address: StoreAddress;
+}
+
+export interface StoreAddress extends OrderAddress {
+  taxNumber?: string;
 }
 
 /**
@@ -90,7 +82,8 @@ export interface StoreRequest {
   id: string;
   consumerKey: string;
   consumerSecret: string;
-  withoutBalance: string;
+  withoutBalance: boolean;
+  withoutSubscription: boolean;
   filter: string;
   perPage: number;
   page: number;
@@ -112,16 +105,12 @@ export interface CreateCustomerRequest {
   companyName: string;
   status: string;
   platform: string;
-  stockDate: Date;
-  stockStatus: string;
-  priceDate: Date;
-  priceStatus: string;
   salePrice: number;
   saleOperator: number;
   comparedPrice: number;
   comparedOperator: number;
   currency: string;
-  languages: any;
+  languages: string[];
   shippingMethods: GenericObject;
   billing: {
     first_name: string;
@@ -139,16 +128,6 @@ export interface CreateCustomerRequest {
 }
 
 /**
- * Store Meta Definition
- *
- * @export
- * @interface StoreRequest
- */
-export interface StoreMeta extends MetaParams {
-  token: string;
-}
-
-/**
  * CrmData Definition
  * @export
  * @interface CrmData
@@ -156,6 +135,7 @@ export interface StoreMeta extends MetaParams {
 export interface CrmData extends Store {
   last_order_date?: string;
   membership_id?: string;
+  subscription_expiration?: Date;
 }
 
 /**

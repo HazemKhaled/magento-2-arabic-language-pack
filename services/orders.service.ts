@@ -14,9 +14,7 @@ import {
   OrderMetaParams,
   Coupon,
   CrmStore,
-  SubscriptionType,
   updateOderRequestParams,
-  DynamicRequestParams,
   InvoiceResponse,
   InvoiceRequestParams,
   CommonError,
@@ -56,7 +54,7 @@ const TheService: ServiceSchema = {
         ctx: Context<OrderRequestParams, MetaParams>
       ): Promise<unknown> {
         // Initialize warnings array
-        let warnings: { code: number; message: string; }[] = [];
+        let warnings: { code: number; message: string }[] = [];
 
         // Get the Store instance
         const { store } = ctx.meta;
@@ -156,7 +154,7 @@ const TheService: ServiceSchema = {
 
         // Taxes
         const taxData = await this.setTaxIds(store, stock.items);
-        const taxesMsg: { code: number; message: string; }[] = taxData.msgs;
+        const taxesMsg: { code: number; message: string }[] = taxData.msgs;
 
         // Update Order Items
         data.items = taxData.items;
@@ -207,11 +205,9 @@ const TheService: ServiceSchema = {
           ) + (data.isInclusiveTax ? 0 : taxTotal);
 
         // Getting the current user subscription
-        const subscription = await ctx.call<Subscription, { storeId: string; }>(
+        const subscription = await ctx.call<Subscription, { storeId: string }>(
           'subscription.getByStore',
-          {
-            storeId: store.url,
-          }
+          { storeId: store.url }
         );
         switch (subscription.attributes.orderProcessingType) {
           case '$':
@@ -258,8 +254,9 @@ const TheService: ServiceSchema = {
         this.sendLogs({
           topic: 'order',
           topicId: data.externalId,
-          message: `Subscription Package: ${subscription ? subscription.membership.name.en : 'Free'
-            }`,
+          message: `Subscription Package: ${
+            subscription ? subscription.membership.name.en : 'Free'
+          }`,
           storeId: store.url,
           logLevel: 'info',
           code: 2103,
@@ -350,20 +347,20 @@ const TheService: ServiceSchema = {
         // TODO: Move to hook after create, and write this code into coupon service
         // If coupon used update quantity
         if (data.coupon) {
-          ctx.call<Coupon | boolean, Partial<Coupon>>('coupons.updateCount', {
+          ctx.call<void, Partial<Coupon>>('coupons.updateCount', {
             id: data.coupon,
           });
         }
 
         // TODO: Move to hook after create, and write this code into CRM service
         // Update CRM last update
-        ctx.call<CrmStore, Partial<CrmStore>>('crm.updateStoreById', {
+        ctx.call<void, Partial<CrmStore>>('crm.updateStoreById', {
           id: store.url,
           last_order_date: Date.now(),
         });
 
         // Update products sales quantity
-        ctx.call<void, { products: GenericObject[]; }>(
+        ctx.call<void, { products: GenericObject[] }>(
           'products.updateQuantityAttributes',
           {
             products: stock.products.map(product => ({
@@ -416,7 +413,7 @@ const TheService: ServiceSchema = {
         ctx: Context<OrderRequestParams, MetaParams>
       ): Promise<unknown> {
         // Initialize warnings array
-        let warnings: { code: number; message: string; }[] = [];
+        let warnings: { code: number; message: string }[] = [];
         const { store } = ctx.meta;
 
         const orderBeforeUpdate = await ctx.call<
@@ -445,8 +442,8 @@ const TheService: ServiceSchema = {
         if (data.status === 'cancelled' || data.status === 'void') {
           return ctx
             .call<
-              | { status: string; data?: { order_id?: string; }; }
-              | { message: string; },
+              | { status: string; data?: { order_id?: string } }
+              | { message: string },
               Partial<Order>
             >('orders.deleteOrder', {
               id: ctx.params.id,
@@ -505,7 +502,7 @@ const TheService: ServiceSchema = {
 
             // Taxes
             const taxData = await this.setTaxIds(store, stock.items);
-            const taxesMsg: { code: number; message: string; }[] = taxData.msgs;
+            const taxesMsg: { code: number; message: string }[] = taxData.msgs;
             const { taxTotal } = taxData;
 
             // Update Order Items
@@ -535,7 +532,7 @@ const TheService: ServiceSchema = {
             // Getting the current user subscription
             const subscription = await ctx.call<
               Subscription,
-              { storeId: string; }
+              { storeId: string }
             >('subscription.getByStore', {
               storeId: store.url,
             });
@@ -678,7 +675,7 @@ const TheService: ServiceSchema = {
       },
       async handler(
         ctx: Context<OrderRequestParams, MetaParams>
-      ): Promise<{ message: string; } | SalesOrder> {
+      ): Promise<{ message: string } | SalesOrder> {
         const { store } = ctx.meta;
 
         if (!store.internal_data?.omsId) {
@@ -757,7 +754,7 @@ const TheService: ServiceSchema = {
           if (!keys.includes(key)) return;
           queryParams[key] = ctx.params[key];
         });
-        const orders = await ctx.call<OrderOMSResponse, DynamicRequestParams>(
+        const orders = await ctx.call<OrderOMSResponse, GenericObject>(
           'oms.listOrders',
           {
             customerId: store.internal_data.omsId,
@@ -772,7 +769,7 @@ const TheService: ServiceSchema = {
       async handler(
         ctx
       ): Promise<
-        { status: string; data?: { order_id?: string; }; } | { message: string; }
+        { status: string; data?: { order_id?: string } } | { message: string }
       > {
         const orderBeforeUpdate = await ctx.call<
           Order,
@@ -836,7 +833,7 @@ const TheService: ServiceSchema = {
       ): Promise<GenericObject> {
         const { storeId, id } = ctx.params;
 
-        const storeDoc: Partial<Store> =
+        const storeDoc =
           ctx.meta.store ||
           (await ctx.call<Store, Partial<Store>>('stores.getOne', {
             id: storeId,
@@ -910,8 +907,8 @@ const TheService: ServiceSchema = {
           );
 
           const { products } = await ctx.call<
-            { products: Product[]; },
-            { skus: string[]; }
+            { products: Product[] },
+            { skus: string[] }
           >('products.getProductsByVariationSku', {
             skus: order.items.map((item: OrderItem) => item.sku),
           });
@@ -949,7 +946,7 @@ const TheService: ServiceSchema = {
       },
       async handler(
         ctx: Context<OrderRequestParams, OrderMetaParams>
-      ): Promise<{ message: string; code: number; }[]> {
+      ): Promise<{ message: string; code: number }[]> {
         const { order_id } = ctx.params;
         const { store: instance } = ctx.meta;
         const order = await ctx.call<Order, Partial<OrderRequestParams>>(
@@ -968,7 +965,7 @@ const TheService: ServiceSchema = {
 
         const warningsStr = JSON.stringify(warnings);
         const warningsSnippetMessages = warnings
-          .map((warn: { message: string; }) => warn.message)
+          .map((warn: { message: string }) => warn.message)
           .filter(
             (msg: string, i: number, arr: string[]) => i === arr.indexOf(msg)
           );
@@ -978,7 +975,7 @@ const TheService: ServiceSchema = {
         );
 
         ctx
-          .call<{ salesorder: SalesOrder; }, Partial<OrderRequestParams>>(
+          .call<{ salesorder: SalesOrder }, Partial<OrderRequestParams>>(
             'oms.updateOrderById',
             {
               orderId: order_id,
@@ -1084,7 +1081,7 @@ const TheService: ServiceSchema = {
       shipping,
       shipment,
       params
-    ): { message: string; code: number; }[] {
+    ): { message: string; code: number }[] {
       const warnings = [];
       try {
         if (outOfStock.length > 0) {
@@ -1160,8 +1157,9 @@ const TheService: ServiceSchema = {
         this.sendLogs({
           topic: 'order',
           topicId: data.externalId,
-          message: `There is no default shipping method for your store, It’ll be shipped with ${shipment.courier || 'Standard'
-            }`,
+          message: `There is no default shipping method for your store, It’ll be shipped with ${
+            shipment.courier || 'Standard'
+          }`,
           storeId: instance.url,
           logLevel: 'warn',
           code: 2102,
@@ -1176,9 +1174,11 @@ const TheService: ServiceSchema = {
         this.sendLogs({
           topic: 'order',
           topicId: data.externalId,
-          message: `Can’t ship to ${shipping.country
-            } with provided courier, It’ll be shipped with ${shipment.courier || 'Standard'
-            }, Contact our customer support for more info`,
+          message: `Can’t ship to ${
+            shipping.country
+          } with provided courier, It’ll be shipped with ${
+            shipment.courier || 'Standard'
+          }, Contact our customer support for more info`,
           storeId: instance.url,
           logLevel: 'warn',
           code: 2101,
@@ -1193,7 +1193,7 @@ const TheService: ServiceSchema = {
      * @returns
      */
     orderData(params: Order, instance: Store, create = false) {
-      const data: Order & { store?: Partial<Store>; } = {
+      const data: Order & { store?: Partial<Store> } = {
         status: params.status,
         items: params.items || params.line_items,
         shipping: params.shipping,
@@ -1211,10 +1211,10 @@ const TheService: ServiceSchema = {
         data.store = instance.internal_data?.omsId
           ? { id: instance.internal_data.omsId }
           : {
-            url: instance.url,
-            name: instance.name,
-            users: instance.users,
-          };
+              url: instance.url,
+              name: instance.name,
+              users: instance.users,
+            };
         if (instance.logo) {
           data.storeLogo = instance.logo;
         }
@@ -1357,9 +1357,9 @@ const TheService: ServiceSchema = {
       const newDate = new Date(fromDate.getTime());
       newDate.setDate(
         fromDate.getDate() +
-        days +
-        (day === 6 ? 2 : Number(!day)) +
-        Math.floor((days - 1 + (day % 6 || 1)) / 5) * 2
+          days +
+          (day === 6 ? 2 : Number(!day)) +
+          Math.floor((days - 1 + (day % 6 || 1)) / 5) * 2
       );
       return newDate.toISOString().split('T')[0];
     },

@@ -18,10 +18,14 @@ const TheService: ServiceSchema = {
         // Different coupon types validation
         this.couponTypeCheck(ctx.params);
 
-        return this.adapter
-          .insert(this.createCouponSanitize(ctx.params))
-          .then((res: Coupon) => {
+        return ctx
+          .call<Coupon, Coupon>(
+            'coupons.create',
+            this.createCouponSanitize(ctx.params)
+          )
+          .then(res => {
             this.broker.cacher.clean('coupons.getAll:**');
+
             return this.normalizeId(res);
           })
           .catch((err: CommonError) => {
@@ -59,9 +63,9 @@ const TheService: ServiceSchema = {
         if (ctx.params.type) {
           query.type = ctx.params.type;
         }
-        return this.adapter
-          .findOne(query)
-          .then((res: Coupon) => {
+        return ctx
+          .call<Coupon[], { query: CouponQueryType }>('coupons.find', { query })
+          .then(([res]) => {
             if (!res) {
               throw new MoleculerError(
                 'No Coupon found for this ID or Membership',
@@ -85,7 +89,7 @@ const TheService: ServiceSchema = {
       auth: ['Basic'],
       cache: {
         ttl: 60 * 60 * 24,
-        keys: ['id', 'membership', 'type', 'isValid', 'isAuto'],
+        keys: ['membership', 'type', 'isValid', 'isAuto'],
       },
       rest: 'GET /',
       handler(ctx: Context<Coupon>): Promise<Coupon[]> {
@@ -111,9 +115,9 @@ const TheService: ServiceSchema = {
         if (ctx.params.type) {
           query.type = ctx.params.type;
         }
-        return this.adapter
-          .find({ query })
-          .then((res: Coupon[]) => {
+        return ctx
+          .call<Coupon[], { query: CouponQueryType }>('coupons.find', { query })
+          .then(res => {
             if (res.length) return res.map(coupon => this.normalizeId(coupon));
             throw new MoleculerError('No Coupons found!', 404);
           })
@@ -131,9 +135,9 @@ const TheService: ServiceSchema = {
       async handler(ctx: Context<Coupon>): Promise<Coupon> {
         this.couponTypeCheck(ctx.params);
 
-        const id = ctx.params.id.toUpperCase();
-        const updateBody: Partial<Coupon> = {
+        const updateBody: Coupon = {
           ...ctx.params,
+          id: ctx.params.id.toUpperCase(),
           updatedAt: new Date(),
         };
         if (updateBody.startDate) {
@@ -142,21 +146,17 @@ const TheService: ServiceSchema = {
         if (updateBody.endDate) {
           updateBody.endDate = new Date(updateBody.endDate);
         }
-        delete updateBody.id;
-        return this.adapter.collection
-          .findOneAndUpdate(
-            { _id: id },
-            { $set: updateBody },
-            { returnOriginal: false }
-          )
-          .then((dbResponse: { value: Coupon }) => {
-            if (!dbResponse) {
+
+        return ctx
+          .call<Coupon, Coupon>('coupons.update', updateBody)
+          .then(coupon => {
+            if (!coupon) {
               throw new MoleculerError('No Coupons found!', 404);
             }
 
             this.broker.cacher.clean('coupons.getAll:**');
-            this.broker.cacher.clean(`coupons.getOne:${id}*`);
-            const coupon = dbResponse.value;
+            this.broker.cacher.clean(`coupons.getOne:${updateBody.id}*`);
+
             coupon.code = coupon._id;
             delete coupon._id;
             return coupon;
@@ -175,13 +175,15 @@ const TheService: ServiceSchema = {
             { _id: ctx.params.id.toUpperCase() },
             { $inc: { useCount: 1 } }
           )
-          .then((coupon: Coupon) => {
+          .then((coupon: unknown) => {
             if (!coupon) {
               throw new MoleculerError('No Coupons found!', 404);
             }
 
             this.broker.cacher.clean('coupons.getAll:**');
             this.broker.cacher.clean(`coupons.getOne:${ctx.params.id}*`);
+            this.clearCache();
+
             return coupon;
           })
           .catch((err: CommonError) => {

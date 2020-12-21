@@ -3,20 +3,6 @@ import { ServiceSchema } from 'moleculer';
 export const StoresValidation: ServiceSchema = {
   name: 'stores',
   actions: {
-    findInstance: {
-      params: {
-        consumerKey: {
-          type: 'string',
-          convert: true,
-          optional: true,
-        },
-        id: {
-          type: 'string',
-          convert: true,
-          optional: true,
-        },
-      },
-    },
     getOne: {
       params: {
         id: {
@@ -37,10 +23,6 @@ export const StoresValidation: ServiceSchema = {
     },
     getAllAdmin: {
       params: {
-        id: {
-          type: 'string',
-          optional: true,
-        },
         page: {
           type: 'number',
           optional: true,
@@ -55,11 +37,6 @@ export const StoresValidation: ServiceSchema = {
           convert: true,
           integer: true,
         },
-      },
-    },
-    countStores: {
-      params: {
-        query: 'object',
       },
     },
     createOne: {
@@ -102,26 +79,6 @@ export const StoresValidation: ServiceSchema = {
             'youcan',
             'other',
           ],
-        },
-        stock_date: {
-          type: 'date',
-          optional: true,
-          convert: true,
-        },
-        stock_status: {
-          type: 'enum',
-          values: ['idle', 'in-progress'],
-          optional: true,
-        },
-        price_date: {
-          type: 'date',
-          optional: true,
-          convert: true,
-        },
-        price_status: {
-          type: 'enum',
-          values: ['idle', 'in-progress'],
-          optional: true,
         },
         sale_price: {
           type: 'number',
@@ -297,26 +254,6 @@ export const StoresValidation: ServiceSchema = {
             'youcan',
             'other',
           ],
-          optional: true,
-        },
-        stock_date: {
-          type: 'date',
-          optional: true,
-          convert: true,
-        },
-        stock_status: {
-          type: 'enum',
-          values: ['idle', 'in-progress'],
-          optional: true,
-        },
-        price_date: {
-          type: 'date',
-          optional: true,
-          convert: true,
-        },
-        price_status: {
-          type: 'enum',
-          values: ['idle', 'in-progress'],
           optional: true,
         },
         sale_price: {
@@ -581,11 +518,6 @@ export const StoresValidation: ServiceSchema = {
       },
     },
     resolveBearerToken: {
-      params: {
-        token: 'string',
-      },
-    },
-    resolveBasicToken: {
       params: {
         token: 'string',
       },

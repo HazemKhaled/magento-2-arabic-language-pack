@@ -3,18 +3,6 @@ import { IncomingMessage } from 'http';
 import { ActionSchema, Context, GenericObject } from 'moleculer';
 
 import { Store } from './store.type';
-/**
- * Authorize meta Type definition
- *
- * @export
- * @interface AuthorizeMeta
- */
-export interface AuthorizeMeta {
-  user: string;
-  token: string;
-  storeId: string;
-  store: Store;
-}
 
 /**
  *  Incoming Request Definition
@@ -39,4 +27,19 @@ export interface IncomingRequest extends IncomingMessage {
       $statusCode: number;
     }
   >;
+}
+
+/**
+ * MetaParams
+ * @exports
+ * @interface MetaParams
+ */
+export interface MetaParams {
+  store: Store;
+  user?: any;
+  storeId?: string;
+  token?: string;
+  $statusCode?: number;
+  $statusMessage?: string;
+  $responseType?: string;
 }
