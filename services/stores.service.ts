@@ -314,6 +314,7 @@ const TheService: ServiceSchema = {
             ctx.params.external_data
           );
         }
+        store._id = ctx.params.id;
 
         const responseStore = await ctx
           .call<Store, Store>('stores.update', store)
