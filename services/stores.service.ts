@@ -125,9 +125,12 @@ const TheService: ServiceSchema = {
 
             if (res?.internal_data?.omsId && !ctx.params.withoutBalance) {
               const omsData = (await ctx
-                .call<null, Partial<{ id: string }>>('oms.getCustomer', {
-                  id: res.internal_data.omsId,
-                })
+                .call<null, Partial<{ customerId: string }>>(
+                  'oms.getCustomer',
+                  {
+                    customerId: res.internal_data.omsId,
+                  }
+                )
                 .then(null, this.logger.error)) as { store: Store };
 
               // If the DB response not null will return the data

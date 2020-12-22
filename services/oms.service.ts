@@ -176,10 +176,10 @@ const TheService: ServiceSchema = {
 
     // Stores
     getCustomer: {
-      handler(ctx: Context<{ id: string }>) {
+      handler(ctx: Context<{ customerId: string }>) {
         return this.request({
           ctx,
-          path: `stores/${ctx.params.id}`,
+          path: `stores/${ctx.params.customerId}`,
         });
       },
     },
