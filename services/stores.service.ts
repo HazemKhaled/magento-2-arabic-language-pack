@@ -152,47 +152,52 @@ const TheService: ServiceSchema = {
     getAll: {
       auth: ['Basic'],
       cache: {
-        keys: ['filter'],
+        keys: ['id', 'page', 'limit', 'where', 'sort', 'sortOrder', 'fields'],
         ttl: 60 * 60 * 24,
       },
       rest: 'GET /',
-      handler(ctx: Context<StoreRequest>): Promise<Store[]> {
-        let params: {
-          where?: GenericObject;
-          limit?: number;
-          skip?: number;
-          order?: string;
-          sort?: GenericObject;
-        } = {};
+      async handler(
+        ctx: Context<StoreRequest>
+      ): Promise<{ stores: Store[]; total: number }> {
+        const params = ctx.params;
         try {
-          params = JSON.parse(ctx.params.filter);
+          if (params.where) {
+            params.where = JSON.parse(params.where);
+          }
         } catch (err) {
           throw new ValidationError('Filter Error');
         }
-        if (params.limit && params.limit > 100) {
-          params.limit = 100;
-          this.logger.info('The maximum store response limit is 100');
-        }
-        const query = {
+
+        const query: GenericObject = {
           query: { ...params.where } || {},
-          limit: params.limit || 100,
-          offset: params.skip || 0,
-          sort: params.sort,
+          limit: Number(ctx.params.limit) || 50,
+          offset:
+            (Number(ctx.params.limit) || 50) *
+            ((Number(ctx.params.page) || 1) - 1),
         };
-        if (params.order) {
-          const sortArray = params.order.split(' ');
-          if (
-            sortArray.length === 2 &&
-            ['asc', 'desc'].includes(sortArray[1].toLowerCase())
-          ) {
-            query.sort = { [sortArray[0]]: sortArray[1] === 'asc' ? 1 : -1 };
-          }
+        if (ctx.params.fields) {
+          query.fields = ctx.params.fields.split(',');
+        }
+        if (ctx.params.sort && ctx.params.sortOrder) {
+          query.sort =
+            ctx.params.sortOrder === 'DESC'
+              ? `-${ctx.params.sort}`
+              : ctx.params.sort;
         }
         return ctx
-          .call<Store[], GenericObject>('stores.find', query)
-          .then(res => {
+          .call<{ rows: Store[]; total: number }, GenericObject>(
+            'stores.list',
+            query
+          )
+          .then(async (res: { rows: Store[]; total: number }) => {
             // If the DB response not null will return the data
-            if (res) return res.map(store => this.sanitizeResponse(store));
+            if (res)
+              return {
+                stores: res.rows.map((store: Store) =>
+                  this.sanitizeResponse(store)
+                ),
+                total: res.total,
+              };
             // If null return Not Found error
             throw new MpError('Stores Service', 'Store Not Found', 404);
           });

@@ -280,10 +280,49 @@ const StoresListOpenapi = {
   tags: ['Stores'],
   parameters: [
     {
-      name: 'filter',
+      name: 'page',
+      in: 'query',
+      schema: {
+        type: 'number',
+      },
+    },
+    {
+      name: 'limit',
+      in: 'query',
+      schema: {
+        type: 'number',
+      },
+    },
+    {
+      name: 'where',
       in: 'query',
       schema: {
         type: 'string',
+        example: '{"users.email":"abdelrahman@knawat.com"}',
+      },
+    },
+    {
+      name: 'fields',
+      in: 'query',
+      schema: {
+        type: 'string',
+        example: 'name,email,updated,status,users',
+        description: 'Pass the name of the fields in comma seperated',
+      },
+    },
+    {
+      name: 'sort',
+      in: 'query',
+      schema: {
+        type: 'string',
+      },
+    },
+    {
+      name: 'sortOrder',
+      in: 'query',
+      schema: {
+        type: 'string',
+        enum: ['ASC', 'DESC'],
       },
     },
   ],
@@ -293,9 +332,15 @@ const StoresListOpenapi = {
       content: {
         'application/json': {
           schema: {
-            type: 'array',
-            items: {
-              $ref: '#/components/schemas/Store',
+            type: 'object',
+            properties: {
+              stores: {
+                type: 'array',
+                items: {
+                  $ref: '#/components/schemas/Store',
+                },
+              },
+              total: { type: 'number' },
             },
           },
         },

@@ -16,8 +16,35 @@ export const StoresValidation: ServiceSchema = {
     },
     getAll: {
       params: {
-        filter: {
+        limit: {
+          type: 'number',
+          optional: true,
+          convert: true,
+        },
+        page: {
+          type: 'number',
+          optional: true,
+          convert: true,
+        },
+        sort: {
           type: 'string',
+          convert: true,
+          optional: true,
+        },
+        sortOrder: {
+          type: 'enum',
+          values: ['ASC', 'DESC'],
+          optional: true,
+        },
+        where: {
+          type: 'string',
+          optional: true,
+          convert: true,
+        },
+        fields: {
+          type: 'string',
+          optional: true,
+          convert: true,
         },
       },
     },

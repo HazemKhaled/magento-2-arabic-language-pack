@@ -90,6 +90,11 @@ export interface StoreRequest {
   query: string;
   url: string;
   token: string;
+  limit: number;
+  where: any;
+  sort: string;
+  fields: string;
+  sortOrder: string;
 }
 
 /**
