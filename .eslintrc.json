@@ -37,6 +37,6 @@
     "id-length": "warn",
     "promise/catch-or-return": "warn",
     "@typescript-eslint/array-type": "off",
-    "no-unused-vars": ["error", { "varsIgnorePattern": "^_" }]
+    "no-unused-vars": ["error", { "varsIgnorePattern": "^_|Window" }]
   }
 }

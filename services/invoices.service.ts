@@ -149,8 +149,7 @@ const TheService: ServiceSchema = {
       async handler(
         ctx: Context<Partial<InvoiceRequestParams>, { store?: Store }>
       ): Promise<InvoiceResponse> {
-        const store: Store =
-          ctx.meta.store || (await ctx.call<Store>('stores.me'));
+        const store = ctx.meta.store || (await ctx.call<Store>('stores.me'));
         const { params } = ctx;
 
         if (
