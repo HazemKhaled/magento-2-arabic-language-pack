@@ -45,7 +45,7 @@ const TheService: ServiceSchema = {
         path: '/api',
 
         authorization: true,
-        whitelist: [/^(?!api|$node)\w+/],
+        whitelist: ['**'],
         autoAliases: true,
 
         aliases: {
@@ -245,6 +245,12 @@ const TheService: ServiceSchema = {
         },
       },
     ],
+  },
+
+  actions: {
+    listAliases: {
+      visibility: 'public',
+    },
   },
 
   methods: {
