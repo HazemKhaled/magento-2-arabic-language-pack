@@ -526,16 +526,32 @@ const TheService: ServiceSchema = {
           'subscription.find',
           {
             query,
-            sort: { expireDate: -1 },
+            sort: '-expireDate',
           }
         );
         expiredSubscription._id = expiredSubscription._id.toString();
+        const date = new Date();
+        date.setUTCHours(0, 0, 0, 0);
+
+        await ctx.call<void, Partial<Subscription>>('subscription.update', {
+          id: expiredSubscription._id,
+          retries: expiredSubscription.retries
+            ? [...expiredSubscription.retries, new Date(date)]
+            : [new Date(date)],
+        });
+
+        await ctx.call<void, Partial<CrmStore>>('crm.addTagsByUrl', {
+          id: expiredSubscription.storeId,
+          tag: 'subscription-retry-fail',
+        });
+
         const currentSubscription = await ctx.call<
           Subscription,
           { storeId: string }
         >('subscription.getByStore', {
           storeId: expiredSubscription.storeId,
         });
+
         if (currentSubscription.id !== '-1') {
           ctx.call<void, Partial<Subscription>>('subscription.update', {
             id: expiredSubscription._id,
@@ -554,20 +570,6 @@ const TheService: ServiceSchema = {
             }
           );
         }
-        const date = new Date();
-        date.setUTCHours(0, 0, 0, 0);
-
-        ctx.call<void, Partial<Subscription>>('subscription.update', {
-          id: expiredSubscription._id,
-          retries: expiredSubscription.retries
-            ? [...expiredSubscription.retries, new Date(date)]
-            : [new Date(date)],
-        });
-
-        ctx.call<void, Partial<CrmStore>>('crm.addTagsByUrl', {
-          id: expiredSubscription.storeId,
-          tag: 'subscription-retry-fail',
-        });
         return { ...expiredSubscription, id: expiredSubscription._id };
       },
     },
