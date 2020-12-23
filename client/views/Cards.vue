@@ -40,5 +40,5 @@ export default {
   mounted() {
     this.$nextTick(() => (this.isLoading = false));
   },
-}
+};
 </script>

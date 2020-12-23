@@ -5,17 +5,11 @@
     "plugin:@shopify/prettier"
   ],
   "parserOptions": {
-    "project": "tsconfig.json"
+    "project": "tsconfig.json",
+    "ecmaVersion": 2018,
+    "sourceType": "module"
   },
   "rules": {
-    "@typescript-eslint/camelcase": "off",
-    "@typescript-eslint/naming-convention": [
-      "error",
-      {
-        "selector": "parameterProperty",
-        "format": ["camelCase", "snake_case"]
-      }
-    ],
     "lines-around-comment": "off",
     "import/no-unresolved": "off",
     "import/no-anonymous-default-export": "off",
@@ -30,13 +24,35 @@
     "no-fallthrough": "warn",
     // Change to error when you can
     "no-param-reassign": "warn",
-    "@typescript-eslint/no-explicit-any": "warn",
-    "@typescript-eslint/explicit-function-return-type": "warn",
     "consistent-return": "warn",
-    "@typescript-eslint/no-var-requires": "warn",
     "id-length": "warn",
     "promise/catch-or-return": "warn",
-    "@typescript-eslint/array-type": "off",
     "no-unused-vars": ["error", { "varsIgnorePattern": "^_|Window" }]
-  }
+  },
+  "overrides": [
+    {
+      "files": ["*.ts"],
+      "rules": {
+        "@typescript-eslint/camelcase": "off",
+        "@typescript-eslint/naming-convention": [
+          "error",
+          {
+            "selector": "parameterProperty",
+            "format": ["camelCase", "snake_case"]
+          }
+        ],
+        "@typescript-eslint/no-explicit-any": "warn",
+        "@typescript-eslint/explicit-function-return-type": "warn",
+        "@typescript-eslint/no-var-requires": "warn",
+        "@typescript-eslint/array-type": "off"
+      }
+    },
+    {
+      "files": ["*.vue"],
+      "extends": ["plugin:vue/recommended", "plugin:@shopify/prettier"],
+      "rules": {
+        "babel/camelcase": "off"
+      }
+    }
+  ]
 }

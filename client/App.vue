@@ -1,9 +1,5 @@
 <template>
-  <component
-    ref="page"
-    :is="component"
-    v-bind="$data"
-  />
+  <component :is="component" ref="page" v-bind="$data" />
 </template>
 
 <script>
@@ -11,8 +7,6 @@ import Checkout from '@/views/Checkout';
 import Cards from '@/views/Cards';
 import Error from '@/views/Error';
 import Success from '@/views/Success';
-
-import { debounce } from './utils';
 
 export default {
   name: 'App',
@@ -22,12 +16,12 @@ export default {
     store: {},
     currency: {},
     cards: [],
-    error: null
+    error: null,
   }),
   created() {
     if (!window.__INITIAL_STATE__) return;
-    Object.entries(window.__INITIAL_STATE__).forEach(([key, value]) =>
-      (this[key] = value)
+    Object.entries(window.__INITIAL_STATE__).forEach(
+      ([key, value]) => (this[key] = value)
     );
   },
   mounted() {
@@ -46,13 +40,10 @@ export default {
     resizeCallback() {
       const el = this.$refs.page.$el;
       const rect = el.getBoundingClientRect();
-      parent.postMessage(
-        `[resize]::${JSON.stringify(rect)}`,
-        '*'
-      );
-    }
-  }
-}
+      parent.postMessage(`[resize]::${JSON.stringify(rect)}`, '*');
+    },
+  },
+};
 </script>
 
 <style lang="stylus">
