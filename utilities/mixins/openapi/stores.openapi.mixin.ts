@@ -354,6 +354,7 @@ const StoresListOpenapi = {
 
 const StoresSListOpenapi = {
   $path: 'get /stores/admin',
+  deprecated: true,
   summary: 'All Stores',
   tags: ['Stores'],
   parameters: [

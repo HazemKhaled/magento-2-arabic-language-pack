@@ -170,19 +170,16 @@ const TheService: ServiceSchema = {
 
         const query: GenericObject = {
           query: { ...params.where } || {},
-          limit: Number(ctx.params.limit) || 50,
+          limit: Number(params.limit) || 50,
           offset:
-            (Number(ctx.params.limit) || 50) *
-            ((Number(ctx.params.page) || 1) - 1),
+            (Number(params.limit) || 50) * ((Number(params.page) || 1) - 1),
         };
-        if (ctx.params.fields) {
-          query.fields = ctx.params.fields.split(',');
+        if (params.fields) {
+          query.fields = params.fields.split(',');
         }
-        if (ctx.params.sort && ctx.params.sortOrder) {
+        if (params.sort && params.sortOrder) {
           query.sort =
-            ctx.params.sortOrder === 'DESC'
-              ? `-${ctx.params.sort}`
-              : ctx.params.sort;
+            params.sortOrder === 'DESC' ? `-${params.sort}` : params.sort;
         }
         return ctx
           .call<{ rows: Store[]; total: number }, GenericObject>(
