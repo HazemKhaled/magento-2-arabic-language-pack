@@ -152,7 +152,10 @@ const TheService: ServiceSchema = {
         }
         const findBody: GenericObject = { query };
         if (ctx.params.sort) {
-          findBody.sort = { [ctx.params.sort.field]: ctx.params.sort.order };
+          findBody.sort =
+            ctx.params.sort.order === 1
+              ? ctx.params.sort.field
+              : `-${ctx.params.sort.field}`;
         }
         if (ctx.params.perPage) {
           findBody.limit = Number(ctx.params.perPage);
@@ -626,7 +629,7 @@ const TheService: ServiceSchema = {
               status: 'active',
             },
 
-            sort: { field: 'expireDate', order: -1 },
+            sort: '-expireDate',
             limit: 2,
           }
         );
