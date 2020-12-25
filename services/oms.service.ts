@@ -150,13 +150,14 @@ const TheService: ServiceSchema = {
     // Payments
     createPayment: {
       handler(ctx: Context<GenericObject>) {
+        const customerId = ctx.params.customerId;
+        delete ctx.params.customerId;
         const body: GenericObject = {
           ...ctx.params,
-          customerId: undefined,
         };
         return this.request({
           ctx,
-          path: `payments/${ctx.params.customerId}`,
+          path: `payments/${customerId}`,
           method: 'post',
           body,
         });

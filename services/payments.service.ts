@@ -16,6 +16,27 @@ import { MpError } from '../utilities/adapters';
 const TheService: ServiceSchema = {
   name: 'payments',
   mixins: [PaymentsValidation, PaymentsOpenapi, Oms],
+  events: {
+    'payment.event': {
+      group: 'other',
+      handler(
+        ctx: Context<{ consumer_key: string; url: string; credit: number }>
+      ): void {
+        // Clear cache
+        ctx.broker.cacher.clean(`payments.get:${ctx.params.consumer_key}**`);
+        ctx.broker.cacher.clean(`invoices.get:${ctx.params.consumer_key}**`);
+
+        ctx.broker.cacher.clean(`orders.getOrder:${ctx.params.consumer_key}*`);
+        ctx.broker.cacher.clean(
+          `orders.list:undefined|${ctx.params.consumer_key}*`
+        );
+        ctx.broker.cacher.clean(`invoices.get:${ctx.params.consumer_key}*`);
+        ctx.broker.cacher.clean(`subscription.getByStore:${ctx.params.url}*`);
+        ctx.broker.cacher.clean(`stores.getOne:${ctx.params.url}**`);
+        ctx.broker.cacher.clean(`stores.me:${ctx.params.consumer_key}**`);
+      },
+    },
+  },
   actions: {
     add: {
       auth: ['Basic'],
@@ -25,6 +46,9 @@ const TheService: ServiceSchema = {
         const instance = await ctx.call<Store, { id: string }>('stores.get', {
           id: ctx.params.id,
         });
+        if (instance) {
+          instance.url = instance._id || ctx.params.id;
+        }
 
         // create OMS contact if no oms ID
         if (!instance?.internal_data?.omsId) {
@@ -33,26 +57,26 @@ const TheService: ServiceSchema = {
 
         const paymentBody: GenericObject = {
           customerId: instance?.internal_data?.omsId,
-          paymentMode: ctx.params.payment_mode,
+          payment_mode: ctx.params.payment_mode,
           amount: ctx.params.amount,
-          accountId: ctx.params.account_id,
+          account_id: ctx.params.account_id,
         };
 
         if (ctx.params.invoices) {
           paymentBody.invoices = ctx.params.invoices.map(
             (invoice: { [key: string]: string }) => ({
-              invoiceId: invoice.invoice_id,
-              amountApplied: invoice.amount_applied,
+              invoice_id: invoice.invoice_id,
+              amount_applied: invoice.amount_applied,
             })
           );
         }
 
         if (ctx.params.bank_charges) {
-          paymentBody.bankCharges = ctx.params.bank_charges;
+          paymentBody.bank_charges = ctx.params.bank_charges;
         }
 
         if (ctx.params.reference) {
-          paymentBody.referenceNumber = String(ctx.params.reference);
+          paymentBody.reference = String(ctx.params.reference);
         }
 
         if (ctx.params.description) {
@@ -65,15 +89,9 @@ const TheService: ServiceSchema = {
             paymentBody
           )
           .then(
-            (res: GenericObject) => {
-              // Store balance
-              this.broker.cacher.clean(
-                `payments.get:${instance.consumer_key}**`
-              );
-              this.broker.cacher.clean(
-                `invoices.get:${instance.consumer_key}**`
-              );
-              this.cacheUpdate(res.payment, instance);
+            async (res: GenericObject) => {
+              await this.broker.emit('payment.event', instance);
+              await this.cacheUpdate(res.payment, instance);
               return this.sanitizePayment(res.payment);
             },
             err => {
@@ -161,6 +179,8 @@ const TheService: ServiceSchema = {
       const store = await this.broker.call('stores.getOne', {
         id: instance.url,
       });
+      store.url = store.url || store._id;
+
       store.credit = (store.credit || 0) + payment.amount;
       this.broker.cacher.set(`stores.getOne:${store.url}|undefined`, store);
       this.broker.cacher.set(`stores.me:${store.consumer_key}`, store);
