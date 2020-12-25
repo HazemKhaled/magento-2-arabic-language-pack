@@ -1,7 +1,7 @@
 import { ServiceSchema, GenericObject } from 'moleculer';
 
 import { MpError } from '../adapters';
-import { OmsStore, Store } from '../types';
+import { OmsStore, Store, ShippingMethod } from '../types';
 
 export const Oms: ServiceSchema = {
   name: 'oms',
@@ -53,7 +53,14 @@ export const Oms: ServiceSchema = {
         if (!params[key]) return;
 
         const keyName = (transformObj[key] || key) as keyof OmsStore;
-        body[keyName] = (params[key] as { $date: Date }).$date || params[key];
+        if (keyName === 'shippingMethods') {
+          const shippingMethods = params[key] as ShippingMethod[];
+          body[keyName] = shippingMethods.map(
+            (shipping: ShippingMethod) => shipping.name
+          );
+        } else {
+          body[keyName] = (params[key] as { $date: Date }).$date || params[key];
+        }
       });
       // if no attributes no create
       if (Object.keys(body).length === 0) return;
@@ -80,7 +87,6 @@ export const Oms: ServiceSchema = {
           delete body.billing;
         }
       }
-
       return this.broker
         .call('oms.createCustomer', body)
         .catch(this.broker.logger.error);
