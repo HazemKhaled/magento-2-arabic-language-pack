@@ -16,8 +16,8 @@ export default {
   name: 'Error',
   props: {
     error: {
-      type: Object
-    }
+      type: Object,
+    },
   },
   computed: {
     errorImage() {
@@ -25,10 +25,10 @@ export default {
       const mapper = {
         401: 'not_found',
         422: 'notify',
-        404: 'credit_card'
-      }
+        404: 'credit_card',
+      };
 
-      return `/img/${mapper[code] || 'online_payments'}.svg`
+      return `/img/${mapper[code] || 'online_payments'}.svg`;
     },
   },
   mounted() {
@@ -36,7 +36,7 @@ export default {
       console.error({ ...this.error });
     }
   },
-}
+};
 </script>
 
 <style lang="stylus">

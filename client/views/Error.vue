@@ -8,18 +8,15 @@ import Error from '@/components/Error';
 export default {
   name: 'Error',
   components: {
-    ErrorComponent: Error
+    ErrorComponent: Error,
   },
   props: {
     error: {
-      type: Object
-    }
+      type: Object,
+    },
   },
   mounted() {
-    parent.postMessage(
-      `[error]::${JSON.stringify(this.error)}`,
-      '*'
-    );
+    parent.postMessage(`[error]::${JSON.stringify(this.error)}`, '*');
   },
-}
+};
 </script>

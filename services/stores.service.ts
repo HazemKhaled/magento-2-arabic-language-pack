@@ -125,9 +125,12 @@ const TheService: ServiceSchema = {
 
             if (res?.internal_data?.omsId && !ctx.params.withoutBalance) {
               const omsData = (await ctx
-                .call<null, Partial<{ id: string }>>('oms.getCustomer', {
-                  id: res.internal_data.omsId,
-                })
+                .call<null, Partial<{ customerId: string }>>(
+                  'oms.getCustomer',
+                  {
+                    customerId: res.internal_data.omsId,
+                  }
+                )
                 .then(null, this.logger.error)) as { store: Store };
 
               // If the DB response not null will return the data
@@ -162,7 +165,7 @@ const TheService: ServiceSchema = {
           limit?: number;
           skip?: number;
           order?: string;
-          sort?: GenericObject;
+          sort?: string;
         } = {};
         try {
           params = JSON.parse(ctx.params.filter);
@@ -185,7 +188,8 @@ const TheService: ServiceSchema = {
             sortArray.length === 2 &&
             ['asc', 'desc'].includes(sortArray[1].toLowerCase())
           ) {
-            query.sort = { [sortArray[0]]: sortArray[1] === 'asc' ? 1 : -1 };
+            query.sort =
+              sortArray[1] === 'asc' ? sortArray[0] : `-${sortArray[0]}`;
           }
         }
         return ctx
@@ -314,6 +318,7 @@ const TheService: ServiceSchema = {
             ctx.params.external_data
           );
         }
+        store._id = ctx.params.id;
 
         const responseStore = await ctx
           .call<Store, Store>('stores.update', store)

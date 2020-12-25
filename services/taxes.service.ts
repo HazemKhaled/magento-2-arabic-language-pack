@@ -154,7 +154,9 @@ const TaxesService: ServiceSchema = {
         ctx: Context<DbTax>
       ): Promise<{ tax: DbTax; message: string }> {
         const taxDeleteData = await ctx
-          .call<DbTax, string>('taxes.remove', ctx.params.id)
+          .call<DbTax, { id: string }>('taxes.remove', {
+            id: ctx.params.id,
+          })
           .then(tax => {
             if (!tax) {
               throw new MoleculerError('There is no tax with that ID', 404);

@@ -6,7 +6,7 @@ import MongoAdapter from 'moleculer-db-adapter-mongo';
 Object.keys((DbService as Partial<ServiceSchema>).actions).map(action => {
   ((DbService as Partial<ServiceSchema>).actions[
     action
-  ] as ActionSchema).visibility = 'protected';
+  ] as ActionSchema).visibility = 'public';
 });
 
 export default class Connection

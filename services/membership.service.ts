@@ -76,10 +76,6 @@ const TheService: ServiceSchema = {
       handler(ctx: Context<MembershipRequestParams>): Promise<Membership> {
         const { active, id, country } = ctx.params;
 
-        if (id) {
-          return this.getById(id);
-        }
-
         const query: Partial<MembershipRequestParams> = { _id: id };
         if (active !== undefined) {
           query.active = active;
