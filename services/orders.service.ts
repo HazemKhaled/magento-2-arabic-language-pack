@@ -13,7 +13,6 @@ import {
   Store,
   OrderMetaParams,
   Coupon,
-  CrmStore,
   updateOderRequestParams,
   InvoiceResponse,
   InvoiceRequestParams,
@@ -354,10 +353,13 @@ const TheService: ServiceSchema = {
 
         // TODO: Move to hook after create, and write this code into CRM service
         // Update CRM last update
-        ctx.call<void, Partial<CrmStore>>('crm.updateStoreById', {
-          id: store.url,
-          last_order_date: Date.now(),
-        });
+        ctx.call<void, { id: string; last_order_date: number }>(
+          'crm.updateStoreById',
+          {
+            id: store.url,
+            last_order_date: Date.now(),
+          }
+        );
 
         // Update products sales quantity
         ctx.call<void, { products: GenericObject[] }>(

@@ -12,9 +12,7 @@ import {
   Store,
   MetaParams,
   Invoice,
-  CrmStore,
   CommonError,
-  CrmResponse,
   SubscriptionListParams,
 } from '../utilities/types';
 import { SubscriptionValidation } from '../utilities/mixins/validation';
@@ -536,14 +534,14 @@ const TheService: ServiceSchema = {
         const date = new Date();
         date.setUTCHours(0, 0, 0, 0);
 
-        await ctx.call<void, Partial<Subscription>>('subscription.update', {
+        ctx.call<void, Partial<Subscription>>('subscription.update', {
           id: expiredSubscription._id,
           retries: expiredSubscription.retries
             ? [...expiredSubscription.retries, new Date(date)]
             : [new Date(date)],
         });
 
-        await ctx.call<void, Partial<CrmStore>>('crm.addTagsByUrl', {
+        ctx.call<void, { id: string; tag: string }>('crm.addTagsByUrl', {
           id: expiredSubscription.storeId,
           tag: 'subscription-retry-fail',
         });
@@ -561,7 +559,7 @@ const TheService: ServiceSchema = {
             renewed: true,
           });
 
-          ctx.call<void, Partial<CrmStore>>('crm.addTagsByUrl', {
+          ctx.call<void, { id: string; tag: string }>('crm.addTagsByUrl', {
             id: expiredSubscription.storeId,
             tag: 'subscription-renew',
           });
@@ -616,7 +614,7 @@ const TheService: ServiceSchema = {
     },
     checkCurrentSubGradingStatus: {
       visibility: 'public',
-      async handler(ctx: Context<{ id: string }>): Promise<CrmResponse> | null {
+      async handler(ctx: Context<{ id: string }>): Promise<void> {
         const allSubBefore = await ctx.call<Subscription[], GenericObject>(
           'subscription.find',
           {
@@ -640,10 +638,12 @@ const TheService: ServiceSchema = {
         );
         if (allSubBefore.length === 0) return;
         if (allSubBefore.length === 1) {
-          return ctx.call<CrmResponse, Partial<CrmStore>>('crm.addTagsByUrl', {
+          ctx.call<unknown, { id: string; tag: string }>('crm.addTagsByUrl', {
             id: ctx.params.id,
             tag: 'subscription-upgrade',
           });
+
+          return;
         }
         const oldM = memberships.find(
           (m: Membership) => allSubBefore[0].membershipId === m.id
@@ -651,14 +651,17 @@ const TheService: ServiceSchema = {
         const lastM = memberships.find(
           (m: Membership) => allSubBefore[1].membershipId === m.id
         );
+
         if (oldM.sort > lastM.sort) {
-          return ctx.call<CrmResponse, Partial<CrmStore>>('crm.addTagsByUrl', {
+          ctx.call<unknown, { id: string; tag: string }>('crm.addTagsByUrl', {
             id: ctx.params.id,
             tag: 'subscription-upgrade',
           });
+          return;
         }
+
         if (oldM.sort < lastM.sort) {
-          return ctx.call<CrmResponse, Partial<CrmStore>>('crm.addTagsByUrl', {
+          ctx.call<unknown, { id: string; tag: string }>('crm.addTagsByUrl', {
             id: ctx.params.id,
             tag: 'subscription-downgrade',
           });

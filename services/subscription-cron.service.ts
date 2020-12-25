@@ -1,7 +1,7 @@
 import { Context, ServiceSchema, GenericObject } from 'moleculer';
 import * as Cron from 'moleculer-cron';
 
-import { Store, Subscription, CrmStore } from '../utilities/types';
+import { Store, Subscription } from '../utilities/types';
 
 const TheService: ServiceSchema = {
   name: 'subscription-cron',
@@ -67,7 +67,7 @@ const TheService: ServiceSchema = {
               id: String(subscription.id),
               renewed: true,
             });
-            ctx.call<void, Partial<CrmStore>>('crm.addTagsByUrl', {
+            ctx.call<void, { id: string; tag: string }>('crm.addTagsByUrl', {
               id: subscription.storeId,
               tag: 'subscription-renew',
             });
