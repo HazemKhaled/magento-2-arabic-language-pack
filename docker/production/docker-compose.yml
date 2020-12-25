@@ -64,9 +64,9 @@ services:
     image: mp
     restart: always
     env_file: .env
-    hostname: "membership-subscription-coupons-crm"
+    hostname: "membership-subscription-coupons"
     environment:
-      SERVICES: membership, subscription, coupons, crm
+      SERVICES: membership, subscription, coupons
 
   subscription-cron:
     build:
