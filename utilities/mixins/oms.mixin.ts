@@ -54,9 +54,7 @@ export const Oms: ServiceSchema = {
 
         const keyName = (transformObj[key] || key) as keyof OmsStore;
         if (keyName === 'shippingMethods') {
-          const shippingMethods: ShippingMethod[] = params[
-            key
-          ] as ShippingMethod[];
+          const shippingMethods = params[key] as ShippingMethod[];
           body[keyName] = shippingMethods.map(
             (shipping: ShippingMethod) => shipping.name
           );
