@@ -93,7 +93,7 @@
           .checkout__summary-list
             template(v-if='unit.type === "order"')
               span
-                | {{ $t("checkout.orderId") }}: 
+                | {{ $t("checkout.orderId") }}:
                 b {{ unit.data.externalId }}
               span {{ unit.amount.value }} {{ unit.amount.currency_code }}
 
@@ -147,8 +147,7 @@ import CreditCardPlaceholder from '@/components/CreditCardPlaceholder';
 import CreditCard from '@/components/CreditCard';
 import AppIcon from '@/components/AppIcon';
 
-import { fixed2, round, $fetch, getErrorMessage } from '../utils';
-import { isArray } from 'util';
+import { fixed2 } from '../utils';
 
 export default {
   name: 'Checkout',
@@ -247,7 +246,7 @@ export default {
     const search = window.location.search?.substring(1);
     const queryParams = qs.parse(search);
 
-    this.purchaseUnites = queryParams['purchase_units'] || [];
+    this.purchaseUnites = queryParams.purchase_units || [];
     this.useBalance = this.canUseBalance;
 
     if (this.cards?.length) {

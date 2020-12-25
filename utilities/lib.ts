@@ -19,15 +19,16 @@ export async function authorizeHmac(
   req: MoleculerRequest
 ): Promise<Store | boolean> {
   const { query, headers } = req;
-  const { store: storeUrl, hmac } = query;
+  const { store: storeUrl, hmac } = query as { store: string; hmac: string };
 
   if (!storeUrl || !hmac) {
     throw new UnAuthorizedError(ERR_NO_TOKEN, headers.authorization);
   }
 
-  const store = (await req.$ctx.broker.call('stores.getOne', {
-    id: storeUrl,
-  })) as Store;
+  const store = await req.$ctx.broker.call<Store, { id: string }>(
+    'stores.getOne',
+    { id: storeUrl }
+  );
 
   if (!store) {
     throw new NotFoundError('ERR_NOT_FOUND', headers.authorization);
