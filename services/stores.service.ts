@@ -165,7 +165,7 @@ const TheService: ServiceSchema = {
           limit?: number;
           skip?: number;
           order?: string;
-          sort?: GenericObject;
+          sort?: string;
         } = {};
         try {
           params = JSON.parse(ctx.params.filter);
@@ -188,7 +188,8 @@ const TheService: ServiceSchema = {
             sortArray.length === 2 &&
             ['asc', 'desc'].includes(sortArray[1].toLowerCase())
           ) {
-            query.sort = { [sortArray[0]]: sortArray[1] === 'asc' ? 1 : -1 };
+            query.sort =
+              sortArray[1] === 'asc' ? sortArray[0] : `-${sortArray[0]}`;
           }
         }
         return ctx
