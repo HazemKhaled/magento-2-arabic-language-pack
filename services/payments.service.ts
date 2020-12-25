@@ -19,9 +19,7 @@ const TheService: ServiceSchema = {
   events: {
     'payment.event': {
       group: 'other',
-      handler(
-        ctx: Context<{ consumer_key: string; url: string; credit: number }>
-      ): void {
+      handler(ctx: Context<{ consumer_key: string; url: string }>): void {
         // Clear cache
         ctx.broker.cacher.clean(`payments.get:${ctx.params.consumer_key}**`);
         ctx.broker.cacher.clean(`invoices.get:${ctx.params.consumer_key}**`);
