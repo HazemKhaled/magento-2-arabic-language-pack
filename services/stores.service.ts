@@ -362,7 +362,7 @@ const TheService: ServiceSchema = {
 
         if (myStore?.internal_data?.omsId) {
           ctx
-            .call<null, Partial<Store>>('crm.updateStoreById', {
+            .call<null, Partial<Store>>('crm.updateRecord', {
               id,
               ...ctx.params,
             })

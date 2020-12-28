@@ -476,7 +476,14 @@ const TheService: ServiceSchema = {
                   id: ctx.params.grantTo || ctx.params.storeId,
                 }
               );
-              ctx.call<void, Partial<unknown>>('crm.updateStoreById', {
+              ctx.call<
+                void,
+                {
+                  id: string;
+                  membership_id: string;
+                  subscription_expiration: number;
+                }
+              >('crm.updateStoreById', {
                 id: ctx.params.grantTo || ctx.params.storeId,
                 membership_id: membership.id,
                 subscription_expiration: expireDate.getTime(),
@@ -541,10 +548,14 @@ const TheService: ServiceSchema = {
             : [new Date(date)],
         });
 
-        ctx.call<void, { id: string; tag: string }>('crm.addTagsByUrl', {
-          id: expiredSubscription.storeId,
-          tag: 'subscription-retry-fail',
-        });
+        ctx.call<void, { id: string; tag: string; module: string }>(
+          'crm.addTagsToRecord',
+          {
+            module: 'accounts',
+            id: expiredSubscription.storeId,
+            tag: 'subscription-retry-fail',
+          }
+        );
 
         const currentSubscription = await ctx.call<
           Subscription,
@@ -559,10 +570,14 @@ const TheService: ServiceSchema = {
             renewed: true,
           });
 
-          ctx.call<void, { id: string; tag: string }>('crm.addTagsByUrl', {
-            id: expiredSubscription.storeId,
-            tag: 'subscription-renew',
-          });
+          ctx.call<void, { id: string; tag: string; module: string }>(
+            'crm.addTagsToRecord',
+            {
+              module: 'accounts',
+              id: expiredSubscription.storeId,
+              tag: 'subscription-renew',
+            }
+          );
           return ctx.call<Subscription, GenericObject>(
             'subscription.getOneByExpireDate',
             {
@@ -638,10 +653,14 @@ const TheService: ServiceSchema = {
         );
         if (allSubBefore.length === 0) return;
         if (allSubBefore.length === 1) {
-          ctx.call<unknown, { id: string; tag: string }>('crm.addTagsByUrl', {
-            id: ctx.params.id,
-            tag: 'subscription-upgrade',
-          });
+          ctx.call<unknown, { id: string; tag: string; module: string }>(
+            'crm.addTagsToRecord',
+            {
+              module: 'accounts',
+              id: ctx.params.id,
+              tag: 'subscription-upgrade',
+            }
+          );
 
           return;
         }
@@ -653,18 +672,26 @@ const TheService: ServiceSchema = {
         );
 
         if (oldM.sort > lastM.sort) {
-          ctx.call<unknown, { id: string; tag: string }>('crm.addTagsByUrl', {
-            id: ctx.params.id,
-            tag: 'subscription-upgrade',
-          });
+          ctx.call<unknown, { id: string; tag: string; module: string }>(
+            'crm.addTagsToRecord',
+            {
+              module: 'accounts',
+              id: ctx.params.id,
+              tag: 'subscription-upgrade',
+            }
+          );
           return;
         }
 
         if (oldM.sort < lastM.sort) {
-          ctx.call<unknown, { id: string; tag: string }>('crm.addTagsByUrl', {
-            id: ctx.params.id,
-            tag: 'subscription-downgrade',
-          });
+          ctx.call<unknown, { id: string; tag: string; module: string }>(
+            'crm.addTagsToRecord',
+            {
+              module: 'accounts',
+              id: ctx.params.id,
+              tag: 'subscription-downgrade',
+            }
+          );
         }
       },
     },

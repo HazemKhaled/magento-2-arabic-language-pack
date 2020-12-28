@@ -67,10 +67,14 @@ const TheService: ServiceSchema = {
               id: String(subscription.id),
               renewed: true,
             });
-            ctx.call<void, { id: string; tag: string }>('crm.addTagsByUrl', {
-              id: subscription.storeId,
-              tag: 'subscription-renew',
-            });
+            ctx.call<void, { id: string; tag: string; module: string }>(
+              'crm.addTagsToRecord',
+              {
+                module: 'accounts',
+                id: subscription.storeId,
+                tag: 'subscription-renew',
+              }
+            );
           }
           return createSubResponse;
         } catch (err) {
