@@ -58,8 +58,8 @@ export default {
     },
     expires() {
       const { exp_month, exp_year } = this.cardData;
-      return `${exp_month.toString().padStart(2, '0') }/${ exp_year }`
-    }
+      return `${exp_month.toString().padStart(2, '0')}/${exp_year}`;
+    },
   },
   methods: {
     async handleCardDelete() {
@@ -70,19 +70,19 @@ export default {
       this.isSubmitting = true;
 
       try {
-       await $fetch(url, {
+        await $fetch(url, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
           },
-        })
-      } catch(error) {
+        });
+      } catch (error) {
         console.error(error);
       } finally {
         location.reload();
       }
     },
-  }
+  },
 };
 </script>
 

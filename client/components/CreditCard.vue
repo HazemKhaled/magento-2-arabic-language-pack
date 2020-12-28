@@ -62,6 +62,7 @@ form.vc-card(novalidate, autocomplete='on')
 
 <script>
 import Payment from 'payment';
+
 import icons from '../icons.ts';
 
 export default {
@@ -90,7 +91,7 @@ export default {
   },
   computed: {
     currentIcon() {
-      return icons[this.type] || icons['unknown'];
+      return icons[this.type] || icons.unknown;
     },
     card() {
       const [month = '', year = ''] = this.expiry.split('/');
@@ -134,7 +135,7 @@ export default {
       this.$emit('checkout');
     },
     validate(val, name, method) {
-      let isValid = val && method(val);
+      const isValid = val && method(val);
       const inErrors = this.invalidFields.includes(name);
 
       if ((!isValid && inErrors) || (isValid && !inErrors)) {
@@ -149,9 +150,11 @@ export default {
       }
     },
     validateAll() {
-      Object.keys(this.dirtyFields).forEach(key => (this.dirtyFields[key] = true));
+      Object.keys(this.dirtyFields).forEach(
+        key => (this.dirtyFields[key] = true)
+      );
       this.validate(this.number, 'cardNumber', Payment.fns.validateCardNumber);
-      this.validate(this.name, 'cardName', val => !!val.length);
+      this.validate(this.name, 'cardName', val => Boolean(val.length));
       this.validate(this.expiry, 'expiry', Payment.fns.validateCardExpiry);
       this.validate(this.cvc, 'cvc', Payment.fns.validateCardCVC);
     },
