@@ -332,7 +332,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
         }
 
         // Hide out of stock
-        if (hideOutOfStock) {
+        if (hideOutOfStock !== undefined) {
           searchQuery.body.query.bool.must_not.push({
             term: {
               archive: Number(hideOutOfStock) === 1,

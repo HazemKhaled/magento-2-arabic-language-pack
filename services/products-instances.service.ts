@@ -106,7 +106,7 @@ module.exports = {
           },
         };
         if (Object.keys(ctx.params).length) {
-          if (ctx.params.hideOutOfStock) {
+          if (ctx.params.hideOutOfStock !== undefined) {
             query.bool.must_not.push({
               term: {
                 archive: Number(ctx.params.hideOutOfStock) === 1,
