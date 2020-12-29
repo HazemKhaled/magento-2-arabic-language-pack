@@ -5,22 +5,23 @@
  * @interface Tax
  */
 export interface DbTax {
-  class: string[];
-  country: string;
-  percentage: number;
-  name: string;
-  omsId: string;
-  isInclusive: boolean;
   _id: string;
   id: string;
+  name: string;
+  amount: number;
+  percentage: number;
+  isEditable: boolean;
   type: string;
+  class: string[];
+  country: string;
+  omsId: string;
+  isInclusive: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
 
 /**
  * TaxRequestParams type definition
- * Schema related to endpoint response
  *
  * @export
  * @interface TaxRequestParams
@@ -35,4 +36,16 @@ export interface TaxRequestParams {
   page: string;
   perPage: string;
   query: string;
+}
+
+/**
+ * OMS Tax Response type definition
+ *
+ * @export
+ * @interface OmsTaxResponse
+ */
+export interface OmsTaxResponse {
+  tax: DbTax;
+  code: number;
+  message: string;
 }

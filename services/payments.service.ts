@@ -16,25 +16,6 @@ import { MpError } from '../utilities/adapters';
 const TheService: ServiceSchema = {
   name: 'payments',
   mixins: [PaymentsValidation, PaymentsOpenapi, Oms],
-  events: {
-    'payment.event': {
-      group: 'other',
-      handler(ctx: Context<{ consumer_key: string; url: string }>): void {
-        // Clear cache
-        ctx.broker.cacher.clean(`payments.get:${ctx.params.consumer_key}**`);
-        ctx.broker.cacher.clean(`invoices.get:${ctx.params.consumer_key}**`);
-
-        ctx.broker.cacher.clean(`orders.getOrder:${ctx.params.consumer_key}*`);
-        ctx.broker.cacher.clean(
-          `orders.list:undefined|${ctx.params.consumer_key}*`
-        );
-        ctx.broker.cacher.clean(`invoices.get:${ctx.params.consumer_key}*`);
-        ctx.broker.cacher.clean(`subscription.getByStore:${ctx.params.url}*`);
-        ctx.broker.cacher.clean(`stores.getOne:${ctx.params.url}**`);
-        ctx.broker.cacher.clean(`stores.me:${ctx.params.consumer_key}**`);
-      },
-    },
-  },
   actions: {
     add: {
       auth: ['Basic'],
@@ -88,7 +69,15 @@ const TheService: ServiceSchema = {
           )
           .then(
             async (res: GenericObject) => {
-              await this.broker.emit('payment.event', instance);
+              // Clear cache
+              this.broker.cacher.clean(
+                `payments.get:${instance.consumer_key}**`
+              );
+              this.broker.cacher.clean(
+                `subscription.getByStore:${instance.url}*`
+              );
+              this.broker.cacher.clean(`stores.getOne:${instance.url}**`);
+              this.broker.cacher.clean(`stores.me:${instance.consumer_key}**`);
               await this.cacheUpdate(res.payment, instance);
               return this.sanitizePayment(res.payment);
             },

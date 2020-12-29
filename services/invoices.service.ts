@@ -100,9 +100,9 @@ const TheService: ServiceSchema = {
           await this.setOmsId(instance);
         }
 
-        const invoiceParams: { [key: string]: string } = {
+        const invoiceParams: GenericObject = {
           customerId: instance?.internal_data?.omsId,
-          discount: ctx.params.discount?.value.toString(),
+          discount: Number(ctx.params.discount?.value),
           discountType: ctx.params.discount?.type,
           items: ctx.params.items,
         };
