@@ -189,30 +189,40 @@ const TheService: ServiceSchema = {
               type: 'subscription',
             })
             .then(null, err => err);
-          if (isNativeError(coupon)) {
-            throw new MoleculerError(coupon.message, Number(coupon.code));
+          if (!isNaN(Number(coupon.code)) && Number(coupon.code) !== 200) {
+            throw new MpError(
+              'Subscription Service',
+              Number(coupon.code) === 404
+                ? 'Coupon not found !'
+                : 'Internal server error',
+              Number(coupon.code)
+            );
           }
         }
 
         const membershipRequestBody: {
           id: string;
           active: true;
-          coupon?: string;
         } = { id: ctx.params.membership, active: true };
-        if (ctx.params.coupon) {
-          membershipRequestBody.coupon = ctx.params.coupon;
-        }
+
         const membership = await ctx
           .call<Membership, Partial<Membership>>(
             'membership.getOne',
             membershipRequestBody
           )
           .then(null, err => err);
-        if (isNativeError(membership as { message: string; code: number })) {
-          throw new MoleculerError(membership.message, membership.code || 500);
-        }
-        if (!membership) {
-          throw new MoleculerError('No membership found', 404);
+
+        if (
+          !isNaN(Number(membership.code)) &&
+          Number(membership.code) !== 200
+        ) {
+          throw new MpError(
+            'Subscription Service',
+            Number(membership.code) === 404
+              ? 'No membership found !'
+              : 'Internal server Error',
+            Number(membership.code)
+          );
         }
         if (membership.isDefault) {
           throw new MoleculerError(
@@ -228,24 +238,20 @@ const TheService: ServiceSchema = {
 
         // Get the Store instance
         const instance = await ctx
-          .call<Store | unknown, Partial<{ id: string }>>('stores.get', {
+          .call<Store, { id: string }>('stores.get', {
             id: ctx.params.storeId,
           })
-          .then(store => {
-            // Check for instance errors
-            if ((store as { errors: Error[] }).errors) {
-              throw new MoleculerError(
-                (store as { errors: Error[] }).errors[0].message,
-                404
-              );
-            }
+          .then(null, err => err);
 
-            if (isNativeError(store)) {
-              throw new MoleculerError(store.message, 500);
-            }
-
-            return store as Store;
-          });
+        if (!isNaN(Number(instance.code)) && Number(instance.code) !== 200) {
+          throw new MpError(
+            'Subscription Service',
+            Number(instance.code) === 404
+              ? 'Store not found !'
+              : 'Internal server error',
+            Number(instance.code)
+          );
+        }
 
         let grantToInstance: Store;
         if (ctx.params.grantTo) {
@@ -315,7 +321,7 @@ const TheService: ServiceSchema = {
               accountId: String(process.env.SUBSCRIPTION_LEDGER_ACCOUNT_ID),
               rate: cost,
               quantity: 1,
-              taxId: taxData.omsId,
+              taxId: taxData.omsId || '',
               description: `StoreId: ${ctx.params.storeId}${
                 ctx.params.grantTo ? ` Granted To: ${ctx.params.grantTo}` : ''
               }`,
@@ -342,6 +348,7 @@ const TheService: ServiceSchema = {
         }
 
         ctx.meta.user = instance.consumer_key;
+        ctx.meta.store = instance;
 
         // Apply credits to invoice if the total not equal to 0
         let invoice: Invoice = null;
@@ -352,11 +359,13 @@ const TheService: ServiceSchema = {
           if (isNativeError(invoice as { message: string; code: number })) {
             throw new MoleculerError(invoice.message, invoice.code || 500);
           }
+
           const applyCreditsResponse = await ctx
-            .call<Invoice, Partial<Invoice>>('invoices.applyCredits', {
+            .call<Invoice, { id: string }>('invoices.applyCredits', {
               id: invoice.invoice.invoiceId,
             })
             .then(null, err => err);
+
           if (
             isNativeError(
               applyCreditsResponse as { message: string; code: number }

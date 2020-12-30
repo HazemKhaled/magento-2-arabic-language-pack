@@ -53,8 +53,6 @@ const TheService: ServiceSchema = {
       handler(ctx: Context<Coupon>): Promise<Coupon> {
         const query: CouponQueryType = {
           _id: ctx.params.id.toUpperCase(),
-          startDate: { $lte: new Date() },
-          endDate: { $gte: new Date() },
           type: 'subscription',
         };
         if (ctx.params.membership) {
@@ -62,6 +60,12 @@ const TheService: ServiceSchema = {
         }
         if (ctx.params.type) {
           query.type = ctx.params.type;
+        }
+        if (ctx.params.startDate) {
+          query.startDate = { $lte: new Date() };
+        }
+        if (ctx.params.endDate) {
+          query.endDate = { $gte: new Date() };
         }
         return ctx
           .call<Coupon[], { query: CouponQueryType }>('coupons.find', { query })
