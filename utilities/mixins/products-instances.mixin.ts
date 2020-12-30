@@ -183,7 +183,8 @@ export const ProductsInstancesMixin: ServiceSchema = {
                   instance,
                   currencyRate.rate,
                   product.archive,
-                  pi._source.variations
+                  pi._source.variations,
+                  hideOutOfStock
                 ),
                 externalId: pi._source.externalId,
                 externalUrl: pi._source.externalUrl,

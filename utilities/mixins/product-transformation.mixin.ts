@@ -23,9 +23,11 @@ export const ProductTransformation: ServiceSchema = {
       instance: Store,
       rate: number,
       archive: boolean,
-      variationsInstance: Variation[]
+      variationsInstance: Variation[],
+      hideOutOfStock: boolean
     ): Variation[] {
-      return variations.map((variation, n) => {
+      const variationsArr: Variation[] = [];
+      variations.filter((variation, n) => {
         const variant: Variation = {
           sku: variation.sku,
           cost_price: variation.sale * rate,
@@ -49,8 +51,17 @@ export const ProductTransformation: ServiceSchema = {
         } catch (err) {
           /** */
         }
-        return variant;
+        if (hideOutOfStock !== undefined) {
+          if (hideOutOfStock && variation.quantity) {
+            variationsArr.push(variant);
+          } else if (!hideOutOfStock && variation.quantity === 0) {
+            variationsArr.push(variant);
+          }
+        } else {
+          variationsArr.push(variant);
+        }
       });
+      return variationsArr;
     },
 
     /**

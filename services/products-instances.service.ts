@@ -21,6 +21,7 @@ import {
   CommonError,
   ElasticSearchResponse,
   ElasticQuery,
+  ProductListParams,
 } from '../utilities/types';
 
 module.exports = {
@@ -190,7 +191,7 @@ module.exports = {
         monitor: true,
       },
       async handler(
-        ctx: Context
+        ctx: Context<ProductListParams>
       ): Promise<{ products: Product[]; total: number }> {
         const products = await this.findProducts(ctx);
 
