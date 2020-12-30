@@ -117,16 +117,18 @@ const TheService: ServiceSchema = {
                 }),
             };
             if (params.parentId && params.parentId !== '0') {
-              const parent = result.hits.hits.find(
-                cat => cat._id === params.parentId
-              );
-              response.parent = {
-                id: Number(parent._id),
-                name: this.formatI18nText(parent._source.name),
-                parentId: parent._source.parentId,
-                productsCount: parent._source.productsCount,
-                treeNodeLevel: parent._source.treeNodeLevel,
-              };
+              const parent = result.hits.hits.find(cat => {
+                return cat._id === params.parentId;
+              });
+              if (parent) {
+                response.parent = {
+                  id: Number(parent._id),
+                  name: this.formatI18nText(parent._source.name),
+                  parentId: parent._source.parentId,
+                  productsCount: parent._source.productsCount,
+                  treeNodeLevel: parent._source.treeNodeLevel,
+                };
+              }
             }
             return response;
           }
