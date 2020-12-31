@@ -480,13 +480,21 @@ const TheService: ServiceSchema = {
                 void,
                 {
                   id: string;
-                  membership_id: string;
-                  subscription_expiration: number;
+                  data: {
+                    membership_id: string;
+                    subscription_expiration: number;
+                  }[];
+                  module: string;
                 }
-              >('crm.updateStoreById', {
+              >('crm.updateRecord', {
                 id: ctx.params.grantTo || ctx.params.storeId,
-                membership_id: membership.id,
-                subscription_expiration: expireDate.getTime(),
+                module: 'accounts',
+                data: [
+                  {
+                    membership_id: membership.id,
+                    subscription_expiration: expireDate.getTime(),
+                  },
+                ],
               });
               return { ...res, id: res._id, _id: undefined };
             }
