@@ -31,7 +31,7 @@ export interface TaxRequestParams {
   name: string;
   percentage: number;
   type: string;
-  class: string[];
+  class: { $in: string[] } | string[];
   country: string;
   page: string;
   perPage: string;

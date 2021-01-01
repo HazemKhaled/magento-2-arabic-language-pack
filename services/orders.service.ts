@@ -838,7 +838,7 @@ const TheService: ServiceSchema = {
       auth: ['Bearer'],
       async handler(
         ctx: Context<OrderRequestParams, MetaParams>
-      ): Promise<GenericObject> {
+      ): Promise<{ message: string } | InvoiceResponse> {
         const { storeId, id } = ctx.params;
 
         const storeDoc =
@@ -900,7 +900,7 @@ const TheService: ServiceSchema = {
           );
 
           const applyCreditRes = await ctx.call<
-            unknown,
+            InvoiceResponse,
             Partial<InvoiceRequestParams>
           >('invoices.applyCredits', {
             id: invoiceId,

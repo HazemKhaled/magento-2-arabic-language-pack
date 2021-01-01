@@ -242,7 +242,9 @@ const TheService: ServiceSchema = {
       },
     },
     updateTax: {
-      handler(ctx: Context<TaxRequestParams>): Promise<OmsTaxResponse> {
+      handler(
+        ctx: Context<Partial<TaxRequestParams>>
+      ): Promise<OmsTaxResponse> {
         const { id } = ctx.params;
         const body = ctx.params;
         delete body.id;

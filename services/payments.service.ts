@@ -63,12 +63,12 @@ const TheService: ServiceSchema = {
         }
 
         return ctx
-          .call<GenericObject, Partial<Payment>>(
+          .call<{ payment: Payment }, Partial<Payment>>(
             'oms.createPayment',
             paymentBody
           )
           .then(
-            async (res: GenericObject) => {
+            async (res: { payment: Payment }) => {
               // Clear cache
               this.broker.cacher.clean(
                 `payments.get:${instance.consumer_key}**`

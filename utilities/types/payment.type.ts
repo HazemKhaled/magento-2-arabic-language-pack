@@ -95,4 +95,6 @@ export interface PaymentRequestParams {
   perPage?: number;
   referenceNumber?: string;
   paymentMode?: string;
+  limit?: number;
+  reference_number?: string;
 }

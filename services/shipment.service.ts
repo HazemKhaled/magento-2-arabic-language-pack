@@ -1,4 +1,4 @@
-import { Context, ServiceSchema, GenericObject } from 'moleculer';
+import { Context, ServiceSchema } from 'moleculer';
 
 import DbService from '../utilities/mixins/mongo.mixin';
 import { ShipmentOpenapi } from '../utilities/mixins/openapi';
@@ -234,9 +234,12 @@ const Shipment: ServiceSchema = {
           : {};
 
         return ctx
-          .call<ShipmentPolicy[], GenericObject>('shipment.find', {
-            query,
-          })
+          .call<ShipmentPolicy[], { query: { countries?: string } }>(
+            'shipment.find',
+            {
+              query,
+            }
+          )
           .then(
             // Get couriers and filter repeated couriers
             (polices: ShipmentPolicy[]) =>

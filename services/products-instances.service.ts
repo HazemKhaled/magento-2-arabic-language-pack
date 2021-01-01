@@ -481,7 +481,7 @@ module.exports = {
       auth: ['Bearer'],
       handler(ctx: Context<Products, MetaParams>): Promise<{ status: string }> {
         const bulk: GenericObject[] = [];
-        ctx.params.productInstances.forEach((pi: GenericObject) => {
+        ctx.params.productInstances.forEach((pi: Partial<Product>) => {
           bulk.push({
             update: {
               _index: 'products-instances',

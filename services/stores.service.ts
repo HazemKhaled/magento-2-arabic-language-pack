@@ -495,7 +495,14 @@ const TheService: ServiceSchema = {
      * @returns {Object} Logged in user with token
      */
     login: {
-      handler(ctx: Context<StoreRequest, MetaParams>): Promise<GenericObject> {
+      handler(
+        ctx: Context<StoreRequest, MetaParams>
+      ): Promise<{
+        _id: string;
+        url: string;
+        status: string;
+        currency: string;
+      }> {
         const { consumerKey, consumerSecret } = ctx.params;
 
         return ctx
