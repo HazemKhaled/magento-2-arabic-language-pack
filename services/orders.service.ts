@@ -1095,7 +1095,7 @@ const TheService: ServiceSchema = {
             topic: 'order',
             topicId: data.externalId,
             message: 'Some products are out of stock',
-            storeId: instance.url,
+            storeId: instance.url || instance._id,
             logLevel: 'warn',
             code: 1102,
             payload: { outOfStock, params },
@@ -1113,7 +1113,7 @@ const TheService: ServiceSchema = {
             topic: 'order',
             topicId: data.externalId,
             message: 'This items quantities are not enough stock',
-            storeId: instance.url,
+            storeId: instance.url || instance._id,
             logLevel: 'warn',
             code: 1103,
             payload: { outOfStock, params },
@@ -1160,7 +1160,7 @@ const TheService: ServiceSchema = {
           message: `There is no default shipping method for your store, It’ll be shipped with ${
             shipment.courier || 'Standard'
           }`,
-          storeId: instance.url,
+          storeId: instance.url || instance._id,
           logLevel: 'warn',
           code: 2102,
           payload: { shipment, params },
@@ -1179,7 +1179,7 @@ const TheService: ServiceSchema = {
           } with provided courier, It’ll be shipped with ${
             shipment.courier || 'Standard'
           }, Contact our customer support for more info`,
-          storeId: instance.url,
+          storeId: instance.url || instance._id,
           logLevel: 'warn',
           code: 2101,
           payload: { shipment, params },
@@ -1211,7 +1211,7 @@ const TheService: ServiceSchema = {
         data.store = instance.internal_data?.omsId
           ? { id: instance.internal_data.omsId }
           : {
-              url: instance.url,
+              url: instance.url || instance._id,
               name: instance.name,
               users: instance.users,
             };
@@ -1234,7 +1234,7 @@ const TheService: ServiceSchema = {
           topic: 'order',
           topicId: externalId,
           message: 'No Billing Address Or Address Missing Data.',
-          storeId: instance.url,
+          storeId: instance.url || instance._id,
           logLevel: 'warn',
           code: 1104,
         });
@@ -1311,7 +1311,7 @@ const TheService: ServiceSchema = {
         topic: 'order',
         topicId: externalId,
         message: `${action} Order Received!`,
-        storeId: instance.url,
+        storeId: instance.url || instance._id,
         logLevel: 'info',
         code: 100,
         payload: {

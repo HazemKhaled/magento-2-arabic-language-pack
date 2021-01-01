@@ -509,35 +509,31 @@ const TheService: ServiceSchema = {
             ) {
               return {
                 _id: instance.consumer_key,
-                url: instance.url,
+                url: instance.url || instance._id,
                 status: instance.status,
                 currency: instance.currency,
               };
             }
-
-            ctx.meta.$statusCode = 401;
-            ctx.meta.$statusMessage = 'Unauthorized Error';
-            return {
-              errors: [
-                { field: 'consumerKey', message: 'is not valid' },
-                { field: 'consumerSecret', message: 'is not valid' },
-              ],
-            };
+            // If wrong consumerSecret return Unauthorized error
+            throw new MpError(
+              'Stores Service',
+              `consumerSecret is wrong, (login)!`,
+              401
+            );
           })
           .then(user => this.transformEntity(user, true, ctx.meta.token))
-          .catch(() => {
+          .catch(err => {
             this.broker.cacher.clean(
               `stores.resolveBearerToken:${ctx.meta.token}`
             );
-
-            ctx.meta.$statusCode = 401;
-            ctx.meta.$statusMessage = 'Unauthorized Error';
-            return {
-              errors: [
-                { field: 'consumerKey', message: 'is not valid' },
-                { field: 'consumerSecret', message: 'is not valid' },
-              ],
-            };
+            // If wrong consumerKey or consumerSecret return Unauthorized error
+            throw new MpError(
+              'Stores Service',
+              err.code
+                ? err.message
+                : 'consumerKey or consumerSecret is wrong, (login)!',
+              401
+            );
           });
       },
     },

@@ -78,6 +78,9 @@ const TheService: ServiceSchema = {
 
             return store as Store;
           });
+        if (instance) {
+          instance.url = instance._id || ctx.params.storeId;
+        }
 
         const { items, discount } = ctx.params;
         // Total items cost
