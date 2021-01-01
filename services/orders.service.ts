@@ -360,16 +360,22 @@ const TheService: ServiceSchema = {
         });
 
         // Update products sales quantity
-        ctx.call<void, { products: GenericObject[] }>(
-          'products.updateQuantityAttributes',
+        ctx.call<
+          void,
           {
-            products: stock.products.map(product => ({
-              id: product.sku,
-              qty: product.sales_qty + 1 || 1,
-              attribute: 'sales_qty',
-            })),
+            products: {
+              id: string;
+              qty: number;
+              attribute: string;
+            }[];
           }
-        );
+        >('products.updateQuantityAttributes', {
+          products: stock.products.map(product => ({
+            id: product.sku,
+            qty: product.sales_qty + 1 || 1,
+            attribute: 'sales_qty',
+          })),
+        });
 
         const message: {
           status?: string;
@@ -726,7 +732,9 @@ const TheService: ServiceSchema = {
         ],
         ttl: 60 * 60 * 24,
       },
-      async handler(ctx): Promise<OrderOMSResponse | unknown> {
+      async handler(
+        ctx: Context<GenericObject, MetaParams>
+      ): Promise<OrderOMSResponse | unknown> {
         const { store } = ctx.meta;
 
         if (!store.internal_data?.omsId) {
@@ -754,13 +762,13 @@ const TheService: ServiceSchema = {
           if (!keys.includes(key)) return;
           queryParams[key] = ctx.params[key];
         });
-        const orders = await ctx.call<OrderOMSResponse, GenericObject>(
-          'oms.listOrders',
-          {
-            customerId: store.internal_data.omsId,
-            ...queryParams,
-          }
-        );
+        const orders = await ctx.call<
+          OrderOMSResponse,
+          Partial<OrderRequestParams>
+        >('oms.listOrders', {
+          customerId: store.internal_data.omsId,
+          ...queryParams,
+        });
         return orders.salesorders;
       },
     },

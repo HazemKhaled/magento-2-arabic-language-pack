@@ -1,4 +1,4 @@
-import { Context, Errors, ServiceSchema, GenericObject } from 'moleculer';
+import { Context, Errors, ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
 
 import {
@@ -12,14 +12,14 @@ import {
   TaxRequestParams,
   CommonError,
   Payment,
-  OmsPaymentResponse,
   Store,
   OmsTaxResponse,
   OmsOrder,
-  OmsOrderResponse,
   Invoice,
-  OmsInvoiceResponse,
   OmsApplyCreditResponse,
+  Order,
+  Response,
+  PaymentRequestParams,
 } from '../utilities/types';
 import DbService from '../utilities/mixins/mongo.mixin';
 import { OmsValidation } from '../utilities/mixins/validation';
@@ -40,7 +40,7 @@ const TheService: ServiceSchema = {
     listInvoice: {
       handler(
         ctx: Context<OmsRequestParams>
-      ): { invoices: [] } | Promise<OmsInvoiceResponse> {
+      ): { invoices: [] } | Promise<Response<{ invoices: Invoice[] }>> {
         const params = { ...ctx.params };
 
         if (!params.omsId) {
@@ -150,8 +150,10 @@ const TheService: ServiceSchema = {
       },
     },
     listOrders: {
-      handler(ctx: Context<GenericObject>): Promise<OmsOrderResponse> {
-        const params: { [key: string]: string } = { ...ctx.params };
+      handler(
+        ctx: Context<OrderRequestParams>
+      ): Promise<Response<{ salesorders: Order[] }>> {
+        const params = { ...ctx.params };
         delete params.customerId;
         return this.request({
           ctx,
@@ -172,7 +174,9 @@ const TheService: ServiceSchema = {
 
     // Payments
     createPayment: {
-      handler(ctx: Context<GenericObject>): Promise<{ payment: Payment }> {
+      handler(
+        ctx: Context<PaymentRequestParams>
+      ): Promise<{ payment: Payment }> {
         const { customerId } = ctx.params;
         const body = ctx.params;
         delete body.customerId;
@@ -186,8 +190,10 @@ const TheService: ServiceSchema = {
       },
     },
     listPayments: {
-      handler(ctx: Context<GenericObject>): Promise<OmsPaymentResponse> {
-        const params: { [key: string]: string } = { ...ctx.params };
+      handler(
+        ctx: Context<PaymentRequestParams>
+      ): Promise<Response<{ payments: Payment[] }>> {
+        const params = { ...ctx.params };
         delete params.customerId;
         return this.request({
           ctx,

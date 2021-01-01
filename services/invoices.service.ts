@@ -9,6 +9,7 @@ import {
   Order,
   OrderRequestParams,
   InvoiceResponse,
+  PaymentRequestParams,
 } from '../utilities/types';
 import { InvoicesValidation } from '../utilities/mixins/validation';
 import { InvoicePage } from '../utilities/mixins/invoicePage';
@@ -44,14 +45,14 @@ const TheService: ServiceSchema = {
         });
 
         return ctx
-          .call<
-            { response: { invoices: Invoice[] } },
-            Partial<InvoiceRequestParams>
-          >('oms.listInvoice', {
-            omsId: store?.internal_data?.omsId,
-            ...queryParams,
-          })
-          .then((response: GenericObject) => {
+          .call<{ invoices: Invoice[] }, Partial<InvoiceRequestParams>>(
+            'oms.listInvoice',
+            {
+              omsId: store?.internal_data?.omsId,
+              ...queryParams,
+            }
+          )
+          .then((response: { invoices: Invoice[] }) => {
             const invoices = response.invoices;
             return {
               invoices: invoices.map((invoice: Invoice) =>
@@ -161,17 +162,20 @@ const TheService: ServiceSchema = {
         ) {
           if (process.env.PAYMENT_AUTO_CHARGE_CC_INVOICE) {
             await ctx
-              .call<void, Partial<GenericObject>>('paymentGateway.charge', {
-                store: store.url,
-                purchase_units: [
-                  {
-                    amount: {
-                      value: params.paymentAmount - store.credit,
-                      currency: 'USD',
+              .call<void, Partial<PaymentRequestParams>>(
+                'paymentGateway.charge',
+                {
+                  store: store.url,
+                  purchase_units: [
+                    {
+                      amount: {
+                        value: params.paymentAmount - store.credit,
+                        currency: 'USD',
+                      },
                     },
-                  },
-                ],
-              })
+                  ],
+                }
+              )
               .then(null, err => {
                 if (err.type === 'SERVICE_NOT_FOUND')
                   throw new MpError(

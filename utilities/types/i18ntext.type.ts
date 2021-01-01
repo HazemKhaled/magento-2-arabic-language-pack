@@ -88,3 +88,16 @@ export interface MongoQueryType {
   };
   type?: string;
 }
+
+/**
+ * This is the template of response
+ *
+ * @export
+ * @type ZohoResponse
+ * @template T
+ */
+export type Response<T> = { [P in keyof T]: T[P] } & {
+  code: number;
+  message: string;
+  page_context: object;
+};

@@ -1,6 +1,6 @@
 import { types } from 'util';
 
-import { Context, Errors, GenericObject, ServiceSchema } from 'moleculer';
+import { Context, Errors, ServiceSchema } from 'moleculer';
 import { DbContextParameters } from 'moleculer-db';
 
 import DbService from '../utilities/mixins/mongo.mixin';
@@ -16,6 +16,9 @@ import {
   CommonError,
   CrmResponse,
   SubscriptionListParams,
+  InvoiceRequestParams,
+  SubscriptionRequestParams,
+  PaymentRequestParams,
 } from '../utilities/types';
 import { SubscriptionValidation } from '../utilities/mixins/validation';
 import { TaxCheck } from '../utilities/mixins/tax.mixin';
@@ -50,7 +53,17 @@ const TheService: ServiceSchema = {
         ctx: Context<{ storeId: string }>
       ): Promise<Subscription | false> {
         const subscription = await ctx
-          .call<Subscription[], GenericObject>('subscription.find', {
+          .call<
+            Subscription[],
+            {
+              query: {
+                storeId: string;
+                status: { $ne: string };
+                expireDate: { $gte: Date };
+                startDate: { $lte: Date };
+              };
+            }
+          >('subscription.find', {
             query: {
               storeId: ctx.params.storeId,
               status: { $ne: 'cancelled' },
@@ -104,26 +117,24 @@ const TheService: ServiceSchema = {
       async handler(
         ctx: Context<SubscriptionListParams>
       ): Promise<Subscription[]> {
-        const query: GenericObject = {};
-        if (ctx.params.storeId) {
-          query.storeId = ctx.params.storeId;
+        const query: SubscriptionListParams = ctx.params;
+        if (query.storeId) {
+          query.storeId = query.storeId;
         }
-        if (ctx.params.membershipId) {
-          query.membershipId = ctx.params.membershipId;
+        if (query.membershipId) {
+          query.membershipId = query.membershipId;
         }
-        if (ctx.params.status) {
+        if (query.status) {
           query.status =
-            ctx.params.status === 'active'
-              ? { $ne: 'cancelled' }
-              : ctx.params.status;
+            query.status === 'active' ? { $ne: 'cancelled' } : query.status;
         }
-        if (ctx.params.reference) {
-          query.reference = ctx.params.reference;
+        if (query.reference) {
+          query.reference = query.reference;
         }
-        if (ctx.params.expireDate) {
-          const expireDate = Array.isArray(ctx.params.expireDate)
-            ? ctx.params.expireDate
-            : [ctx.params.expireDate];
+        if (query.expireDate) {
+          const expireDate = Array.isArray(query.expireDate)
+            ? query.expireDate
+            : [query.expireDate];
           query.expireDate = {
             [`$${expireDate[0].operation}`]: expireDate[0].date
               ? new Date(expireDate[0].date)
@@ -135,10 +146,10 @@ const TheService: ServiceSchema = {
               : new Date();
           }
         }
-        if (ctx.params.startDate) {
-          const startDate = Array.isArray(ctx.params.startDate)
-            ? ctx.params.startDate
-            : [ctx.params.startDate];
+        if (query.startDate) {
+          const startDate = Array.isArray(query.startDate)
+            ? query.startDate
+            : [query.startDate];
           query.startDate = {
             [`$${startDate[0].operation}`]: startDate[0].date
               ? new Date(startDate[0].date)
@@ -150,21 +161,35 @@ const TheService: ServiceSchema = {
               : new Date();
           }
         }
-        const findBody: GenericObject = { query };
-        if (ctx.params.sort) {
+        const findBody: {
+          query: SubscriptionListParams;
+          sort?: string;
+          limit?: number;
+          offset?: number;
+        } = {
+          query,
+        };
+
+        if (query.sort) {
           findBody.sort =
-            ctx.params.sort.order === 1
-              ? ctx.params.sort.field
-              : `-${ctx.params.sort.field}`;
+            query.sort.order === 1 ? query.sort.field : `-${query.sort.field}`;
         }
-        if (ctx.params.perPage) {
-          findBody.limit = Number(ctx.params.perPage);
+        if (query.perPage) {
+          findBody.limit = Number(query.perPage);
         }
         findBody.offset =
-          (findBody.limit || 100) *
-          (ctx.params.page ? Number(ctx.params.page) - 1 : 0);
+          (findBody.limit || 100) * (query.page ? Number(query.page) - 1 : 0);
+
         return ctx
-          .call<Subscription[], GenericObject>('subscription.find', findBody)
+          .call<
+            Subscription[],
+            {
+              query: SubscriptionListParams;
+              sort?: string;
+              limit?: number;
+              offset?: number;
+            }
+          >('subscription.find', findBody)
           .then(res => {
             return res;
           })
@@ -298,7 +323,7 @@ const TheService: ServiceSchema = {
         if (instance.credit < total && !ctx.params.postpaid) {
           if (process.env.PAYMENT_AUTO_CHARGE_CC_SUBSCRIPTION) {
             await ctx
-              .call<GenericObject, Partial<GenericObject>>(
+              .call<void, Partial<PaymentRequestParams>>(
                 'paymentGateway.charge',
                 {
                   store: instance.url,
@@ -333,7 +358,7 @@ const TheService: ServiceSchema = {
           }
         }
 
-        const invoiceBody: GenericObject = {
+        const invoiceBody: Partial<InvoiceRequestParams> = {
           storeId: ctx.params.storeId,
           items: [
             {
@@ -375,7 +400,10 @@ const TheService: ServiceSchema = {
         let invoice: Invoice = null;
         if (total !== 0 && !ctx.params.postpaid) {
           invoice = await ctx
-            .call<Invoice, Partial<Invoice>>('invoices.create', invoiceBody)
+            .call<Invoice, Partial<InvoiceRequestParams>>(
+              'invoices.create',
+              invoiceBody
+            )
             .then(null, err => err);
           if (isNativeError(invoice as { message: string; code: number })) {
             throw new MoleculerError(invoice.message, invoice.code || 500);
@@ -408,7 +436,13 @@ const TheService: ServiceSchema = {
         } else {
           const storeOldSubscription = await ctx.call<
             Subscription[],
-            GenericObject
+            {
+              query: {
+                storeId: string;
+                expireDate: { operation: string };
+                status: string;
+              };
+            }
           >('subscription.find', {
             query: {
               storeId: ctx.params.grantTo || ctx.params.storeId,
@@ -456,7 +490,7 @@ const TheService: ServiceSchema = {
         };
 
         if (ctx.params.coupon) {
-          ctx.call<GenericObject, Partial<Coupon>>('coupons.updateCount', {
+          ctx.call<unknown, Partial<Coupon>>('coupons.updateCount', {
             id: ctx.params.coupon,
           });
           subscriptionBody.coupon = ctx.params.coupon;
@@ -485,7 +519,7 @@ const TheService: ServiceSchema = {
             subscriptionBody
           )
           .then(
-            async (res: Subscription): Promise<GenericObject> => {
+            async (res: Subscription): Promise<Subscription> => {
               this.broker.cacher.clean(
                 `subscription.getByStore:${ctx.params.grantTo || instance.url}*`
               );
@@ -528,7 +562,7 @@ const TheService: ServiceSchema = {
         maxDate.setDate(maxDate.getDate() + (ctx.params.beforeDays || 0));
         const lastRetryDay = new Date();
         lastRetryDay.setUTCHours(0, 0, 0, 0);
-        const query: GenericObject = {
+        const query: Partial<SubscriptionRequestParams> = {
           expireDate: {
             $gte: minDate,
             $lte: maxDate,
@@ -546,7 +580,7 @@ const TheService: ServiceSchema = {
         };
         let [expiredSubscription] = await ctx.call<
           Subscription[],
-          GenericObject
+          { query: Partial<SubscriptionRequestParams> }
         >('subscription.find', {
           query,
         });
@@ -555,13 +589,13 @@ const TheService: ServiceSchema = {
           return null;
         }
         query.storeId = expiredSubscription.storeId;
-        [expiredSubscription] = await ctx.call<Subscription[], GenericObject>(
-          'subscription.find',
-          {
-            query,
-            sort: '-expireDate',
-          }
-        );
+        [expiredSubscription] = await ctx.call<
+          Subscription[],
+          { query: Partial<SubscriptionRequestParams>; sort: string }
+        >('subscription.find', {
+          query,
+          sort: '-expireDate',
+        });
         expiredSubscription._id = expiredSubscription._id.toString();
         const date = new Date();
         date.setUTCHours(0, 0, 0, 0);
@@ -595,7 +629,7 @@ const TheService: ServiceSchema = {
             id: expiredSubscription.storeId,
             tag: 'subscription-renew',
           });
-          return ctx.call<Subscription, GenericObject>(
+          return ctx.call<Subscription, Partial<SubscriptionRequestParams>>(
             'subscription.getOneByExpireDate',
             {
               afterDays: ctx.params.afterDays,
@@ -647,22 +681,25 @@ const TheService: ServiceSchema = {
     checkCurrentSubGradingStatus: {
       visibility: 'public',
       async handler(ctx: Context<{ id: string }>): Promise<CrmResponse> | null {
-        const allSubBefore = await ctx.call<Subscription[], GenericObject>(
-          'subscription.find',
+        const allSubBefore = await ctx.call<
+          Subscription[],
           {
-            query: {
-              storeId: ctx.params.id,
-              expireDate: {
-                operation: 'gte',
-                date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7),
-              },
-              status: 'active',
-            },
-
-            sort: '-expireDate',
-            limit: 2,
+            query: Partial<SubscriptionRequestParams>;
+            sort: string;
+            limit: number;
           }
-        );
+        >('subscription.find', {
+          query: {
+            storeId: ctx.params.id,
+            expireDate: {
+              operation: 'gte',
+              date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7),
+            },
+            status: 'active',
+          },
+          sort: '-expireDate',
+          limit: 2,
+        });
 
         const memberships = await ctx.call<Membership[], DbContextParameters>(
           'membership.find',

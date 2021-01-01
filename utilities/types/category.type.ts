@@ -7,7 +7,7 @@ import { I18nText } from './i18ntext.type';
  * @interface Category
  */
 export interface Category {
-  id: string;
+  id: string | number;
   parentId: number;
   name: I18nText;
   name_i18n?: I18nText;

@@ -116,33 +116,6 @@ export interface InvoiceRequestParams {
 }
 
 /**
- * OMS Invoice Response
- *
- * @export
- * @interface OmsInvoiceResponse
- */
-export interface OmsInvoiceResponse {
-  invoices: Invoice[];
-  code: number;
-  message: string;
-  page_context: {
-    has_more_page: boolean;
-    page: number;
-    per_page: number;
-    search_criteria: [
-      {
-        column_name: string;
-        comparator: string;
-        search_text: string;
-        search_text_formatted: string;
-      }
-    ];
-    sort_column: string;
-    sort_order: string;
-  };
-}
-
-/**
  * OMS Invoice Apply credit response
  *
  * @export
@@ -177,25 +150,25 @@ export interface OmsApplyCreditResponse {
  * @interface InvoiceItems
  */
 interface InvoiceItems {
-  id: string;
+  id?: string;
   sku: string;
-  barcode: string;
+  barcode?: string;
   name: string;
   description: string;
-  url: string;
-  image: string;
-  weight: number;
+  url?: string;
+  image?: string;
+  weight?: number;
   rate: number;
   quantity: number;
-  quantityCancelled: number;
-  productType: string;
-  discount: string;
-  discountAmount: number;
-  total: number;
-  purchaseRate: number;
+  quantityCancelled?: number;
+  productType?: string;
+  discount?: string;
+  discountAmount?: number;
+  total?: number;
+  purchaseRate?: number;
   accountId: string;
   taxId: string;
-  taxName: string;
-  taxType: string;
-  taxPercentage: number;
+  taxName?: string;
+  taxType?: string;
+  taxPercentage?: number;
 }

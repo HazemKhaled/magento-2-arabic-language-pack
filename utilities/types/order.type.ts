@@ -291,6 +291,10 @@ export interface OrderRequestParams extends Order {
   order_id: string;
   limit: number;
   storeId?: string;
+  page?: number;
+  perPage?: number;
+  externalId?: string;
+  sort?: string;
 }
 
 /**

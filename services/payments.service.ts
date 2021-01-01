@@ -43,7 +43,7 @@ const TheService: ServiceSchema = {
 
         if (ctx.params.invoices) {
           paymentBody.invoices = ctx.params.invoices.map(
-            (invoice: { [key: string]: string }) => ({
+            (invoice: { invoice_id: string; amount_applied: number }) => ({
               invoice_id: invoice.invoice_id,
               amount_applied: invoice.amount_applied,
             })
