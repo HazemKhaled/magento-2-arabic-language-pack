@@ -17,6 +17,7 @@ services:
       traefik.port: 80
       traefik.frontend.entryPoints: "http,https"
       traefik.frontend.rule: "Host:dev.mp.knawat.io"
+      traefik.docker.network: mp_default
 
   stores:
     build:
@@ -118,16 +119,10 @@ services:
     environment:
       SERVICES: shipment
 
-  monitor:
-    build:
-      context: ../../
-    image: microes
-    restart: always
-    env_file: .env
-    environment:
-      SERVICES: apm
+  redis-cache:
+    image: redis:alpine
 
-  redis:
+  redis-transporter:
     image: redis:alpine
 
   traefik:
