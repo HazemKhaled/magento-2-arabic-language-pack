@@ -255,13 +255,21 @@ const TheService: ServiceSchema = {
         const store = await ctx.call<Store, { id: string }>('stores.get', {
           id: ctx.params.storeId,
         });
-        const orders = await ctx.call<Order[], Partial<Order>>('orders.list', {
-          externalId: ctx.params.id,
-        });
+
+        const orders = await ctx.call<Order[], Partial<Order>>(
+          'orders.list',
+          {
+            externalId: ctx.params.id,
+          },
+          { meta: { store } }
+        );
+
         const order = await ctx.call<Order, Partial<OrderRequestParams>>(
           'orders.getOrder',
-          { order_id: orders[0].id }
+          { order_id: orders[0].id },
+          { meta: { store } }
         );
+
         ctx.meta.$responseType = 'text/html';
         return this.renderInvoice(store, order);
       },
