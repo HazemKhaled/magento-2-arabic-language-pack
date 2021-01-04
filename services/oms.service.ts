@@ -18,7 +18,7 @@ import {
   Invoice,
   OmsApplyCreditResponse,
   Order,
-  Response,
+  OMSResponse,
   PaymentRequestParams,
 } from '../utilities/types';
 import DbService from '../utilities/mixins/mongo.mixin';
@@ -40,7 +40,7 @@ const TheService: ServiceSchema = {
     listInvoice: {
       handler(
         ctx: Context<OmsRequestParams>
-      ): { invoices: [] } | Promise<Response<{ invoices: Invoice[] }>> {
+      ): { invoices: [] } | Promise<OMSResponse<{ invoices: Invoice[] }>> {
         const params = { ...ctx.params };
 
         if (!params.omsId) {
@@ -152,7 +152,7 @@ const TheService: ServiceSchema = {
     listOrders: {
       handler(
         ctx: Context<OrderRequestParams>
-      ): Promise<Response<{ salesorders: Order[] }>> {
+      ): Promise<OMSResponse<{ salesorders: Order[] }>> {
         const params = { ...ctx.params };
         delete params.customerId;
         return this.request({
@@ -192,7 +192,7 @@ const TheService: ServiceSchema = {
     listPayments: {
       handler(
         ctx: Context<PaymentRequestParams>
-      ): Promise<Response<{ payments: Payment[] }>> {
+      ): Promise<OMSResponse<{ payments: Payment[] }>> {
         const params = { ...ctx.params };
         delete params.customerId;
         return this.request({
