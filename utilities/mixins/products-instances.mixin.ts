@@ -356,7 +356,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
         }
 
         // Add filter if the product has external ID or not
-        if (hasExternalId !== undefined) {
+        if (hasExternalId !== undefined && hasExternalId !== null) {
           switch (Boolean(Number(hasExternalId))) {
             case true:
               searchQuery.body.query.bool.must.push({
