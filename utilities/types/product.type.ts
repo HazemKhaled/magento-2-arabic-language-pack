@@ -146,6 +146,7 @@ export interface ProductListParams {
   limit: number;
   lastupdate: number;
   hideOutOfStock: number;
+  csvOutOfStock: number;
   keyword: string;
   externalId: string;
   hasExternalId: number;

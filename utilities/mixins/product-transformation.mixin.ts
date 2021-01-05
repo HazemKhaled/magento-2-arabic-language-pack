@@ -24,7 +24,7 @@ export const ProductTransformation: ServiceSchema = {
       rate: number,
       archive: boolean,
       variationsInstance: Variation[],
-      hideOutOfStock: boolean
+      csvOutOfStock: boolean
     ): Variation[] {
       const variationsArr: Variation[] = [];
       variations.filter((variation, n) => {
@@ -51,10 +51,10 @@ export const ProductTransformation: ServiceSchema = {
         } catch (err) {
           /** */
         }
-        if (hideOutOfStock !== undefined) {
-          if (hideOutOfStock && variation.quantity) {
+        if (csvOutOfStock !== undefined) {
+          if (csvOutOfStock && variation.quantity) {
             variationsArr.push(variant);
-          } else if (!hideOutOfStock && variation.quantity === 0) {
+          } else if (!csvOutOfStock && variation.quantity === 0) {
             variationsArr.push(variant);
           }
         } else {

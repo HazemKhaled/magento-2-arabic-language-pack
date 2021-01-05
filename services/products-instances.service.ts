@@ -181,6 +181,7 @@ module.exports = {
           'limit',
           'lastupdate',
           'hideOutOfStock',
+          'csvOutOfStock',
           'keyword',
           'externalId',
           'hasExternalId',

@@ -464,6 +464,16 @@ const ProductsList = {
       },
     },
     {
+      name: 'csvOutOfStock',
+      in: 'query',
+      description: 'Hide out of stock products used for csv',
+      example:
+        '1 => Hide archived products and quantity = 0 else will not hide',
+      schema: {
+        type: 'number',
+      },
+    },
+    {
       name: 'currency',
       in: 'query',
       description: '3 digit numeric ISO 4217 codes',
