@@ -263,7 +263,7 @@ export const OmsValidation: ServiceSchema = {
     createPayment: {
       params: {
         customerId: 'string',
-        paymentMode: 'string',
+        payment_mode: 'string',
         amount: 'number',
         invoices: {
           type: 'array',
@@ -281,13 +281,13 @@ export const OmsValidation: ServiceSchema = {
             },
           },
         },
-        bankCharges: {
+        bank_charges: {
           type: 'number',
           optional: true,
           convert: true,
         },
-        accountId: 'string',
-        referenceNumber: [
+        account_id: 'string',
+        reference: [
           {
             type: 'string',
             optional: true,

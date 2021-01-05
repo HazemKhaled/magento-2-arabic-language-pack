@@ -119,7 +119,10 @@ services:
     environment:
       SERVICES: shipment
 
-  redis:
+  redis-cacher:
+    image: redis:alpine
+
+  redis-transporter:
     image: redis:alpine
 
   traefik:

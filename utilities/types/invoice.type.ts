@@ -83,6 +83,8 @@ export interface Invoice {
   last_modified_time: string;
   shipping_charge: number;
   coupon: string;
+  items?: InvoiceItems[];
+  isInclusiveTax: boolean;
 }
 
 /**
@@ -96,7 +98,7 @@ export interface InvoiceRequestParams {
   storeId: string;
   customerId: string;
   orderId: string;
-  items: any;
+  items: InvoiceItems[];
   discount: {
     value: number;
     type: string;
@@ -111,4 +113,89 @@ export interface InvoiceRequestParams {
   invoiceId: string;
   status: string;
   reference_number: string;
+}
+
+/**
+ * OMS Invoice Response
+ *
+ * @export
+ * @interface OmsInvoiceResponse
+ */
+export interface OmsInvoiceResponse {
+  invoices: Invoice[];
+  code: number;
+  message: string;
+  page_context: {
+    has_more_page: boolean;
+    page: number;
+    per_page: number;
+    search_criteria: [
+      {
+        column_name: string;
+        comparator: string;
+        search_text: string;
+        search_text_formatted: string;
+      }
+    ];
+    sort_column: string;
+    sort_order: string;
+  };
+}
+
+/**
+ * OMS Invoice Apply credit response
+ *
+ * @export
+ * @interface OmsApplyCreditResponse
+ */
+export interface OmsApplyCreditResponse {
+  invoicePayments: [
+    {
+      invoicePaymentId: string;
+      paymentId: string;
+      invoiceId: string;
+      amountUsed: number;
+    }
+  ];
+  creditNotes: [
+    {
+      creditNotesInvoiceId: string;
+      creditNoteId: string;
+      invoiceId: string;
+      amountApplied: number;
+      date: string;
+    }
+  ];
+  code: number;
+  message: string;
+}
+
+/**
+ * Invoice Items
+ *
+ * @export
+ * @interface InvoiceItems
+ */
+interface InvoiceItems {
+  id: string;
+  sku: string;
+  barcode: string;
+  name: string;
+  description: string;
+  url: string;
+  image: string;
+  weight: number;
+  rate: number;
+  quantity: number;
+  quantityCancelled: number;
+  productType: string;
+  discount: string;
+  discountAmount: number;
+  total: number;
+  purchaseRate: number;
+  accountId: string;
+  taxId: string;
+  taxName: string;
+  taxType: string;
+  taxPercentage: number;
 }

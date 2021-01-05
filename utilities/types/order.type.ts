@@ -151,6 +151,7 @@ export interface OrderAddress {
   country: string;
   phone?: string;
   email?: string;
+  company?: string;
 }
 
 export type OrderWarnings = { message: string; sku: string }[];
