@@ -182,16 +182,18 @@ const TheService: ServiceSchema = {
               membership: ctx.params.membership,
               type: 'subscription',
             })
-            .then(null, err => err);
-          if (!isNaN(Number(coupon.code)) && Number(coupon.code) !== 200) {
-            throw new MpError(
-              'Subscription Service',
-              Number(coupon.code) === 404
-                ? 'Coupon not found !'
-                : 'Internal server error',
-              Number(coupon.code)
-            );
-          }
+            .then(coupon => {
+              return coupon as Coupon;
+            })
+            .catch(err => {
+              throw new MpError(
+                'Subscription Service',
+                err.code === 404
+                  ? 'Coupon not found !'
+                  : 'Internal Server error',
+                err.code
+              );
+            });
         }
 
         const membershipRequestBody: {
@@ -204,20 +206,19 @@ const TheService: ServiceSchema = {
             'membership.getOne',
             membershipRequestBody
           )
-          .then(null, err => err);
+          .then(membership => {
+            return membership as Membership;
+          })
+          .catch(err => {
+            throw new MpError(
+              'Subscription Service',
+              err.code === 404
+                ? 'No membership found ! !'
+                : 'Internal Server error',
+              err.code
+            );
+          });
 
-        if (
-          !isNaN(Number(membership.code)) &&
-          Number(membership.code) !== 200
-        ) {
-          throw new MpError(
-            'Subscription Service',
-            Number(membership.code) === 404
-              ? 'No membership found !'
-              : 'Internal server Error',
-            Number(membership.code)
-          );
-        }
         if (membership.isDefault) {
           throw new MoleculerError(
             'Could not create subscription for default memberships!',
@@ -235,17 +236,18 @@ const TheService: ServiceSchema = {
           .call<Store, { id: string }>('stores.get', {
             id: ctx.params.storeId,
           })
-          .then(null, err => err);
-
-        if (!isNaN(Number(instance.code)) && Number(instance.code) !== 200) {
-          throw new MpError(
-            'Subscription Service',
-            Number(instance.code) === 404
-              ? 'Store not found !'
-              : 'Internal server error',
-            Number(instance.code)
-          );
-        }
+          .then(store => {
+            return store as Store;
+          })
+          .catch(err => {
+            throw new MpError(
+              'Subscription Service',
+              err.code === 404
+                ? 'Store not found ! !'
+                : 'Internal Server error',
+              err.code
+            );
+          });
 
         let grantToInstance: Store;
         if (ctx.params.grantTo) {
@@ -354,12 +356,16 @@ const TheService: ServiceSchema = {
             })
             .catch((err: CommonError) => {
               if (err.name === 'MoleculerError') {
-                throw new MoleculerError(err.message, err.code);
+                throw new MpError(
+                  'Subscription Service (Invoice)',
+                  err.message,
+                  err.code
+                );
               }
               throw new MoleculerError(String(err), 500);
             });
 
-          const applyCreditsResponse = await ctx
+          await ctx
             .call<Invoice, { id: string }>('invoices.applyCredits', {
               id: invoice.invoice.invoiceId,
             })
@@ -368,7 +374,11 @@ const TheService: ServiceSchema = {
             })
             .catch((err: CommonError) => {
               if (err.name === 'MoleculerError') {
-                throw new MoleculerError(err.message, err.code);
+                throw new MpError(
+                  'Subscription Service (Invoice)',
+                  err.message,
+                  err.code
+                );
               }
               throw new MoleculerError(String(err), 500);
             });
