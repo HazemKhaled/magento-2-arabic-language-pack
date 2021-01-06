@@ -325,7 +325,7 @@ const TheService: ServiceSchema = {
               }`,
             },
           ],
-          isInclusiveTax: taxData.isInclusive,
+          isInclusiveTax: taxData?.isInclusive,
         };
 
         if (discount) {
@@ -353,27 +353,29 @@ const TheService: ServiceSchema = {
         if (total !== 0 && !ctx.params.postpaid) {
           invoice = await ctx
             .call<Invoice, Partial<Invoice>>('invoices.create', invoiceBody)
-            .then(null, err => err);
-          if (isNativeError(invoice as { message: string; code: number })) {
-            throw new MoleculerError(invoice.message, invoice.code || 500);
-          }
+            .then(res => {
+              return res;
+            })
+            .catch((err: CommonError) => {
+              if (err.name === 'MoleculerError') {
+                throw new MoleculerError(err.message, err.code);
+              }
+              throw new MoleculerError(String(err), 500);
+            });
 
           const applyCreditsResponse = await ctx
             .call<Invoice, { id: string }>('invoices.applyCredits', {
               id: invoice.invoice.invoiceId,
             })
-            .then(null, err => err);
-
-          if (
-            isNativeError(
-              applyCreditsResponse as { message: string; code: number }
-            )
-          ) {
-            throw new MoleculerError(
-              applyCreditsResponse.message,
-              applyCreditsResponse.code || 500
-            );
-          }
+            .then(res => {
+              return res;
+            })
+            .catch((err: CommonError) => {
+              if (err.name === 'MoleculerError') {
+                throw new MoleculerError(err.message, err.code);
+              }
+              throw new MoleculerError(String(err), 500);
+            });
         }
 
         let startDate = new Date();
