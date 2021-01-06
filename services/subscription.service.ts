@@ -1,5 +1,3 @@
-import { types } from 'util';
-
 import { Context, Errors, GenericObject, ServiceSchema } from 'moleculer';
 import { DbContextParameters } from 'moleculer-db';
 
@@ -18,8 +16,6 @@ import {
 import { SubscriptionValidation } from '../utilities/mixins/validation';
 import { TaxCheck } from '../utilities/mixins/tax.mixin';
 import { MpError } from '../utilities/adapters';
-
-const { isNativeError } = types;
 
 const MoleculerError = Errors.MoleculerError;
 
