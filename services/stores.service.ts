@@ -419,7 +419,7 @@ const TheService: ServiceSchema = {
               storeId,
             })
             .then(
-              (response: GenericObject) => response.store,
+              (response: { store: Store }) => response.store,
               (err: CommonError) => {
                 if (err.code !== 404) {
                   throw new MoleculerError(err.message, err.code || 500);
@@ -566,12 +566,12 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 * 24 * 30,
       },
       visibility: 'public',
-      handler(ctx: Context<Partial<StoreRequest>>): Promise<GenericObject> {
+      handler(ctx: Context<Partial<StoreRequest>>): Promise<Store | boolean> {
         return new this.Promise((resolve: any, reject: any) => {
           jwt.verify(
             ctx.params.token,
             this.settings.JWT_SECRET,
-            (error: Error, decoded: GenericObject) => {
+            (error: Error, decoded: { id: string }) => {
               if (error) {
                 reject(false);
               }

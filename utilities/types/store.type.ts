@@ -52,6 +52,8 @@ export interface Store {
   shippingMethods: string[];
   billing: OrderAddress;
   taxNumber: string;
+  created: Date;
+  updated: Date;
 }
 
 export interface StoreAddress extends OrderAddress {
