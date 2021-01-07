@@ -10,7 +10,7 @@
       .checkout__header
         h2 {{ $t("checkout.payWith") }}
 
-      ul.checkout__cards-list
+      ul.checkout__cards-list(v-if="!useBalanceOnly")
         template(v-if='isLoading')
           li(v-for='card in 2', :key='card')
             label.checkout__card
@@ -55,7 +55,7 @@
             )
             span {{ $t("checkout.secure") }}
 
-      .row(v-if='!cardId')
+      .row(v-if='!cardId && !useBalanceOnly')
         .checkbox
           label.checkbox__label
             input.checkbox__input(
@@ -77,9 +77,13 @@
             span.checkbox__label
               | {{ $t("checkout.useBalance") }} ({{ fixed2(balance * currency.rate) }} {{ currency.currencyCode }})
 
+      .row(v-if='useBalanceOnly')
+        .checkout__alert
+           | {{ $t("checkout.useBalanceOnly__alert") }}
+
       //- Form data
       .row(v-show='false')
-        input(name='balance_only', type="number", :value='useBalance && useBalanceOnly ? 1 : 0')
+        input(name='balance_only', type="number", :value='useBalanceOnly ? 1 : 0')
         input(name='is_new', type="number", :value='!cardId ? 1 : 0')
         input(name='card_id', type="text", :value='cardId')
         input(v-for="[key, value] in Object.entries(card)", :name="key", :value="value")
@@ -135,7 +139,7 @@
         :disable='isSubmitting',
         @click='handleFormSubmit'
       )
-        template(v-if='useBalanceOnly')
+        template(v-if='!paymentTotal')
           | {{ $t("checkout.confirm") }}
         template(v-else)
           | {{ $t("checkout.payNow") }}
@@ -203,7 +207,7 @@ export default {
       return this.useBalance ? Math.min(this.balance, this.amount) : 0;
     },
     useBalanceOnly() {
-      return !this.paymentTotal;
+      return this.useBalance && !this.paymentTotal;
     },
     formUrl() {
       const { origin, search } = window.location;
@@ -258,19 +262,27 @@ export default {
   methods: {
     handleFormSubmit(event) {
       // If from already submitted do nothing
-      if (this.isSubmitting) return;
+      if (this.isSubmitting) {
+        event.preventDefault();
+        return;
+      }
 
       // Handle paying from a new card
-      if (!this.cardId) {
+      if (!this.cardId && !this.useBalanceOnly) {
         // Validate the card data
         this.$refs.creditCard.validateAll();
-
-        // check if agreed to terms and conditions
-        if (!this.hasAgreed || this.$refs.creditCard.errors.length) {
+        if (!this.$refs.creditCard.errors.length) {
           this.showErrors = true;
           event.preventDefault();
           return;
         }
+      }
+
+      // check if agreed to terms and conditions
+      if (!this.hasAgreed) {
+        this.showErrors = true;
+        event.preventDefault();
+        return;
       }
       this.isSubmitting = true;
     },
@@ -288,7 +300,15 @@ export default {
 .checkout__form
   display: flex
   flex-direction: column
+  flex: 1
   height: 100%
+
+.checkout__alert
+  padding: 10px 20px
+  border-radius: 8px
+  border: 1px solid $slategray
+  color: $dark
+  margin: 20px 0
 
 .checkout__header
   display: flex
