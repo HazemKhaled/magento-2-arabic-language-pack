@@ -12,9 +12,7 @@ import {
   Store,
   MetaParams,
   Invoice,
-  CrmStore,
   CommonError,
-  CrmResponse,
   SubscriptionListParams,
   InvoiceRequestParams,
   SubscriptionRequestParams,
@@ -542,10 +540,25 @@ const TheService: ServiceSchema = {
                   id: ctx.params.grantTo || ctx.params.storeId,
                 }
               );
-              ctx.call<void, Partial<unknown>>('crm.updateStoreById', {
+              ctx.call<
+                void,
+                {
+                  id: string;
+                  data: {
+                    membership_id: string;
+                    subscription_expiration: number;
+                  }[];
+                  module: string;
+                }
+              >('crm.updateRecord', {
                 id: ctx.params.grantTo || ctx.params.storeId,
-                membership_id: membership.id,
-                subscription_expiration: expireDate.getTime(),
+                module: 'accounts',
+                data: [
+                  {
+                    membership_id: membership.id,
+                    subscription_expiration: expireDate.getTime(),
+                  },
+                ],
               });
               return { ...res, id: res._id, _id: undefined };
             }
@@ -600,17 +613,21 @@ const TheService: ServiceSchema = {
         const date = new Date();
         date.setUTCHours(0, 0, 0, 0);
 
-        await ctx.call<void, Partial<Subscription>>('subscription.update', {
+        ctx.call<void, Partial<Subscription>>('subscription.update', {
           id: expiredSubscription._id,
           retries: expiredSubscription.retries
             ? [...expiredSubscription.retries, new Date(date)]
             : [new Date(date)],
         });
 
-        await ctx.call<void, Partial<CrmStore>>('crm.addTagsByUrl', {
-          id: expiredSubscription.storeId,
-          tag: 'subscription-retry-fail',
-        });
+        ctx.call<void, { id: string; tag: string; module: string }>(
+          'crm.addTagsToRecord',
+          {
+            module: 'accounts',
+            id: expiredSubscription.storeId,
+            tag: 'subscription-retry-fail',
+          }
+        );
 
         const currentSubscription = await ctx.call<
           Subscription,
@@ -625,10 +642,14 @@ const TheService: ServiceSchema = {
             renewed: true,
           });
 
-          ctx.call<void, Partial<CrmStore>>('crm.addTagsByUrl', {
-            id: expiredSubscription.storeId,
-            tag: 'subscription-renew',
-          });
+          ctx.call<void, { id: string; tag: string; module: string }>(
+            'crm.addTagsToRecord',
+            {
+              module: 'accounts',
+              id: expiredSubscription.storeId,
+              tag: 'subscription-renew',
+            }
+          );
           return ctx.call<Subscription, Partial<SubscriptionRequestParams>>(
             'subscription.getOneByExpireDate',
             {
@@ -680,7 +701,7 @@ const TheService: ServiceSchema = {
     },
     checkCurrentSubGradingStatus: {
       visibility: 'public',
-      async handler(ctx: Context<{ id: string }>): Promise<CrmResponse> | null {
+      async handler(ctx: Context<{ id: string }>): Promise<void> {
         const allSubBefore = await ctx.call<
           Subscription[],
           {
@@ -707,10 +728,16 @@ const TheService: ServiceSchema = {
         );
         if (allSubBefore.length === 0) return;
         if (allSubBefore.length === 1) {
-          return ctx.call<CrmResponse, Partial<CrmStore>>('crm.addTagsByUrl', {
-            id: ctx.params.id,
-            tag: 'subscription-upgrade',
-          });
+          ctx.call<unknown, { id: string; tag: string; module: string }>(
+            'crm.addTagsToRecord',
+            {
+              module: 'accounts',
+              id: ctx.params.id,
+              tag: 'subscription-upgrade',
+            }
+          );
+
+          return;
         }
         const oldM = memberships.find(
           (m: Membership) => allSubBefore[0].membershipId === m.id
@@ -718,17 +745,28 @@ const TheService: ServiceSchema = {
         const lastM = memberships.find(
           (m: Membership) => allSubBefore[1].membershipId === m.id
         );
+
         if (oldM.sort > lastM.sort) {
-          return ctx.call<CrmResponse, Partial<CrmStore>>('crm.addTagsByUrl', {
-            id: ctx.params.id,
-            tag: 'subscription-upgrade',
-          });
+          ctx.call<unknown, { id: string; tag: string; module: string }>(
+            'crm.addTagsToRecord',
+            {
+              module: 'accounts',
+              id: ctx.params.id,
+              tag: 'subscription-upgrade',
+            }
+          );
+          return;
         }
+
         if (oldM.sort < lastM.sort) {
-          return ctx.call<CrmResponse, Partial<CrmStore>>('crm.addTagsByUrl', {
-            id: ctx.params.id,
-            tag: 'subscription-downgrade',
-          });
+          ctx.call<unknown, { id: string; tag: string; module: string }>(
+            'crm.addTagsToRecord',
+            {
+              module: 'accounts',
+              id: ctx.params.id,
+              tag: 'subscription-downgrade',
+            }
+          );
         }
       },
     },
