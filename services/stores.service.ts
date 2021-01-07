@@ -59,36 +59,37 @@ const TheService: ServiceSchema = {
       },
       rest: 'GET /me',
       handler(ctx: Context<unknown, MetaParams>): Promise<Store> {
-        return ctx
-          .call<Store[], { query: { consumer_key: string } }>('stores.find', {
-            query: { consumer_key: ctx.meta.user },
-          })
-          .then(async ([res]) => {
-            let omsData: { store: Store };
-            if (res) {
-              if (res.users) {
-                res.subscription = await ctx.call<
-                  Subscription,
-                  { storeId: string }
-                >('subscription.getByStore', {
-                  storeId: res.url,
-                });
-              }
-              if (res?.internal_data?.omsId) {
-                omsData = (await ctx
-                  .call<null, Partial<{ id: string }>>('oms.getCustomer', {
-                    id: res.internal_data.omsId,
-                  })
-                  .then(null, this.logger.error)) as { store: Store };
-
-                // If the DB response not null will return the data
-                return this.sanitizeResponse(res, omsData && omsData?.store);
-              }
-              return this.sanitizeResponse(res);
+        return this._find(ctx, {
+          query: { consumer_key: ctx.meta.user },
+        }).then(async ([res]: Store[]) => {
+          let omsData: { store: Store };
+          if (res) {
+            if (res.users) {
+              res.subscription = await ctx.call<
+                Subscription,
+                { storeId: string }
+              >('subscription.getByStore', {
+                storeId: res._id,
+              });
             }
-            // If null return Not Found error
-            throw new MpError('Stores Service', 'Store Not Found', 404);
-          });
+            if (res?.internal_data?.omsId) {
+              omsData = (await ctx
+                .call<null, Partial<{ customerId: string }>>(
+                  'oms.getCustomer',
+                  {
+                    customerId: res.internal_data.omsId,
+                  }
+                )
+                .then(null, this.logger.error)) as { store: Store };
+
+              // If the DB response not null will return the data
+              return this.transformResultEntity(res, omsData && omsData?.store);
+            }
+            return this.transformResultEntity(res);
+          }
+          // If null return Not Found error
+          throw new MpError('Stores Service', 'Store Not Found', 404);
+        });
       },
     },
     /**
@@ -105,9 +106,8 @@ const TheService: ServiceSchema = {
       },
       rest: 'GET /:id',
       handler(ctx: Context<StoreRequest>): Promise<Store> {
-        return ctx
-          .call<Store, { id: string }>('stores.get', { id: ctx.params.id })
-          .then(async res => {
+        return this._get(ctx, { id: ctx.params.id })
+          .then(async (res: Store) => {
             if (!res) {
               // If null return Not Found error
               throw new MpError('Stores Service', 'Store Not Found', 404);
@@ -137,12 +137,18 @@ const TheService: ServiceSchema = {
               if (!omsData) {
                 this.logger.warn('Can not get balance', ctx.params);
               } else {
-                return this.sanitizeResponse(res, omsData.store);
+                return this.transformResultEntity(res, omsData.store);
               }
             }
 
             // return store even if we didn't get balance from OMS
-            return this.sanitizeResponse(res);
+            return this.transformResultEntity(res);
+          })
+          .catch((err: CommonError) => {
+            if (err.name === 'MoleculerError') {
+              throw new MoleculerError(err.message, err.code);
+            }
+            throw new MoleculerError(String(err), 500);
           });
       },
     },
@@ -192,13 +198,18 @@ const TheService: ServiceSchema = {
               sortArray[1] === 'asc' ? sortArray[0] : `-${sortArray[0]}`;
           }
         }
-        return ctx
-          .call<Store[], GenericObject>('stores.find', query)
-          .then(res => {
+        return this._find(ctx, query)
+          .then(async (res: Store[]) => {
             // If the DB response not null will return the data
-            if (res) return res.map(store => this.sanitizeResponse(store));
+            if (res) return res.map(store => this.transformResultEntity(store));
             // If null return Not Found error
             throw new MpError('Stores Service', 'Store Not Found', 404);
+          })
+          .catch((err: CommonError) => {
+            if (err.name === 'MoleculerError') {
+              throw new MoleculerError(err.message, err.code);
+            }
+            throw new MoleculerError(String(err), 500);
           });
       },
     },
@@ -208,7 +219,7 @@ const TheService: ServiceSchema = {
         keys: ['page', 'perPage'],
         ttl: 60 * 60 * 24,
       },
-      rest: 'GET admin',
+      rest: 'GET /admin',
       handler(
         ctx: Context<StoreRequest>
       ): Promise<{ stores: Store[]; total: number }> {
@@ -217,12 +228,8 @@ const TheService: ServiceSchema = {
         findBody.pageSize = Number(ctx.params.perPage) || 50;
         findBody.page = Number(ctx.params.page) || 1;
 
-        return ctx
-          .call<{ rows: Store[]; total: number }, GenericObject>(
-            'stores.list',
-            findBody
-          )
-          .then(async res => {
+        return this._list(ctx, findBody)
+          .then(async (res: { rows: Store[]; total: number }) => {
             return {
               stores: res.rows,
               total: res.total,
@@ -251,10 +258,8 @@ const TheService: ServiceSchema = {
 
         // Sanitize request params
         const store: Store = this.sanitizeStoreParams(ctx.params, true);
-
-        const myStore = await ctx
-          .call<Store, Store>('stores.create', store)
-          .then(res => this.sanitizeResponse(res) as Store)
+        const myStore = await this._create(ctx, store)
+          .then((res: Store) => this.transformResultEntity(res) as Store)
           .catch((err: { code: number }) => {
             if (err.code !== 11000) {
               this.logger.error('Create store', err);
@@ -287,10 +292,7 @@ const TheService: ServiceSchema = {
         // Save the ID separate into variable to use it to find the store
         const { id } = ctx.params;
         // storeBefore
-        const storeBefore = await ctx.call<Store, { id: string }>(
-          'stores.get',
-          { id }
-        );
+        const storeBefore = await this._get(ctx, { id });
 
         // Sanitize request params
         const store: Store = this.sanitizeStoreParams(ctx.params);
@@ -301,7 +303,9 @@ const TheService: ServiceSchema = {
         });
 
         // if no new updates
-        if (Object.keys(store).length === 0) return storeBefore;
+        if (Object.keys(store).length === 0) {
+          return this.transformResultEntity(storeBefore) as Store;
+        }
 
         // Merge internal_data
         if (ctx.params.internal_data) {
@@ -319,10 +323,8 @@ const TheService: ServiceSchema = {
           );
         }
         store._id = ctx.params.id;
-
-        const responseStore = await ctx
-          .call<Store, Store>('stores.update', store)
-          .then(this.sanitizeResponse)
+        const responseStore = await this._update(ctx, store)
+          .then((res: Store) => this.transformResultEntity(res) as Store)
           .catch((error: { code: number }) => {
             this.sendLogs({
               topic: 'store',
@@ -408,7 +410,7 @@ const TheService: ServiceSchema = {
       rest: 'PUT /:id/sync',
       async handler(ctx): Promise<unknown> {
         const storeId = ctx.params.id;
-        const instance = await ctx.call<Store, { id: string }>('stores.get', {
+        const instance = await this._get(ctx, {
           id: storeId,
         });
         try {
@@ -491,9 +493,6 @@ const TheService: ServiceSchema = {
         });
       },
     },
-
-    // login action
-
     /**
      * Login with consumerKey & consumerSecret
      *
@@ -512,12 +511,10 @@ const TheService: ServiceSchema = {
         currency: string;
       }> {
         const { consumerKey, consumerSecret } = ctx.params;
-
-        return ctx
-          .call<Store[], { query: { consumer_key: string } }>('stores.find', {
-            query: { consumer_key: consumerKey },
-          })
-          .then(([instance]) => {
+        return this._find(ctx, {
+          query: { consumer_key: consumerKey },
+        })
+          .then(async ([instance]: Store[]) => {
             if (
               consumerKey === instance.consumer_key &&
               consumerSecret === instance.consumer_secret
@@ -536,8 +533,10 @@ const TheService: ServiceSchema = {
               401
             );
           })
-          .then(user => this.transformEntity(user, true, ctx.meta.token))
-          .catch(err => {
+          .then((user: Store) =>
+            this.transformEntity(user, true, ctx.meta.token)
+          )
+          .catch((err: CommonError) => {
             this.broker.cacher.clean(
               `stores.resolveBearerToken:${ctx.meta.token}`
             );
@@ -584,18 +583,14 @@ const TheService: ServiceSchema = {
           .then(async (decoded: { id: string }) => {
             if (decoded.id) {
               // Get instance info
-              const [instance] = await ctx.call<
-                Store[],
-                { query: { consumer_key: string } }
-              >('stores.find', {
+              return this._find(ctx, {
                 query: { consumer_key: decoded.id },
+              }).then(async ([instance]: Store[]) => {
+                if (instance.status) {
+                  return this.transformResultEntity(instance) as Store;
+                }
               });
-
-              if (instance.status) {
-                return this.sanitizeResponse(instance);
-              }
             }
-
             return false;
           })
           .catch(() => {
@@ -676,19 +671,40 @@ const TheService: ServiceSchema = {
       return store;
     },
     /**
-     * Sanitize store delete _id add url
+     * Transform a result entity
      *
-     * @param {Store} store
-     * @returns {Store}
+     * @param {Context} ctx
+     * @param {Object} entity
+     * @param {Object} omsData
      */
-    sanitizeResponse(store: Store, omsData = false): Store {
+    transformResultEntity(entity: Store, omsData = false): Store | boolean {
+      if (!entity) return false;
+      const store = Object.assign({}, entity);
       store.url = store._id;
       delete store._id;
       if (omsData) {
         store.debit = parseFloat(omsData.debit.toFixed(2));
         store.credit = parseFloat(omsData.credit.toFixed(2));
       }
-      return store;
+      return this.sanitizeObject(store);
+    },
+    /**
+     * Sanitize store
+     *
+     * @param {Store} store
+     * @returns {Store}
+     */
+    sanitizeObject(object): GenericObject {
+      return Object.entries(object).reduce(
+        (acc, [key, val]) =>
+          val === null || val === undefined
+            ? acc
+            : {
+                ...acc,
+                [key]: val,
+              },
+        {}
+      );
     },
     /**
      * Log order errors

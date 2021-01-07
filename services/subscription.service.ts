@@ -1,6 +1,6 @@
 import { types } from 'util';
 
-import { Context, Errors, ServiceSchema } from 'moleculer';
+import { Context, Errors, GenericObject, ServiceSchema } from 'moleculer';
 import { DbContextParameters } from 'moleculer-db';
 
 import DbService from '../utilities/mixins/mongo.mixin';
@@ -71,12 +71,13 @@ const TheService: ServiceSchema = {
           })
           .then(([record]) => record);
 
-        const membership = await ctx.call<Membership, Partial<Membership>>(
-          'membership.get',
-          {
+        const membership = await ctx
+          .call<Membership, Partial<Membership>>('membership.get', {
             id: subscription?.membershipId || 'm-free',
-          }
-        );
+          })
+          .then(res => {
+            return this.transformMembershipEntity(res);
+          });
 
         return {
           id: (subscription?._id && subscription?._id.toString()) || '-1',
@@ -238,8 +239,8 @@ const TheService: ServiceSchema = {
             'membership.getOne',
             membershipRequestBody
           )
-          .then(membership => {
-            return membership as Membership;
+          .then(res => {
+            return this.transformMembershipEntity(res);
           })
           .catch(err => {
             throw new MpError(
@@ -806,6 +807,39 @@ const TheService: ServiceSchema = {
             return { ...res, id: res._id, _id: undefined };
           });
       },
+    },
+  },
+  methods: {
+    /**
+     * Transform a result entity
+     *
+     * @param {Context} ctx
+     * @param {Object} entity
+     */
+    transformMembershipEntity(entity: Membership): Membership | boolean {
+      if (!entity) return false;
+      const membership = Object.assign({}, entity);
+      membership.id = membership._id;
+      delete membership._id;
+      return this.sanitizeObject(membership);
+    },
+    /**
+     * Sanitize Result
+     *
+     * @param {Store} store
+     * @returns {Store}
+     */
+    sanitizeObject(object): GenericObject {
+      return Object.entries(object).reduce(
+        (acc, [key, val]) =>
+          val === null || val === undefined
+            ? acc
+            : {
+                ...acc,
+                [key]: val,
+              },
+        {}
+      );
     },
   },
 };
