@@ -101,7 +101,7 @@ const TheService: ServiceSchema = {
             }
 
             if (ctx.params.coupon) {
-              await this.applyCouponDiscount(ctx.params.coupon, res);
+              await this.applyCouponDiscount(ctx, res);
             }
 
             return this.normalize(res, country);
@@ -250,15 +250,25 @@ const TheService: ServiceSchema = {
         return newObj;
       });
     },
-    async applyCouponDiscount(couponCode, membership): Promise<void> {
-      const coupon: Coupon = await this.call('coupon.getOne', {
-        id: couponCode,
-        membership: membership.id,
-        type: 'subscription',
-      }).then(null, (err: unknown) => err);
-      if (coupon instanceof Error) {
-        throw new MoleculerError(coupon.message, Number(coupon.code));
-      }
+    async applyCouponDiscount(
+      ctx: Context<{ coupon: string }>,
+      membership
+    ): Promise<void> {
+      const coupon = await ctx
+        .call<Coupon, { id: string; membership: string; type: string }>(
+          'coupons.getOne',
+          {
+            id: ctx.params.coupon,
+            membership: membership.id,
+            type: 'subscription',
+          }
+        )
+        .then(coupon => {
+          return coupon as Coupon;
+        })
+        .catch(err => {
+          throw new MoleculerError(err.message, Number(err.code));
+        });
       let discount = 0;
       if (coupon) {
         switch (coupon.discount.total.type) {

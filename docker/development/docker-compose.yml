@@ -125,6 +125,13 @@ services:
   redis-transporter:
     image: redis:alpine
 
+  redis-admin:
+    image: faktiva/php-redis-admin
+    environment:
+      - PHPREDMIN_DATABASE_REDIS_0_HOST=redis-cacher
+    ports:
+      - "6379:80"
+
   traefik:
     image: traefik:v1.7
     restart: always
