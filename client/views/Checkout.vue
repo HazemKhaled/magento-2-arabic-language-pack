@@ -69,8 +69,6 @@
             input.checkbox__input(
               type='checkbox',
               name='use_balance',
-              true-value='1',
-              false-value='0',
               v-model='useBalance'
             )
             span.checkbox__label
