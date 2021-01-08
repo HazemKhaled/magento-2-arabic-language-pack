@@ -268,7 +268,7 @@ export default {
       if (!this.cardId && !this.useBalanceOnly) {
         // Validate the card data
         this.$refs.creditCard.validateAll();
-        if (!this.$refs.creditCard.errors.length) {
+        if (this.$refs.creditCard.errors.length) {
           this.showErrors = true;
           event.preventDefault();
           return;
