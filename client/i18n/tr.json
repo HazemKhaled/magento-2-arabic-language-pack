@@ -23,7 +23,8 @@
     "agreePrivacyPolicy": "I agree to the Knawat <a href=\"https://www.knawat.com.tr/sartlar-ve-kosullar/\" target=\"_blank\">Terms of Service</a> and <a href=\"https://www.knawat.com.tr/gizlilik-politikasi-2/\" target=\"_blank\">Privacy Policy</a>.",
     "subscriptionDisclaimer": "{originalPrice} için {currentPrice} ödeyecek ve her {frequency} yenileyeceksiniz.",
     "paymentType__month": "aylık",
-    "paymentType__year": "yıllık"
+    "paymentType__year": "yıllık",
+    "useBalanceOnly__alert": "Ödemeler, sizden daha fazla ücret alınmadan Knawat'taki bakiyenizden düşülecektir."
   },
   "toastr": {
     "payment__success": "Başarılı ödeme"

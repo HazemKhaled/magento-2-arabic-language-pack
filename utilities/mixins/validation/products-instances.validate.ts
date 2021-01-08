@@ -65,6 +65,12 @@ export const ProductsInstancesValidation: ServiceSchema = {
           convert: true,
           optional: true,
         },
+        csvOutOfStock: {
+          type: 'number',
+          empty: false,
+          convert: true,
+          optional: true,
+        },
         keyword: {
           type: 'string',
           optional: true,
