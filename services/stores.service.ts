@@ -286,7 +286,17 @@ const TheService: ServiceSchema = {
         // Save the ID separate into variable to use it to find the store
         const { id } = ctx.params;
         // storeBefore
-        const storeBefore = await this._get(ctx, { id });
+        const storeBefore = await ctx
+          .call<Store, { id: string }>('stores.get', { id })
+          .catch(err => {
+            throw new MpError(
+              'Stores Service',
+              err.code === 404
+                ? 'Store not found ! !'
+                : 'Internal Server error',
+              err.code
+            );
+          });
 
         // Sanitize request params
         const store: Store = this.sanitizeStoreParams(ctx.params);
@@ -410,9 +420,20 @@ const TheService: ServiceSchema = {
       rest: 'PUT /:id/sync',
       async handler(ctx): Promise<unknown> {
         const storeId = ctx.params.id;
-        const instance = await this._get(ctx, {
-          id: storeId,
-        });
+        const instance = await ctx
+          .call<Store, { id: string }>('stores.get', {
+            id: storeId,
+          })
+          .catch(err => {
+            throw new MpError(
+              'Stores Service',
+              err.code === 404
+                ? 'Store not found ! !'
+                : 'Internal Server error',
+              err.code
+            );
+          });
+
         try {
           const omsStore = await ctx
             .call<unknown, Partial<StoreRequest>>('oms.getCustomerByUrl', {
