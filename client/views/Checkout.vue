@@ -118,10 +118,7 @@
           span {{ $t("checkout.balanceDeduction") }}
           span -{{ fixed2(usedBalance * currency.rate) }} {{ currency.currencyCode }}
 
-      .checkbox(
-        v-if='!cardId',
-        :class='{ "checkbox--errors": !hasAgreed && showErrors }'
-      )
+      .checkbox(:class='{ "checkbox--errors": !hasAgreed && showErrors }')
         label.checkbox__label(for='termsAgree')
           input#termsAgree.checkbox__input(
             type='checkbox',
