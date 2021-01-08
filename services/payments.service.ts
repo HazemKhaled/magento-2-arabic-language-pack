@@ -25,7 +25,7 @@ const TheService: ServiceSchema = {
         const instance = await ctx.call<Store, { id: string }>('stores.get', {
           id: ctx.params.id,
         });
-        if (instance) {
+        if (!instance.url) {
           instance.url = instance._id || ctx.params.id;
         }
 
@@ -76,7 +76,7 @@ const TheService: ServiceSchema = {
               this.broker.cacher.clean(
                 `subscription.getByStore:${instance.url}*`
               );
-              this.broker.cacher.clean(`stores.getOne:${instance.url}**`);
+              this.broker.cacher.clean(`stores.get:${instance.url}**`);
               this.broker.cacher.clean(`stores.me:${instance.consumer_key}**`);
               await this.cacheUpdate(res.payment, instance);
               return this.sanitizePayment(res.payment);
@@ -163,13 +163,15 @@ const TheService: ServiceSchema = {
       });
     },
     async cacheUpdate(payment, instance): Promise<void> {
-      const store = await this.broker.call('stores.getOne', {
+      const store = await this.broker.call('stores.get', {
         id: instance.url,
       });
-      store.url = store.url || store._id;
+      if (!store.url) {
+        store.url = instance.url;
+      }
 
       store.credit = (store.credit || 0) + payment.amount;
-      this.broker.cacher.set(`stores.getOne:${store.url}|undefined`, store);
+      this.broker.cacher.set(`stores.get:${store.url}|undefined`, store);
       this.broker.cacher.set(`stores.me:${store.consumer_key}`, store);
     },
   },

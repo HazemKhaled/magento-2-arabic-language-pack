@@ -636,7 +636,7 @@ export const StoresOpenapi: ServiceSchema = {
     me: {
       openapi: StoresMeOpenapi,
     },
-    getOne: {
+    get: {
       openapi: StoresGetOpenapi,
     },
     getAll: {

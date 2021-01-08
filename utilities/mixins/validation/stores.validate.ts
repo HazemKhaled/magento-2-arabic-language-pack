@@ -3,7 +3,7 @@ import { ServiceSchema } from 'moleculer';
 export const StoresValidation: ServiceSchema = {
   name: 'stores',
   actions: {
-    getOne: {
+    get: {
       params: {
         id: {
           type: 'string',

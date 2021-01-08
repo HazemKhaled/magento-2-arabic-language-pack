@@ -58,19 +58,20 @@ const TheService: ServiceSchema = {
           })
           .then(([record]) => record);
 
-        const membership = await ctx.call<Membership, Partial<Membership>>(
-          'membership.get',
-          {
+        const membership = await ctx
+          .call<Membership, Partial<Membership>>('membership.get', {
             id: subscription?.membershipId || 'm-free',
-          }
-        );
+          })
+          .then(res => {
+            return this.transformMembershipEntity(res);
+          });
 
         return {
           id: (subscription?._id && subscription?._id.toString()) || '-1',
           ...subscription,
           membershipId: undefined,
           membership: {
-            id: membership._id,
+            id: membership.id,
             name: membership.name,
             sort: membership.sort,
             isDefault: membership.isDefault,
@@ -208,20 +209,16 @@ const TheService: ServiceSchema = {
             'membership.getOne',
             membershipRequestBody
           )
-          .then(null, err => err);
+          .catch(err => {
+            throw new MpError(
+              'Subscription Service',
+              err.code === 404
+                ? 'No membership found ! !'
+                : 'Internal Server error',
+              err.code
+            );
+          });
 
-        if (
-          !isNaN(Number(membership.code)) &&
-          Number(membership.code) !== 200
-        ) {
-          throw new MpError(
-            'Subscription Service',
-            Number(membership.code) === 404
-              ? 'No membership found !'
-              : 'Internal server Error',
-            Number(membership.code)
-          );
-        }
         if (membership.isDefault) {
           throw new MoleculerError(
             'Could not create subscription for default memberships!',
@@ -239,17 +236,18 @@ const TheService: ServiceSchema = {
           .call<Store, { id: string }>('stores.get', {
             id: ctx.params.storeId,
           })
-          .then(null, err => err);
-
-        if (!isNaN(Number(instance.code)) && Number(instance.code) !== 200) {
-          throw new MpError(
-            'Subscription Service',
-            Number(instance.code) === 404
-              ? 'Store not found !'
-              : 'Internal server error',
-            Number(instance.code)
-          );
-        }
+          .then(store => {
+            return store as Store;
+          })
+          .catch(err => {
+            throw new MpError(
+              'Subscription Service',
+              err.code === 404
+                ? 'Store not found ! !'
+                : 'Internal Server error',
+              err.code
+            );
+          });
 
         let grantToInstance: Store;
         if (ctx.params.grantTo) {
@@ -470,11 +468,11 @@ const TheService: ServiceSchema = {
                 `subscription.getAll:${ctx.params.grantTo || instance.url}*`
               );
               this.broker.cacher.clean(
-                `stores.getOne:${ctx.params.grantTo || instance.url}*`
+                `stores.get:${ctx.params.grantTo || instance.url}*`
               );
               this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
               if (ctx.params.grantTo) {
-                this.broker.cacher.clean(`stores.getOne:${instance.url}*`);
+                this.broker.cacher.clean(`stores.get:${instance.url}*`);
                 this.broker.cacher.clean(
                   `stores.me:${grantToInstance?.consumer_key}*`
                 );
@@ -635,7 +633,7 @@ const TheService: ServiceSchema = {
 
             this.broker.cacher.clean(`subscription.getByStore:${store.url}**`);
             this.broker.cacher.clean(`subscription.getAll:${store.url}**`);
-            this.broker.cacher.clean(`stores.getOne:${store.url}**`);
+            this.broker.cacher.clean(`stores.get:${store.url}**`);
             this.broker.cacher.clean(`stores.me:${store.consumer_key}**`);
             return subscription;
           })
@@ -743,11 +741,44 @@ const TheService: ServiceSchema = {
             }
             this.broker.cacher.clean(`subscription.getByStore:${res.storeId}*`);
             this.broker.cacher.clean(`subscription.getAll:${res.storeId}*`);
-            this.broker.cacher.clean(`stores.getOne:${res.storeId}*`);
+            this.broker.cacher.clean(`stores.get:${res.storeId}*`);
             this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
             return { ...res, id: res._id, _id: undefined };
           });
       },
+    },
+  },
+  methods: {
+    /**
+     * Transform a result entity
+     *
+     * @param {Context} ctx
+     * @param {Object} entity
+     */
+    transformMembershipEntity(entity: Membership): Membership | boolean {
+      if (!entity) return false;
+      const membership = Object.assign({}, entity);
+      membership.id = membership._id;
+      delete membership._id;
+      return this.sanitizeObject(membership);
+    },
+    /**
+     * Sanitize Result
+     *
+     * @param {Store} store
+     * @returns {Store}
+     */
+    sanitizeObject(object): GenericObject {
+      return Object.entries(object).reduce(
+        (acc, [key, val]) =>
+          val === null || val === undefined
+            ? acc
+            : {
+                ...acc,
+                [key]: val,
+              },
+        {}
+      );
     },
   },
 };

@@ -91,12 +91,12 @@ const TheService: ServiceSchema = {
           .then(async ([res]) => {
             if (!res) {
               return ctx
-                .call<
-                  Membership[],
-                  { query: Partial<MembershipRequestParams> }
-                >('membership.find', {
-                  query: { isDefault: true },
-                })
+                .call<Membership[], { query: { isDefault: boolean } }>(
+                  'membership.find',
+                  {
+                    query: { isDefault: true },
+                  }
+                )
                 .then(([def]) => this.normalize(def));
             }
 

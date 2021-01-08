@@ -838,7 +838,7 @@ const TheService: ServiceSchema = {
 
         const storeDoc =
           ctx.meta.store ||
-          (await ctx.call<Store, Partial<Store>>('stores.getOne', {
+          (await ctx.call<Store, Partial<Store>>('stores.get', {
             id: storeId,
           }));
 
