@@ -49,6 +49,9 @@ export default {
 <style lang="stylus">
 @import './styles/colors.styl'
 
+body
+  background-color: $white
+
 .page
   position: relative
   display: flex

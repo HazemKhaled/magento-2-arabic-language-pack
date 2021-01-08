@@ -66,7 +66,7 @@ const TheService: ServiceSchema = {
           ...subscription,
           membershipId: undefined,
           membership: {
-            id: membership.id,
+            id: membership._id,
             name: membership.name,
             sort: membership.sort,
             isDefault: membership.isDefault,
