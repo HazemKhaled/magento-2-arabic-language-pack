@@ -182,9 +182,6 @@ const TheService: ServiceSchema = {
               membership: ctx.params.membership,
               type: 'subscription',
             })
-            .then(coupon => {
-              return coupon as Coupon;
-            })
             .catch(err => {
               throw new MpError(
                 'Subscription Service',
@@ -206,9 +203,6 @@ const TheService: ServiceSchema = {
             'membership.getOne',
             membershipRequestBody
           )
-          .then(membership => {
-            return membership as Membership;
-          })
           .catch(err => {
             throw new MpError(
               'Subscription Service',
@@ -235,9 +229,6 @@ const TheService: ServiceSchema = {
         const instance = await ctx
           .call<Store, { id: string }>('stores.get', {
             id: ctx.params.storeId,
-          })
-          .then(store => {
-            return store as Store;
           })
           .catch(err => {
             throw new MpError(
@@ -351,9 +342,6 @@ const TheService: ServiceSchema = {
         if (total !== 0 && !ctx.params.postpaid) {
           invoice = await ctx
             .call<Invoice, Partial<Invoice>>('invoices.create', invoiceBody)
-            .then(res => {
-              return res;
-            })
             .catch((err: CommonError) => {
               if (err.name === 'MoleculerError') {
                 throw new MpError(
@@ -368,9 +356,6 @@ const TheService: ServiceSchema = {
           await ctx
             .call<Invoice, { id: string }>('invoices.applyCredits', {
               id: invoice.invoice.invoiceId,
-            })
-            .then(res => {
-              return res;
             })
             .catch((err: CommonError) => {
               if (err.name === 'MoleculerError') {
