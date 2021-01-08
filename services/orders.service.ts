@@ -94,12 +94,6 @@ const TheService: ServiceSchema = {
               data: orders?.[0],
             };
           }
-
-          this.broker.cacher.set(
-            `createOrder_${store.consumer_key}|${ctx.params.id}`,
-            1,
-            60 * 60 * 24
-          );
         }
 
         const data = this.orderData(ctx.params, store, true);
@@ -302,6 +296,13 @@ const TheService: ServiceSchema = {
                 `orders.list:undefined|${ctx.meta.user}**`
               );
               this.cacheUpdate(result.salesorder, store);
+              if (ctx.params.id) {
+                this.broker.cacher.set(
+                  `createOrder_${store.consumer_key}|${ctx.params.id}`,
+                  1,
+                  60 * 60 * 24
+                );
+              }
             }
 
             return result;
