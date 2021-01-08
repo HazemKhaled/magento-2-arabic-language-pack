@@ -21,6 +21,7 @@ import {
   CommonError,
   ElasticSearchResponse,
   ElasticQuery,
+  ProductListParams,
 } from '../utilities/types';
 
 module.exports = {
@@ -106,7 +107,7 @@ module.exports = {
           },
         };
         if (Object.keys(ctx.params).length) {
-          if (ctx.params.hideOutOfStock) {
+          if (ctx.params.hideOutOfStock !== undefined) {
             query.bool.must_not.push({
               term: {
                 archive: Number(ctx.params.hideOutOfStock) === 1,
@@ -180,6 +181,7 @@ module.exports = {
           'limit',
           'lastupdate',
           'hideOutOfStock',
+          'csvOutOfStock',
           'keyword',
           'externalId',
           'hasExternalId',
@@ -190,7 +192,7 @@ module.exports = {
         monitor: true,
       },
       async handler(
-        ctx: Context
+        ctx: Context<ProductListParams>
       ): Promise<{ products: Product[]; total: number }> {
         const products = await this.findProducts(ctx);
 

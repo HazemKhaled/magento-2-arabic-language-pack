@@ -39,6 +39,19 @@ export interface Store {
   external_data: GenericObject;
   subscription: Subscription;
   address: StoreAddress;
+  companyName: string;
+  platform: string;
+  stockDate: string;
+  stockStatus: string;
+  priceDate: string;
+  priceStatus: string;
+  salePrice: number;
+  saleOperator: number;
+  comparedPrice: number;
+  comparedOperator: number;
+  shippingMethods: string[];
+  billing: OrderAddress;
+  taxNumber: string;
 }
 
 export interface StoreAddress extends OrderAddress {

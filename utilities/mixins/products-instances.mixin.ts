@@ -101,6 +101,8 @@ export const ProductsInstancesMixin: ServiceSchema = {
      * @param {string} instanceId
      * @param {array} _source
      * @param {string} [lastUpdated=0]
+     * @param {number} hideOutOfStock
+     * @param {number} csvOutOfStock
      * @param {string} keyword
      * @returns {Array} Products
      * @memberof Products-instances Mixin
@@ -114,6 +116,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
         limit: size = 10,
         lastupdate = 0,
         hideOutOfStock,
+        csvOutOfStock,
         keyword,
         externalId,
         hasExternalId,
@@ -129,6 +132,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
         instanceId: instance.consumer_key,
         lastUpdated: lastupdate,
         hideOutOfStock,
+        csvOutOfStock,
         keyword,
         externalId,
         hasExternalId,
@@ -183,7 +187,8 @@ export const ProductsInstancesMixin: ServiceSchema = {
                   instance,
                   currencyRate.rate,
                   product.archive,
-                  pi._source.variations
+                  pi._source.variations,
+                  csvOutOfStock
                 ),
                 externalId: pi._source.externalId,
                 externalUrl: pi._source.externalUrl,
@@ -247,6 +252,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
         instanceId,
         lastUpdated = 0,
         hideOutOfStock,
+        csvOutOfStock,
         keyword,
         externalId,
         hasExternalId,
@@ -331,8 +337,17 @@ export const ProductsInstancesMixin: ServiceSchema = {
           searchQuery.body.query.bool.minimum_should_match = 1;
         }
 
+        // Hide csv out of stock
+        if (csvOutOfStock !== undefined) {
+          searchQuery.body.query.bool.must_not.push({
+            term: {
+              archive: Number(csvOutOfStock) === 1,
+            },
+          });
+        }
+
         // Hide out of stock
-        if (hideOutOfStock) {
+        if (hideOutOfStock !== undefined) {
           searchQuery.body.query.bool.must_not.push({
             term: {
               archive: Number(hideOutOfStock) === 1,
@@ -341,7 +356,7 @@ export const ProductsInstancesMixin: ServiceSchema = {
         }
 
         // Add filter if the product has external ID or not
-        if (hasExternalId !== undefined) {
+        if (hasExternalId !== undefined && hasExternalId !== null) {
           switch (Boolean(Number(hasExternalId))) {
             case true:
               searchQuery.body.query.bool.must.push({

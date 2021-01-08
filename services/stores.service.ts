@@ -363,9 +363,17 @@ const TheService: ServiceSchema = {
 
         if (myStore?.internal_data?.omsId) {
           ctx
-            .call<null, Partial<Store>>('crm.updateStoreById', {
+            .call<
+              null,
+              {
+                id: string;
+                data: Store[];
+                module: string;
+              }
+            >('crm.updateRecord', {
               id,
-              ...ctx.params,
+              module: 'accounts',
+              data: [ctx.params],
             })
             .then(null, (error: unknown) => {
               this.sendLogs({

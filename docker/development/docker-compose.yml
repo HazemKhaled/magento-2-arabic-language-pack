@@ -65,9 +65,9 @@ services:
     image: mp
     restart: always
     env_file: .env
-    hostname: "membership-subscription-coupons-crm"
+    hostname: "membership-subscription-coupons"
     environment:
-      SERVICES: membership, subscription, coupons, crm
+      SERVICES: membership, subscription, coupons
 
   subscription-cron:
     build:
@@ -119,8 +119,22 @@ services:
     environment:
       SERVICES: shipment
 
-  redis:
+  redis-cacher:
     image: redis:alpine
+
+  redis-transporter:
+    image: redis:alpine
+
+  redis-admin:
+    image: erikdubbelboer/phpredisadmin
+    env_file: .env
+    environment:
+      - ADMIN_USER=$BASIC_USER
+      - ADMIN_PASS=$BASIC_PASS
+      - REDIS_1_HOST=redis-cacher
+      - REDIS_1_PORT=6379
+    ports:
+      - "6379:80"
 
   traefik:
     image: traefik:v1.7

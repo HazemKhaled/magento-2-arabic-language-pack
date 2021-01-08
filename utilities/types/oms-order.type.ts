@@ -45,3 +45,24 @@ export interface OmsOrder {
   knawat_order_status: string;
   taxes?: { taxName: string; taxAmount: number }[];
 }
+
+export interface OmsOrderResponse {
+  salesorders: OmsOrder[];
+  code: number;
+  message: string;
+  page_context: {
+    has_more_page: boolean;
+    page: number;
+    per_page: number;
+    search_criteria: [
+      {
+        column_name: string;
+        comparator: string;
+        search_text: string;
+        search_text_formatted: string;
+      }
+    ];
+    sort_column: string;
+    sort_order: string;
+  };
+}
