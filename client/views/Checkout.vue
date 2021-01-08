@@ -128,9 +128,13 @@
         .checkout__summary-list
           span {{ $t("checkout.total") }}
           span {{ fixed2(amount * currency.rate) }} {{ currency.currencyCode }}
-        .checkout__summary-list(v-if='useBalance')
-          span {{ $t("checkout.balanceDeduction") }}
-          span -{{ fixed2(usedBalance * currency.rate) }} {{ currency.currencyCode }}
+
+      .checkout__total
+        span {{ $t("checkout.totalPayment") }} :
+        span {{ fixed2(chargeAmount * currency.rate) }} {{ currency.currencyCode }}
+      .checkout__total(v-if='useBalance')
+        span {{ $t("checkout.balanceDeduction") }}
+        span -{{ fixed2(usedBalance * currency.rate) }} {{ currency.currencyCode }}
 
       .checkbox(:class='{ "checkbox--errors": !hasAgreed && showErrors }')
         label.checkbox__label(for='termsAgree')
@@ -140,10 +144,6 @@
             v-model='hasAgreed'
           )
           span(v-html='$t("checkout.agreePrivacyPolicy")')
-
-      dl.checkout__total
-        dt {{ $t("checkout.total") }} :
-        dd {{ fixed2(chargeAmount * currency.rate) }} {{ currency.currencyCode }}
 
       button.button.button--primary.button--block.checkout__submit(
         type='submit',
@@ -340,12 +340,8 @@ export default {
 .checkout__total
   display: flex
   justify-content: space-between
-  margin-top: 10px
+  margin: 10px 0
   color: $red
-  >dt
-    align-self: flex-start
-  >dd
-    align-self: flex-end
 
 .checkout__summary
   padding: 10px

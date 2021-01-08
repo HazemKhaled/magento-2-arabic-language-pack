@@ -21,6 +21,7 @@
     "errors": "يوجد أخطاء في معلومات بطاقتك",
     "useNewCreditCard": "استخدم كارت جديد",
     "total": "إجمالي",
+    "totalPayment": "إجمالي الدفع",
     "byClickingPay": "عند ضغطك على زرار الدفع ",
     "agreePrivacyPolicy": "أوافق علي <a href=\"https://ar.knawat.com/الشروط-و-الأحكام/\" target=\"_blank\">الشروط و الأحكام</a> و <a href=\"https://ar.knawat.com/سياسة-الخصوصية/\" target=\"_blank\">سياسة خاصة</a> الخاصة بشركة قنوات.",
     "subscriptionDisclaimer": "ستقوم بدفع {currentPrice} وسيتم تجديد باقتك  {frequency} بسعر {originalPrice}",

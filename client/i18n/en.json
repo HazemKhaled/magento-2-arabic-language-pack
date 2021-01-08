@@ -21,6 +21,7 @@
     "errors": "There are errors in your card info",
     "useNewCreditCard": "Use a new credit card",
     "total": "Total",
+    "totalPayment": "Payment Total",
     "byClickingPay": "By clicking pay, ",
     "agreePrivacyPolicy": "I agree to the Knawat <a href=\"https://knawat.com/terms-and-conditions/\" target=\"_blank\">Terms of Service</a> and <a href=\"https://knawat.com/privacy-policy/\" target=\"_blank\">Privacy Policy</a>.",
     "subscriptionDisclaimer": "You will pay {currentPrice} and renew {frequency} for {originalPrice}",
