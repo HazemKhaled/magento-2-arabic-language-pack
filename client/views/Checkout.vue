@@ -1,16 +1,12 @@
 <template lang="pug">
 .page.page--checkout
   .spinner(v-if='isSubmitting')
-  form.checkout__form(
-    name='checkoutForm',
-    method='POST',
-    :action='formUrl',
-  )
+  form.checkout__form(name='checkoutForm', method='POST', :action='formUrl')
     .checkout__body
       .checkout__header
         h2 {{ $t("checkout.payWith") }}
 
-      ul.checkout__cards-list(v-if="!useBalanceOnly")
+      ul.checkout__cards-list(v-if='!useBalanceOnly')
         template(v-if='isLoading')
           li(v-for='card in 2', :key='card')
             label.checkout__card
@@ -61,7 +57,8 @@
             input.checkbox__input(
               type='checkbox',
               name='store_card',
-              :value="1"
+              true-value='1',
+              false-value='0',
               v-model='saveCard'
             )
             span {{ $t("checkout.saveCard") }}
@@ -72,6 +69,8 @@
             input.checkbox__input(
               type='checkbox',
               name='use_balance',
+              true-value='1',
+              false-value='0',
               v-model='useBalance'
             )
             span.checkbox__label
@@ -79,14 +78,31 @@
 
       .row(v-if='useBalanceOnly')
         .checkout__alert
-           | {{ $t("checkout.useBalanceOnly__alert") }}
+          | {{ $t("checkout.useBalanceOnly__alert") }}
 
       //- Form data
       .row(v-show='false')
-        input(name='balance_only', type="number", :value='useBalanceOnly ? 1 : 0')
-        input(name='is_new', type="number", :value='!cardId ? 1 : 0')
-        input(name='card_id', type="text", :value='cardId')
-        input(v-for="[key, value] in Object.entries(card)", :name="key", :value="value")
+        input(
+          name='balance_only',
+          type='number',
+          :true-value='1',
+          :false-value='0',
+          :value='useBalanceOnly'
+        )
+        input(
+          name='is_new',
+          type='number',
+          :true-value='1',
+          :false-value='0',
+          :value='!cardId'
+        )
+        input(name='card_id', type='text', :value='cardId')
+        input(name='charge_amount', type='text', :value='chargeAmount')
+        input(
+          v-for='[key, value] in Object.entries(card)',
+          :name='key',
+          :value='value'
+        )
 
     .checkout__footer
       details.checkout__summary
@@ -129,14 +145,14 @@
 
       dl.checkout__total
         dt {{ $t("checkout.total") }} :
-        dd {{ fixed2(paymentTotal * currency.rate) }} {{ currency.currencyCode }}
+        dd {{ fixed2(chargeAmount * currency.rate) }} {{ currency.currencyCode }}
 
       button.button.button--primary.button--block.checkout__submit(
         type='submit',
         :disable='isSubmitting',
         @click='handleFormSubmit'
       )
-        template(v-if='!paymentTotal')
+        template(v-if='!chargeAmount')
           | {{ $t("checkout.confirm") }}
         template(v-else)
           | {{ $t("checkout.payNow") }}
@@ -204,7 +220,7 @@ export default {
       return this.useBalance ? Math.min(this.balance, this.amount) : 0;
     },
     useBalanceOnly() {
-      return this.useBalance && !this.paymentTotal;
+      return this.useBalance && !this.chargeAmount;
     },
     formUrl() {
       const { origin, search } = window.location;
@@ -216,7 +232,7 @@ export default {
         return acc;
       }, 0);
     },
-    paymentTotal() {
+    chargeAmount() {
       return this.amount - this.usedBalance;
     },
     subscriptionDisclaimer() {
@@ -229,7 +245,7 @@ export default {
       const { currencyCode, rate } = this.currency;
 
       return this.$t('checkout.subscriptionDisclaimer', {
-        currentPrice: `${currencyCode}${fixed2(this.paymentTotal * rate)}`,
+        currentPrice: `${currencyCode}${fixed2(this.chargeAmount * rate)}`,
         frequency: this.$t(`checkout.paymentType__${frequencyType}`),
         originalPrice: `${currencyCode}${fixed2(originalPrice * rate)}`,
       });
@@ -296,16 +312,16 @@ export default {
 
 .checkout__form
   display: flex
-  flex-direction: column
   flex: 1
+  flex-direction: column
   height: 100%
 
 .checkout__alert
-  padding: 10px 20px
-  border-radius: 8px
-  border: 1px solid $slategray
-  color: $dark
   margin: 20px 0
+  padding: 10px 20px
+  border: 1px solid $slategray
+  border-radius: 8px
+  color: $dark
 
 .checkout__header
   display: flex
