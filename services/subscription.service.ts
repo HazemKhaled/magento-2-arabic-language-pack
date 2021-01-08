@@ -1,5 +1,3 @@
-import { types } from 'util';
-
 import { Context, Errors, GenericObject, ServiceSchema } from 'moleculer';
 import { DbContextParameters } from 'moleculer-db';
 
@@ -18,8 +16,6 @@ import {
 import { SubscriptionValidation } from '../utilities/mixins/validation';
 import { TaxCheck } from '../utilities/mixins/tax.mixin';
 import { MpError } from '../utilities/adapters';
-
-const { isNativeError } = types;
 
 const MoleculerError = Errors.MoleculerError;
 
@@ -186,16 +182,15 @@ const TheService: ServiceSchema = {
               membership: ctx.params.membership,
               type: 'subscription',
             })
-            .then(null, err => err);
-          if (!isNaN(Number(coupon.code)) && Number(coupon.code) !== 200) {
-            throw new MpError(
-              'Subscription Service',
-              Number(coupon.code) === 404
-                ? 'Coupon not found !'
-                : 'Internal server error',
-              Number(coupon.code)
-            );
-          }
+            .catch(err => {
+              throw new MpError(
+                'Subscription Service',
+                err.code === 404
+                  ? 'Coupon not found !'
+                  : 'Internal Server error',
+                err.code
+              );
+            });
         }
 
         const membershipRequestBody: {
@@ -208,20 +203,16 @@ const TheService: ServiceSchema = {
             'membership.getOne',
             membershipRequestBody
           )
-          .then(null, err => err);
+          .catch(err => {
+            throw new MpError(
+              'Subscription Service',
+              err.code === 404
+                ? 'No membership found ! !'
+                : 'Internal Server error',
+              err.code
+            );
+          });
 
-        if (
-          !isNaN(Number(membership.code)) &&
-          Number(membership.code) !== 200
-        ) {
-          throw new MpError(
-            'Subscription Service',
-            Number(membership.code) === 404
-              ? 'No membership found !'
-              : 'Internal server Error',
-            Number(membership.code)
-          );
-        }
         if (membership.isDefault) {
           throw new MoleculerError(
             'Could not create subscription for default memberships!',
@@ -239,17 +230,15 @@ const TheService: ServiceSchema = {
           .call<Store, { id: string }>('stores.get', {
             id: ctx.params.storeId,
           })
-          .then(null, err => err);
-
-        if (!isNaN(Number(instance.code)) && Number(instance.code) !== 200) {
-          throw new MpError(
-            'Subscription Service',
-            Number(instance.code) === 404
-              ? 'Store not found !'
-              : 'Internal server error',
-            Number(instance.code)
-          );
-        }
+          .catch(err => {
+            throw new MpError(
+              'Subscription Service',
+              err.code === 404
+                ? 'Store not found ! !'
+                : 'Internal Server error',
+              err.code
+            );
+          });
 
         let grantToInstance: Store;
         if (ctx.params.grantTo) {
@@ -325,7 +314,7 @@ const TheService: ServiceSchema = {
               }`,
             },
           ],
-          isInclusiveTax: taxData.isInclusive,
+          isInclusiveTax: taxData?.isInclusive,
         };
 
         if (discount) {
@@ -353,27 +342,31 @@ const TheService: ServiceSchema = {
         if (total !== 0 && !ctx.params.postpaid) {
           invoice = await ctx
             .call<Invoice, Partial<Invoice>>('invoices.create', invoiceBody)
-            .then(null, err => err);
-          if (isNativeError(invoice as { message: string; code: number })) {
-            throw new MoleculerError(invoice.message, invoice.code || 500);
-          }
+            .catch((err: CommonError) => {
+              if (err.name === 'MoleculerError') {
+                throw new MpError(
+                  'Subscription Service (Invoice)',
+                  err.message,
+                  err.code
+                );
+              }
+              throw new MoleculerError(String(err), 500);
+            });
 
-          const applyCreditsResponse = await ctx
+          await ctx
             .call<Invoice, { id: string }>('invoices.applyCredits', {
               id: invoice.invoice.invoiceId,
             })
-            .then(null, err => err);
-
-          if (
-            isNativeError(
-              applyCreditsResponse as { message: string; code: number }
-            )
-          ) {
-            throw new MoleculerError(
-              applyCreditsResponse.message,
-              applyCreditsResponse.code || 500
-            );
-          }
+            .catch((err: CommonError) => {
+              if (err.name === 'MoleculerError') {
+                throw new MpError(
+                  'Subscription Service (Invoice)',
+                  err.message,
+                  err.code
+                );
+              }
+              throw new MoleculerError(String(err), 500);
+            });
         }
 
         let startDate = new Date();

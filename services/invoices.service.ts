@@ -102,10 +102,13 @@ const TheService: ServiceSchema = {
 
         const invoiceParams: GenericObject = {
           customerId: instance?.internal_data?.omsId,
-          discount: Number(ctx.params.discount?.value),
           discountType: ctx.params.discount?.type,
           items: ctx.params.items,
         };
+
+        if (ctx.params.discount?.value) {
+          invoiceParams.discount = Number(ctx.params.discount?.value);
+        }
 
         if (ctx.params.coupon) {
           invoiceParams.coupon = ctx.params.coupon;
