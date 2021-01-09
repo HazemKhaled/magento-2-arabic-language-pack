@@ -26,7 +26,7 @@ const TheService: ServiceSchema = {
           id: ctx.params.id,
         });
         if (!instance.url) {
-          instance.url = instance._id || ctx.params.id;
+          instance.url = ctx.params.id;
         }
 
         // create OMS contact if no oms ID

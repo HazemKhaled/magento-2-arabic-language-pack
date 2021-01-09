@@ -555,7 +555,7 @@ const TheService: ServiceSchema = {
             ) {
               return {
                 _id: instance.consumer_key,
-                url: instance.url || instance._id,
+                url: instance.url,
                 status: instance.status,
                 currency: instance.currency,
               };

@@ -79,8 +79,8 @@ const TheService: ServiceSchema = {
 
             return store as Store;
           });
-        if (instance) {
-          instance.url = instance._id || ctx.params.storeId;
+        if (!instance.url) {
+          instance.url = ctx.params.storeId;
         }
 
         const { items, discount } = ctx.params;
