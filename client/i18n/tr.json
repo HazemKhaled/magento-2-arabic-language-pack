@@ -19,6 +19,7 @@
     "clickToContinue": "Devam etmek için tıklayın",
     "errors": "Kart bilgilerinizde hatalar var",
     "total": "Total",
+    "totalPayment": "Total ödeme",
     "byClickingPay": "By clicking pay, ",
     "agreePrivacyPolicy": "I agree to the Knawat <a href=\"https://www.knawat.com.tr/sartlar-ve-kosullar/\" target=\"_blank\">Terms of Service</a> and <a href=\"https://www.knawat.com.tr/gizlilik-politikasi-2/\" target=\"_blank\">Privacy Policy</a>.",
     "subscriptionDisclaimer": "{originalPrice} için {currentPrice} ödeyecek ve her {frequency} yenileyeceksiniz.",
