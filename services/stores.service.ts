@@ -154,17 +154,23 @@ const TheService: ServiceSchema = {
       },
     },
     /**
-     * Search in stores for stores that matches the filter query
+     * List all stores
      *
-     * @param {Object} filter
+     * @param {Object} where
+     * @param {number} page
+     * @param {number} limit
+     * @param {string} sort
+     * @param {string} sortOrder
+     * @param {string} fields
      * @returns {Store[]}
      */
-    getAll: {
+    list: {
       auth: ['Basic'],
       cache: {
-        keys: ['id', 'page', 'limit', 'where', 'sort', 'sortOrder', 'fields'],
+        keys: ['page', 'limit', 'where', 'sort', 'sortOrder', 'fields'],
         ttl: 60 * 60 * 24,
       },
+      visibility: 'published',
       rest: 'GET /',
       async handler(
         ctx: Context<StoreRequest>
@@ -243,8 +249,9 @@ const TheService: ServiceSchema = {
      * @param {Store} createValidation
      * @returns {Store}
      */
-    createOne: {
+    create: {
       auth: ['Basic'],
+      visibility: 'published',
       rest: 'POST /',
       async handler(ctx: Context<StoreRequest>): Promise<Store> {
         // Clear cache
@@ -265,7 +272,7 @@ const TheService: ServiceSchema = {
           });
 
         if (myStore.url) {
-          this.broker.cacher.clean('stores.getAll:**');
+          this.broker.cacher.clean('stores.list:**');
           this.broker.cacher.clean('stores.getAllAdmin:**');
           this.cacheUpdate(myStore);
         }
@@ -279,8 +286,9 @@ const TheService: ServiceSchema = {
      * @param {Store} updateValidation
      * @returns {Store}
      */
-    updateOne: {
+    update: {
       auth: ['Basic'],
+      visibility: 'published',
       rest: 'PUT /:id',
       async handler(ctx: Context<Store, MetaParams>): Promise<Store> {
         // Save the ID separate into variable to use it to find the store
@@ -358,7 +366,7 @@ const TheService: ServiceSchema = {
         const myStore = responseStore as Store;
 
         // Clean cache if store updated
-        this.broker.cacher.clean('stores.getAll**');
+        this.broker.cacher.clean('stores.list**');
         this.broker.cacher.clean('stores.getAllAdmin:**');
         this.broker.cacher.clean(`products.list:${myStore.consumer_key}*`);
         this.broker.cacher.clean(
@@ -466,7 +474,7 @@ const TheService: ServiceSchema = {
           this.broker.cacher.clean(`subscription.getByStore:${instance.url}*`);
           this.broker.cacher.clean(`stores.get:${instance.url}**`);
           this.broker.cacher.clean(`stores.me:${instance.consumer_key}**`);
-          return ctx.call<Store, Partial<Store>>('stores.updateOne', {
+          return ctx.call<Store, Partial<Store>>('stores.update', {
             id: storeId,
             internal_data: instance.internal_data,
           });
@@ -513,7 +521,7 @@ const TheService: ServiceSchema = {
           );
         }
 
-        return ctx.call<Store, Partial<Store>>('stores.updateOne', {
+        return ctx.call<Store, Partial<Store>>('stores.update', {
           ...ctx.params,
           id,
         });
@@ -704,7 +712,7 @@ const TheService: ServiceSchema = {
      */
     transformResultEntity(entity: Store, omsData = false): Store | boolean {
       if (!entity) return false;
-      const store = Object.assign({}, entity);
+      const store = { ...entity };
       store.url = store._id;
       delete store._id;
       if (omsData) {

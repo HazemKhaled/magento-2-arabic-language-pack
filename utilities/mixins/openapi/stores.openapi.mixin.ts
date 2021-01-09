@@ -639,16 +639,16 @@ export const StoresOpenapi: ServiceSchema = {
     get: {
       openapi: StoresGetOpenapi,
     },
-    getAll: {
+    list: {
       openapi: StoresListOpenapi,
     },
     getAllAdmin: {
       openapi: StoresSListOpenapi,
     },
-    createOne: {
+    create: {
       openapi: StoresCreateOpenapi,
     },
-    updateOne: {
+    update: {
       openapi: StoresUpdateOpenapi,
     },
     login: {

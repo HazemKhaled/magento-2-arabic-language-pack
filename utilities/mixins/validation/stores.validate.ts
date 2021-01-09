@@ -14,7 +14,7 @@ export const StoresValidation: ServiceSchema = {
         },
       },
     },
-    getAll: {
+    list: {
       params: {
         limit: {
           type: 'number',
@@ -66,7 +66,7 @@ export const StoresValidation: ServiceSchema = {
         },
       },
     },
-    createOne: {
+    create: {
       params: {
         url: {
           type: 'url',
@@ -239,7 +239,7 @@ export const StoresValidation: ServiceSchema = {
         },
       },
     },
-    updateOne: {
+    update: {
       params: {
         id: {
           type: 'url',
