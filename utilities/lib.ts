@@ -26,7 +26,7 @@ export async function authorizeHmac(
   }
 
   const store = await req.$ctx.broker.call<Store, { id: string }>(
-    'stores.getOne',
+    'stores.get',
     { id: storeUrl }
   );
 

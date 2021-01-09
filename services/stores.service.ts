@@ -98,12 +98,13 @@ const TheService: ServiceSchema = {
      * @param {string} id
      * @returns {Store}
      */
-    getOne: {
+    get: {
       auth: ['Basic'],
       cache: {
         keys: ['id', 'withoutBalance', 'withoutSubscription'],
         ttl: 60 * 60 * 24,
       },
+      visibility: 'published',
       rest: 'GET /:id',
       handler(ctx: Context<StoreRequest>): Promise<Store> {
         return this._get(ctx, { id: ctx.params.id })
@@ -153,64 +154,63 @@ const TheService: ServiceSchema = {
       },
     },
     /**
-     * Search in stores for stores that matches the filter query
+     * List all stores
      *
-     * @param {Object} filter
+     * @param {Object} where
+     * @param {number} page
+     * @param {number} limit
+     * @param {string} sort
+     * @param {string} sortOrder
+     * @param {string} fields
      * @returns {Store[]}
      */
-    getAll: {
+    list: {
       auth: ['Basic'],
       cache: {
-        keys: ['filter'],
+        keys: ['page', 'limit', 'where', 'sort', 'sortOrder', 'fields'],
         ttl: 60 * 60 * 24,
       },
+      visibility: 'published',
       rest: 'GET /',
-      handler(ctx: Context<StoreRequest>): Promise<Store[]> {
-        let params: {
-          where?: GenericObject;
-          limit?: number;
-          skip?: number;
-          order?: string;
-          sort?: string;
-        } = {};
+      async handler(
+        ctx: Context<StoreRequest>
+      ): Promise<{ stores: Store[]; total: number }> {
+        const params = ctx.params;
         try {
-          params = JSON.parse(ctx.params.filter);
-        } catch (err) {
-          throw new ValidationError('Filter Error');
-        }
-        if (params.limit && params.limit > 100) {
-          params.limit = 100;
-          this.logger.info('The maximum store response limit is 100');
-        }
-        const query = {
-          query: { ...params.where } || {},
-          limit: params.limit || 100,
-          offset: params.skip || 0,
-          sort: params.sort,
-        };
-        if (params.order) {
-          const sortArray = params.order.split(' ');
-          if (
-            sortArray.length === 2 &&
-            ['asc', 'desc'].includes(sortArray[1].toLowerCase())
-          ) {
-            query.sort =
-              sortArray[1] === 'asc' ? sortArray[0] : `-${sortArray[0]}`;
+          if (params.where) {
+            params.where = JSON.parse(params.where);
           }
+        } catch (err) {
+          throw new ValidationError('Where Params Error');
         }
-        return this._find(ctx, query)
-          .then(async (res: Store[]) => {
+
+        const query: GenericObject = {
+          query: { ...params.where } || {},
+          limit: Number(params.limit) || 50,
+          offset:
+            (Number(params.limit) || 50) * ((Number(params.page) || 1) - 1),
+        };
+        if (params.fields) {
+          query.fields = params.fields.split(',');
+        }
+        if (params.sort && params.sortOrder) {
+          query.sort =
+            params.sortOrder === 'DESC' ? `-${params.sort}` : params.sort;
+        }
+        return this._list(ctx, query).then(
+          async (res: { rows: Store[]; total: number }) => {
             // If the DB response not null will return the data
-            if (res) return res.map(store => this.transformResultEntity(store));
+            if (res)
+              return {
+                stores: res.rows.map((store: Store) =>
+                  this.transformResultEntity(store)
+                ),
+                total: res.total,
+              };
             // If null return Not Found error
             throw new MpError('Stores Service', 'Store Not Found', 404);
-          })
-          .catch((err: CommonError) => {
-            if (err.name === 'MoleculerError') {
-              throw new MoleculerError(err.message, err.code);
-            }
-            throw new MoleculerError(String(err), 500);
-          });
+          }
+        );
       },
     },
     getAllAdmin: {
@@ -249,12 +249,13 @@ const TheService: ServiceSchema = {
      * @param {Store} createValidation
      * @returns {Store}
      */
-    createOne: {
+    create: {
       auth: ['Basic'],
+      visibility: 'published',
       rest: 'POST /',
       async handler(ctx: Context<StoreRequest>): Promise<Store> {
         // Clear cache
-        this.broker.cacher.clean(`stores.getOne:${ctx.params.url}**`);
+        this.broker.cacher.clean(`stores.get:${ctx.params.url}**`);
 
         // Sanitize request params
         const store: Store = this.sanitizeStoreParams(ctx.params, true);
@@ -271,7 +272,7 @@ const TheService: ServiceSchema = {
           });
 
         if (myStore.url) {
-          this.broker.cacher.clean('stores.getAll:**');
+          this.broker.cacher.clean('stores.list:**');
           this.broker.cacher.clean('stores.getAllAdmin:**');
           this.cacheUpdate(myStore);
         }
@@ -285,14 +286,25 @@ const TheService: ServiceSchema = {
      * @param {Store} updateValidation
      * @returns {Store}
      */
-    updateOne: {
+    update: {
       auth: ['Basic'],
+      visibility: 'published',
       rest: 'PUT /:id',
       async handler(ctx: Context<Store, MetaParams>): Promise<Store> {
         // Save the ID separate into variable to use it to find the store
         const { id } = ctx.params;
         // storeBefore
-        const storeBefore = await this._get(ctx, { id });
+        const storeBefore = await ctx
+          .call<Store, { id: string }>('stores.get', { id })
+          .catch(err => {
+            throw new MpError(
+              'Stores Service',
+              err.code === 404
+                ? 'Store not found ! !'
+                : 'Internal Server error',
+              err.code
+            );
+          });
 
         // Sanitize request params
         const store: Store = this.sanitizeStoreParams(ctx.params);
@@ -354,7 +366,7 @@ const TheService: ServiceSchema = {
         const myStore = responseStore as Store;
 
         // Clean cache if store updated
-        this.broker.cacher.clean('stores.getAll**');
+        this.broker.cacher.clean('stores.list**');
         this.broker.cacher.clean('stores.getAllAdmin:**');
         this.broker.cacher.clean(`products.list:${myStore.consumer_key}*`);
         this.broker.cacher.clean(
@@ -401,6 +413,12 @@ const TheService: ServiceSchema = {
         return myStore;
       },
     },
+    /**
+     * sync store
+     *
+     * @param {id} sync
+     * @returns {unknown}
+     */
     sync: {
       auth: ['Basic'],
       cache: {
@@ -410,9 +428,20 @@ const TheService: ServiceSchema = {
       rest: 'PUT /:id/sync',
       async handler(ctx): Promise<unknown> {
         const storeId = ctx.params.id;
-        const instance = await this._get(ctx, {
-          id: storeId,
-        });
+        const instance = await ctx
+          .call<Store, { id: string }>('stores.get', {
+            id: storeId,
+          })
+          .catch(err => {
+            throw new MpError(
+              'Stores Service',
+              err.code === 404
+                ? 'Store not found ! !'
+                : 'Internal Server error',
+              err.code
+            );
+          });
+
         try {
           const omsStore = await ctx
             .call<unknown, Partial<StoreRequest>>('oms.getCustomerByUrl', {
@@ -443,9 +472,9 @@ const TheService: ServiceSchema = {
           );
           this.broker.cacher.clean(`invoices.get:${instance.consumer_key}*`);
           this.broker.cacher.clean(`subscription.getByStore:${instance.url}*`);
-          this.broker.cacher.clean(`stores.getOne:${instance.url}**`);
+          this.broker.cacher.clean(`stores.get:${instance.url}**`);
           this.broker.cacher.clean(`stores.me:${instance.consumer_key}**`);
-          return ctx.call<Store, Partial<Store>>('stores.updateOne', {
+          return ctx.call<Store, Partial<Store>>('stores.update', {
             id: storeId,
             internal_data: instance.internal_data,
           });
@@ -465,7 +494,12 @@ const TheService: ServiceSchema = {
         }
       },
     },
-
+    /**
+     * me update
+     *
+     * @action meUpdate
+     * @returns {Store}
+     */
     meUpdate: {
       auth: ['Bearer'],
       rest: 'PUT /me',
@@ -487,7 +521,7 @@ const TheService: ServiceSchema = {
           );
         }
 
-        return ctx.call<Store, Partial<Store>>('stores.updateOne', {
+        return ctx.call<Store, Partial<Store>>('stores.update', {
           ...ctx.params,
           id,
         });
@@ -551,7 +585,6 @@ const TheService: ServiceSchema = {
           });
       },
     },
-
     /**
      * Get user by JWT token (for API GW authentication)
      *
@@ -679,7 +712,7 @@ const TheService: ServiceSchema = {
      */
     transformResultEntity(entity: Store, omsData = false): Store | boolean {
       if (!entity) return false;
-      const store = Object.assign({}, entity);
+      const store = { ...entity };
       store.url = store._id;
       delete store._id;
       if (omsData) {
@@ -761,7 +794,7 @@ const TheService: ServiceSchema = {
     },
 
     async cacheUpdate(_myStore): Promise<void> {
-      const store = await this.broker.call('stores.getOne', {
+      const store = await this.broker.call('stores.get', {
         id: _myStore.url,
       });
       const myStore = {
@@ -770,9 +803,9 @@ const TheService: ServiceSchema = {
       };
 
       // Set normal with balance
-      this.broker.cacher.set(`stores.getOne:${myStore.url}|undefined`, myStore);
+      this.broker.cacher.set(`stores.get:${myStore.url}|undefined`, myStore);
       // Set withoutBalance
-      this.broker.cacher.set(`stores.getOne:${myStore.url}|1`, myStore);
+      this.broker.cacher.set(`stores.get:${myStore.url}|1`, myStore);
       this.broker.cacher.set(`stores.me:${myStore.consumer_key}`, myStore);
     },
     isProfitUpdate(store, storeBefore): boolean {

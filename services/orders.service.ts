@@ -336,7 +336,7 @@ const TheService: ServiceSchema = {
 
         if (order && !store.internal_data?.omsId) {
           ctx
-            .call<Store, Partial<Store>>('stores.updateOne', {
+            .call<Store, Partial<Store>>('stores.update', {
               id: store.url,
               internal_data: { omsId: result.salesorder.store.id },
             })
@@ -847,7 +847,7 @@ const TheService: ServiceSchema = {
 
         const storeDoc =
           ctx.meta.store ||
-          (await ctx.call<Store, Partial<Store>>('stores.getOne', {
+          (await ctx.call<Store, Partial<Store>>('stores.get', {
             id: storeId,
           }));
 

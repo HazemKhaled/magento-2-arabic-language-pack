@@ -3,7 +3,7 @@ import { ServiceSchema } from 'moleculer';
 export const StoresValidation: ServiceSchema = {
   name: 'stores',
   actions: {
-    getOne: {
+    get: {
       params: {
         id: {
           type: 'string',
@@ -14,10 +14,37 @@ export const StoresValidation: ServiceSchema = {
         },
       },
     },
-    getAll: {
+    list: {
       params: {
-        filter: {
+        limit: {
+          type: 'number',
+          optional: true,
+          convert: true,
+        },
+        page: {
+          type: 'number',
+          optional: true,
+          convert: true,
+        },
+        sort: {
           type: 'string',
+          convert: true,
+          optional: true,
+        },
+        sortOrder: {
+          type: 'enum',
+          values: ['ASC', 'DESC'],
+          optional: true,
+        },
+        where: {
+          type: 'string',
+          optional: true,
+          convert: true,
+        },
+        fields: {
+          type: 'string',
+          optional: true,
+          convert: true,
         },
       },
     },
@@ -39,7 +66,7 @@ export const StoresValidation: ServiceSchema = {
         },
       },
     },
-    createOne: {
+    create: {
       params: {
         url: {
           type: 'url',
@@ -212,7 +239,7 @@ export const StoresValidation: ServiceSchema = {
         },
       },
     },
-    updateOne: {
+    update: {
       params: {
         id: {
           type: 'url',
