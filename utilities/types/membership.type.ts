@@ -11,7 +11,6 @@ import { I18n } from './i18ntext.type';
 export interface Membership {
   _id: string;
   id: string;
-  _id: string;
   name: I18n;
   tagline: I18n;
   description: I18n;
