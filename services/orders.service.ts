@@ -1205,7 +1205,7 @@ const TheService: ServiceSchema = {
      * @returns
      */
     orderData(params: Order, instance: Store, create = false) {
-      const data: Order & { store?: Partial<Store> } = {
+      const data: Order & { store?: Partial<Store & { id: string }> } = {
         status: params.status,
         items: params.items || params.line_items,
         shipping: params.shipping,

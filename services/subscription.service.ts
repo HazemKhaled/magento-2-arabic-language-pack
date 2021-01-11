@@ -753,9 +753,9 @@ const TheService: ServiceSchema = {
      */
     transformMembershipEntity(entity: Membership): Membership | boolean {
       if (!entity) return false;
-      const membership = Object.assign({}, entity);
-      membership.id = membership._id;
-      delete membership._id;
+      const { _id, ...membership } = entity;
+      membership.id = _id;
+
       return this.sanitizeObject(membership);
     },
     /**
