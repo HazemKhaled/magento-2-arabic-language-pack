@@ -280,99 +280,53 @@ const StoresListOpenapi = {
   tags: ['Stores'],
   parameters: [
     {
-      name: 'offset',
+      name: 'populate',
       in: 'query',
-      schema: {
-        type: 'number',
-        description: 'offset/page of the stores list',
-      },
-    },
-    {
-      name: 'limit',
-      in: 'query',
-      schema: {
-        type: 'number',
-        description: 'Limit of the stores list',
-      },
-    },
-    {
-      name: 'query',
-      in: 'query',
-      schema: {
-        type: 'string',
-        example: '{"users.email":"abdelrahman@knawat.com"}',
-      },
+      required: false,
+      schema: { type: 'array', items: { type: 'string' } },
+      description: 'Populated fields',
     },
     {
       name: 'fields',
       in: 'query',
+      required: false,
+      schema: { type: 'array', items: { type: 'string' } },
+      description: 'Fields filter',
+    },
+    {
+      name: 'page',
+      in: 'query',
+      required: false,
       schema: {
-        type: 'string',
-        example: 'name,email,updated,status,users',
-        description: 'Pass the name of the fields in comma seperated',
+        type: 'number',
+        default: 1,
+        maximum: 100,
+      },
+    },
+    {
+      name: 'pageSize',
+      in: 'query',
+      required: false,
+      schema: {
+        type: 'number',
+        default: 10,
+        maximum: 100,
       },
     },
     {
       name: 'sort',
       in: 'query',
-      schema: {
-        type: 'string',
-      },
+      required: false,
+      example: 'sort=-createdAt',
+      schema: { type: 'string' },
     },
     {
-      name: 'sortOrder',
+      name: 'query',
       in: 'query',
-      schema: {
-        type: 'string',
-        enum: ['ASC', 'DESC'],
-      },
-    },
-  ],
-  responses: {
-    200: {
-      description: 'Status 200',
-      content: {
-        'application/json': {
-          schema: {
-            type: 'object',
-            properties: {
-              stores: {
-                type: 'array',
-                items: {
-                  $ref: '#/components/schemas/Store',
-                },
-              },
-              total: { type: 'number' },
-            },
-          },
-        },
-      },
-    },
-    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
-    404: { $ref: '#/components/responses/404' },
-  },
-  security: [{ basicAuth: [] as any[] }],
-};
-
-const StoresSListOpenapi = {
-  $path: 'get /stores/admin',
-  deprecated: true,
-  summary: 'All Stores',
-  tags: ['Stores'],
-  parameters: [
-    {
-      name: 'page',
-      in: 'query',
-      schema: {
-        type: 'number',
-      },
-    },
-    {
-      name: 'perPage',
-      in: 'query',
-      schema: {
-        type: 'number',
-      },
+      required: false,
+      schema: { type: 'string' },
+      description:
+        'Query object. Passes to adapter ?query[users.email]=email@example.com',
     },
   ],
   responses: {
