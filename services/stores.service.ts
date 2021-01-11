@@ -462,7 +462,7 @@ const TheService: ServiceSchema = {
         return this._find(ctx, {
           query: { consumer_key: consumerKey },
         })
-          .then(async ([instance]: Store[]) => {
+          .then(([instance]: Store[]) => {
             if (
               consumerKey === instance.consumer_key &&
               consumerSecret === instance.consumer_secret
@@ -524,7 +524,7 @@ const TheService: ServiceSchema = {
             }
           );
         })
-          .then(async (decoded: { id: string }) => {
+          .then((decoded: { id: string }) => {
             if (decoded.id) {
               // Get instance info
               return this._find(ctx, {
