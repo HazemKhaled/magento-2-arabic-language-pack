@@ -76,6 +76,7 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 * 24,
       },
       visibility: 'published',
+      rest: 'GET /:url',
       handler(
         ctx: Context<{
           url: string;
