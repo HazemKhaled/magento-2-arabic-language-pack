@@ -529,7 +529,7 @@ const TheService: ServiceSchema = {
               // Get instance info
               return this._find(ctx, {
                 query: { consumer_key: decoded.id },
-              }).then(async ([instance]: Store[]) => {
+              }).then(([instance]: Store[]) => {
                 if (instance.status) {
                   return this.transformResultEntity(instance);
                 }
