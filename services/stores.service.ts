@@ -73,7 +73,7 @@ const TheService: ServiceSchema = {
     get: {
       auth: ['Basic'],
       cache: {
-        keys: ['id', 'withoutBalance', 'withoutSubscription'],
+        keys: ['withoutBalance', 'withoutSubscription'],
         ttl: 60 * 60 * 24,
       },
       visibility: 'published',
