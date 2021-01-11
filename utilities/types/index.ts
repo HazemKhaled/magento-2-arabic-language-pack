@@ -14,6 +14,7 @@ export * from './oms-store.type';
 export * from './oms-tax.type';
 export * from './subscription.type';
 export * from './coupon.type';
+export * from './db.type';
 export * from './tax.type';
 export * from './authenticate.type';
 export * from './elasticsearch.type';

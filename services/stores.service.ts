@@ -8,6 +8,7 @@ import { StoresOpenapi } from '../utilities/mixins/openapi';
 import { Oms } from '../utilities/mixins/oms.mixin';
 import {
   Log,
+  ListParams,
   Store,
   StoreUser,
   StoreRequest,
@@ -19,7 +20,7 @@ import {
 import { StoresValidation } from '../utilities/mixins/validation';
 import { GCPPubSub } from '../utilities/mixins';
 
-const { MoleculerError, ValidationError } = Errors;
+const { MoleculerError } = Errors;
 
 const TheService: ServiceSchema = {
   name: 'stores',
@@ -127,44 +128,22 @@ const TheService: ServiceSchema = {
     /**
      * List all stores
      *
-     * @param {Object} where
-     * @param {number} page
-     * @param {number} limit
-     * @param {string} sort
-     * @param {string} sortOrder
-     * @param {string} fields
-     * @returns {Store[]}
+     * @param {Array.<String>}  populate
+     * @param {Array.<String>}  fields
+     * @param {Number}          page
+     * @param {String}          pageSize
+     * @param {String}          sort
+     * @param {Object}          query
+     *
+     * @return {Object}         {Promise<{ stores: Store[]; total: number }>}
      */
     list: {
       auth: ['Basic'],
       visibility: 'published',
       handler(
-        ctx: Context<StoreRequest>
+        ctx: Context<ListParams>
       ): Promise<{ stores: Store[]; total: number }> {
-        try {
-          if (ctx.params.query) {
-            ctx.params.query = JSON.parse(ctx.params.query);
-          }
-        } catch (err) {
-          throw new ValidationError('Where Params Error');
-        }
-        const query: GenericObject = {
-          query: { ...ctx.params.query } || {},
-          limit: Number(ctx.params.limit) || 10,
-          offset:
-            (Number(ctx.params.limit) || 50) *
-            ((Number(ctx.params.offset) || 1) - 1),
-        };
-        if (ctx.params.fields) {
-          query.fields = ctx.params.fields.split(',');
-        }
-        if (ctx.params.sort) {
-          query.sort =
-            ctx.params.sortOrder === 'DESC'
-              ? `-${ctx.params.sort}`
-              : ctx.params.sort;
-        }
-        const params = query;
+        const params = this.sanitizeParams(ctx, ctx.params);
         return this._list(ctx, params).then(
           (res: { rows: Store[]; total: number }) => {
             // If the DB response not null will return the data
