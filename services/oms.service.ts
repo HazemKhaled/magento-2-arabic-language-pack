@@ -7,7 +7,6 @@ import {
   OrderRequestParams,
   InvoiceRequestParams,
   updateOderRequestParams,
-  StoreRequest,
   CreateCustomerRequest,
   TaxRequestParams,
   CommonError,
@@ -213,7 +212,7 @@ const TheService: ServiceSchema = {
       },
     },
     getCustomerByUrl: {
-      handler(ctx: Context<StoreRequest>): Promise<{ store: Store }> {
+      handler(ctx: Context<{ storeId: string }>): Promise<{ store: Store }> {
         return this.request({
           ctx,
           path: `stores?url=${encodeURIComponent(ctx.params.storeId)}`,

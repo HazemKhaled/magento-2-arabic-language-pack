@@ -105,30 +105,6 @@ export interface ShippingMethod {
 }
 
 /**
- * Store Request
- *
- * @export
- * @interface StoreRequest
- */
-export interface StoreRequest {
-  customerId: string;
-  storeId: string;
-  amount: number;
-  id: string;
-  consumerKey: string;
-  consumerSecret: string;
-  filter: string;
-  limit: number;
-  offset: number;
-  query: any;
-  url: string;
-  token: string;
-  sort: string;
-  fields: string;
-  sortOrder: string;
-}
-
-/**
  * create customer request Definition
  *
  * @export

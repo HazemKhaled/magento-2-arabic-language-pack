@@ -12,7 +12,6 @@ import {
   Store,
   StoreDb,
   StoreUser,
-  StoreRequest,
   MetaParams,
   EventArguments,
   Subscription,
@@ -336,9 +335,10 @@ const TheService: ServiceSchema = {
 
         try {
           const omsStore = await ctx
-            .call<unknown, Partial<StoreRequest>>('oms.getCustomerByUrl', {
-              storeId: url,
-            })
+            .call<unknown, Partial<{ storeId: string }>>(
+              'oms.getCustomerByUrl',
+              { storeId: url }
+            )
             .then(
               (response: { store: Store }) => response.store,
               (err: CommonError) => {
@@ -394,9 +394,9 @@ const TheService: ServiceSchema = {
     meUpdate: {
       auth: ['Bearer'],
       rest: 'PUT /me',
-      handler(ctx): Promise<Store> {
+      handler(ctx: Context<Store, MetaParams>): Promise<Store> {
         const { store } = ctx.meta;
-        const { url: id } = store;
+        const { url } = store;
         if (ctx.params.external_data) {
           ctx.params.external_data = this.merge2Objects(
             store.internal_data,
@@ -414,7 +414,7 @@ const TheService: ServiceSchema = {
 
         return ctx.call<Store, Partial<Store>>('stores.update', {
           ...ctx.params,
-          id,
+          url,
         });
       },
     },
@@ -428,7 +428,10 @@ const TheService: ServiceSchema = {
      */
     login: {
       handler(
-        ctx: Context<StoreRequest, MetaParams>
+        ctx: Context<
+          { consumerKey: string; consumerSecret: string },
+          MetaParams
+        >
       ): Promise<{
         _id: string;
         url: string;
@@ -487,7 +490,7 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 * 24 * 30,
       },
       visibility: 'public',
-      handler(ctx: Context<Partial<StoreRequest>>): Promise<Store | boolean> {
+      handler(ctx: Context<{ token: string }>): Promise<Store | boolean> {
         return new Promise<{ id: string }>((resolve, reject) => {
           jwt.verify(
             ctx.params.token,
