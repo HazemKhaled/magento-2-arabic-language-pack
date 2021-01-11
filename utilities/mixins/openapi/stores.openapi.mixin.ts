@@ -284,7 +284,7 @@ const StoresListOpenapi = {
       in: 'query',
       schema: {
         type: 'number',
-        description: '',
+        description: 'offset/page of the stores list',
       },
     },
     {
@@ -292,7 +292,7 @@ const StoresListOpenapi = {
       in: 'query',
       schema: {
         type: 'number',
-        description: '',
+        description: 'Limit of the stores list',
       },
     },
     {
