@@ -174,7 +174,7 @@ const TheService: ServiceSchema = {
     create: {
       auth: ['Basic'],
       visibility: 'published',
-      handler(ctx: Context<StoreRequest>): Promise<Store> {
+      handler(ctx: Context<Store>): Promise<Store> {
         // Sanitize request params
         const store: Store = this.sanitizeStoreParams(ctx.params, true);
         return this._create(ctx, store)
@@ -329,8 +329,8 @@ const TheService: ServiceSchema = {
       async handler(ctx): Promise<unknown> {
         const storeId = ctx.params.id;
         const instance = await ctx
-          .call<Store, { id: string }>('stores.get', {
-            id: storeId,
+          .call<Store, { url: string }>('stores.get', {
+            url: storeId,
           })
           .catch(err => {
             throw new MpError(
@@ -545,12 +545,13 @@ const TheService: ServiceSchema = {
         store.created = new Date();
         store.updated = new Date();
         store.status = params.status || 'pending';
-        store.sale_price = 1.7;
-        store.sale_price_operator = 1;
-        store.compared_at_price = 1.7;
-        store.compared_at_price_operator = 1;
-        store.currency = 'USD';
-        store.shipping_methods = [
+        store.sale_price = store.sale_price || 1.7;
+        store.sale_price_operator = store.sale_price_operator || 1;
+        store.compared_at_price = store.compared_at_price || 1.7;
+        store.compared_at_price_operator =
+          store.compared_at_price_operator || 1;
+        store.currency = store.currency || 'USD';
+        store.shipping_methods = store.shipping_methods || [
           {
             name: 'Standard',
             sort: 0,
