@@ -229,7 +229,7 @@ export const StoresValidation: ServiceSchema = {
     },
     update: {
       params: {
-        id: {
+        url: {
           type: 'url',
         },
         name: {

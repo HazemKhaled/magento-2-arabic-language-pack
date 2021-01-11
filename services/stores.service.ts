@@ -569,6 +569,8 @@ const TheService: ServiceSchema = {
       }
       if (params.users) {
         params.users = params.users.map((user: StoreUser) => ({
+          first_name: user.first_name,
+          last_name: user.last_name,
           email: user.email.toLowerCase(),
           roles: user.roles,
         }));
