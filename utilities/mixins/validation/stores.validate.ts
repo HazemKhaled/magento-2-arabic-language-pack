@@ -404,7 +404,7 @@ export const StoresValidation: ServiceSchema = {
         },
       },
     },
-    sync: {
+    flushCache: {
       params: {
         id: {
           type: 'string',

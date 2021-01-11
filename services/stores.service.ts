@@ -319,33 +319,25 @@ const TheService: ServiceSchema = {
      * @param {id} sync
      * @returns {unknown}
      */
-    sync: {
+    flushCache: {
       auth: ['Basic'],
       cache: {
         keys: ['id', 'timestamp'],
         ttl: 60 * 60 * 3,
       },
       rest: 'PUT /:id/sync',
-      async handler(ctx): Promise<unknown> {
-        const storeId = ctx.params.id;
-        const instance = await ctx
-          .call<Store, { url: string }>('stores.get', {
-            url: storeId,
-          })
-          .catch(err => {
-            throw new MpError(
-              'Stores Service',
-              err.code === 404
-                ? 'Store not found ! !'
-                : 'Internal Server error',
-              err.code
-            );
-          });
+      async handler(
+        ctx: Context<{ url: string; timestamp: number }, MetaParams>
+      ): Promise<unknown> {
+        const { url } = ctx.params;
+        const instance = await ctx.call<Store, { url: string }>('stores.get', {
+          url,
+        });
 
         try {
           const omsStore = await ctx
             .call<unknown, Partial<StoreRequest>>('oms.getCustomerByUrl', {
-              storeId,
+              storeId: url,
             })
             .then(
               (response: { store: Store }) => response.store,
@@ -362,6 +354,7 @@ const TheService: ServiceSchema = {
                 }
               }
             );
+
           instance.internal_data = {
             ...instance.internal_data,
             omsId: omsStore.id || omsStore.store?.id,
@@ -373,7 +366,7 @@ const TheService: ServiceSchema = {
           this.broker.cacher.clean(`invoices.get:${instance.consumer_key}*`);
           this.broker.cacher.clean(`subscription.getByStore:${instance.url}*`);
           return ctx.call<Store, Partial<Store>>('stores.update', {
-            url: storeId,
+            url,
             internal_data: instance.internal_data,
           });
         } catch (err) {

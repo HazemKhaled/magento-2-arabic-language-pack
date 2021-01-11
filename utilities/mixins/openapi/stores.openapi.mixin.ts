@@ -413,6 +413,40 @@ const StoresUpdateOpenapi = {
   },
 };
 
+const UsersCacheFlushOpenapi = {
+  $path: 'put /stores/{url}/sync',
+  summary: 'Flush Store specific cache',
+  tags: ['Stores'],
+  parameters: [
+    {
+      name: 'url',
+      in: 'path',
+      required: true,
+      schema: {
+        type: 'string',
+      },
+    },
+  ],
+  responses: {
+    200: {
+      description: 'Status 200',
+      content: {
+        'application/json': {
+          schema: {
+            $ref: '#/components/schemas/Store',
+          },
+        },
+      },
+    },
+    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
+    500: { $ref: '#/components/responses/500' },
+  },
+  security: [{ basicAuth: [] as any[] }],
+  requestBody: {
+    $ref: '#/components/requestBodies/Store',
+  },
+};
+
 const MeUpdate = {
   $path: 'put /stores/me',
   summary: 'Update Store',
@@ -604,11 +638,14 @@ export const StoresOpenapi: ServiceSchema = {
     update: {
       openapi: StoresUpdateOpenapi,
     },
-    login: {
-      openapi: UsersLoginOpenapi,
+    flushCache: {
+      openapi: UsersCacheFlushOpenapi,
     },
     meUpdate: {
       openapi: MeUpdate,
+    },
+    login: {
+      openapi: UsersLoginOpenapi,
     },
   },
 };
