@@ -175,29 +175,32 @@ const TheService: ServiceSchema = {
       async handler(
         ctx: Context<StoreRequest>
       ): Promise<{ stores: Store[]; total: number }> {
-        const params = ctx.params;
         try {
-          if (params.where) {
-            params.where = JSON.parse(params.where);
+          if (ctx.params.where) {
+            ctx.params.where = JSON.parse(ctx.params.where);
           }
         } catch (err) {
           throw new ValidationError('Where Params Error');
         }
 
         const query: GenericObject = {
-          query: { ...params.where } || {},
-          limit: Number(params.limit) || 50,
+          query: { ...ctx.params.where } || {},
+          limit: Number(ctx.params.limit) || 50,
           offset:
-            (Number(params.limit) || 50) * ((Number(params.page) || 1) - 1),
+            (Number(ctx.params.limit) || 50) *
+            ((Number(ctx.params.page) || 1) - 1),
         };
-        if (params.fields) {
-          query.fields = params.fields.split(',');
+        if (ctx.params.fields) {
+          query.fields = ctx.params.fields.split(',');
         }
-        if (params.sort && params.sortOrder) {
+        if (ctx.params.sort && ctx.params.sortOrder) {
           query.sort =
-            params.sortOrder === 'DESC' ? `-${params.sort}` : params.sort;
+            ctx.params.sortOrder === 'DESC'
+              ? `-${ctx.params.sort}`
+              : ctx.params.sort;
         }
-        return this._list(ctx, query).then(
+        const params = this.sanitizeParams(ctx, query);
+        return this._list(ctx, params).then(
           async (res: { rows: Store[]; total: number }) => {
             // If the DB response not null will return the data
             if (res)
@@ -227,8 +230,9 @@ const TheService: ServiceSchema = {
         const findBody: GenericObject = { query };
         findBody.pageSize = Number(ctx.params.perPage) || 50;
         findBody.page = Number(ctx.params.page) || 1;
+        const params = this.sanitizeParams(ctx, findBody);
 
-        return this._list(ctx, findBody)
+        return this._list(ctx, params)
           .then(async (res: { rows: Store[]; total: number }) => {
             return {
               stores: res.rows,
