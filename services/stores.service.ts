@@ -59,36 +59,8 @@ const TheService: ServiceSchema = {
       },
       rest: 'GET /me',
       handler(ctx: Context<unknown, MetaParams>): Promise<Store> {
-        return this._find(ctx, {
-          query: { consumer_key: ctx.meta.user },
-        }).then(async ([res]: Store[]) => {
-          let omsData: { store: Store };
-          if (res) {
-            if (res.users) {
-              res.subscription = await ctx.call<
-                Subscription,
-                { storeId: string }
-              >('subscription.getByStore', {
-                storeId: res._id,
-              });
-            }
-            if (res?.internal_data?.omsId) {
-              omsData = (await ctx
-                .call<null, Partial<{ customerId: string }>>(
-                  'oms.getCustomer',
-                  {
-                    customerId: res.internal_data.omsId,
-                  }
-                )
-                .then(null, this.logger.error)) as { store: Store };
-
-              // If the DB response not null will return the data
-              return this.transformResultEntity(res, omsData && omsData?.store);
-            }
-            return this.transformResultEntity(res);
-          }
-          // If null return Not Found error
-          throw new MpError('Stores Service', 'Store Not Found', 404);
+        return ctx.call<Store, Partial<Store>>('stores.get', {
+          id: ctx.meta.storeId,
         });
       },
     },
@@ -105,7 +77,6 @@ const TheService: ServiceSchema = {
         ttl: 60 * 60 * 24,
       },
       visibility: 'published',
-      rest: 'GET /:id',
       handler(ctx: Context<StoreRequest>): Promise<Store> {
         return this._get(ctx, { id: ctx.params.id })
           .then(async (res: Store) => {
@@ -166,42 +137,36 @@ const TheService: ServiceSchema = {
      */
     list: {
       auth: ['Basic'],
-      cache: {
-        keys: ['page', 'limit', 'where', 'sort', 'sortOrder', 'fields'],
-        ttl: 60 * 60 * 24,
-      },
       visibility: 'published',
-      rest: 'GET /',
-      async handler(
+      handler(
         ctx: Context<StoreRequest>
       ): Promise<{ stores: Store[]; total: number }> {
         try {
-          if (ctx.params.where) {
-            ctx.params.where = JSON.parse(ctx.params.where);
+          if (ctx.params.query) {
+            ctx.params.query = JSON.parse(ctx.params.query);
           }
         } catch (err) {
           throw new ValidationError('Where Params Error');
         }
-
         const query: GenericObject = {
-          query: { ...ctx.params.where } || {},
-          limit: Number(ctx.params.limit) || 50,
+          query: { ...ctx.params.query } || {},
+          limit: Number(ctx.params.limit) || 10,
           offset:
             (Number(ctx.params.limit) || 50) *
-            ((Number(ctx.params.page) || 1) - 1),
+            ((Number(ctx.params.offset) || 1) - 1),
         };
         if (ctx.params.fields) {
           query.fields = ctx.params.fields.split(',');
         }
-        if (ctx.params.sort && ctx.params.sortOrder) {
+        if (ctx.params.sort) {
           query.sort =
             ctx.params.sortOrder === 'DESC'
               ? `-${ctx.params.sort}`
               : ctx.params.sort;
         }
-        const params = this.sanitizeParams(ctx, query);
+        const params = query;
         return this._list(ctx, params).then(
-          async (res: { rows: Store[]; total: number }) => {
+          (res: { rows: Store[]; total: number }) => {
             // If the DB response not null will return the data
             if (res)
               return {
@@ -216,37 +181,6 @@ const TheService: ServiceSchema = {
         );
       },
     },
-    getAllAdmin: {
-      auth: ['Basic'],
-      cache: {
-        keys: ['page', 'perPage'],
-        ttl: 60 * 60 * 24,
-      },
-      rest: 'GET /admin',
-      handler(
-        ctx: Context<StoreRequest>
-      ): Promise<{ stores: Store[]; total: number }> {
-        const query: GenericObject = {};
-        const findBody: GenericObject = { query };
-        findBody.pageSize = Number(ctx.params.perPage) || 50;
-        findBody.page = Number(ctx.params.page) || 1;
-        const params = this.sanitizeParams(ctx, findBody);
-
-        return this._list(ctx, params)
-          .then(async (res: { rows: Store[]; total: number }) => {
-            return {
-              stores: res.rows,
-              total: res.total,
-            };
-          })
-          .catch((err: CommonError) => {
-            if (err.name === 'MoleculerError') {
-              throw new MoleculerError(err.message, err.code);
-            }
-            throw new MoleculerError(String(err), 500);
-          });
-      },
-    },
     /**
      * Create new store
      *
@@ -256,15 +190,11 @@ const TheService: ServiceSchema = {
     create: {
       auth: ['Basic'],
       visibility: 'published',
-      rest: 'POST /',
-      async handler(ctx: Context<StoreRequest>): Promise<Store> {
-        // Clear cache
-        this.broker.cacher.clean(`stores.get:${ctx.params.url}**`);
-
+      handler(ctx: Context<StoreRequest>): Promise<Store> {
         // Sanitize request params
         const store: Store = this.sanitizeStoreParams(ctx.params, true);
-        const myStore = await this._create(ctx, store)
-          .then((res: Store) => this.transformResultEntity(res) as Store)
+        return this._create(ctx, store)
+          .then((res: Store) => this.transformResultEntity(res))
           .catch((err: { code: number }) => {
             if (err.code !== 11000) {
               this.logger.error('Create store', err);
@@ -274,14 +204,6 @@ const TheService: ServiceSchema = {
             const code = err.code === 11000 ? 422 : 500;
             throw new MpError('Stores Service', msg, code);
           });
-
-        if (myStore.url) {
-          this.broker.cacher.clean('stores.list:**');
-          this.broker.cacher.clean('stores.getAllAdmin:**');
-          this.cacheUpdate(myStore);
-        }
-
-        return myStore;
       },
     },
     /**
@@ -293,7 +215,6 @@ const TheService: ServiceSchema = {
     update: {
       auth: ['Basic'],
       visibility: 'published',
-      rest: 'PUT /:id',
       async handler(ctx: Context<Store, MetaParams>): Promise<Store> {
         // Save the ID separate into variable to use it to find the store
         const { id } = ctx.params;
@@ -320,7 +241,7 @@ const TheService: ServiceSchema = {
 
         // if no new updates
         if (Object.keys(store).length === 0) {
-          return this.transformResultEntity(storeBefore) as Store;
+          return this.transformResultEntity(storeBefore);
         }
 
         // Merge internal_data
@@ -340,7 +261,7 @@ const TheService: ServiceSchema = {
         }
         store._id = ctx.params.id;
         const responseStore = await this._update(ctx, store)
-          .then((res: Store) => this.transformResultEntity(res) as Store)
+          .then((res: Store) => this.transformResultEntity(res))
           .catch((error: { code: number }) => {
             this.sendLogs({
               topic: 'store',
@@ -368,15 +289,6 @@ const TheService: ServiceSchema = {
 
         // Workaround for Store type, clean it up
         const myStore = responseStore as Store;
-
-        // Clean cache if store updated
-        this.broker.cacher.clean('stores.list**');
-        this.broker.cacher.clean('stores.getAllAdmin:**');
-        this.broker.cacher.clean(`products.list:${myStore.consumer_key}*`);
-        this.broker.cacher.clean(
-          `products.getInstanceProduct:${myStore.consumer_key}*`
-        );
-        this.cacheUpdate(myStore);
 
         if (myStore?.internal_data?.omsId) {
           ctx
@@ -426,8 +338,8 @@ const TheService: ServiceSchema = {
     sync: {
       auth: ['Basic'],
       cache: {
-        ttl: 60 * 60 * 3,
         keys: ['id', 'timestamp'],
+        ttl: 60 * 60 * 3,
       },
       rest: 'PUT /:id/sync',
       async handler(ctx): Promise<unknown> {
@@ -476,8 +388,6 @@ const TheService: ServiceSchema = {
           );
           this.broker.cacher.clean(`invoices.get:${instance.consumer_key}*`);
           this.broker.cacher.clean(`subscription.getByStore:${instance.url}*`);
-          this.broker.cacher.clean(`stores.get:${instance.url}**`);
-          this.broker.cacher.clean(`stores.me:${instance.consumer_key}**`);
           return ctx.call<Store, Partial<Store>>('stores.update', {
             id: storeId,
             internal_data: instance.internal_data,
@@ -575,9 +485,6 @@ const TheService: ServiceSchema = {
             this.transformEntity(user, true, ctx.meta.token)
           )
           .catch((err: CommonError) => {
-            this.broker.cacher.clean(
-              `stores.resolveBearerToken:${ctx.meta.token}`
-            );
             // If wrong consumerKey or consumerSecret return Unauthorized error
             throw new MpError(
               'Stores Service',
@@ -604,13 +511,13 @@ const TheService: ServiceSchema = {
       },
       visibility: 'public',
       handler(ctx: Context<Partial<StoreRequest>>): Promise<Store | boolean> {
-        return new this.Promise((resolve: any, reject: any) => {
+        return new Promise<{ id: string }>((resolve, reject) => {
           jwt.verify(
             ctx.params.token,
             this.settings.JWT_SECRET,
             (error: Error, decoded: { id: string }) => {
               if (error) {
-                reject(false);
+                reject(error);
               }
 
               resolve(decoded);
@@ -624,7 +531,7 @@ const TheService: ServiceSchema = {
                 query: { consumer_key: decoded.id },
               }).then(async ([instance]: Store[]) => {
                 if (instance.status) {
-                  return this.transformResultEntity(instance) as Store;
+                  return this.transformResultEntity(instance);
                 }
               });
             }
@@ -795,22 +702,6 @@ const TheService: ServiceSchema = {
         ...oldObj,
         ...newObj,
       };
-    },
-
-    async cacheUpdate(_myStore): Promise<void> {
-      const store = await this.broker.call('stores.get', {
-        id: _myStore.url,
-      });
-      const myStore = {
-        ...store,
-        ..._myStore,
-      };
-
-      // Set normal with balance
-      this.broker.cacher.set(`stores.get:${myStore.url}|undefined`, myStore);
-      // Set withoutBalance
-      this.broker.cacher.set(`stores.get:${myStore.url}|1`, myStore);
-      this.broker.cacher.set(`stores.me:${myStore.consumer_key}`, myStore);
     },
     isProfitUpdate(store, storeBefore): boolean {
       const profitFields = [

@@ -20,11 +20,13 @@ export const StoresValidation: ServiceSchema = {
           type: 'number',
           optional: true,
           convert: true,
+          min: 0,
         },
-        page: {
+        offset: {
           type: 'number',
           optional: true,
           convert: true,
+          min: 1,
         },
         sort: {
           type: 'string',
@@ -36,7 +38,7 @@ export const StoresValidation: ServiceSchema = {
           values: ['ASC', 'DESC'],
           optional: true,
         },
-        where: {
+        query: {
           type: 'string',
           optional: true,
           convert: true,
@@ -45,24 +47,6 @@ export const StoresValidation: ServiceSchema = {
           type: 'string',
           optional: true,
           convert: true,
-        },
-      },
-    },
-    getAllAdmin: {
-      params: {
-        page: {
-          type: 'number',
-          optional: true,
-          positive: true,
-          convert: true,
-          integer: true,
-        },
-        perPage: {
-          type: 'number',
-          optional: true,
-          positive: true,
-          convert: true,
-          integer: true,
         },
       },
     },

@@ -280,10 +280,11 @@ const StoresListOpenapi = {
   tags: ['Stores'],
   parameters: [
     {
-      name: 'page',
+      name: 'offset',
       in: 'query',
       schema: {
         type: 'number',
+        description: '',
       },
     },
     {
@@ -291,10 +292,11 @@ const StoresListOpenapi = {
       in: 'query',
       schema: {
         type: 'number',
+        description: '',
       },
     },
     {
-      name: 'where',
+      name: 'query',
       in: 'query',
       schema: {
         type: 'string',
@@ -641,9 +643,6 @@ export const StoresOpenapi: ServiceSchema = {
     },
     list: {
       openapi: StoresListOpenapi,
-    },
-    getAllAdmin: {
-      openapi: StoresSListOpenapi,
     },
     create: {
       openapi: StoresCreateOpenapi,

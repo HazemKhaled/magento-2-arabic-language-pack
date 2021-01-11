@@ -100,13 +100,11 @@ export interface StoreRequest {
   withoutBalance: boolean;
   withoutSubscription: boolean;
   filter: string;
-  perPage: number;
-  page: number;
-  query: string;
+  limit: number;
+  offset: number;
+  query: any;
   url: string;
   token: string;
-  limit: number;
-  where: any;
   sort: string;
   fields: string;
   sortOrder: string;
