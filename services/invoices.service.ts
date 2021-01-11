@@ -69,8 +69,8 @@ const TheService: ServiceSchema = {
       auth: ['Basic'],
       async handler(ctx: Context<InvoiceRequestParams>): Promise<unknown> {
         const instance = await ctx
-          .call<Store & { errors: unknown }, { id: string }>('stores.get', {
-            id: ctx.params.storeId,
+          .call<Store & { errors: unknown }, { url: string }>('stores.get', {
+            url: ctx.params.storeId,
           })
           .then(store => {
             if (store.errors) {
@@ -223,8 +223,8 @@ const TheService: ServiceSchema = {
       async handler(
         ctx: Context<InvoiceRequestParams>
       ): Promise<{ invoice: Invoice; code?: number; message?: string }> {
-        const instance = await ctx.call<Store, { id: string }>('stores.get', {
-          id: ctx.params.storeId,
+        const instance = await ctx.call<Store, { url: string }>('stores.get', {
+          url: ctx.params.storeId,
         });
 
         return ctx
@@ -262,8 +262,8 @@ const TheService: ServiceSchema = {
       async handler(
         ctx: Context<InvoiceRequestParams, MetaParams>
       ): Promise<unknown> {
-        const store = await ctx.call<Store, { id: string }>('stores.get', {
-          id: ctx.params.storeId,
+        const store = await ctx.call<Store, { url: string }>('stores.get', {
+          url: ctx.params.storeId,
         });
 
         const orders = await ctx.call<Order[], Partial<Order>>(

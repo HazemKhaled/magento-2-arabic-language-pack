@@ -12,6 +12,10 @@ export const StoresValidation: ServiceSchema = {
           type: 'string',
           optional: true,
         },
+        withoutSubscription: {
+          type: 'string',
+          optional: true,
+        },
       },
     },
     list: {

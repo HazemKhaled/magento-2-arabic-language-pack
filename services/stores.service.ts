@@ -10,6 +10,7 @@ import {
   Log,
   ListParams,
   Store,
+  StoreDb,
   StoreUser,
   StoreRequest,
   MetaParams,
@@ -54,14 +55,11 @@ const TheService: ServiceSchema = {
      */
     me: {
       auth: ['Bearer'],
-      cache: {
-        keys: ['#user'],
-        ttl: 60 * 60 * 24,
-      },
+      cache: false,
       rest: 'GET /me',
       handler(ctx: Context<unknown, MetaParams>): Promise<Store> {
-        return ctx.call<Store, Partial<Store>>('stores.get', {
-          id: ctx.meta.storeId,
+        return ctx.call<Store, { url: string }>('stores.get', {
+          url: ctx.meta.storeId,
         });
       },
     },
@@ -74,12 +72,18 @@ const TheService: ServiceSchema = {
     get: {
       auth: ['Basic'],
       cache: {
-        keys: ['withoutBalance', 'withoutSubscription'],
+        keys: ['url', 'withoutBalance', 'withoutSubscription'],
         ttl: 60 * 60 * 24,
       },
       visibility: 'published',
-      handler(ctx: Context<StoreRequest>): Promise<Store> {
-        return this._get(ctx, { id: ctx.params.id })
+      handler(
+        ctx: Context<{
+          url: string;
+          withoutBalance?: boolean;
+          withoutSubscription?: boolean;
+        }>
+      ): Promise<Store> {
+        return this._get(ctx, { id: ctx.params.url })
           .then(async (res: Store) => {
             if (!res) {
               // If null return Not Found error
@@ -92,7 +96,7 @@ const TheService: ServiceSchema = {
                 Subscription,
                 { storeId: string }
               >('subscription.getByStore', {
-                storeId: ctx.params.id,
+                storeId: ctx.params.url,
               });
             }
 
@@ -196,10 +200,10 @@ const TheService: ServiceSchema = {
       visibility: 'published',
       async handler(ctx: Context<Store, MetaParams>): Promise<Store> {
         // Save the ID separate into variable to use it to find the store
-        const { id } = ctx.params;
+        const { url } = ctx.params;
         // storeBefore
         const storeBefore = await ctx
-          .call<Store, { id: string }>('stores.get', { id })
+          .call<Store, { url: string }>('stores.get', { url })
           .catch(err => {
             throw new MpError(
               'Stores Service',
@@ -211,7 +215,7 @@ const TheService: ServiceSchema = {
           });
 
         // Sanitize request params
-        const store: Store = this.sanitizeStoreParams(ctx.params);
+        const store: StoreDb = this.sanitizeStoreParams(ctx.params);
 
         // Check new values
         Object.keys(store).forEach((key: keyof Store) => {
@@ -238,15 +242,15 @@ const TheService: ServiceSchema = {
             ctx.params.external_data
           );
         }
-        store._id = ctx.params.id;
+        store._id = url;
         const responseStore = await this._update(ctx, store)
           .then((res: Store) => this.transformResultEntity(res))
           .catch((error: { code: number }) => {
             this.sendLogs({
               topic: 'store',
-              topicId: id,
+              topicId: url,
               message: 'update Store',
-              storeId: id,
+              storeId: url,
               logLevel: 'error',
               code: 500,
               payload: { error: error.toString(), params: ctx.params },
@@ -279,16 +283,16 @@ const TheService: ServiceSchema = {
                 module: string;
               }
             >('crm.updateRecord', {
-              id,
+              id: url,
               module: 'accounts',
               data: [ctx.params],
             })
             .then(null, (error: unknown) => {
               this.sendLogs({
                 topic: 'store',
-                topicId: id,
+                topicId: url,
                 message: 'Update in CRM',
-                storeId: id,
+                storeId: url,
                 logLevel: 'error',
                 code: 500,
                 payload: { error: error.toString(), params: ctx.params },
@@ -368,7 +372,7 @@ const TheService: ServiceSchema = {
           this.broker.cacher.clean(`invoices.get:${instance.consumer_key}*`);
           this.broker.cacher.clean(`subscription.getByStore:${instance.url}*`);
           return ctx.call<Store, Partial<Store>>('stores.update', {
-            id: storeId,
+            url: storeId,
             internal_data: instance.internal_data,
           });
         } catch (err) {
@@ -600,11 +604,12 @@ const TheService: ServiceSchema = {
      * @param {Object} entity
      * @param {Object} omsData
      */
-    transformResultEntity(entity: Store, omsData = false): Store | boolean {
+    transformResultEntity(entity: StoreDb, omsData = false): Store | boolean {
       if (!entity) return false;
-      const store = { ...entity };
-      store.url = store._id;
-      delete store._id;
+
+      const { _id, ...store } = entity;
+
+      store.url = _id;
       if (omsData) {
         store.debit = parseFloat(omsData.debit.toFixed(2));
         store.credit = parseFloat(omsData.credit.toFixed(2));

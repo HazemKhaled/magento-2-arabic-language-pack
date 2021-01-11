@@ -22,12 +22,9 @@ const TheService: ServiceSchema = {
       async handler(
         ctx: Context<PaymentRequestParams>
       ): Promise<PaymentResponse> {
-        const instance = await ctx.call<Store, { id: string }>('stores.get', {
-          id: ctx.params.id,
+        const instance = await ctx.call<Store, { url: string }>('stores.get', {
+          url: ctx.params.id,
         });
-        if (!instance.url) {
-          instance.url = ctx.params.id;
-        }
 
         // create OMS contact if no oms ID
         if (!instance?.internal_data?.omsId) {
@@ -164,11 +161,8 @@ const TheService: ServiceSchema = {
     },
     async cacheUpdate(payment, instance): Promise<void> {
       const store = await this.broker.call('stores.get', {
-        id: instance.url,
+        url: instance.url,
       });
-      if (!store.url) {
-        store.url = instance.url;
-      }
 
       store.credit = (store.credit || 0) + payment.amount;
       this.broker.cacher.set(`stores.get:${store.url}|undefined`, store);
