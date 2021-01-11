@@ -46,21 +46,14 @@
             input.checkbox__input(
               type='checkbox',
               name='non_3d',
-              :value='!useSecurePayment',
-              @input='e => (useSecurePayment = e.target.value)'
+              v-model='useSecurePayment'
             )
             span {{ $t("checkout.secure") }}
 
       .row(v-if='!cardId && !useBalanceOnly')
         .checkbox
           label.checkbox__label
-            input.checkbox__input(
-              type='checkbox',
-              name='store_card',
-              true-value='1',
-              false-value='0',
-              v-model='saveCard'
-            )
+            input.checkbox__input(type='checkbox', v-model='saveCard')
             span {{ $t("checkout.saveCard") }}
 
       .row(v-if='canUseBalance')
@@ -83,17 +76,10 @@
         input(
           name='balance_only',
           type='number',
-          :true-value='1',
-          :false-value='0',
-          :value='useBalanceOnly'
+          :value='useBalanceOnly ? 1 : 0'
         )
-        input(
-          name='is_new',
-          type='number',
-          :true-value='1',
-          :false-value='0',
-          :value='!cardId'
-        )
+        input(name='store_card', type='number', :value='saveCard ? 1 : 0')
+        input(name='is_new', type='number', :value='!cardId ? 1 : 0')
         input(name='card_id', type='text', :value='cardId')
         input(name='charge_amount', type='text', :value='chargeAmount')
         input(
@@ -140,7 +126,7 @@
         label.checkbox__label(for='termsAgree')
           input#termsAgree.checkbox__input(
             type='checkbox',
-            name='terms-agree',
+            name='terms_agree',
             v-model='hasAgreed'
           )
           span(v-html='$t("checkout.agreePrivacyPolicy")')
