@@ -39,11 +39,11 @@ const TheService: ServiceSchema = {
     listInvoice: {
       handler(
         ctx: Context<OmsRequestParams>
-      ): { invoices: [] } | Promise<OMSResponse<{ invoices: Invoice[] }>> {
+      ): Promise<OMSResponse<{ invoices: Invoice[] }>> {
         const params = { ...ctx.params };
 
         if (!params.omsId) {
-          return { invoices: [] };
+          return this.Promise.resolve({ invoices: [] });
         }
 
         delete params.omsId;

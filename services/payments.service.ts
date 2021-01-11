@@ -65,7 +65,7 @@ const TheService: ServiceSchema = {
             paymentBody
           )
           .then(
-            async (res: { payment: Payment }) => {
+            async ({ payment }) => {
               // Clear cache
               this.broker.cacher.clean(
                 `payments.get:${instance.consumer_key}**`
