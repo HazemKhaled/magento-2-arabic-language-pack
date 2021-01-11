@@ -205,7 +205,6 @@ const TheService: ServiceSchema = {
             res => {
               this.broker.cacher.clean(`invoices.get:${store.consumer_key}*`);
               this.broker.cacher.clean(`stores.get:${store.url}*`);
-              this.broker.cacher.clean(`stores.me:${store.consumer_key}*`);
               this.broker.cacher.clean(`payments.get:${store.consumer_key}**`);
               return res;
             },

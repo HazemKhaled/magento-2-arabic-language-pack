@@ -74,9 +74,8 @@ const TheService: ServiceSchema = {
                 `subscription.getByStore:${instance.url}*`
               );
               this.broker.cacher.clean(`stores.get:${instance.url}**`);
-              this.broker.cacher.clean(`stores.me:${instance.consumer_key}**`);
-              await this.cacheUpdate(res.payment, instance);
-              return this.sanitizePayment(res.payment);
+              await this.cacheUpdate(payment, instance);
+              return this.sanitizePayment(payment);
             },
             err => {
               throw new MpError(

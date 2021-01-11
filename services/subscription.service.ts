@@ -466,7 +466,6 @@ const TheService: ServiceSchema = {
               this.broker.cacher.clean(
                 `stores.get:${ctx.params.grantTo || instance.url}*`
               );
-              this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
               if (ctx.params.grantTo) {
                 this.broker.cacher.clean(`stores.get:${instance.url}*`);
                 this.broker.cacher.clean(
@@ -630,7 +629,6 @@ const TheService: ServiceSchema = {
             this.broker.cacher.clean(`subscription.getByStore:${store.url}**`);
             this.broker.cacher.clean(`subscription.getAll:${store.url}**`);
             this.broker.cacher.clean(`stores.get:${store.url}**`);
-            this.broker.cacher.clean(`stores.me:${store.consumer_key}**`);
             return subscription;
           })
           .catch((err: CommonError) => {
@@ -738,7 +736,6 @@ const TheService: ServiceSchema = {
             this.broker.cacher.clean(`subscription.getByStore:${res.storeId}*`);
             this.broker.cacher.clean(`subscription.getAll:${res.storeId}*`);
             this.broker.cacher.clean(`stores.get:${res.storeId}*`);
-            this.broker.cacher.clean(`stores.me:${instance.consumer_key}*`);
             return { ...res, id: res._id, _id: undefined };
           });
       },
