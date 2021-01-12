@@ -165,7 +165,6 @@ const TheService: ServiceSchema = {
 
       store.credit = (store.credit || 0) + payment.amount;
       this.broker.cacher.set(`stores.get:${store.url}|undefined`, store);
-      this.broker.cacher.set(`stores.me:${store.consumer_key}`, store);
     },
   },
 };

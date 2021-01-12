@@ -512,6 +512,8 @@ const TheService: ServiceSchema = {
               }).then(([instance]: Store[]) => {
                 if (instance.status) {
                   return this.transformResultEntity(instance);
+                } else {
+                  return false;
                 }
               });
             }
