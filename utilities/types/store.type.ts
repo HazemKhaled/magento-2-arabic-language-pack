@@ -74,7 +74,7 @@ export interface StoreDb extends StoreCommon {
  * @extends {StoreCommon}
  */
 export interface Store extends StoreCommon {
-  id: string;
+  url: string;
 }
 
 export interface StoreAddress extends OrderAddress {
