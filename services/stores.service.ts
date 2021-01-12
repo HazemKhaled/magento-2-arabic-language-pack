@@ -446,11 +446,12 @@ const TheService: ServiceSchema = {
               consumerKey === instance.consumer_key &&
               consumerSecret === instance.consumer_secret
             ) {
+              const store = this.transformResultEntity(instance);
               return {
-                _id: instance.consumer_key,
-                url: instance.url,
-                status: instance.status,
-                currency: instance.currency,
+                _id: store.consumer_key,
+                url: store.url,
+                status: store.status,
+                currency: store.currency,
               };
             }
             // If wrong consumerSecret return Unauthorized error
