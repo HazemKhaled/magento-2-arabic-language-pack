@@ -276,7 +276,7 @@ const StoresGetOpenapi = {
 
 const StoresListOpenapi = {
   $path: 'get /stores',
-  summary: 'All User Stores',
+  summary: 'List Stores',
   tags: ['Stores'],
   parameters: [
     {
@@ -451,7 +451,7 @@ const UsersCacheFlushOpenapi = {
 
 const MeUpdate = {
   $path: 'put /stores/me',
-  summary: 'Update Store',
+  summary: 'Update My Store',
   tags: ['Stores'],
   responses: {
     200: {
