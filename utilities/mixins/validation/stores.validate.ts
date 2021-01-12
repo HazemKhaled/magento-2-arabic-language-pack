@@ -5,8 +5,8 @@ export const StoresValidation: ServiceSchema = {
   actions: {
     get: {
       params: {
-        id: {
-          type: 'string',
+        url: {
+          type: 'url',
         },
         withoutBalance: {
           type: 'string',
@@ -224,7 +224,7 @@ export const StoresValidation: ServiceSchema = {
     },
     update: {
       params: {
-        id: {
+        url: {
           type: 'url',
         },
         name: {

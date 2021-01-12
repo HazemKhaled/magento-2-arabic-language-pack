@@ -103,7 +103,7 @@ export const Oms: ServiceSchema = {
           }
 
           this.broker.call('stores.update', {
-            id: instance.url,
+            url: instance.url,
             internal_data: instance.internal_data,
           });
         })

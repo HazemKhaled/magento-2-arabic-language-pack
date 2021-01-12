@@ -230,12 +230,12 @@ const StoresMeOpenapi = {
 };
 
 const StoresGetOpenapi = {
-  $path: 'get /stores/{id}',
+  $path: 'get /stores/{url}',
   summary: 'Get Store by url',
   tags: ['Stores'],
   parameters: [
     {
-      name: 'id',
+      name: 'url',
       in: 'path',
       required: true,
       schema: {
@@ -382,12 +382,12 @@ const StoresCreateOpenapi = {
 };
 
 const StoresUpdateOpenapi = {
-  $path: 'put /stores/{id}',
+  $path: 'put /stores/{url}',
   summary: 'Update Store by URL',
   tags: ['Stores'],
   parameters: [
     {
-      name: 'id',
+      name: 'url',
       in: 'path',
       required: true,
       schema: {
