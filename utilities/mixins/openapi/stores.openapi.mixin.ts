@@ -328,7 +328,7 @@ const StoresListOpenapi = {
       required: false,
       schema: { type: 'string' },
       description:
-        'Query object. Passes to adapter ?query{"users.email":"mmax050930@gmail.com"}',
+        'Query object. Passes to adapter ?query[users.email]=email@example.com',
     },
   ],
   responses: {
