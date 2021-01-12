@@ -20,13 +20,13 @@ export const StoresValidation: ServiceSchema = {
     },
     list: {
       params: {
-        limit: {
+        pageSize: {
           type: 'number',
           optional: true,
           convert: true,
           min: 0,
         },
-        offset: {
+        page: {
           type: 'number',
           optional: true,
           convert: true,
@@ -35,11 +35,6 @@ export const StoresValidation: ServiceSchema = {
         sort: {
           type: 'string',
           convert: true,
-          optional: true,
-        },
-        sortOrder: {
-          type: 'enum',
-          values: ['ASC', 'DESC'],
           optional: true,
         },
         query: {
@@ -229,7 +224,7 @@ export const StoresValidation: ServiceSchema = {
     },
     update: {
       params: {
-        url: {
+        id: {
           type: 'url',
         },
         name: {
@@ -406,8 +401,8 @@ export const StoresValidation: ServiceSchema = {
     },
     flushCache: {
       params: {
-        id: {
-          type: 'string',
+        url: {
+          type: 'url',
         },
         timestamp: {
           type: 'string',

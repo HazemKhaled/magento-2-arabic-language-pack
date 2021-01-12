@@ -230,12 +230,12 @@ const StoresMeOpenapi = {
 };
 
 const StoresGetOpenapi = {
-  $path: 'get /stores/{url}',
+  $path: 'get /stores/{id}',
   summary: 'Get Store by url',
   tags: ['Stores'],
   parameters: [
     {
-      name: 'url',
+      name: 'id',
       in: 'path',
       required: true,
       schema: {
@@ -319,6 +319,8 @@ const StoresListOpenapi = {
       required: false,
       example: 'sort=-createdAt',
       schema: { type: 'string' },
+      description:
+        'minus (-) sign will sort the data in Ascending and without any sign it will sort data in descending order',
     },
     {
       name: 'query',
@@ -380,12 +382,12 @@ const StoresCreateOpenapi = {
 };
 
 const StoresUpdateOpenapi = {
-  $path: 'put /stores/{url}',
+  $path: 'put /stores/{id}',
   summary: 'Update Store by URL',
   tags: ['Stores'],
   parameters: [
     {
-      name: 'url',
+      name: 'id',
       in: 'path',
       required: true,
       schema: {

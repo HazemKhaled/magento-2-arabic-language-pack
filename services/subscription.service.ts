@@ -228,8 +228,8 @@ const TheService: ServiceSchema = {
 
         // Get the Store instance
         const instance = await ctx
-          .call<Store, { url: string }>('stores.get', {
-            url: ctx.params.storeId,
+          .call<Store, { id: string }>('stores.get', {
+            id: ctx.params.storeId,
           })
           .catch(err => {
             throw new MpError(
@@ -243,9 +243,9 @@ const TheService: ServiceSchema = {
 
         let grantToInstance: Store;
         if (ctx.params.grantTo) {
-          grantToInstance = await ctx.call<Store, { url: string }>(
+          grantToInstance = await ctx.call<Store, { id: string }>(
             'stores.get',
-            { url: ctx.params.grantTo }
+            { id: ctx.params.grantTo }
           );
         }
 
@@ -622,8 +622,8 @@ const TheService: ServiceSchema = {
             $set
           )
           .then(async subscription => {
-            const store = await ctx.call<Store, { url: string }>('stores.get', {
-              url: subscription.storeId,
+            const store = await ctx.call<Store, { id: string }>('stores.get', {
+              id: subscription.storeId,
             });
 
             this.broker.cacher.clean(`subscription.getByStore:${store.url}**`);
@@ -714,9 +714,9 @@ const TheService: ServiceSchema = {
             status: 'cancelled',
           })
           .then(async res => {
-            const instance = await ctx.call<Store, { url: string }>(
+            const instance = await ctx.call<Store, { id: string }>(
               'stores.get',
-              { url: res.storeId }
+              { id: res.storeId }
             );
 
             if (res.invoiceId) {

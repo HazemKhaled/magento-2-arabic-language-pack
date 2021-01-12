@@ -68,8 +68,8 @@ const TheService: ServiceSchema = {
     create: {
       auth: ['Basic'],
       async handler(ctx: Context<InvoiceRequestParams>): Promise<unknown> {
-        const instance = await ctx.call<Store, { url: string }>('stores.get', {
-          url: ctx.params.storeId,
+        const instance = await ctx.call<Store, { id: string }>('stores.get', {
+          id: ctx.params.storeId,
         });
 
         const { items, discount } = ctx.params;
@@ -211,8 +211,8 @@ const TheService: ServiceSchema = {
       async handler(
         ctx: Context<InvoiceRequestParams>
       ): Promise<{ invoice: Invoice; code?: number; message?: string }> {
-        const instance = await ctx.call<Store, { url: string }>('stores.get', {
-          url: ctx.params.storeId,
+        const instance = await ctx.call<Store, { id: string }>('stores.get', {
+          id: ctx.params.storeId,
         });
 
         return ctx
@@ -250,8 +250,8 @@ const TheService: ServiceSchema = {
       async handler(
         ctx: Context<InvoiceRequestParams, MetaParams>
       ): Promise<unknown> {
-        const store = await ctx.call<Store, { url: string }>('stores.get', {
-          url: ctx.params.storeId,
+        const store = await ctx.call<Store, { id: string }>('stores.get', {
+          id: ctx.params.storeId,
         });
 
         const orders = await ctx.call<Order[], Partial<Order>>(

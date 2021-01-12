@@ -46,8 +46,8 @@ const TheService: ServiceSchema = {
           return null;
         }
 
-        const store = await ctx.call<Store, { url: string }>('stores.get', {
-          url: subscription.storeId,
+        const store = await ctx.call<Store, { id: string }>('stores.get', {
+          id: subscription.storeId,
         });
 
         if (store?.status !== 'confirmed') {

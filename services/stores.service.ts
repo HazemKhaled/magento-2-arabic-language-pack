@@ -57,33 +57,32 @@ const TheService: ServiceSchema = {
       cache: false,
       rest: 'GET /me',
       handler(ctx: Context<unknown, MetaParams>): Promise<Store> {
-        return ctx.call<Store, { url: string }>('stores.get', {
-          url: ctx.meta.storeId,
+        return ctx.call<Store, { id: string }>('stores.get', {
+          id: ctx.meta.storeId,
         });
       },
     },
     /**
      * Get store by url with subscription and OMS info
      *
-     * @param {string} id
+     * @param {string} url
      * @returns {Store}
      */
     get: {
       auth: ['Basic'],
       cache: {
-        keys: ['url', 'withoutBalance', 'withoutSubscription'],
+        keys: ['withoutBalance', 'withoutSubscription'],
         ttl: 60 * 60 * 24,
       },
       visibility: 'published',
-      rest: 'GET /:url',
       handler(
         ctx: Context<{
-          url: string;
+          id: string;
           withoutBalance?: boolean;
           withoutSubscription?: boolean;
         }>
       ): Promise<Store> {
-        return this._get(ctx, { id: ctx.params.url })
+        return this._get(ctx, { id: ctx.params.id })
           .then(async (res: Store) => {
             if (!res) {
               // If null return Not Found error
@@ -96,7 +95,7 @@ const TheService: ServiceSchema = {
                 Subscription,
                 { storeId: string }
               >('subscription.getByStore', {
-                storeId: ctx.params.url,
+                storeId: ctx.params.id,
               });
             }
 
@@ -200,10 +199,10 @@ const TheService: ServiceSchema = {
       visibility: 'published',
       async handler(ctx: Context<Store, MetaParams>): Promise<Store> {
         // Save the ID separate into variable to use it to find the store
-        const { url } = ctx.params;
+        const { id } = ctx.params;
         // storeBefore
         const storeBefore = await ctx
-          .call<Store, { url: string }>('stores.get', { url })
+          .call<Store, { id: string }>('stores.get', { id })
           .catch(err => {
             throw new MpError(
               'Stores Service',
@@ -242,15 +241,15 @@ const TheService: ServiceSchema = {
             ctx.params.external_data
           );
         }
-        store._id = url;
+        store.id = id;
         const responseStore = await this._update(ctx, store)
           .then((res: Store) => this.transformResultEntity(res))
           .catch((error: { code: number }) => {
             this.sendLogs({
               topic: 'store',
-              topicId: url,
+              topicId: store.url,
               message: 'update Store',
-              storeId: url,
+              storeId: store.url,
               logLevel: 'error',
               code: 500,
               payload: { error: error.toString(), params: ctx.params },
@@ -283,16 +282,16 @@ const TheService: ServiceSchema = {
                 module: string;
               }
             >('crm.updateRecord', {
-              id: url,
+              id: store.url,
               module: 'accounts',
               data: [ctx.params],
             })
             .then(null, (error: unknown) => {
               this.sendLogs({
                 topic: 'store',
-                topicId: url,
+                topicId: store.url,
                 message: 'Update in CRM',
-                storeId: url,
+                storeId: store.url,
                 logLevel: 'error',
                 code: 500,
                 payload: { error: error.toString(), params: ctx.params },
@@ -321,16 +320,16 @@ const TheService: ServiceSchema = {
     flushCache: {
       auth: ['Basic'],
       cache: {
-        keys: ['id', 'timestamp'],
+        keys: ['url', 'timestamp'],
         ttl: 60 * 60 * 3,
       },
-      rest: 'PUT /:id/sync',
+      rest: 'PUT /:url/sync',
       async handler(
         ctx: Context<{ url: string; timestamp: number }, MetaParams>
       ): Promise<unknown> {
         const { url } = ctx.params;
-        const instance = await ctx.call<Store, { url: string }>('stores.get', {
-          url,
+        const instance = await ctx.call<Store, { id: string }>('stores.get', {
+          id: url,
         });
 
         try {
@@ -366,7 +365,7 @@ const TheService: ServiceSchema = {
           this.broker.cacher.clean(`invoices.get:${instance.consumer_key}*`);
           this.broker.cacher.clean(`subscription.getByStore:${instance.url}*`);
           return ctx.call<Store, Partial<Store>>('stores.update', {
-            url,
+            id: url,
             internal_data: instance.internal_data,
           });
         } catch (err) {
@@ -414,7 +413,7 @@ const TheService: ServiceSchema = {
 
         return ctx.call<Store, Partial<Store>>('stores.update', {
           ...ctx.params,
-          url,
+          id: url,
         });
       },
     },

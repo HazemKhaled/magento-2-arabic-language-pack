@@ -25,9 +25,9 @@ export async function authorizeHmac(
     throw new UnAuthorizedError(ERR_NO_TOKEN, headers.authorization);
   }
 
-  const store = await req.$ctx.broker.call<Store, { url: string }>(
+  const store = await req.$ctx.broker.call<Store, { id: string }>(
     'stores.get',
-    { url: storeUrl }
+    { id: storeUrl }
   );
 
   if (!store) {

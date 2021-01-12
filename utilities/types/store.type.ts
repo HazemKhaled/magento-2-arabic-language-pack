@@ -63,6 +63,7 @@ interface StoreCommon {
  */
 export interface StoreDb extends StoreCommon {
   _id: string;
+  id: string;
 }
 
 /**
@@ -73,7 +74,7 @@ export interface StoreDb extends StoreCommon {
  * @extends {StoreCommon}
  */
 export interface Store extends StoreCommon {
-  url: string;
+  id: string;
 }
 
 export interface StoreAddress extends OrderAddress {
