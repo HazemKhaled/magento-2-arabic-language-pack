@@ -1,3 +1,5 @@
+import { GenericObject } from 'moleculer';
+
 /**
  * User subscription
  *
@@ -47,6 +49,39 @@ export interface Subscription {
 
 export interface SubscriptionType extends Subscription {}
 
-export interface SubscriptionListParams extends Subscription {
+export interface SubscriptionListParams {
+  storeId: string;
+  membershipId: string;
+  status: string | { $ne: string };
+  reference: string;
+  expireDate: GenericObject;
+  startDate: GenericObject;
+  sort: {
+    order: number;
+    field: string;
+  };
+  perPage: string;
   page: number;
+}
+
+export interface SubscriptionRequestParams {
+  storeId?: string;
+  expireDate: {
+    operation?: string;
+    date?: Date;
+    $gte?: Date;
+    $lte?: Date;
+  };
+  retries: {
+    $ne: Date;
+  };
+  renewed: {
+    $ne: boolean;
+  };
+  autoRenew: {
+    $ne: boolean;
+  };
+  status: string | { $ne: string };
+  afterDays: number;
+  beforeDays: number;
 }

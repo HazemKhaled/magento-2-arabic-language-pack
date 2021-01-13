@@ -88,3 +88,28 @@ export interface MongoQueryType {
   };
   type?: string;
 }
+
+/**
+ * This is the template of OMS Response
+ *
+ * @export
+ * @type ZohoResponse
+ * @template T
+ */
+export type OMSResponse<T> = { [P in keyof T]: T[P] } & {
+  code: number;
+  message: string;
+  page_context: {
+    has_more_page: boolean;
+    page: number;
+    per_page: number;
+    search_criteria: {
+      column_name: string;
+      comparator: string;
+      search_text: string;
+      search_text_formatted: string;
+    }[];
+    sort_column: string;
+    sort_order: string;
+  };
+};

@@ -276,55 +276,59 @@ const StoresGetOpenapi = {
 
 const StoresListOpenapi = {
   $path: 'get /stores',
-  summary: 'All User Stores',
+  summary: 'List Stores',
   tags: ['Stores'],
   parameters: [
     {
-      name: 'filter',
+      name: 'populate',
       in: 'query',
-      schema: {
-        type: 'string',
-      },
+      required: false,
+      schema: { type: 'array', items: { type: 'string' } },
+      description: 'Populated fields',
     },
-  ],
-  responses: {
-    200: {
-      description: 'Status 200',
-      content: {
-        'application/json': {
-          schema: {
-            type: 'array',
-            items: {
-              $ref: '#/components/schemas/Store',
-            },
-          },
-        },
-      },
+    {
+      name: 'fields',
+      in: 'query',
+      required: false,
+      schema: { type: 'array', items: { type: 'string' } },
+      description: 'Fields filter',
     },
-    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
-    404: { $ref: '#/components/responses/404' },
-  },
-  security: [{ basicAuth: [] as any[] }],
-};
-
-const StoresSListOpenapi = {
-  $path: 'get /stores/admin',
-  summary: 'All Stores',
-  tags: ['Stores'],
-  parameters: [
     {
       name: 'page',
       in: 'query',
+      required: false,
       schema: {
         type: 'number',
+        default: 1,
+        maximum: 100,
       },
     },
     {
-      name: 'perPage',
+      name: 'pageSize',
       in: 'query',
+      required: false,
       schema: {
         type: 'number',
+        default: 10,
+        maximum: 100,
       },
+    },
+    {
+      name: 'sort',
+      in: 'query',
+      required: false,
+      example: 'sort=-createdAt',
+      schema: { type: 'string' },
+      description:
+        'minus (-) sign will sort the data in Ascending and without any sign it will sort data in descending order',
+    },
+    {
+      name: 'query',
+      in: 'query',
+      required: false,
+      schema: { type: 'string' },
+      description:
+        'Query object. Passes to adapter ?query[users.email]=email@example.com',
     },
   ],
   responses: {
@@ -411,9 +415,43 @@ const StoresUpdateOpenapi = {
   },
 };
 
+const UsersCacheFlushOpenapi = {
+  $path: 'put /stores/{url}/sync',
+  summary: 'Flush Store specific cache',
+  tags: ['Stores'],
+  parameters: [
+    {
+      name: 'url',
+      in: 'path',
+      required: true,
+      schema: {
+        type: 'string',
+      },
+    },
+  ],
+  responses: {
+    200: {
+      description: 'Status 200',
+      content: {
+        'application/json': {
+          schema: {
+            $ref: '#/components/schemas/Store',
+          },
+        },
+      },
+    },
+    401: { $ref: '#/components/responses/UnauthorizedErrorBasic' },
+    500: { $ref: '#/components/responses/500' },
+  },
+  security: [{ basicAuth: [] as any[] }],
+  requestBody: {
+    $ref: '#/components/requestBodies/Store',
+  },
+};
+
 const MeUpdate = {
   $path: 'put /stores/me',
-  summary: 'Update Store',
+  summary: 'Update My Store',
   tags: ['Stores'],
   responses: {
     200: {
@@ -590,26 +628,26 @@ export const StoresOpenapi: ServiceSchema = {
     me: {
       openapi: StoresMeOpenapi,
     },
-    getOne: {
+    get: {
       openapi: StoresGetOpenapi,
     },
-    getAll: {
+    list: {
       openapi: StoresListOpenapi,
     },
-    getAllAdmin: {
-      openapi: StoresSListOpenapi,
-    },
-    createOne: {
+    create: {
       openapi: StoresCreateOpenapi,
     },
-    updateOne: {
+    update: {
       openapi: StoresUpdateOpenapi,
     },
-    login: {
-      openapi: UsersLoginOpenapi,
+    flushCache: {
+      openapi: UsersCacheFlushOpenapi,
     },
     meUpdate: {
       openapi: MeUpdate,
+    },
+    login: {
+      openapi: UsersLoginOpenapi,
     },
   },
 };

@@ -1,4 +1,4 @@
-import { Context, Errors, ServiceSchema, GenericObject } from 'moleculer';
+import { Context, Errors, ServiceSchema } from 'moleculer';
 import fetch from 'node-fetch';
 
 import {
@@ -7,19 +7,18 @@ import {
   OrderRequestParams,
   InvoiceRequestParams,
   updateOderRequestParams,
-  StoreRequest,
   CreateCustomerRequest,
   TaxRequestParams,
   CommonError,
   Payment,
-  OmsPaymentResponse,
   Store,
   OmsTaxResponse,
   OmsOrder,
-  OmsOrderResponse,
   Invoice,
-  OmsInvoiceResponse,
   OmsApplyCreditResponse,
+  Order,
+  OMSResponse,
+  PaymentRequestParams,
 } from '../utilities/types';
 import DbService from '../utilities/mixins/mongo.mixin';
 import { OmsValidation } from '../utilities/mixins/validation';
@@ -40,11 +39,11 @@ const TheService: ServiceSchema = {
     listInvoice: {
       handler(
         ctx: Context<OmsRequestParams>
-      ): { invoices: [] } | Promise<OmsInvoiceResponse> {
+      ): Promise<OMSResponse<{ invoices: Invoice[] }>> {
         const params = { ...ctx.params };
 
         if (!params.omsId) {
-          return { invoices: [] };
+          return this.Promise.resolve({ invoices: [] });
         }
 
         delete params.omsId;
@@ -150,8 +149,10 @@ const TheService: ServiceSchema = {
       },
     },
     listOrders: {
-      handler(ctx: Context<GenericObject>): Promise<OmsOrderResponse> {
-        const params: { [key: string]: string } = { ...ctx.params };
+      handler(
+        ctx: Context<OrderRequestParams>
+      ): Promise<OMSResponse<{ salesorders: Order[] }>> {
+        const params = { ...ctx.params };
         delete params.customerId;
         return this.request({
           ctx,
@@ -172,7 +173,9 @@ const TheService: ServiceSchema = {
 
     // Payments
     createPayment: {
-      handler(ctx: Context<GenericObject>): Promise<{ payment: Payment }> {
+      handler(
+        ctx: Context<PaymentRequestParams>
+      ): Promise<{ payment: Payment }> {
         const { customerId } = ctx.params;
         const body = ctx.params;
         delete body.customerId;
@@ -186,8 +189,10 @@ const TheService: ServiceSchema = {
       },
     },
     listPayments: {
-      handler(ctx: Context<GenericObject>): Promise<OmsPaymentResponse> {
-        const params: { [key: string]: string } = { ...ctx.params };
+      handler(
+        ctx: Context<PaymentRequestParams>
+      ): Promise<OMSResponse<{ payments: Payment[] }>> {
+        const params = { ...ctx.params };
         delete params.customerId;
         return this.request({
           ctx,
@@ -207,7 +212,7 @@ const TheService: ServiceSchema = {
       },
     },
     getCustomerByUrl: {
-      handler(ctx: Context<StoreRequest>): Promise<{ store: Store }> {
+      handler(ctx: Context<{ storeId: string }>): Promise<{ store: Store }> {
         return this.request({
           ctx,
           path: `stores?url=${encodeURIComponent(ctx.params.storeId)}`,
@@ -236,7 +241,9 @@ const TheService: ServiceSchema = {
       },
     },
     updateTax: {
-      handler(ctx: Context<TaxRequestParams>): Promise<OmsTaxResponse> {
+      handler(
+        ctx: Context<Partial<TaxRequestParams>>
+      ): Promise<OmsTaxResponse> {
         const { id } = ctx.params;
         const body = ctx.params;
         delete body.id;

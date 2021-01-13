@@ -298,8 +298,8 @@ module.exports = {
           .call<Product[], Partial<Products>>('products.getProductsBySku', {
             skus,
           })
-          .then(async (res: Product[]) => {
-            const newSKUs = res.map((product: Product) => product.sku);
+          .then(async products => {
+            const newSKUs = products.map((product: Product) => product.sku);
             const outOfStock = skus.filter(
               (sku: string) => !newSKUs.includes(sku)
             );
@@ -314,7 +314,7 @@ module.exports = {
                 404
               );
             }
-            res.forEach((product: Product) => {
+            products.forEach((product: Product) => {
               bulk.push({
                 update: {
                   _index: 'products-instances',
@@ -347,13 +347,13 @@ module.exports = {
                   body: bulk,
                 }
               )
-              .then(async (response: GenericObject) => {
+              .then(async response => {
                 // Update products import quantity
                 if (response.items) {
                   const firstImport = response.items
                     .filter((item: GenericObject) => item.update._version === 1)
                     .map((item: GenericObject) => item.update._id);
-                  res.filter((product: Product) =>
+                  products.filter((product: Product) =>
                     firstImport.includes(`${store.consumer_key}-${product.sku}`)
                   );
 
@@ -483,7 +483,7 @@ module.exports = {
       auth: ['Bearer'],
       handler(ctx: Context<Products, MetaParams>): Promise<{ status: string }> {
         const bulk: GenericObject[] = [];
-        ctx.params.productInstances.forEach((pi: GenericObject) => {
+        ctx.params.productInstances.forEach((pi: Partial<Product>) => {
           bulk.push({
             update: {
               _index: 'products-instances',

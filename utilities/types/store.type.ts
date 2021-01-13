@@ -9,9 +9,7 @@ import { OrderAddress } from './order.type';
  * @export
  * @interface Store
  */
-export interface Store {
-  id: string;
-  _id: string;
+interface StoreCommon {
   name: string;
   logo: string;
   currency: string;
@@ -52,6 +50,30 @@ export interface Store {
   shippingMethods: string[];
   billing: OrderAddress;
   taxNumber: string;
+  created: Date;
+  updated: Date;
+}
+
+/**
+ * Used only for db methods
+ *
+ * @export
+ * @interface StoreDb
+ * @extends {StoreCommon}
+ */
+export interface StoreDb extends StoreCommon {
+  _id: string;
+}
+
+/**
+ * Public id field
+ *
+ * @export
+ * @interface Store
+ * @extends {StoreCommon}
+ */
+export interface Store extends StoreCommon {
+  url: string;
 }
 
 export interface StoreAddress extends OrderAddress {
@@ -80,29 +102,6 @@ export interface StoreUser {
 export interface ShippingMethod {
   name: string;
   sort: number;
-}
-
-/**
- * Store Request
- *
- * @export
- * @interface StoreRequest
- */
-export interface StoreRequest {
-  customerId: string;
-  storeId: string;
-  amount: number;
-  id: string;
-  consumerKey: string;
-  consumerSecret: string;
-  withoutBalance: boolean;
-  withoutSubscription: boolean;
-  filter: string;
-  perPage: number;
-  page: number;
-  query: string;
-  url: string;
-  token: string;
 }
 
 /**

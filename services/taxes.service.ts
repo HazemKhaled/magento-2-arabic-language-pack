@@ -1,4 +1,4 @@
-import { Context, Errors, GenericObject, ServiceSchema } from 'moleculer';
+import { Context, Errors, ServiceSchema } from 'moleculer';
 
 import DbService from '../utilities/mixins/mongo.mixin';
 import { TaxOpenapi } from '../utilities/mixins/openapi';
@@ -75,7 +75,7 @@ const TaxesService: ServiceSchema = {
           });
 
         if (taxUpdateData.omsId) {
-          ctx.call<void, GenericObject>('oms.updateTax', {
+          ctx.call<void, Partial<TaxRequestParams>>('oms.updateTax', {
             id: taxUpdateData.omsId,
             name: taxUpdateData.name,
             percentage: taxUpdateData.percentage,
@@ -117,10 +117,10 @@ const TaxesService: ServiceSchema = {
         ttl: 60 * 60 * 24,
       },
       rest: 'GET /',
-      handler(ctx: Context<TaxRequestParams>): DbTax[] {
+      handler(ctx: Context<Partial<TaxRequestParams>>): DbTax[] {
         const { country } = ctx.params;
         const classes = ctx.params.class;
-        const query: GenericObject = {};
+        const query: Partial<TaxRequestParams> = {};
         if (country) {
           query.country = country.toUpperCase();
         }

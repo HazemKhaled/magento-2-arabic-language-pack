@@ -3,43 +3,53 @@ import { ServiceSchema } from 'moleculer';
 export const StoresValidation: ServiceSchema = {
   name: 'stores',
   actions: {
-    getOne: {
+    get: {
       params: {
-        id: {
-          type: 'string',
+        url: {
+          type: 'url',
         },
         withoutBalance: {
           type: 'string',
           optional: true,
         },
-      },
-    },
-    getAll: {
-      params: {
-        filter: {
+        withoutSubscription: {
           type: 'string',
+          optional: true,
         },
       },
     },
-    getAllAdmin: {
+    list: {
       params: {
+        pageSize: {
+          type: 'number',
+          optional: true,
+          convert: true,
+          min: 0,
+        },
         page: {
           type: 'number',
           optional: true,
-          positive: true,
           convert: true,
-          integer: true,
+          min: 1,
         },
-        perPage: {
-          type: 'number',
-          optional: true,
-          positive: true,
+        sort: {
+          type: 'string',
           convert: true,
-          integer: true,
+          optional: true,
+        },
+        query: {
+          type: 'string',
+          optional: true,
+          convert: true,
+        },
+        fields: {
+          type: 'string',
+          optional: true,
+          convert: true,
         },
       },
     },
-    createOne: {
+    create: {
       params: {
         url: {
           type: 'url',
@@ -212,9 +222,9 @@ export const StoresValidation: ServiceSchema = {
         },
       },
     },
-    updateOne: {
+    update: {
       params: {
-        id: {
+        url: {
           type: 'url',
         },
         name: {
@@ -389,10 +399,10 @@ export const StoresValidation: ServiceSchema = {
         },
       },
     },
-    sync: {
+    flushCache: {
       params: {
-        id: {
-          type: 'string',
+        url: {
+          type: 'url',
         },
         timestamp: {
           type: 'string',

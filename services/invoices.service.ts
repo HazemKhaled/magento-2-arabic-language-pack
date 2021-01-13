@@ -9,6 +9,7 @@ import {
   Order,
   OrderRequestParams,
   InvoiceResponse,
+  PaymentRequestParams,
 } from '../utilities/types';
 import { InvoicesValidation } from '../utilities/mixins/validation';
 import { InvoicePage } from '../utilities/mixins/invoicePage';
@@ -44,14 +45,14 @@ const TheService: ServiceSchema = {
         });
 
         return ctx
-          .call<
-            { response: { invoices: Invoice[] } },
-            Partial<InvoiceRequestParams>
-          >('oms.listInvoice', {
-            omsId: store?.internal_data?.omsId,
-            ...queryParams,
-          })
-          .then((response: GenericObject) => {
+          .call<{ invoices: Invoice[] }, Partial<InvoiceRequestParams>>(
+            'oms.listInvoice',
+            {
+              omsId: store?.internal_data?.omsId,
+              ...queryParams,
+            }
+          )
+          .then(response => {
             const invoices = response.invoices;
             return {
               invoices: invoices.map((invoice: Invoice) =>
@@ -67,17 +68,9 @@ const TheService: ServiceSchema = {
     create: {
       auth: ['Basic'],
       async handler(ctx: Context<InvoiceRequestParams>): Promise<unknown> {
-        const instance = await ctx
-          .call<Store & { errors: unknown }, { id: string }>('stores.get', {
-            id: ctx.params.storeId,
-          })
-          .then(store => {
-            if (store.errors) {
-              throw new MoleculerError('Store not found', 404);
-            }
-
-            return store as Store;
-          });
+        const instance = await ctx.call<Store, { url: string }>('stores.get', {
+          url: ctx.params.storeId,
+        });
 
         const { items, discount } = ctx.params;
         // Total items cost
@@ -161,17 +154,20 @@ const TheService: ServiceSchema = {
         ) {
           if (process.env.PAYMENT_AUTO_CHARGE_CC_INVOICE) {
             await ctx
-              .call<void, Partial<GenericObject>>('paymentGateway.charge', {
-                store: store.url,
-                purchase_units: [
-                  {
-                    amount: {
-                      value: params.paymentAmount - store.credit,
-                      currency: 'USD',
+              .call<void, Partial<PaymentRequestParams>>(
+                'paymentGateway.charge',
+                {
+                  store: store.url,
+                  purchase_units: [
+                    {
+                      amount: {
+                        value: params.paymentAmount - store.credit,
+                        currency: 'USD',
+                      },
                     },
-                  },
-                ],
-              })
+                  ],
+                }
+              )
               .then(null, err => {
                 if (err.type === 'SERVICE_NOT_FOUND')
                   throw new MpError(
@@ -197,8 +193,7 @@ const TheService: ServiceSchema = {
           .then(
             res => {
               this.broker.cacher.clean(`invoices.get:${store.consumer_key}*`);
-              this.broker.cacher.clean(`stores.getOne:${store.url}*`);
-              this.broker.cacher.clean(`stores.me:${store.consumer_key}*`);
+              this.broker.cacher.clean(`stores.get:${store.url}*`);
               this.broker.cacher.clean(`payments.get:${store.consumer_key}**`);
               return res;
             },
@@ -216,8 +211,8 @@ const TheService: ServiceSchema = {
       async handler(
         ctx: Context<InvoiceRequestParams>
       ): Promise<{ invoice: Invoice; code?: number; message?: string }> {
-        const instance = await ctx.call<Store, { id: string }>('stores.get', {
-          id: ctx.params.storeId,
+        const instance = await ctx.call<Store, { url: string }>('stores.get', {
+          url: ctx.params.storeId,
         });
 
         return ctx
@@ -255,8 +250,8 @@ const TheService: ServiceSchema = {
       async handler(
         ctx: Context<InvoiceRequestParams, MetaParams>
       ): Promise<unknown> {
-        const store = await ctx.call<Store, { id: string }>('stores.get', {
-          id: ctx.params.storeId,
+        const store = await ctx.call<Store, { url: string }>('stores.get', {
+          url: ctx.params.storeId,
         });
 
         const orders = await ctx.call<Order[], Partial<Order>>(

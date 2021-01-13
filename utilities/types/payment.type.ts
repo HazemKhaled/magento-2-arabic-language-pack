@@ -46,33 +46,6 @@ export interface PaymentResponse {
 }
 
 /**
- * OMS PaymentResponse
- *
- * @export
- * @interface OmsPaymentResponse
- */
-export interface OmsPaymentResponse {
-  payments: Payment[];
-  code: number;
-  message: string;
-  page_context: {
-    has_more_page: boolean;
-    page: number;
-    per_page: number;
-    search_criteria: [
-      {
-        column_name: string;
-        comparator: string;
-        search_text: string;
-        search_text_formatted: string;
-      }
-    ];
-    sort_column: string;
-    sort_order: string;
-  };
-}
-
-/**
  * PaymentInvoice
  *
  * @interface PaymentInvoice
@@ -102,8 +75,26 @@ export interface PaymentRequestParams {
   payment_mode: string;
   amount: number;
   account_id: string;
-  invoices: GenericObject;
+  invoices: {
+    invoice_id: string;
+    amount_applied: number;
+  }[];
   bank_charges: number;
   reference: string;
   description: string;
+  store: string;
+  purchase_units: {
+    amount: {
+      value: number;
+      currency: string;
+    };
+    description?: string;
+  }[];
+  customerId?: string;
+  page?: number;
+  perPage?: number;
+  referenceNumber?: string;
+  paymentMode?: string;
+  limit?: number;
+  reference_number?: string;
 }

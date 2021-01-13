@@ -1,4 +1,4 @@
-import { Context, ServiceSchema, GenericObject } from 'moleculer';
+import { Context, ServiceSchema } from 'moleculer';
 import * as Cron from 'moleculer-cron';
 
 import { Store, Subscription } from '../utilities/types';
@@ -28,7 +28,7 @@ const TheService: ServiceSchema = {
       cache: false,
       async handler(ctx: Context): Promise<null | Subscription> {
         const subscription: any = await ctx
-          .call<GenericObject, Partial<Subscription>>(
+          .call<Subscription, Partial<Subscription>>(
             'subscription.getOneByExpireDate',
             {
               afterDays: 6 * 30,
@@ -46,8 +46,8 @@ const TheService: ServiceSchema = {
           return null;
         }
 
-        const store = await ctx.call<Store, { id: string }>('stores.get', {
-          id: subscription.storeId,
+        const store = await ctx.call<Store, { url: string }>('stores.get', {
+          url: subscription.storeId,
         });
 
         if (store?.status !== 'confirmed') {

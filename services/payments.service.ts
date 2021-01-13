@@ -22,12 +22,9 @@ const TheService: ServiceSchema = {
       async handler(
         ctx: Context<PaymentRequestParams>
       ): Promise<PaymentResponse> {
-        const instance = await ctx.call<Store, { id: string }>('stores.get', {
-          id: ctx.params.id,
+        const instance = await ctx.call<Store, { url: string }>('stores.get', {
+          url: ctx.params.id,
         });
-        if (instance) {
-          instance.url = instance._id || ctx.params.id;
-        }
 
         // create OMS contact if no oms ID
         if (!instance?.internal_data?.omsId) {
@@ -43,7 +40,7 @@ const TheService: ServiceSchema = {
 
         if (ctx.params.invoices) {
           paymentBody.invoices = ctx.params.invoices.map(
-            (invoice: { [key: string]: string }) => ({
+            (invoice: { invoice_id: string; amount_applied: number }) => ({
               invoice_id: invoice.invoice_id,
               amount_applied: invoice.amount_applied,
             })
@@ -63,12 +60,12 @@ const TheService: ServiceSchema = {
         }
 
         return ctx
-          .call<GenericObject, Partial<Payment>>(
+          .call<{ payment: Payment }, Partial<Payment>>(
             'oms.createPayment',
             paymentBody
           )
           .then(
-            async (res: GenericObject) => {
+            async ({ payment }) => {
               // Clear cache
               this.broker.cacher.clean(
                 `payments.get:${instance.consumer_key}**`
@@ -76,10 +73,9 @@ const TheService: ServiceSchema = {
               this.broker.cacher.clean(
                 `subscription.getByStore:${instance.url}*`
               );
-              this.broker.cacher.clean(`stores.getOne:${instance.url}**`);
-              this.broker.cacher.clean(`stores.me:${instance.consumer_key}**`);
-              await this.cacheUpdate(res.payment, instance);
-              return this.sanitizePayment(res.payment);
+              this.broker.cacher.clean(`stores.get:${instance.url}**`);
+              await this.cacheUpdate(payment, instance);
+              return this.sanitizePayment(payment);
             },
             err => {
               throw new MpError(
@@ -163,14 +159,12 @@ const TheService: ServiceSchema = {
       });
     },
     async cacheUpdate(payment, instance): Promise<void> {
-      const store = await this.broker.call('stores.getOne', {
-        id: instance.url,
+      const store = await this.broker.call('stores.get', {
+        url: instance.url,
       });
-      store.url = store.url || store._id;
 
       store.credit = (store.credit || 0) + payment.amount;
-      this.broker.cacher.set(`stores.getOne:${store.url}|undefined`, store);
-      this.broker.cacher.set(`stores.me:${store.consumer_key}`, store);
+      this.broker.cacher.set(`stores.get:${store.url}|undefined`, store);
     },
   },
 };
