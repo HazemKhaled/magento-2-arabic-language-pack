@@ -71,7 +71,7 @@ const TheService: ServiceSchema = {
     get: {
       auth: ['Basic'],
       cache: {
-        keys: ['url','withoutBalance', 'withoutSubscription'],
+        keys: ['url', 'withoutBalance', 'withoutSubscription'],
         ttl: 60 * 60 * 24,
       },
       rest: 'GET /:url',
@@ -249,7 +249,7 @@ const TheService: ServiceSchema = {
             ctx.params.external_data
           );
         }
-        store.id = url;
+        store._id = url;
         const responseStore = await this._update(ctx, store)
           .then((res: Store) => this.transformResultEntity(res))
           .catch((error: { code: number }) => {
@@ -337,7 +337,7 @@ const TheService: ServiceSchema = {
       ): Promise<unknown> {
         const { url } = ctx.params;
         const instance = await ctx.call<Store, { url: string }>('stores.get', {
-           url,
+          url,
         });
 
         try {

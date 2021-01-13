@@ -220,6 +220,12 @@ const TheService: ServiceSchema = {
             405
           );
         }
+        if (membership.isDefault) {
+          throw new MoleculerError(
+            'Could not create subscription for default memberships!',
+            405
+          );
+        }
 
         // Membership cost before tax or discount
         const cost = membership.cost;
@@ -234,10 +240,12 @@ const TheService: ServiceSchema = {
           .catch(err => {
             throw new MpError(
               'Subscription Service',
-              err.code === 404
-                ? 'Store not found ! !'
-                : 'Internal Server error',
-              err.code
+              err.message === 'EntityNotFoundError: Entity not found'
+                ? 'Store not found !'
+                : 'Internal server Error',
+              err.message === 'EntityNotFoundError: Entity not found'
+                ? 404
+                : 500
             );
           });
 
@@ -245,7 +253,9 @@ const TheService: ServiceSchema = {
         if (ctx.params.grantTo) {
           grantToInstance = await ctx.call<Store, { url: string }>(
             'stores.get',
-            { url: ctx.params.grantTo }
+            {
+              url: ctx.params.grantTo,
+            }
           );
         }
 
@@ -282,7 +292,7 @@ const TheService: ServiceSchema = {
                   ],
                 }
               )
-              .then(null, err => {
+              .catch(err => {
                 if (err.type === 'SERVICE_NOT_FOUND')
                   throw new MpError(
                     'Subscription Service',
