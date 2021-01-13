@@ -190,21 +190,15 @@ const TheService: ServiceSchema = {
               invoiceId: ctx.params.id,
             }
           )
-          .then(
-            res => {
-              this.broker.cacher.clean(`invoices.get:${store.consumer_key}*`);
-              this.broker.cacher.clean(`stores.get:${store.url}*`);
-              this.broker.cacher.clean(`payments.get:${store.consumer_key}**`);
-              return res;
-            },
-            err => {
-              throw new MpError(
-                'invoices Service',
-                err.message,
-                err.code || 500
-              );
-            }
-          );
+          .then(res => {
+            this.broker.cacher.clean(`invoices.get:${store.consumer_key}*`);
+            this.broker.cacher.clean(`stores.get:${store.url}*`);
+            this.broker.cacher.clean(`payments.get:${store.consumer_key}**`);
+            return res;
+          })
+          .catch(err => {
+            throw new MpError('invoices Service', err.message, err.code || 500);
+          });
       },
     },
     createOrderInvoice: {
