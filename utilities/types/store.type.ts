@@ -63,7 +63,6 @@ interface StoreCommon {
  */
 export interface StoreDb extends StoreCommon {
   _id: string;
-  id: string;
 }
 
 /**
