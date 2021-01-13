@@ -72,6 +72,8 @@ export const ShipmentValidation: ServiceSchema = {
               city: {
                 type: 'string',
                 pattern: /([A-Za-z* ])$/,
+                optional: true,
+                default: '*',
               },
               country: {
                 type: 'enum',
