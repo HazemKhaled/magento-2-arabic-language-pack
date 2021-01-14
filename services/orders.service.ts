@@ -11,7 +11,6 @@ import {
   OrderItem,
   Product,
   Store,
-  OrderMetaParams,
   Coupon,
   updateOderRequestParams,
   InvoiceResponse,
@@ -957,7 +956,7 @@ const TheService: ServiceSchema = {
         ttl: 60 * 6,
       },
       async handler(
-        ctx: Context<OrderRequestParams, OrderMetaParams>
+        ctx: Context<OrderRequestParams, MetaParams>
       ): Promise<{ message: string; code: number }[]> {
         const { order_id } = ctx.params;
         const { store: instance } = ctx.meta;

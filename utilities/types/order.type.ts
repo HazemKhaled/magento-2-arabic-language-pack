@@ -296,13 +296,3 @@ export interface OrderRequestParams extends Order {
   externalId?: string;
   sort?: string;
 }
-
-/**
- * Order MetaParams Definition
- *
- * @exports
- * @interface OrderMetaParams
- */
-export interface OrderMetaParams {
-  store: GenericObject;
-}

@@ -35,8 +35,8 @@ export interface IncomingRequest extends IncomingMessage {
  * @interface MetaParams
  */
 export interface MetaParams {
-  store: Store;
-  user?: any;
+  store?: Store;
+  user?: string;
   storeId?: string;
   token?: string;
   $statusCode?: number;
