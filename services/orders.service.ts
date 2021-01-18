@@ -94,6 +94,12 @@ const TheService: ServiceSchema = {
               data: orders?.[0],
             };
           }
+
+          this.broker.cacher.set(
+            `createOrder_${store.consumer_key}|${ctx.params.id}`,
+            1,
+            60 * 60 * 24
+          );
         }
 
         const data = this.orderData(ctx.params, store, true);
@@ -138,6 +144,14 @@ const TheService: ServiceSchema = {
             },
           });
 
+          if (ctx.params.id) {
+            this.broker.cacher.clean(
+              `createOrder_${store.consumer_key}|${ctx.params.id}`,
+              1,
+              60 * 60 * 24
+            );
+          }
+
           throw new MpError(
             'Orders Service',
             'The products you ordered are not Knawat products, The order has not been created!',
@@ -178,6 +192,13 @@ const TheService: ServiceSchema = {
               params: ctx.params,
             },
           });
+          if (ctx.params.id) {
+            this.broker.cacher.clean(
+              `createOrder_${store.consumer_key}|${ctx.params.id}`,
+              1,
+              60 * 60 * 24
+            );
+          }
 
           throw new MpError(
             'Orders Service',
@@ -296,13 +317,6 @@ const TheService: ServiceSchema = {
                 `orders.list:undefined|${ctx.meta.user}**`
               );
               this.cacheUpdate(result.salesorder, store);
-              if (ctx.params.id) {
-                this.broker.cacher.set(
-                  `createOrder_${store.consumer_key}|${ctx.params.id}`,
-                  1,
-                  60 * 60 * 24
-                );
-              }
             }
 
             return result;
