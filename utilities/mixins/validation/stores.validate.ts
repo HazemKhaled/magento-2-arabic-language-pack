@@ -230,6 +230,7 @@ export const StoresValidation: ServiceSchema = {
         },
         name: {
           type: 'string',
+          min: 3,
           optional: true,
         },
         logo: {
