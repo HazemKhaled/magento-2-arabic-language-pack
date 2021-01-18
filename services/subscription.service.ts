@@ -55,10 +55,12 @@ const TheService: ServiceSchema = {
           .then(([record]) => record);
 
         const membership = await ctx
-          .call<Membership, Partial<Membership>>('membership.get', {
-            id: subscription?.membershipId || 'm-free',
+          .call<Membership[], { query: { _id: string } }>('membership.find', {
+            query: {
+              _id: subscription?.membershipId || 'm-free',
+            },
           })
-          .then(res => {
+          .then(([res]) => {
             return this.transformMembershipEntity(res);
           });
 
