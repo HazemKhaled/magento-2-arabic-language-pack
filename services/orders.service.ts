@@ -1215,7 +1215,7 @@ const TheService: ServiceSchema = {
         data.externalId = params.id ? String(params.id) : uuidv1();
         data.invoice_url =
           params.invoice_url ||
-          `${this.settings.BASEURL}/invoice/${encodeURIComponent(
+          `${this.settings.BASEURL}/invoices/${encodeURIComponent(
             instance.url
           )}/external/${data.externalId}`;
         // Order store data
