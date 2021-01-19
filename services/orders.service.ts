@@ -146,9 +146,7 @@ const TheService: ServiceSchema = {
 
           if (ctx.params.id) {
             this.broker.cacher.clean(
-              `createOrder_${store.consumer_key}|${ctx.params.id}`,
-              1,
-              60 * 60 * 24
+              `createOrder_${store.consumer_key}|${ctx.params.id}`
             );
           }
 
@@ -194,9 +192,7 @@ const TheService: ServiceSchema = {
           });
           if (ctx.params.id) {
             this.broker.cacher.clean(
-              `createOrder_${store.consumer_key}|${ctx.params.id}`,
-              1,
-              60 * 60 * 24
+              `createOrder_${store.consumer_key}|${ctx.params.id}`
             );
           }
 
