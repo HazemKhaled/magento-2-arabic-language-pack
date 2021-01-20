@@ -34,8 +34,9 @@ const TheService: ServiceSchema = {
 
       // Function used to generate keys. Defaults to:
       key(req: IncomingRequest): string | number {
-        const [type, reqToken] = req.headers.authorization?.split(' ');
-
+        const [type, reqToken] = req.headers.authorization
+          ? req.headers.authorization?.split(' ')
+          : '';
         return type?.toLowerCase() === 'bearer' ? reqToken : Date.now();
       },
     },
