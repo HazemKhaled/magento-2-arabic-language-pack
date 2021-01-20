@@ -1,5 +1,97 @@
 # Changelog
 
+## v2.0.0
+
+### 🚀 Features
+
+- Added hmac authorization in payment checkout
+- get cards data from the server
+- Added unit test action
+- Updated checkout to support any payment gateway
+- Sanitized data before sending it to client
+- Removed the Logs service from MP
+- Added list cards endpoint
+- Added cards endpoint
+- Added country code validation in shipment api
+- split dev APM metrics
+- Cleanup mongodb from production docker
+- Added moleculer APM
+- Auto aliases routes
+- Fixed circuitBreaker & timeout issues
+- Remove paymentGateway endpoints
+- Added traefik docker network
+- Handled payment success and fail
+- Updated checkout currency
+- Pay order support store param
+- Support pay from balance
+- Added the Tax Number Field in Billing Information in stores
+- Added the tax number filed in create store
+- Accept orders from Kosovo
+- Removed CRM service code
+- No need to use this.clearCache() if we using builtin func
+- Removed paymentGateway from auto alias
+- Added the csvOutOfStock new params for diffrentiate the instock and outofstock
+- Better handling for baying from balance
+- Added redis admin on dev
+
+### 🐛 Fixes
+
+- Fixed type issue and updated the return type in handler
+- Fixed Parsing float in wallet balance
+- Removed unused api
+- Fixed delete product-instance error response
+- Somehow docker version on production not supporting this style
+- Order not created issue
+- Resolved the count issue to match the same count as product listing
+- webpack cli after upgrade to 4.x
+- Fixed type changes and update the webpack.ts file
+- Resolved the type issue in subscription file
+- Put babel back, .vue files need optional chaining
+- Fixed open apm port
+- Removed microes old project name
+- Return back composer project name
+- Better APM config
+- Fixed whitelist regex
+- Keep categories container only for categories, move products close to p-instances
+- Resolved openapi.json head 404 error
+- Resolved update order status and error message
+- Resolved hide externalID in my-product page
+- Fixed coupon routes after auto alias
+- Fixed alias for memberships
+- Updtae shipment auto routes
+- Update stores actions names with auto alias routes
+- Fixed visability in subscription and configure auto alias
+- Taxes auto alias
+- Fixed pass more mongo options
+- Removed the unused ctx.params from event
+- Resolved Payment cache issue
+- Resolved the remove tax not working issue
+- Added deprecated route to stores/admin and updated the params
+- Resolved mongo sort query issue
+- Resolved the subscription create issue
+- Resolved the empty category issue
+- Resolved the hideOutOfStock issues
+- Resolved the Invoice url not working issue
+- Resolved the empty page display issue after create the order
+- Resolved the sync issues in store api
+- Resolved the dbmixins issue
+- Updated the stores open api
+
+### ✨ Enhancements
+
+- Moleculer upgrade to 0.14.0
+- Migrated fast-validation code and updated moleculer.config.ts based on 0.14 version
+- Enhanced checkout ledger
+- Enhanced overall style
+- Update typescript version
+- Split npm start dev and frontend
+- Refactored the Openapi code and resolved the types issues
+- Use getById instead of adapter.findById
+- Use this.actions.insert instead of this.adapter.insert to flush cache
+- Added clean cache some where into coupons
+- Use this.find instead of this.adapter.findOne
+- Rewrite all stores action like you updated in knawat-moleculer-template and convert the \_id to url
+
 ## v1.11.0
 
 ### 🚀 Features
