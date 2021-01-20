@@ -39,7 +39,7 @@ const TheService: ServiceSchema = {
                 422
               );
             }
-            throw new MpError('Coupon Service', String(err), 500);
+            throw new MpError('Coupon Service', err.toString(), 500);
           });
       },
     },
@@ -85,7 +85,7 @@ const TheService: ServiceSchema = {
             if (err.name === 'MoleculerError') {
               throw new MoleculerError(err.message, err.code);
             }
-            throw new MoleculerError(String(err), 500);
+            throw new MoleculerError(err.toString(), 500);
           });
       },
     },
@@ -129,7 +129,7 @@ const TheService: ServiceSchema = {
             if (err.name === 'MoleculerError') {
               throw new MoleculerError(err.message, err.code);
             }
-            throw new MoleculerError(String(err), 500);
+            throw new MoleculerError(err.toString(), 500);
           });
       },
     },
@@ -166,7 +166,7 @@ const TheService: ServiceSchema = {
             return coupon;
           })
           .catch((err: CommonError) => {
-            throw new MoleculerError(String(err), 500);
+            throw new MoleculerError(err.toString(), 500);
           });
       },
     },
@@ -191,7 +191,7 @@ const TheService: ServiceSchema = {
             return coupon;
           })
           .catch((err: CommonError) => {
-            throw new MoleculerError(String(err), 500);
+            throw new MoleculerError(err.toString(), 500);
           });
       },
     },

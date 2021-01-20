@@ -40,7 +40,7 @@ const TaxesService: ServiceSchema = {
             return { tax: this.sanitizer(tax) as DbTax };
           })
           .catch((err: CommonError) => {
-            throw new MoleculerError(String(err), 500);
+            throw new MoleculerError(err.toString(), 500);
           });
       },
     },

@@ -169,7 +169,7 @@ const TheService: ServiceSchema = {
             if (err.name === 'MoleculerError') {
               throw new MoleculerError(err.message, err.code);
             }
-            throw new MoleculerError(String(err), 500);
+            throw new MoleculerError(err.toString(), 500);
           });
       },
     },
@@ -363,7 +363,7 @@ const TheService: ServiceSchema = {
                   err.code
                 );
               }
-              throw new MoleculerError(String(err), 500);
+              throw new MoleculerError(err.toString(), 500);
             });
 
           await ctx
@@ -378,7 +378,7 @@ const TheService: ServiceSchema = {
                   err.code
                 );
               }
-              throw new MoleculerError(String(err), 500);
+              throw new MoleculerError(err.toString(), 500);
             });
         }
 
@@ -644,7 +644,7 @@ const TheService: ServiceSchema = {
             return subscription;
           })
           .catch((err: CommonError) => {
-            throw new MoleculerError(String(err), 500);
+            throw new MoleculerError(err.toString(), 500);
           });
       },
     },
