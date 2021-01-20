@@ -37,8 +37,6 @@ const TheService: ServiceSchema = {
         const [type, reqToken] = req.headers?.authorization
           ? req.headers?.authorization.split(' ')
           : '';
-        console.log('type >>>> ', type);
-        console.log('reqToken >>>> ', reqToken);
         return type && type.toLowerCase() === 'bearer' ? reqToken : Date.now();
       },
     },
