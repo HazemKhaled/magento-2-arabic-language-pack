@@ -1,5 +1,3 @@
-import { GenericObject } from 'moleculer';
-
 /**
  * Payment
  *
