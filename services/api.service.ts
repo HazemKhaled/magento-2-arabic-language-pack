@@ -34,8 +34,12 @@ const TheService: ServiceSchema = {
 
       // Function used to generate keys. Defaults to:
       key(req: IncomingRequest): string | number {
-        const [type, reqToken] = req.headers.authorization.split(' ');
-        return type.toLowerCase() === 'bearer' ? reqToken : Date.now();
+        const [type, reqToken] = req.headers?.authorization
+          ? req.headers?.authorization.split(' ')
+          : '';
+        console.log('type >>>> ', type);
+        console.log('reqToken >>>> ', reqToken);
+        return type && type.toLowerCase() === 'bearer' ? reqToken : Date.now();
       },
     },
 
