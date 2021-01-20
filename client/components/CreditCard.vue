@@ -63,6 +63,7 @@ form.vc-card(novalidate, autocomplete='on')
 <script>
 import Payment from 'payment';
 
+// eslint-disable-next-line import/extensions
 import icons from '../icons.ts';
 
 export default {
